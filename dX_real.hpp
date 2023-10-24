@@ -201,14 +201,14 @@ namespace mX_real {
     // contents are always in Accurate format
     // but they follow in the Algorithm argument 'A'
     //
-    static inline dX_real<T,A> constexpr zero ( void ) { return dX_real<T,A>( fp<T>::zero ); }
-    static inline dX_real<T,A> constexpr one  ( void ) { return dX_real<T,A>( fp<T>::one );  }
-    static inline dX_real<T,A> constexpr two  ( void ) { return dX_real<T,A>( fp<T>::two );  }
-    static inline dX_real<T,A> constexpr half ( void ) { return dX_real<T,A>( fp<T>::half ); }
-    static inline dX_real<T,A> constexpr epsilon ( void ) {
-	    T c = fp<T>::epsilon * fp<T>::half; c = (c * c) * 2; return dX_real<T,A>( c ); }
-    static inline dX_real<T,A> constexpr nan  ( void ) { T c = fp<T>::nan; return dX_real<T,A>( c,c ); }
-    static inline dX_real<T,A> constexpr inf  ( void ) { T c = fp<T>::inf; return dX_real<T,A>( c,c ); }
+    static inline dX_real<T,A> constexpr zero () { return dX_real<T,A>( fp<T>::zero ); }
+    static inline dX_real<T,A> constexpr one  () { return dX_real<T,A>( fp<T>::one );  }
+    static inline dX_real<T,A> constexpr two  () { return dX_real<T,A>( fp<T>::two );  }
+    static inline dX_real<T,A> constexpr half () { return dX_real<T,A>( fp<T>::half ); }
+    static inline dX_real<T,A> constexpr epsilon () {
+      T c = fp<T>::epsilon * fp<T>::half; c = (c * c) * 2; return dX_real<T,A>( c ); }
+    static inline dX_real<T,A> constexpr nan  () { T c = fp<T>::nan; return dX_real<T,A>( c,c ); }
+    static inline dX_real<T,A> constexpr inf  () { T c = fp<T>::inf; return dX_real<T,A>( c,c ); }
 
   };
 
@@ -472,6 +472,14 @@ namespace mX_real {
   //
   //
   template < typename T, Algorithm Aa >
+  inline bool signbit ( dX_real<T,Aa> const& a ) {
+    auto s = a.x[0];
+    if ( Aa == Algorithm::Quasi ) { s += a.x[1]; }
+    return std::signbit( s );
+  }
+
+
+  template < typename T, Algorithm Aa >
   inline dX_real<T,Aa> abs ( dX_real<T,Aa> const& a ) {
     auto s = a.x[0];
     if ( Aa == Algorithm::Quasi ) { s += a.x[1]; }
@@ -481,6 +489,7 @@ namespace mX_real {
       return -a;
     }
   }
+
 
   template < typename T, Algorithm Aa >
   inline auto sqrt ( dX_real<T,Aa> const& a )
@@ -528,8 +537,9 @@ namespace mX_real {
     return TX( ch, cl );
   }
 
+
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto min ( dX_real<T,Aa> const& a, dX_real<T,Ab> const &b )
+  inline auto fmin ( dX_real<T,Aa> const& a, dX_real<T,Ab> const &b )
   -> std::enable_if_t< A!=Algorithm::Quasi, dX_real<T,A> > {
   //
   // Sloppy or Accurate
@@ -545,17 +555,18 @@ namespace mX_real {
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto min ( dX_real<T,Aa> const& a, dX_real<T,Ab> const& b )
+  inline auto fmin ( dX_real<T,Aa> const& a, dX_real<T,Ab> const& b )
   -> std::enable_if_t< A==Algorithm::Quasi, dX_real<T,A> > {
   //
   // Quasi
   //
     using TX = dX_real<T,Algorithm::Accurate>;
-    return dX_real<T,A>( min( TX(a), TX(b) ) );
+    return dX_real<T,A>( fmin( TX(a), TX(b) ) );
   }
 
+
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto max ( dX_real<T,Aa> const& a, dX_real<T,Ab> const &b )
+  inline auto fmax ( dX_real<T,Aa> const& a, dX_real<T,Ab> const &b )
   -> std::enable_if_t< A!=Algorithm::Quasi, dX_real<T,A> > {
   //
   // Sloppy or Accurate
@@ -571,13 +582,13 @@ namespace mX_real {
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto max ( dX_real<T,Aa> const& a, dX_real<T,Ab> const& b )
+  inline auto fmax ( dX_real<T,Aa> const& a, dX_real<T,Ab> const& b )
   -> std::enable_if_t< A==Algorithm::Quasi, dX_real<T,A> > {
   //
   // Quasi
   //
     using TX = dX_real<T,Algorithm::Accurate>;
-    return dX_real<T,A>( max( TX(a), TX(b) ) );
+    return dX_real<T,A>( fmax( TX(a), TX(b) ) );
   }
 
 
@@ -590,19 +601,6 @@ namespace mX_real {
     return stream;
   }
 
-}
-
-namespace std {
-  template < typename T, mX_real::Algorithm A >
-  class numeric_limits<mX_real::dX_real<T,A>> {
-    using TX = mX_real::dX_real<T,A>;
-  public:
-    inline static TX epsilon() { return TX::epsilon(); }
-    inline static TX infinity() { return TX::inf(); }
-    inline static TX quiet_NaN() { return TX::nan(); }
-
-    static int const digits       = 53*2;
-  };
 }
 
 

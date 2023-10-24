@@ -348,7 +348,7 @@ namespace mX_real {
 
 
   //
-  // APIs for constatnt number function
+  // APIs for common constatnt number functions
   //
   template < typename T > static inline auto constexpr zero(void)
   -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(0); }
@@ -394,18 +394,18 @@ namespace mX_real {
 
 #ifdef __MPREAL_H__
   template <> inline mpfr::mpreal epsilon <mpfr::mpreal> (void) { return mpfr::machine_epsilon(); }
-  template <> inline mpfr::mpreal inf  <mpfr::mpreal> (void) { return mpfr::const_infinity(); }
-  template <> inline mpfr::mpreal nan  <mpfr::mpreal> (void) { return mpfr::mpreal().setNan(); }
+  template <> inline mpfr::mpreal inf <mpfr::mpreal> (void) { return mpfr::const_infinity(); }
+  template <> inline mpfr::mpreal nan <mpfr::mpreal> (void) { return mpfr::mpreal().setNan(); }
 #endif
 #ifdef  _QD_DD_REAL_H
   template <> inline dd_real epsilon <dd_real> (void) { return dd_real::_eps; }
-  template <> inline dd_real inf  <dd_real> (void) { return dd_real::_inf; }
-  template <> inline dd_real nan  <dd_real> (void) { return dd_real::_nan; }
+  template <> inline dd_real inf <dd_real> (void) { return dd_real::_inf; }
+  template <> inline dd_real nan <dd_real> (void) { return dd_real::_nan; }
 #endif
 #ifdef  _QD_QD_REAL_H
   template <> inline qd_real epsilon <qd_real> (void) { return qd_real::_eps; }
-  template <> inline qd_real inf  <qd_real> (void) { return qd_real::_inf; }
-  template <> inline qd_real nan  <qd_real> (void) { return qd_real::_nan; }
+  template <> inline qd_real inf <qd_real> (void) { return qd_real::_inf; }
+  template <> inline qd_real nan <qd_real> (void) { return qd_real::_nan; }
 #endif
 
 
@@ -419,6 +419,9 @@ namespace mX_real {
 
 
 //
+#include "std_.hpp"
+
+
 using df_Real        = mX_real::dX_real_accurate<float>;
 using df_Real_sloppy = mX_real::dX_real_sloppy<float>;
 using df_Real_quasi  = mX_real::dX_real_quasi<float>;
