@@ -12,6 +12,8 @@ namespace mX_real {
                    "The base type must be out of the defined types, such as float or double." );
 
     //
+    static bool constexpr __is_mX_real__ = true;
+    //
     static int constexpr L = 4;
     using base = qX_real<T,Algorithm::Accurate>;
     using base_T = T;
@@ -183,7 +185,8 @@ namespace mX_real {
     static inline qX_real<T,A> constexpr two  ( void ) { return qX_real<T,A>( fp<T>::two ); }
     static inline qX_real<T,A> constexpr half ( void ) { return qX_real<T,A>( fp<T>::half ); }
     static inline qX_real<T,A> constexpr three_half  ( void ) { return qX_real<T,A>( fp<T>::half * 3 ); }
-    static inline qX_real<T,A> constexpr epsilon ( void ) { T c = fp<T>::epsilon; return qX_real<T,A>( c*c*c*c*8 ); }
+    static inline qX_real<T,A> constexpr epsilon ( void ) {
+	    T c = fp<T>::epsilon * fp<T>::half; c = (c * c); c = (c * c) * 2; return qX_real<T,A>( c ); }
     static inline qX_real<T,A> constexpr nan  ( void ) { T c = fp<T>::nan; return qX_real<T,A>( c,c,c,c ); }
     static inline qX_real<T,A> constexpr inf  ( void ) { T c = fp<T>::inf; return qX_real<T,A>( c,c,c,c ); }
 
@@ -804,6 +807,20 @@ namespace mX_real {
   }
 
 }
+
+namespace std {
+  template < typename T, mX_real::Algorithm A >
+  class numeric_limits<mX_real::qX_real<T,A>> {
+    using TX = mX_real::qX_real<T,A>;
+  public:
+    inline static TX epsilon() { return TX::epsilon(); }
+    inline static TX infinity() { return TX::inf(); }
+    inline static TX quiet_NaN() { return TX::nan(); }
+
+    static int const digits       = 53*4;
+  };
+}
+
 
 #endif
 

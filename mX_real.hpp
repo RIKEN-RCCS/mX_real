@@ -327,23 +327,23 @@ namespace mX_real {
 
   //
   template < typename T >
-  struct check_sX_real {
+  struct check_mX_real {
   private:
     template < class U >
-    static auto check( U v ) -> decltype( U::L, std::false_type() );
-    static auto check( ... ) -> decltype( std::true_type() );
+    static auto check( U v ) -> decltype( U::__is_mX_real__, std::true_type() );
+    static auto check( ... ) -> decltype( std::false_type() );
     using type = decltype( check( std::declval<T>() ) );
   public:
     static bool constexpr value = type::value;
   };
 #ifdef __MPREAL_H__
-  template <> struct check_sX_real <mpfr::mpreal> { static bool constexpr value  = true; };
+  template <> struct check_mX_real <mpfr::mpreal> { static bool constexpr value  = false; };
 #endif
 #ifdef  _QD_DD_REAL_H
-  template <> struct check_sX_real <dd_real> { static bool constexpr value  = true; };
+  template <> struct check_mX_real <dd_real> { static bool constexpr value  = false; };
 #endif
 #ifdef  _QD_QD_REAL_H
-  template <> struct check_sX_real <qd_real> { static bool constexpr value  = true; };
+  template <> struct check_mX_real <qd_real> { static bool constexpr value  = false; };
 #endif
 
 
@@ -351,45 +351,45 @@ namespace mX_real {
   // APIs for constatnt number function
   //
   template < typename T > static inline auto constexpr zero(void)
-  -> std::enable_if_t<check_sX_real<T>::value,T> { return T(0); }
+  -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(0); }
   template < typename T > static inline auto constexpr zero(void)
-  -> std::enable_if_t<!check_sX_real<T>::value,T> { return T::zero(); }
+  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::zero(); }
 
   //
   template < typename T > static inline auto constexpr one(void)
-  -> std::enable_if_t<check_sX_real<T>::value,T> { return T(1); }
+  -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(1); }
   template < typename T > static inline auto constexpr one(void)
-  -> std::enable_if_t<!check_sX_real<T>::value,T> { return T::one(); }
+  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::one(); }
 
   //
   template < typename T > static inline auto constexpr two(void)
-  -> std::enable_if_t<check_sX_real<T>::value,T> { return T(2); }
+  -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(2); }
   template < typename T > static inline auto constexpr two(void)
-  -> std::enable_if_t<!check_sX_real<T>::value,T> { return T::two(); }
+  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::two(); }
 
   //
   template < typename T > static inline auto constexpr half(void)
-  -> std::enable_if_t<check_sX_real<T>::value,T> { return T(1./2.); }
+  -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(1./2.); }
   template < typename T > static inline auto constexpr half(void)
-  -> std::enable_if_t<!check_sX_real<T>::value,T> { return T::half(); }
+  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::half(); }
 
   //
   template < typename T > static inline auto constexpr epsilon(void)
-  -> std::enable_if_t<check_sX_real<T>::value,T> { return std::numeric_limits<T>::epsilon(); }
+  -> std::enable_if_t<!check_mX_real<T>::value,T> { return std::numeric_limits<T>::epsilon(); }
   template < typename T > static inline auto constexpr epsilon(void)
-  -> std::enable_if_t<!check_sX_real<T>::value,T> { return T::epsilon(); }
+  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::epsilon(); }
 
   //
   template < typename T > static inline auto constexpr nan(void)
-  -> std::enable_if_t<check_sX_real<T>::value,T> { return std::numeric_limits<T>::quiet_NaN(); }
+  -> std::enable_if_t<!check_mX_real<T>::value,T> { return std::numeric_limits<T>::quiet_NaN(); }
   template < typename T > static inline auto constexpr nan(void)
-  -> std::enable_if_t<!check_sX_real<T>::value,T> { return T::nan(); }
+  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::nan(); }
 
   //
   template < typename T > static inline auto constexpr inf(void)
-  -> std::enable_if_t<check_sX_real<T>::value,T> { return std::numeric_limits<T>::infinity(); }
+  -> std::enable_if_t<!check_mX_real<T>::value,T> { return std::numeric_limits<T>::infinity(); }
   template < typename T > static inline auto constexpr inf(void)
-  -> std::enable_if_t<!check_sX_real<T>::value,T> { return T::inf(); }
+  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::inf(); }
 
 
 #ifdef __MPREAL_H__

@@ -12,7 +12,7 @@
 
 template < typename T >
 auto print( std::string message, T const &x, bool const flag = false )
--> std::enable_if_t<!check_sX_real<T>::value,void> {
+-> std::enable_if_t< check_mX_real<T>::value,void> {
   mX_real::debug_print<typename T::base_T>( message, x, flag );
 }
 

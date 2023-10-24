@@ -4,14 +4,18 @@
 
 #include <qd/dd_real.h>
 #include <qd/qd_real.h>
-
 #include "mpreal.h"
+
+//
+// if some of {qd/dd_real.h, qd/qd_real.h, mpreal.h} are needed,
+// include the header(s) in advance of the inclusion of mX_real
+//
 
 #include "mX_real.hpp"
 using namespace mX_real;
+
 #include "io.hpp"
 #include "mpfr_convert.hpp"
-
 using mp_real    =  mpfr::mpreal;
 
 
@@ -75,8 +79,8 @@ init( int const L, mp_real const& alpha, mp_real * x, mp_real * y, mp_real * z )
 
   #pragma gcc ivdep
   for(int i=0; i<L; i++) {
-    x[i] = mpfr::random();
-    y[i] = mpfr::random();
+    x[i] = 2*mpfr::random() - 1;
+    y[i] = 2*mpfr::random() - 1;
     z[i+8] = y[i];
   }
   axpy( L, alpha, x, z+8 );
@@ -234,6 +238,27 @@ main(int argc, char *argv[])
   auto * z = new mp_real[L+8+M];
 
   auto alpha = sqrt( mp_real(2) );
+
+{
+  float e = 1;
+  print( "one1=", e );
+  e = e - std::numeric_limits<float>::epsilon()/2;
+  print( "one1-u1=", e );
+
+  df_Real f = df_Real( e,e*std::numeric_limits<float>::epsilon()/2 );;
+  print( "(one1-u1,(one1-u1)*u1)=", f );
+
+  df_Real c = df_Real(1);
+  print( "one2=", c );
+  c = c - df_Real::epsilon() * df_Real::half();
+  print( "one2-u2=", c );
+
+  c = c - f;
+  print( "(one2-u2)-(one1-u1,(one1-u1)*u1)=", c );
+
+  c = f + df_Real::epsilon() * df_Real::half();
+  print( "one2-u2=", c );
+}
 
   init( L, alpha, x, y, z );
 
