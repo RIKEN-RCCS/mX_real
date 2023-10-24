@@ -205,10 +205,23 @@ namespace mX_real {
     static inline dX_real<T,A> constexpr one  () { return dX_real<T,A>( fp<T>::one );  }
     static inline dX_real<T,A> constexpr two  () { return dX_real<T,A>( fp<T>::two );  }
     static inline dX_real<T,A> constexpr half () { return dX_real<T,A>( fp<T>::half ); }
+
     static inline dX_real<T,A> constexpr epsilon () {
       T c = fp<T>::epsilon * fp<T>::half; c = (c * c) * 2; return dX_real<T,A>( c ); }
+
     static inline dX_real<T,A> constexpr nan  () { T c = fp<T>::nan; return dX_real<T,A>( c,c ); }
     static inline dX_real<T,A> constexpr inf  () { T c = fp<T>::inf; return dX_real<T,A>( c,c ); }
+
+    static inline dX_real<T,A> constexpr min  () {
+      T c0 = (std::numeric_limits<T>::min() * 2) / fp<T>::epsilon;
+      T c1 = (c0 - std::numeric_limits<T>::min()) * fp<T>::epsilon;
+      return dX_real<T,A>( c0, -c1 );
+    }
+    static inline dX_real<T,A> constexpr max  () {
+      T c0 = std::numeric_limits<T>::max();
+      T c1 = c0 * fp<T>::epsilon * fp<T>::half;
+      return dX_real<T,A>( c0, c1 );
+    }
 
   };
 
@@ -220,42 +233,6 @@ namespace mX_real {
   using dX_real_sloppy   = dX_real<T,Algorithm::Sloppy>;
   template < typename T >
   using dX_real_quasi    = dX_real<T,Algorithm::Quasi>;
-
-
-  //
-  //
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, dX_real<T,A> const &x, bool const flag = false )
-  -> std::enable_if_t< std::is_same< T, float >::value, void > {
-    uint32_t * d = (uint32_t *)(&x.x[0]);
-    long double xx =
-          (long double)x.x[1] +
-          (long double)x.x[0];
-    std::cout << message;
-    printf(" %cDF : %08x %08x %26.19Le\n",
-		    toString(A)[0], d[0], d[1], xx);
-    if ( flag ) {
-    std::cout << "  : " << std::bitset<32>(d[0])
-            << "\n    " << std::bitset<32>(d[1]);
-    printf(" %26.19Le\n", xx);
-    }
-  }
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, dX_real<T,A> const &x, bool const flag = false )
-  -> std::enable_if_t< std::is_same< T, double >::value, void > {
-    uint64_t * d = (uint64_t *)(&x.x[0]);
-    long double xx =
-          (long double)x.x[1] +
-          (long double)x.x[0];
-    std::cout << message;
-    printf(" %cDD : %016lx %016lx %26.19Le\n",
-		    toString(A)[0], d[0], d[1], xx);
-    if ( flag ) {
-    std::cout << "  : " << std::bitset<64>(d[0])
-            << "\n    " << std::bitset<64>(d[1]);
-    printf(" %26.19Le\n", xx);
-    }
-  }
 
 
   //
@@ -472,6 +449,12 @@ namespace mX_real {
   //
   //
   template < typename T, Algorithm Aa >
+  inline bool isnan ( dX_real<T,Aa> const& a ) {
+    auto s = a.x[0];
+    if ( Aa == Algorithm::Quasi ) { s += a.x[1]; }
+    return std::isnan( s );
+  }
+  template < typename T, Algorithm Aa >
   inline bool signbit ( dX_real<T,Aa> const& a ) {
     auto s = a.x[0];
     if ( Aa == Algorithm::Quasi ) { s += a.x[1]; }
@@ -479,6 +462,8 @@ namespace mX_real {
   }
 
 
+  //
+  //
   template < typename T, Algorithm Aa >
   inline dX_real<T,Aa> abs ( dX_real<T,Aa> const& a ) {
     auto s = a.x[0];

@@ -159,6 +159,7 @@ namespace mX_real {
   double constexpr fp<double>::nan;
 #endif
 
+
   //
   // common operation functions
   //
@@ -416,12 +417,10 @@ namespace mX_real {
 #include "dX_real.hpp"
 #include "tX_real.hpp"
 #include "qX_real.hpp"
+#include "std::mX_real.hpp"
 
 
 //
-#include "std_.hpp"
-
-
 using df_Real        = mX_real::dX_real_accurate<float>;
 using df_Real_sloppy = mX_real::dX_real_sloppy<float>;
 using df_Real_quasi  = mX_real::dX_real_quasi<float>;

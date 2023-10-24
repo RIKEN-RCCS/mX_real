@@ -8,7 +8,7 @@
 
 //
 // if some of {qd/dd_real.h, qd/qd_real.h, mpreal.h} are needed,
-// include the header(s) in advance of the inclusion of mX_real
+// include their headers in advance of the inclusion of mX_real.hpp
 //
 
 #include "mX_real.hpp"
@@ -16,7 +16,7 @@ using namespace mX_real;
 
 #include "io.hpp"
 #include "mpfr_convert.hpp"
-using mp_real    =  mpfr::mpreal;
+using mp_real = mpfr::mpreal;
 
 
 
@@ -238,6 +238,37 @@ main(int argc, char *argv[])
   auto * z = new mp_real[L+8+M];
 
   auto alpha = sqrt( mp_real(2) );
+
+{
+   print( "min", std::numeric_limits<float>::min() );
+   print( "min", df_Real::min() );
+   print( "min", std::numeric_limits<double>::min() );
+   print( "min", dd_Real::min() );
+}
+{
+   print( "max", std::numeric_limits<float>::max() );
+   print( "max", df_Real::max() );
+   print( "max", std::numeric_limits<double>::max() );
+   print( "max", dd_Real::max() );
+}
+{
+   float x = std::numeric_limits<float>::quiet_NaN();
+   float y = -x;
+   std::cout << "nan=" << x << "\n" << "-nan=" << y << "\n";
+   std::cout << (x == y) << " " << (-x == y) << " " << ( x == -y) << "\n";
+}
+{
+   float x = std::numeric_limits<float>::infinity();
+   float y = -x;
+   std::cout << "inf=" << x << "\n" << "-inf=" << y << "\n";
+   std::cout << (x == y) << " " << (-x == y) << " " << ( x == -y) << "\n";
+}
+{
+   float x = +0;
+   float y = -x;
+   std::cout << "+0=" << x << "\n" << "-0=" << y << "\n";
+   std::cout << (x == y) << " " << (-x == y) << " " << ( x == -y) << "\n";
+}
 
 {
   float e = 1;

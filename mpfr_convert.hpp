@@ -45,7 +45,7 @@ namespace mX_real {
     if ( s != zero<T>() ) {
       mpfr::mpreal S = (double)s;
       if ( std::is_same<T,float>::value ) {
-        if ( (x > 0 && S > x) || (x < 0 && S < x) ) { // to avoid double rounding
+        if ( (s > 0 && S > x) || (s < 0 && S < x) ) { // to avoid double rounding
           s = s - fp<T>::ufp( s );
         }
       }

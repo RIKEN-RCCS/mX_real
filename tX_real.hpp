@@ -208,44 +208,6 @@ namespace mX_real {
 
   //
   //
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, tX_real<T,A> const &x, bool const flag = false )
-  -> std::enable_if_t< std::is_same< T, float >::value, void > {
-    uint32_t * d = (uint32_t *)(&x.x[0]);
-    long double xx = (long double)x.x[2]
-                   + (long double)x.x[1]
-                   + (long double)x.x[0];
-    std::cout << message;
-    printf(" %cTF : %08x %08x %08x %26.19Le\n",
-		    toString(A)[0], d[0], d[1], d[2], xx);
-    if ( flag ) {
-    std::cout << "  : " << std::bitset<32>(d[0])
-            << "\n    " << std::bitset<32>(d[1])
-	    << "\n    " << std::bitset<32>(d[2]);
-    printf(" %26.19Le\n", xx);
-    }
-  }
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, tX_real<T,A> const &x, bool const flag = false )
-  -> std::enable_if_t< std::is_same< T, double >::value, void > {
-    uint64_t * d = (uint64_t *)(&x.x[0]);
-    long double xx = (long double)x.x[2]
-                   + (long double)x.x[1]
-                   + (long double)x.x[0];
-    std::cout << message;
-    printf(" %cTD : %016lx %016lx %016lx %26.19Le\n",
-		    toString(A)[0], d[0], d[1], d[2], xx);
-    if ( flag ) {
-    std::cout << "  : " << std::bitset<64>(d[0])
-            << "\n    " << std::bitset<64>(d[1])
-	    << "\n    " << std::bitset<64>(d[2]);
-    printf(" %26.19Le\n", xx);
-    }
-  }
-
-
-  //
-  //
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto operator== ( tX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
   -> std::enable_if_t< A!=Algorithm::Quasi,bool > {
@@ -588,6 +550,12 @@ namespace mX_real {
   //
   //
   template < typename T, Algorithm Aa >
+  inline bool isnan ( tX_real<T,Aa> const& a ) {
+    auto s = a.x[0];
+    if ( Aa == Algorithm::Quasi ) { s += a.x[1] + a.x[2]; }
+    return std::isnan( s );
+  }
+  template < typename T, Algorithm Aa >
   inline bool signbit ( tX_real<T,Aa> const& a ) {
     auto s = a.x[0];
     if ( Aa == Algorithm::Quasi ) { s += a.x[1] + a.x[2]; }
@@ -595,6 +563,8 @@ namespace mX_real {
   }
 
 
+  //
+  //
   template < typename T, Algorithm Aa >
   inline tX_real<T,Aa> abs ( tX_real<T,Aa> const& a ) {
     auto s = a.x[0];
@@ -686,7 +656,7 @@ namespace mX_real {
 
 
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto min ( tX_real<T,Aa> const& a, tX_real<T,Ab> const &b )
+  inline auto fmin ( tX_real<T,Aa> const& a, tX_real<T,Ab> const &b )
   -> std::enable_if_t< A!=Algorithm::Quasi, tX_real<T,A> > {
     using TX = tX_real<T,A>;
     int i=0; for(i;i<3-1;i++) {
@@ -699,18 +669,18 @@ namespace mX_real {
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto min ( tX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
+  inline auto fmin ( tX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
   -> std::enable_if_t< A==Algorithm::Quasi, tX_real<T,A> > {
   //
   // Quasi
   //
     using TX = tX_real<T,Algorithm::Accurate>;
-    return tX_real<T,A>( min( TX(a), TX(b) ) );
+    return tX_real<T,A>( fmin( TX(a), TX(b) ) );
   }
 
 
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto max ( tX_real<T,Aa> const& a, tX_real<T,Ab> const &b )
+  inline auto fmax ( tX_real<T,Aa> const& a, tX_real<T,Ab> const &b )
   -> std::enable_if_t< A!=Algorithm::Quasi, tX_real<T,A> > {
     using TX = tX_real<T,A>;
     int i=0; for(i;i<3-1;i++) {
@@ -723,13 +693,13 @@ namespace mX_real {
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto max ( tX_real<T,Aa> const& a, tX_real<T,Ab> const &b )
+  inline auto fmax ( tX_real<T,Aa> const& a, tX_real<T,Ab> const &b )
   -> std::enable_if_t< A==Algorithm::Quasi, tX_real<T,A> > {
   //
   // Quasi
   //
     using TX = tX_real<T,Algorithm::Accurate>;
-    return tX_real<T,A>( max( TX(a), TX(b) ) );
+    return tX_real<T,A>( fmax( TX(a), TX(b) ) );
   }
 
 

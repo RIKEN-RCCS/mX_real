@@ -17,9 +17,13 @@ namespace std {
     inline static TX infinity() { return TX::inf(); }
     inline static TX quiet_NaN() { return TX::nan(); }
 
-    static int const digits = numeric_limits<T>::digits * 2;
+    static int const digits = numeric_limits<T>::digits * TX::L;
   };
 
+  template < typename T, mX_real::Algorithm A >
+  bool isnan( mX_real::dX_real<T,A> const& x ) {
+    return mX_real::dX_real<T,A>::isnan(x);
+  }
   template < typename T, mX_real::Algorithm A >
   bool signbit( mX_real::dX_real<T,A> const& x ) {
     return mX_real::dX_real<T,A>::signbit(x);
@@ -54,9 +58,13 @@ namespace std {
     inline static TX infinity() { return TX::inf(); }
     inline static TX quiet_NaN() { return TX::nan(); }
 
-    static int const digits = numeric_limits<T>::digits * 3;
+    static int const digits = numeric_limits<T>::digits * TX::L;
   };
 
+  template < typename T, mX_real::Algorithm A >
+  bool isnan( mX_real::tX_real<T,A> const& x ) {
+    return mX_real::tX_real<T,A>::isnan(x);
+  }
   template < typename T, mX_real::Algorithm A >
   bool sigbit( mX_real::tX_real<T,A> const& x ) {
     return mX_real::tX_real<T,A>::signbit(x);
@@ -91,9 +99,13 @@ namespace std {
     inline static TX infinity() { return TX::inf(); }
     inline static TX quiet_NaN() { return TX::nan(); }
 
-    static int const digits = numeric_limits<T>::digits * 4;
+    static int const digits = numeric_limits<T>::digits * TX::L;
   };
 
+  template < typename T, mX_real::Algorithm A >
+  bool isnan( mX_real::qX_real<T,A> const& x ) {
+    return mX_real::qX_real<T,A>::isnan(x);
+  }
   template < typename T, mX_real::Algorithm A >
   bool signbit( mX_real::qX_real<T,A> const& x ) {
     return mX_real::qX_real<T,A>::signbit(x);

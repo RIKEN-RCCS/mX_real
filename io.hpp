@@ -10,6 +10,123 @@
 #include "mX_real.hpp"
 
 
+namespace mX_real {
+  //
+  //
+  template < typename T, Algorithm A >
+  inline auto debug_print ( std::string message, dX_real<T,A> const &x, bool const flag = false )
+  -> std::enable_if_t< std::is_same< T, float >::value, void > {
+    uint32_t * d = (uint32_t *)(&x.x[0]);
+    long double xx =
+          (long double)x.x[1] +
+          (long double)x.x[0];
+    std::cout << message;
+    printf(" %cDF : %08x %08x %26.19Le\n",
+                    toString(A)[0], d[0], d[1], xx);
+    if ( flag ) {
+    std::cout << "  : " << std::bitset<32>(d[0])
+            << "\n    " << std::bitset<32>(d[1]);
+    printf(" %26.19Le\n", xx);
+    }
+  }
+
+  template < typename T, Algorithm A >
+  inline auto debug_print ( std::string message, dX_real<T,A> const &x, bool const flag = false )
+  -> std::enable_if_t< std::is_same< T, double >::value, void > {
+    uint64_t * d = (uint64_t *)(&x.x[0]);
+    long double xx =
+          (long double)x.x[1] +
+          (long double)x.x[0];
+    std::cout << message;
+    printf(" %cDD : %016lx %016lx %26.19Le\n",
+                    toString(A)[0], d[0], d[1], xx);
+    if ( flag ) {
+    std::cout << "  : " << std::bitset<64>(d[0])
+            << "\n    " << std::bitset<64>(d[1]);
+    printf(" %26.19Le\n", xx);
+    }
+  }
+}
+
+namespace mX_real {
+  //
+  //
+  template < typename T, Algorithm A >
+  inline auto debug_print ( std::string message, tX_real<T,A> const &x, bool const flag = false )
+  -> std::enable_if_t< std::is_same< T, float >::value, void > {
+    uint32_t * d = (uint32_t *)(&x.x[0]);
+    long double xx = (long double)x.x[2]
+                   + (long double)x.x[1]
+                   + (long double)x.x[0];
+    std::cout << message;
+    printf(" %cTF : %08x %08x %08x %26.19Le\n",
+                    toString(A)[0], d[0], d[1], d[2], xx);
+    if ( flag ) {
+    std::cout << "  : " << std::bitset<32>(d[0])
+            << "\n    " << std::bitset<32>(d[1])
+            << "\n    " << std::bitset<32>(d[2]);
+    printf(" %26.19Le\n", xx);
+    }
+  }
+  template < typename T, Algorithm A >
+  inline auto debug_print ( std::string message, tX_real<T,A> const &x, bool const flag = false )
+  -> std::enable_if_t< std::is_same< T, double >::value, void > {
+    uint64_t * d = (uint64_t *)(&x.x[0]);
+    long double xx = (long double)x.x[2]
+                   + (long double)x.x[1]
+                   + (long double)x.x[0];
+    std::cout << message;
+    printf(" %cTD : %016lx %016lx %016lx %26.19Le\n",
+                    toString(A)[0], d[0], d[1], d[2], xx);
+    if ( flag ) {
+    std::cout << "  : " << std::bitset<64>(d[0])
+            << "\n    " << std::bitset<64>(d[1])
+            << "\n    " << std::bitset<64>(d[2]);
+    printf(" %26.19Le\n", xx);
+    }
+  }
+}
+
+namespace mX_real {
+  //
+  //
+  template < typename T, Algorithm A >
+  inline auto debug_print ( std::string message, qX_real<T,A> const &x, bool const flag = false )
+  -> std::enable_if_t< std::is_same< T, float >::value, void > {
+    uint32_t * d = (uint32_t *)(&x.x[0]);
+    long double xx = (long double)x.x[3]
+                   + (long double)x.x[2]
+                   + (long double)x.x[1]
+                   + (long double)x.x[0];
+    std::cout << message;
+    printf(" %cQF : %08x %08x %08x %08x %26.19Le\n",
+                    toString(A)[0], d[0], d[1], d[2], d[3], xx);
+    if ( flag ) {
+    std::cout << "  : " << std::bitset<32>(d[0]) << "\n    " << std::bitset<32>(d[1])
+            << "\n    " << std::bitset<32>(d[2]) << "\n    " << std::bitset<32>(d[3]);
+    printf(" %26.19Le\n", xx);
+    }
+  }
+  template < typename T, Algorithm A >
+  inline auto debug_print ( std::string message, qX_real<T,A> const &x, bool const flag = false )
+  -> std::enable_if_t< std::is_same< T, double >::value, void > {
+    uint64_t * d = (uint64_t *)(&x.x[0]);
+    long double xx = (long double)x.x[3]
+                   + (long double)x.x[2]
+                   + (long double)x.x[1]
+                   + (long double)x.x[0];
+    std::cout << message;
+    printf(" %cQD : %016lx %016lx %016lx %016lx %26.19Le\n",
+                    toString(A)[0], d[0], d[1], d[2], d[3], xx);
+    if ( flag ) {
+    std::cout << "  : " << std::bitset<64>(d[0]) << "\n    " << std::bitset<64>(d[1])
+            << "\n    " << std::bitset<64>(d[2]) << "\n    " << std::bitset<64>(d[3]);
+    printf(" %26.19Le\n", xx);
+    }
+  }
+}
+
+
 template < typename T >
 auto print( std::string message, T const &x, bool const flag = false )
 -> std::enable_if_t< check_mX_real<T>::value,void> {

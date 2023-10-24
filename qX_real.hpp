@@ -202,44 +202,6 @@ namespace mX_real {
 
   //
   //
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, qX_real<T,A> const &x, bool const flag = false )
-  -> std::enable_if_t< std::is_same< T, float >::value, void > {
-    uint32_t * d = (uint32_t *)(&x.x[0]);
-    long double xx = (long double)x.x[3]
-                   + (long double)x.x[2]
-                   + (long double)x.x[1]
-                   + (long double)x.x[0];
-    std::cout << message;
-    printf(" %cQF : %08x %08x %08x %08x %26.19Le\n",
-		    toString(A)[0], d[0], d[1], d[2], d[3], xx);
-    if ( flag ) {
-    std::cout << "  : " << std::bitset<32>(d[0]) << "\n    " << std::bitset<32>(d[1])
-            << "\n    " << std::bitset<32>(d[2]) << "\n    " << std::bitset<32>(d[3]);
-    printf(" %26.19Le\n", xx);
-    }
-  }
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, qX_real<T,A> const &x, bool const flag = false )
-  -> std::enable_if_t< std::is_same< T, double >::value, void > {
-    uint64_t * d = (uint64_t *)(&x.x[0]);
-    long double xx = (long double)x.x[3]
-                   + (long double)x.x[2]
-                   + (long double)x.x[1]
-                   + (long double)x.x[0];
-    std::cout << message;
-    printf(" %cQD : %016lx %016lx %016lx %016lx %26.19Le\n",
-		    toString(A)[0], d[0], d[1], d[2], d[3], xx);
-    if ( flag ) {
-    std::cout << "  : " << std::bitset<64>(d[0]) << "\n    " << std::bitset<64>(d[1])
-            << "\n    " << std::bitset<64>(d[2]) << "\n    " << std::bitset<64>(d[3]);
-    printf(" %26.19Le\n", xx);
-    }
-  }
-
-
-  //
-  //
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto operator== ( qX_real<T,Aa> const& a, qX_real<T,Ab> const& b )
   -> std::enable_if_t< A!=Algorithm::Quasi,bool > {
@@ -677,6 +639,12 @@ namespace mX_real {
   //
   //
   template < typename T, Algorithm Aa >
+  inline bool isnan ( qX_real<T,Aa> const& a ) {
+    auto s = a.x[0];
+    if ( Aa == Algorithm::Quasi ) { s += a.x[1] + a.x[2] + a.x[3]; }
+    return std::isnan( s );
+  }
+  template < typename T, Algorithm Aa >
   inline bool signbit ( qX_real<T,Aa> const& a ) {
     auto s = a.x[0];
     if ( Aa == Algorithm::Quasi ) { s += a.x[1] + a.x[2] + a.x[3]; }
@@ -684,6 +652,8 @@ namespace mX_real {
   }
 
 
+  //
+  //
   template < typename T, Algorithm Aa >
   inline qX_real<T,Aa> abs ( qX_real<T,Aa> const& a ) {
     using TX = qX_real<T,Aa>;
@@ -755,7 +725,7 @@ namespace mX_real {
 
 
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto min ( qX_real<T,Aa> const& a, qX_real<T,Ab> const &b )
+  inline auto fmin ( qX_real<T,Aa> const& a, qX_real<T,Ab> const &b )
   -> std::enable_if_t< A!=Algorithm::Quasi, qX_real<T,A> > {
     using TX = qX_real<T,A>;
     int i=0; for(i;i<4-1;i++) {
@@ -768,18 +738,18 @@ namespace mX_real {
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto min ( qX_real<T,Aa> const& a, qX_real<T,Ab> const& b )
+  inline auto fmin ( qX_real<T,Aa> const& a, qX_real<T,Ab> const& b )
   -> std::enable_if_t< A==Algorithm::Quasi, qX_real<T,A> > {
   //
   // Quasi
   //
     using TX = qX_real<T,Algorithm::Accurate>;
-    return qX_real<T,A>( min( TX(a), TX(b) ) );
+    return qX_real<T,A>( fmin( TX(a), TX(b) ) );
   }
 
 
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto max ( qX_real<T,Aa> const& a, qX_real<T,Ab> const &b )
+  inline auto fmax ( qX_real<T,Aa> const& a, qX_real<T,Ab> const &b )
   -> std::enable_if_t< A!=Algorithm::Quasi, qX_real<T,A> > {
     using TX = qX_real<T,A>;
     int i=0; for(i;i<4-1;i++) {
@@ -798,7 +768,7 @@ namespace mX_real {
   // Quasi
   //
     using TX = qX_real<T,Algorithm::Accurate>;
-    return qX_real<T,A>( max( TX(a), TX(b) ) );
+    return qX_real<T,A>( fmax( TX(a), TX(b) ) );
   }
 
 
