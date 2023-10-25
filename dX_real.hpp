@@ -212,10 +212,13 @@ namespace mX_real {
     static inline dX_real<T,A> constexpr nan  () { T c = fp<T>::nan; return dX_real<T,A>( c,c ); }
     static inline dX_real<T,A> constexpr inf  () { T c = fp<T>::inf; return dX_real<T,A>( c,c ); }
 
+    static inline dX_real<T,A> constexpr denorm_min  () {
+      T c0 = std::numeric_limits<T>::denorm_min();
+      return dX_real<T,A>( c0 );
+    }
     static inline dX_real<T,A> constexpr min  () {
-      T c0 = (std::numeric_limits<T>::min() * 2) / fp<T>::epsilon;
-      T c1 = (c0 - std::numeric_limits<T>::min()) * fp<T>::epsilon;
-      return dX_real<T,A>( c0, -c1 );
+      T c0 = (std::numeric_limits<T>::min() * 2) * fp<T>::epsiloni;
+      return dX_real<T,A>( c0 );
     }
     static inline dX_real<T,A> constexpr max  () {
       T c0 = std::numeric_limits<T>::max();
@@ -302,12 +305,13 @@ namespace mX_real {
   inline dX_real<T,Ab> operator+ ( T const& a, dX_real<T,Ab> const& b ) {
   //
   // Sloppy in QD by Bailey and Hida
+  // Accurate
   // Quasi/PW by Ozaki
   //
     using TX = dX_real<T,Ab>;
     T p0, q0;
     twoSum( a, b.x[0], p0, q0 );
-    q0 = q0 + b.x[1];
+    q0 = b.x[1] + q0;
     if ( Ab != Algorithm::Quasi ) Normalize<2>( p0, q0 );
     return TX( p0, q0 );
   }

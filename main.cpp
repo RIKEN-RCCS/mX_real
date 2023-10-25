@@ -240,16 +240,43 @@ main(int argc, char *argv[])
   auto alpha = sqrt( mp_real(2) );
 
 {
+   print( "eps", std::numeric_limits<double>::epsilon() );
+   print( "eps", std::pow( (double)2, -(double)52 ) );
+   print( "eps", std::numeric_limits<dd_Real>::epsilon() );
+}
+{
    print( "min", std::numeric_limits<float>::min() );
-   print( "min", df_Real::min() );
+   auto s = df_Real::min();
+   print( "min", s );
+   Normalize<2>(s.x[0], s.x[1]);
+   print( "min", s );
+
    print( "min", std::numeric_limits<double>::min() );
-   print( "min", dd_Real::min() );
+   auto d = dd_Real::min();
+   print( "min", d );
+   Normalize<2>(d.x[0],d.x[1]);
+   print( "min", d );
 }
 {
    print( "max", std::numeric_limits<float>::max() );
-   print( "max", df_Real::max() );
+   auto s = df_Real::max();
+   print( "max", s );
+   Normalize<2>(s.x[0], s.x[1]);
+   print( "max", s );
+
    print( "max", std::numeric_limits<double>::max() );
-   print( "max", dd_Real::max() );
+   auto d = dd_Real::max();
+   print( "max", d );
+   Normalize<2>(d.x[0], d.x[1]);
+   print( "max", d );
+}
+{
+   auto s = df_Real( 1.0 + 1.0/(1<<23), -1.0/(1<<24) );
+   print( "test negative", s );
+   Normalize<2>( s.x[0], s.x[1] );
+   print( "test negative", s );
+   Normalize<2>( s.x[0], s.x[1] );
+   print( "test negative", s );
 }
 {
    float x = std::numeric_limits<float>::quiet_NaN();

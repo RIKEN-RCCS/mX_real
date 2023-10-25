@@ -14,6 +14,9 @@ namespace std {
     using TX = mX_real::dX_real<T,A>;
   public:
     inline static TX epsilon() { return TX::epsilon(); }
+    inline static TX denorm_min() { return TX::denorm_min(); }
+    inline static TX min() { return TX::min(); }
+    inline static TX max() { return TX::max(); }
     inline static TX infinity() { return TX::inf(); }
     inline static TX quiet_NaN() { return TX::nan(); }
 
@@ -55,6 +58,9 @@ namespace std {
     using TX = mX_real::tX_real<T,A>;
   public:
     inline static TX epsilon() { return TX::epsilon(); }
+    inline static TX denorm_min() { return TX::denorm_min(); }
+    inline static TX min() { return TX::min(); }
+    inline static TX max() { return TX::max(); }
     inline static TX infinity() { return TX::inf(); }
     inline static TX quiet_NaN() { return TX::nan(); }
 
@@ -96,6 +102,9 @@ namespace std {
     using TX = mX_real::qX_real<T,A>;
   public:
     inline static TX epsilon() { return TX::epsilon(); }
+    inline static TX denorm_min() { return TX::denorm_min(); }
+    inline static TX min() { return TX::min(); }
+    inline static TX max() { return TX::max(); }
     inline static TX infinity() { return TX::inf(); }
     inline static TX quiet_NaN() { return TX::nan(); }
 

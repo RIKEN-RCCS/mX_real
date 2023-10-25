@@ -184,10 +184,28 @@ namespace mX_real {
     static inline qX_real<T,A> constexpr one  () { return qX_real<T,A>( fp<T>::one ); }
     static inline qX_real<T,A> constexpr two  () { return qX_real<T,A>( fp<T>::two ); }
     static inline qX_real<T,A> constexpr half () { return qX_real<T,A>( fp<T>::half ); }
+
     static inline qX_real<T,A> constexpr epsilon () {
 	    T c = fp<T>::epsilon * fp<T>::half; c = (c * c); c = (c * c) * 2; return qX_real<T,A>( c ); }
+
     static inline qX_real<T,A> constexpr nan  () { T c = fp<T>::nan; return qX_real<T,A>( c,c,c,c ); }
     static inline qX_real<T,A> constexpr inf  () { T c = fp<T>::inf; return qX_real<T,A>( c,c,c,c ); }
+
+    static inline qX_real<T,A> constexpr denorm_min  () {
+      T c0 = std::numeric_limits<T>::denorm_min();
+      return qX_real<T,A>( c0 );
+    }
+    static inline qX_real<T,A> constexpr min  () {
+      T c0 = (std::numeric_limits<T>::min() * 8) * fp<T>::epsiloni * fp<T>::epsiloni * fp<T>::epsiloni;
+      return qX_real<T,A>( c0 );
+    }
+    static inline qX_real<T,A> constexpr max  () {
+      T c0 = std::numeric_limits<T>::max();
+      T c1 = c0 * fp<T>::epsilon * fp<T>::half;
+      T c2 = c1 * fp<T>::epsilon * fp<T>::half;
+      T c3 = c2 * fp<T>::epsilon * fp<T>::half;
+      return qX_real<T,A>( c0, c1, c2, c3 );
+    }
 
   };
 
