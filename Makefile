@@ -1,8 +1,8 @@
 CXX = g++ --std=c++14
 #CXX = g++ --std=c++17
-CCFLAGS := $(CCFLAGS) -O3 -g
+CCFLAGS := $(CCFLAGS) -O3
 #CCFLAGS := $(CCFLAGS) -g
-LDFLAGS = -g -fopenmp
+LDFLAGS = -fopenmp
 
 # Optimizations
 CCFLAGS := $(CCFLAGS) -mfma -mavx2 -mavx512f
@@ -24,7 +24,11 @@ main.o: main.cpp
 	$(CXX) -S main.cpp $(CCFLAGS)
 	$(CXX) -c main.cpp $(CCFLAGS)
 
+sample.exe: sample.cpp
+	$(CXX) -o sample.exe sample.cpp $(CCFLAGS)  $(LDFLAGS)
+
+
 
 clean:
-	\rm *.o a.out *.s
+	\rm *.o a.out *.s sample.exe
 

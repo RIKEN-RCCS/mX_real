@@ -85,10 +85,6 @@ namespace mX_real {
     // auto one = df_Real( 1 ); // a constructor
     // one = df_Real_sloppy( one ); // LHS is a copy-assignment operator
     //
-    inline dX_real<T,A> operator=( int const h ) {
-      x[0] = T(h); x[1] = fp<T>::zero;
-      return *this;
-    }
     inline dX_real<T,A> &operator=( int const &h ) {
       x[0] = T(h); x[1] = fp<T>::zero;
       return *this;
