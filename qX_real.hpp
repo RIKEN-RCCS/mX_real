@@ -3,6 +3,7 @@
 
 #include "mX_real.hpp"
 
+
 namespace mX_real {
 
   template < typename T, Algorithm A=Algorithm::Accurate >
@@ -15,9 +16,12 @@ namespace mX_real {
     static bool constexpr __is_mX_real__ = true;
     //
     static int constexpr L = 4;
-    using base = qX_real<T,Algorithm::Accurate>;
+    using base   = qX_real<T,Algorithm::Accurate>;
+    //
+    using this_T = qX_real<T,A>;
     using base_T = T;
-    Algorithm base_A = A;
+    static Algorithm constexpr base_A = A;
+    //
     T x[L];
 
     //
@@ -580,9 +584,9 @@ namespace mX_real {
   // Sloppy in QD by Bailey and Hida
   //
     using TX = qX_real<T,A>;
-    if ( b.x[0] == inf<T>() ) { return zero<TX>(); }
-    if ( b.x[0] == -inf<T>() ) { return -zero<TX>(); }
-    if ( b.x[0] == zero<T>() ) { auto c = std::copysign( inf<TX>(), b.x[0] ); return TX( c,c,c,c ); }
+    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+    if ( b.x[0] == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b.x[0] ); return TX( c,c,c,c ); }
     auto q0 = a.x[0] / b.x[0];
     auto r = a - (b * q0);
       //
@@ -604,9 +608,9 @@ namespace mX_real {
   // Accurate in QD by Bailey and Hida
   //
     using TX = qX_real<T,A>;
-    if ( b.x[0] == inf<T>() ) { return zero<TX>(); }
-    if ( b.x[0] == -inf<T>() ) { return -zero<TX>(); }
-    if ( b.x[0] == zero<T>() ) { auto c = std::copysign( inf<TX>(), b.x[0] ); return TX( c,c,c,c ); }
+    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+    if ( b.x[0] == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b.x[0] ); return TX( c,c,c,c ); }
     auto q0 = a.x[0] / b.x[0];
     auto r = a - (b * q0);
       //
@@ -631,12 +635,12 @@ namespace mX_real {
   // Quasi by Ozaki
   //
     using TX = qX_real<T,A>;
-    if ( b.x[0] == inf<T>() ) { return zero<TX>(); }
-    if ( b.x[0] == -inf<T>() ) { return -zero<TX>(); }
+    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
     auto s = b.x[0] + b.x[1] + b.x[2];
-    if ( s + b.x[3] == zero<T>() ) {
-      s = s + b.x[3]; auto c = std::copysign( inf<TX>(), s ); return TX( c,c,c,c ); }
-    if ( b.x[0] == zero<T>() ) { return a / qX_real<T,A>( b.x[1], b.x[2], b.x[3], b.x[0] ); }
+    if ( s + b.x[3] == fp<T>::zero ) {
+      s = s + b.x[3]; auto c = std::copysign( fp<T>::inf, s ); return TX( c,c,c,c ); }
+    if ( b.x[0] == fp<T>::zero ) { return a / qX_real<T,A>( b.x[1], b.x[2], b.x[3], b.x[0] ); }
     auto c = qX_real<T,A>( tX_real<T,A>( a ) / tX_real<T,A>( b ) );
     auto t = a - c * b;
     c.x[3] = (t.x[0] + t.x[1] + t.x[2] + t.x[3]) / s;
@@ -675,10 +679,10 @@ namespace mX_real {
   template < typename T, Algorithm Aa >
   inline qX_real<T,Aa> abs ( qX_real<T,Aa> const& a ) {
     using TX = qX_real<T,Aa>;
-    if ( a.x[0] == inf<T>() ) { return inf<TX>(); }
+    if ( a.x[0] == fp<T>::inf ) { return TX::inf(); }
     auto s = a.x[0];
     if ( Aa == Algorithm::Quasi ) { s += a.x[1] + a.x[2] + a.x[3]; }
-    if ( s >= zero<T>() ) {
+    if ( s >= fp<T>::zero ) {
       return a;
     } else {
       return -a;
@@ -692,15 +696,15 @@ namespace mX_real {
     using TX = qX_real<T,Aa>;
     {
       auto s = a.x[0];
-      if ( s == zero<T>() ) { return a; }
-      if ( s < zero<T>() ) { return nan<TX>(); }
+      if ( s == fp<T>::zero ) { return a; }
+      if ( s < fp<T>::zero ) { return TX::nan(); }
     }
 
     // scaling
     auto as = std::sqrt( a.x[0] );
     auto e  = fp<T>::exponent( as );
     auto ex = fp<T>::exponenti( as );
-    auto ex2 = ex * half<T>();
+    auto ex2 = ex * fp<T>::half;
 
     auto ax = TX( (a.x[0]*ex)*ex2,
                   (a.x[1]*ex)*ex2,
@@ -709,9 +713,9 @@ namespace mX_real {
 
     auto r  = TX( e / as );
 
-    r = (3*half<TX>() - ax * (r * r)) * r;
-    r = (3*half<TX>() - ax * (r * r)) * r;
-    r = (3*half<TX>() - ax * (r * r)) * r;
+    r = (3*TX::half() - ax * (r * r)) * r;
+    r = (3*TX::half() - ax * (r * r)) * r;
+    r = (3*TX::half() - ax * (r * r)) * r;
 
     // scaling back
     r = ax * r;
@@ -731,13 +735,13 @@ namespace mX_real {
   //
     using TX = qX_real<T,Aa>;
     auto s = a.x[0] + a.x[1] + a.x[2] + a.x[3];
-    if ( s == zero<T>() ) { return a; }
-    if ( s < zero<T>() ) { return nan<TX>(); }
-    if ( a.x[0] == zero<T>() ) { return sqrt( qX_real<T,Aa>( a.x[1], a.x[2], a.x[3], a.x[0] ) ); };
+    if ( s == fp<T>::zero ) { return a; }
+    if ( s < fp<T>::zero ) { return TX::nan(); }
+    if ( a.x[0] == fp<T>::zero ) { return sqrt( qX_real<T,Aa>( a.x[1], a.x[2], a.x[3], a.x[0] ) ); };
 
     auto c = TX( sqrt( tX_real<T,Aa>( a ) ) );
-    auto t = c * c - a;
-    c.x[3] = - (t.x[0] + t.x[1] + t.x[2] + t.x[3]) / (2*(c.x[0] + c.x[1] + c.x[2]));
+    auto t = a - c * c;
+    c.x[3] = (t.x[0] + t.x[1] + t.x[2] + t.x[3]) / (2*(c.x[0] + c.x[1] + c.x[2]));
     return c;
   }
 

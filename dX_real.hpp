@@ -3,6 +3,7 @@
 
 #include "mX_real.hpp"
 
+
 namespace mX_real {
 
   template < typename T, Algorithm A=Algorithm::Accurate >
@@ -15,9 +16,12 @@ namespace mX_real {
     static bool constexpr __is_mX_real__ = true;
     //
     static int constexpr L = 2;
-    using base = dX_real<T,Algorithm::Accurate>;
+    using base   = dX_real<T,Algorithm::Accurate>;
+    //
+    using this_T = dX_real<T,A>;
     using base_T = T;
-    Algorithm base_A = A;
+    static Algorithm constexpr base_A = A;
+    //
     T x[L];
 
     //
@@ -271,6 +275,7 @@ namespace mX_real {
   }
 
 
+#if 0
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto operator+ ( dX_real<T,Aa> const& a, dX_real<T,Ab> const& b )
   -> std::enable_if_t< A!=Algorithm::Accurate, dX_real<T,A> > {
@@ -301,6 +306,25 @@ namespace mX_real {
     Normalize<2>( p0, q0 );
     return TX( p0, q0 );
   }
+#else
+  template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
+  inline dX_real<T,A> operator+ ( dX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) {
+    using TX = dX_real<T,A>;
+    T p0, q0;
+    twoSum( a.x[0], b.x[0], p0, q0 );
+    if ( A == Algorithm::Accurate ) {
+      T p1, q1;
+      twoSum( a.x[1], b.x[1], p1, q1 );
+      q0 = q0 + p1;
+      Normalize<2>( p0, q0 );
+      q0 = q0 + q1;
+    } else {
+      q0 = (a.x[1] + b.x[1]) + q0;
+    }
+    if ( A != Algorithm::Quasi ) Normalize<2>( p0, q0 );
+    return TX( p0, q0 );
+  }
+#endif
   template < typename T, Algorithm Ab >
   inline dX_real<T,Ab> operator+ ( T const& a, dX_real<T,Ab> const& b ) {
   //
@@ -389,11 +413,11 @@ namespace mX_real {
   // Sloppy in QD by Bailey and Hida
   //
     using TX = dX_real<T,A>;
-    if ( b.x[0] == inf<T>() ) { return zero<TX>(); }
-    if ( b.x[0] == -inf<T>() ) { return -zero<TX>(); }
-    if ( b.x[0] == zero<T>() ) { auto c = std::copysign( inf<T>(), b.x[0] ); return TX( c,c ); }
+    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+    if ( b.x[0] == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b.x[0] ); return TX( c,c ); }
     auto q0 = a.x[0] / b.x[0];
-    auto r = TX( b * q0 );
+    auto r = b * q0;
     T s0, s1;
     twoSum( a.x[0], -r.x[0], s0, s1 );
     s1 -= r.x[1];
@@ -409,9 +433,9 @@ namespace mX_real {
   // Accurate in QD by Bailey and Hida
   //
     using TX = dX_real<T,A>;
-    if ( b.x[0] == inf<T>() ) { return zero<TX>(); }
-    if ( b.x[0] == -inf<T>() ) { return -zero<TX>(); }
-    if ( b.x[0] == zero<T>() ) { auto c = std::copysign( inf<T>(), b.x[0] ); return TX( c,c ); }
+    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+    if ( b.x[0] == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b.x[0] ); return TX( c,c ); }
     auto q0 = a.x[0] / b.x[0];
     auto r = a - b * q0;
     auto q1 = r.x[0] / b.x[0];
@@ -428,11 +452,11 @@ namespace mX_real {
   // Quasi/PW by Ozaki
   //
     using TX = dX_real<T,A>;
-    if ( b.x[0] == inf<T>() ) { return zero<TX>(); }
-    if ( b.x[0] == -inf<T>() ) { return -zero<TX>(); }
+    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
     auto s = b.x[0] + b.x[1];
-    if ( s == zero<T>() ) { auto c = std::copysign( inf<T>(), s ); return TX( c,c ); }
-    if ( b.x[0] == zero<T>() ) { return a / dX_real<T,A>( b.x[1], b.x[0] ); }
+    if ( s == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, s ); return TX( c,c ); }
+    if ( b.x[0] == fp<T>::zero ) { return a / dX_real<T,A>( b.x[1], b.x[0] ); }
     auto ch = a.x[0] / b.x[0];
     auto p  = std::fma( -b.x[0], ch, a.x[0] ) + a.x[1];
     auto cl = std::fma( ch, -b.x[1], p ) / b.x[0];
@@ -472,7 +496,7 @@ namespace mX_real {
   inline dX_real<T,Aa> abs ( dX_real<T,Aa> const& a ) {
     auto s = a.x[0];
     if ( Aa == Algorithm::Quasi ) { s += a.x[1]; }
-    if ( s >= zero<T>() ) {
+    if ( s >= fp<T>::zero ) {
       return a;
     } else {
       return -a;
@@ -490,14 +514,16 @@ namespace mX_real {
     using TX = dX_real<T,Aa>;
     {
       auto s = a.x[0];
-      if ( s == zero<T>() ) { return a; }
-      if ( s < zero<T>() ) { return nan<TX>(); }
+      if ( s == fp<T>::zero ) { return a; }
+      if ( s < fp<T>::zero ) { return TX::nan(); }
     }
 
+    // care of the {under|over}flow
     auto as = std::sqrt( a.x[0] );
     auto e  = fp<T>::exponent( as );
     auto ex = fp<T>::exponenti( as );
-    auto ax = TX( (a.x[0]*ex)*ex, (a.x[1]*ex)*ex );
+    auto exx = ex * ex; // if a.x[0] is regular, normal_min() < {ex, exx} < max()
+    auto ax = TX( a.x[0]*exx, a.x[1]*exx ); // 1<= |ax| < 2
 
     auto x  = e / as;
     T r0 = ax.x[0] * x;
@@ -505,7 +531,7 @@ namespace mX_real {
     twoProdFMA( r0, r0, err.x[0], err.x[1] );
     err = (ax - err) * x;
 
-    return TX( r0*e, (err.x[0] * half<T>())*e );
+    return TX( r0*e, (err.x[0] * fp<T>::half)*e );
   }
   template < typename T, Algorithm Aa >
   inline auto sqrt ( dX_real<T,Aa> const& a )
@@ -516,9 +542,9 @@ namespace mX_real {
     using TX = dX_real<T,Aa>;
     {
       auto s = a.x[0] + a.x[1];
-      if ( s == zero<T>() ) { return a; }
-      if ( s < zero<T>() ) { return nan<TX>(); }
-      if ( a.x[0] == zero<T>() ) { return sqrt( dX_real<T,Aa>( a.x[1], a.x[0] ) ); }
+      if ( s == fp<T>::zero ) { return a; }
+      if ( s < fp<T>::zero ) { return TX::nan(); }
+      if ( a.x[0] == fp<T>::zero ) { return sqrt( dX_real<T,Aa>( a.x[1], a.x[0] ) ); }
     }
 
     auto ch = std::sqrt( a.x[0] );

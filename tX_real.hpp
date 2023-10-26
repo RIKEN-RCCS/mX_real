@@ -3,6 +3,7 @@
 
 #include "mX_real.hpp"
 
+
 namespace mX_real {
 
   template < typename T, Algorithm A=Algorithm::Accurate >
@@ -15,9 +16,12 @@ namespace mX_real {
     static bool constexpr __is_mX_real__ = true;
     //
     static int constexpr L = 3;
-    using base = tX_real<T,Algorithm::Accurate>;
+    using base   = tX_real<T,Algorithm::Accurate>;
+    //
+    using this_T = tX_real<T,A>;
     using base_T = T;
-    Algorithm base_A = A;
+    static Algorithm constexpr base_A = A;
+    //
     T x[L];
 
     //
@@ -342,15 +346,6 @@ namespace mX_real {
 
     VSEB<2,3>( &e[1] );
 
-
-    if ( e[0] == nan<T>() )  { printf("0> %le %le %le\n", e[0], e[1], e[2] ); }
-    if ( e[0] == -nan<T>() ) { printf("1> %le %le %le\n", e[0], e[1], e[2] ); }
-    if ( e[1] == nan<T>() )  { printf("2> %le %le %le\n", e[0], e[1], e[2] ); }
-    if ( e[1] == -nan<T>() ) { printf("3> %le %le %le\n", e[0], e[1], e[2] ); }
-    if ( e[2] == nan<T>() )  { printf("4> %le %le %le\n", e[0], e[1], e[2] ); }
-    if ( e[2] == -nan<T>() ) { printf("5> %le %le %le\n", e[0], e[1], e[2] ); }
-
-
     return TX( e );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
@@ -517,22 +512,22 @@ namespace mX_real {
   //  IEEE Trans. Computers, Vol 68, Issue 11, 2019
   //
     using TX = tX_real<T,A>;
-    if ( b.x[0] == zero<T>() ) { return inf<TX>(); }
-    if ( b.x[0] == -zero<T>() ) { return -inf<TX>(); }
+    if ( b.x[0] == fp<T>::zero ) { return TX::inf(); }
+    if ( b.x[0] == -fp<T>::zero ) { return -TX::inf(); }
 
-    T _2u    = epsilon<T>();
-    T one_2u = one<T>() + _2u;
+    T _2u    = fp<T>::eps();
+    T one_2u = fp<T>::one + _2u;
     T alpha  = one_2u / b.x[0];
     T h11    = std::fma( alpha, b.x[0], -one_2u );
     T h1     = std::fma( alpha, b.x[1], h11 );
 
     T b01, b11;
-    twoProdFMA( alpha, one<T>() - _2u, b01, b11 );
+    twoProdFMA( alpha, fp<T>::one - _2u, b01, b11 );
     T b12 = std::fma( alpha, -h1, b11 );
     TX b_inv;
     quickSum( b01, b12, b_inv.x[0], b_inv.x[1] );
 
-    return (a * b_inv) * (two<TX>() - (b * b_inv));
+    return (a * b_inv) * (TX::two() - (b * b_inv));
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto operator/ ( tX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
@@ -541,12 +536,12 @@ namespace mX_real {
   // Quasi by Ozaki
   //
     using TX = tX_real<T,A>;
-    if ( b.x[0] == inf<T>() ) { return zero<TX>(); }
-    if ( b.x[0] == -inf<T>() ) { return -zero<TX>(); }
+    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
     auto s = b.x[0] + b.x[1];
-    if ( s + b.x[2] == zero<T>() ) {
-      s = s + b.x[2]; auto c = std::copysign( inf<TX>(), s ); return TX( c,c,c ); }
-    if ( b.x[0] == zero<T>() ) { return a / tX_real<T,A>( b.x[1], b.x[2], b.x[0] ); }
+    if ( s + b.x[2] == fp<T>::zero ) {
+      s = s + b.x[2]; auto c = std::copysign( fp<T>::inf, s ); return TX( c,c,c ); }
+    if ( b.x[0] == fp<T>::zero ) { return a / tX_real<T,A>( b.x[1], b.x[2], b.x[0] ); }
     auto c = TX ( dX_real<T,A> ( a )  / dX_real<T,A> ( b ) );
     auto t = a - c * b;
     c.x[2] = (t.x[0] + t.x[1] + t.x[2]) / s;
@@ -586,7 +581,7 @@ namespace mX_real {
   inline tX_real<T,Aa> abs ( tX_real<T,Aa> const& a ) {
     auto s = a.x[0];
     if ( Aa == Algorithm::Quasi ) { s += a.x[1] + a.x[2]; }
-    if ( s >= zero<T>() ) {
+    if ( s >= fp<T>::zero ) {
       return a;
     } else {
       return -a;
@@ -600,8 +595,8 @@ namespace mX_real {
     using TX = tX_real<T,Aa>;
     {
       auto s = a.x[0];
-      if ( s == zero<T>() ) { return a; }
-      if ( s < zero<T>() ) { return nan<TX>(); }
+      if ( s == fp<T>::zero ) { return a; }
+      if ( s < fp<T>::zero ) { return TX::nan(); }
     }
 
     //
@@ -617,7 +612,7 @@ namespace mX_real {
     auto as = std::sqrt( a.x[0] );
     auto e  = fp<T>::exponent( as );
     auto ex = fp<T>::exponenti( as );
-    auto ex2 = ex * half<T>();
+    auto ex2 = ex * fp<T>::half;
 
     //
     // merged with multiplying a' and 1/2
@@ -634,8 +629,8 @@ namespace mX_real {
     //
     // two iterations are enough
     //
-    r = (3*half<TX>() - ax * (r * r)) * r;
-    r = (3*half<TX>() - ax * (r * r)) * r;
+    r = (3*TX::half() - ax * (r * r)) * r;
+    r = (3*TX::half() - ax * (r * r)) * r;
 
     //
     // scaling back
@@ -660,14 +655,14 @@ namespace mX_real {
     using TX = tX_real<T,Aa>;
     {
       auto s = a.x[0] + a.x[1] + a.x[2];
-      if ( s == zero<T>() ) { return a; }
-      if ( s < zero<T>() ) { return nan<TX>(); }
+      if ( s == fp<T>::zero ) { return a; }
+      if ( s < fp<T>::zero ) { return TX::nan(); }
     }
-    if ( a.x[0] == zero<T>() ) { return sqrt( tX_real<T,Aa>( a.x[1], a.x[2], a.x[0] ) ); }
+    if ( a.x[0] == fp<T>::zero ) { return sqrt( tX_real<T,Aa>( a.x[1], a.x[2], a.x[0] ) ); }
 
     auto c = TX( sqrt( dX_real<T,Aa>( a ) ) );
-    auto t = c * c - a;
-    c.x[2] = - (t.x[0] + t.x[1] + t.x[2]) / (2*(c.x[0] + c.x[1]));
+    auto t = a - c * c;
+    c.x[2] = (t.x[0] + t.x[1] + t.x[2]) / (2*(c.x[0] + c.x[1]));
     return c;
   }
 

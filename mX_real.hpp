@@ -75,11 +75,8 @@ namespace mX_real {
       uint32_t s = e & 0x80000000;
       e &= 0x7f800000;
       e -= 0x0b800000;
-      if ( e & 0x80000000 ) {
-        e = 0; // underflow
-      } else {
-        e = e | s;
-      }
+      if ( e & 0x80000000 ) { e = 0; } // underflow
+      e = e | s; // allow -0
       return *(float *)&e;
     }
 
@@ -87,12 +84,14 @@ namespace mX_real {
       if ( a == zero ) return one;
       uint32_t e = *(uint32_t *)&a;
       e &= 0x7f800000;
+      if ( e == 0x7f800000 ) return one;
       return *(float *)&e;
     }
     static inline float exponenti( float const &a ) {
       if ( a == zero ) return one;
       uint32_t e = *(uint32_t *)&a;
       e &= 0x7f800000;
+      if ( e == 0x7f800000 ) return one;
       e = 0x7f000000 - e;
       return *(float *)&e;
     }
@@ -119,11 +118,8 @@ namespace mX_real {
       uint64_t s = e & 0x8000000000000000;
       e &= 0xfff0000000000000;
       e -= 0x0340000000000000;
-      if ( e & 0x8000000000000000 ) {
-        e = 0; // underflow
-      } else {
-        e = e | s;
-      }
+      if ( e & 0x8000000000000000 ) { e = 0; } // underflow
+      e = e | s; // allow -0
       return *(double *)&e;
     }
 
@@ -131,12 +127,14 @@ namespace mX_real {
       if ( a == zero ) return one;
       uint64_t e = *(uint64_t *)&a;
       e &= 0x7ff0000000000000;
+      if ( e == 0x7ff0000000000000 ) return one;
       return *(double *)&e;
     }
     static inline double exponenti( double const &a ) {
       if ( a == zero ) return one;
       uint64_t e = *(uint64_t *)&a;
       e &= 0x7ff0000000000000;
+      if ( e == 0x7ff0000000000000 ) return one;
       e = 0x7fe0000000000000 - e;
       return *(double *)&e;
     }
@@ -260,7 +258,7 @@ namespace mX_real {
     f[0] = s;
   }
 
-  template < int N, int n, typename T >
+  template < int L, int n, typename T >
   inline void VSEB( T * f ) {
   //
   //  N. Fabiano, J-M Muller, and J. Picot
@@ -268,9 +266,9 @@ namespace mX_real {
   //  F-M-P suggest to be able to use twoSum or quickSum so that
   //  it acclerates performance while it can switch twoSum and quickcwSum.
   //
-    static_assert( n >= N, "The v-length of f[] >= the v-length of return." );
+    static_assert( n >= L, "The v-length of f[] >= the v-length of return." );
     T e = f[0];
-    int i, j; for(i=j=0; i<=n-3 && j<N; i++ ) {
+    int i, j; for(i=j=0; i<=n-3 && j<L; i++ ) {
       T r, t;
       quickSum( e, f[i+1], r, t );
       if ( t != fp<T>::zero ) {
@@ -280,7 +278,7 @@ namespace mX_real {
         e = r;
       }
     }
-    if ( j < N ) { quickSum( e, f[i+1], f[j], f[j+1] ); j=(j+1)+1; }
+    if ( j < L ) { quickSum( e, f[i+1], f[j], f[j+1] ); j=(j+1)+1; }
     if ( j < n ) { for(int i=j; i<n; i++) { f[i] = fp<T>::zero; } }
   }
 
@@ -350,8 +348,21 @@ namespace mX_real {
 #endif
 
 
+}
+
+
+//
+#include "dX_real.hpp"
+#include "tX_real.hpp"
+#include "qX_real.hpp"
+
+
+namespace mX_real {
+
+
   //
   // APIs for common constatnt number functions
+  // such as Type::Num_API()
   //
   template < typename T > static inline auto constexpr zero(void)
   -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(0); }
@@ -372,7 +383,7 @@ namespace mX_real {
 
   //
   template < typename T > static inline auto constexpr half(void)
-  -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(1./2.); }
+  -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(1)/T(2); }
   template < typename T > static inline auto constexpr half(void)
   -> std::enable_if_t< check_mX_real<T>::value,T> { return T::half(); }
 
@@ -415,11 +426,7 @@ namespace mX_real {
 }
 
 
-//
-#include "dX_real.hpp"
-#include "tX_real.hpp"
-#include "qX_real.hpp"
-#include "std::mX_real.hpp"
+#include "std_mX_real.hpp"
 
 
 //
