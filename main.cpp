@@ -23,7 +23,7 @@ using mp_real = mpfr::mpreal;
 template < typename T >
 T nrm2( int const& L, T const* x ) {
  T z = 0;
- #pragma gcc ivdep
+ #pragma omp simd
  for(int i=0; i<L; i++) {
    z = z + x[i] * x[i];
  }
@@ -33,7 +33,7 @@ T nrm2( int const& L, T const* x ) {
 template < typename T >
 T asum( int const& L, T const* x ) {
  T z = 0;
- #pragma gcc ivdep
+ #pragma omp simd
  for(int i=0; i<L; i++) {
    z = z + abs( x[i] );
  }
@@ -43,7 +43,7 @@ T asum( int const& L, T const* x ) {
 template < typename T >
 T dot( int const& L, T const* x, T const *y ) {
  T z = 0;
- #pragma gcc ivdep
+ #pragma omp simd
  for(int i=0; i<L; i++) {
    z = z + x[i] * y[i];
  }
@@ -52,7 +52,7 @@ T dot( int const& L, T const* x, T const *y ) {
 
 template < typename T >
 void axpy( int const& L, T const& alpha, T const* x, T *y ) {
- #pragma gcc ivdep
+ #pragma omp simd
  for(int i=0; i<L; i++) {
    y[i] = alpha * x[i] + y[i];
  }
@@ -62,7 +62,7 @@ template < typename T >
 void gemv( int const& L, int const& N, T const& alpha, T const *a, T const* x, T *y ) {
  for(int j=0; j<N; j++) {
    auto s = alpha * x[j];
-   #pragma gcc ivdep
+   #pragma omp simd
    for(int i=0; i<L; i++) {
      y[i] = y[i] + a[i+j*L] * s;
    }
@@ -221,6 +221,18 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
 
   delete [] x;
   delete [] y;
+
+  {
+    auto y = T(0);
+    for(int i=0x1000000;i>=1;i--) {
+      auto x = T(i);
+      auto x2 = x * x;
+      y = y + T(1) / (x2*x2);
+    }
+    y = sqrt(sqrt( 90*y ));
+    auto ans = y;
+    print( "pai by sqrt(sqrt(90*sum 1/k^4)) ", ans );
+  }
 }
 
 
@@ -240,18 +252,42 @@ main(int argc, char *argv[])
   auto alpha = sqrt( mp_real(2) );
 
 {
+   print( "rand", df_Real::rand() );
+   print( "rand", tf_Real::rand() );
+   print( "rand", qf_Real::rand() );
+   print( "rand", dd_Real::rand() );
+   print( "rand", td_Real::rand() );
+   print( "rand", qd_Real::rand() );
+}
+{
    print( "eps", std::numeric_limits<double>::epsilon() );
    print( "eps", std::pow( (double)2, -(double)52 ) );
    print( "eps", std::numeric_limits<dd_Real>::epsilon() );
+   print( "eps", std::pow( (double)2, -(double)105 ) );
+   print( "eps", std::numeric_limits<td_Real>::epsilon() );
+   print( "eps", std::pow( (double)2, -(double)158 ) );
+   print( "eps", std::numeric_limits<qd_Real>::epsilon() );
+   print( "eps", std::pow( (double)2, -(double)211 ) );
+
+   print( "eps", std::numeric_limits<float>::epsilon() );
+   print( "eps", std::pow( (float)2, -(float)23 ) );
+   print( "eps", std::numeric_limits<df_Real>::epsilon() );
+   print( "eps", std::pow( (float)2, -(float)47 ) );
+   print( "eps", std::numeric_limits<tf_Real>::epsilon() );
+   print( "eps", std::pow( (float)2, -(float)71 ) );
+   print( "eps", std::numeric_limits<qf_Real>::epsilon() );
+   print( "eps", std::pow( (float)2, -(float)95 ) );
 }
 {
    print( "min", std::numeric_limits<float>::min() );
+   print( "min", std::numeric_limits<dd_Real>::min() );
    auto s = df_Real::min();
    print( "min", s );
    Normalize<2>(s.x[0], s.x[1]);
    print( "min", s );
 
    print( "min", std::numeric_limits<double>::min() );
+   print( "min", std::numeric_limits<dd_Real>::min() );
    auto d = dd_Real::min();
    print( "min", d );
    Normalize<2>(d.x[0],d.x[1]);
@@ -259,12 +295,14 @@ main(int argc, char *argv[])
 }
 {
    print( "max", std::numeric_limits<float>::max() );
+   print( "max", std::numeric_limits<df_Real>::max() );
    auto s = df_Real::max();
    print( "max", s );
    Normalize<2>(s.x[0], s.x[1]);
    print( "max", s );
 
    print( "max", std::numeric_limits<double>::max() );
+   print( "max", std::numeric_limits<dd_Real>::max() );
    auto d = dd_Real::max();
    print( "max", d );
    Normalize<2>(d.x[0], d.x[1]);

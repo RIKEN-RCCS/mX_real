@@ -18,12 +18,14 @@ namespace mX_real {
   //
   enum class Algorithm {
   //
-    Accurate,
-    Sloppy,
-    Quasi,
+    Accurate = 0,
+    Sloppy   = 1,
+    Quasi    = 2,
   //
+  // alias names
     IEEE     = Accurate,
     PairWise = Quasi,
+    PairArithmetic = Quasi,
     Default  = Accurate
   };
 
@@ -247,19 +249,55 @@ namespace mX_real {
 
   template < int n, typename T >
   inline void vecSum( T * f ) {
-  //
-  //  N. Fabiano, J-M Muller, and J. Picot
-  //
-    static_assert( n >= 1, "The v-length of f[] >= 1." );
-    T s = f[n-1];
-    for(int i=n-2; i>=0; i--) {
-      twoSum( f[i], s, s, f[i+1] );
+    if ( n < 0 ) { // f[0] > f[1] > ... > f[n-1]
+      for(int i=(-n)-2; i>=0; i--) {
+        twoSum( f[i], f[i+1], f[i], f[i+1] );
+      }
+    } else { // f[0] < f[1] < ... < f[n-1]
+      for(int i=1; i<n; i++) {
+        twoSum( f[i], f[i-1], f[i], f[i-1] );
+      }
     }
-    f[0] = s;
+  }
+
+  template < int n, typename T >
+  inline void vecSum_Sloppy( T * f ) {
+    if ( n < 0 ) { // f[0] > f[1] > ... > f[n-1]
+      for(int i=(-n)-2; i>=0; i--) {
+        quickSum( f[i], f[i+1], f[i], f[i+1] );
+      }
+    } else { // f[0] < f[1] < ... < f[n-1]
+      for(int i=1; i<n; i++) {
+        quickSum( f[i], f[i-1], f[i], f[i-1] );
+      }
+    }
   }
 
   template < int L, int n, typename T >
   inline void VSEB( T * f ) {
+  //
+  //  N. Fabiano, J-M Muller, and J. Picot
+  //  this function is not the same as F-M-P's, it only returns N elements
+  //  F-M-P suggest to be able to use twoSum or quickSum so that
+  //  it acclerates performance while it can switch twoSum and quickcwSum.
+  //
+    static_assert( n >= L, "The v-length of f[] >= the v-length of return." );
+    T e = f[0];
+    int i, j; for(i=j=0; i<=n-3 && j<L; i++ ) {
+      T r, t;
+      twoSum( e, f[i+1], r, t );
+      if ( t != fp<T>::zero ) {
+        f[j++] = r;
+        e = t;
+      } else {
+        e = r;
+      }
+    }
+    if ( j < L ) { twoSum( e, f[i+1], f[j], f[j+1] ); j=(j+1)+1; }
+    if ( j < n ) { for(int i=j; i<n; i++) { f[i] = fp<T>::zero; } }
+  }
+  template < int L, int n, typename T >
+  inline void VSEB_Sloppy( T * f ) {
   //
   //  N. Fabiano, J-M Muller, and J. Picot
   //  this function is not the same as F-M-P's, it only returns N elements
@@ -325,6 +363,16 @@ namespace mX_real {
   template < typename T, Algorithm A > struct tX_real;
   template < typename T, Algorithm A > struct qX_real;
 
+}
+
+//
+#include "dX_real.hpp"
+#include "tX_real.hpp"
+#include "qX_real.hpp"
+
+
+namespace mX_real {
+
 
   //
   template < typename T >
@@ -346,18 +394,7 @@ namespace mX_real {
 #ifdef  _QD_QD_REAL_H
   template <> struct check_mX_real <qd_real> { static bool constexpr value  = false; };
 #endif
-
-
-}
-
-
-//
-#include "dX_real.hpp"
-#include "tX_real.hpp"
-#include "qX_real.hpp"
-
-
-namespace mX_real {
+  //
 
 
   //
