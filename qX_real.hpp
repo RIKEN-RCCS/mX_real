@@ -409,7 +409,7 @@ namespace mX_real {
   }
   template < typename Ts, typename T, Algorithm Ab >
   inline auto operator+ ( Ts const& a, qX_real<T,Ab> const& b )
-  -> std::enable_if_t< std::is_scalar<Ts>::value, qX_real<T,Ab> > {
+  -> std::enable_if_t< std::is_arithmetic<Ts>::value, qX_real<T,Ab> > {
     return operator_add_qX( T(a), b );
   }
   template < typename Ts, typename T, Algorithm Aa >
@@ -613,7 +613,7 @@ namespace mX_real {
   }
   template < typename Ts, typename T, Algorithm Ab >
   inline auto operator* ( Ts const& a, qX_real<T,Ab> const& b )
-  -> std::enable_if_t< std::is_scalar<Ts>::value, qX_real<T,Ab> > {
+  -> std::enable_if_t< std::is_arithmetic<Ts>::value, qX_real<T,Ab> > {
     using TX = qX_real<T,Ab>;
     return operator_mul_qX( TX( T(a) ), b );
   }
@@ -698,12 +698,12 @@ namespace mX_real {
   }
   template < typename Ts, typename T, Algorithm Ab >
   inline auto operator/ ( Ts const& a, qX_real<T,Ab> const& b)
-  -> std::enable_if_t< std::is_scalar<Ts>::value, qX_real<T,Ab> > {
+  -> std::enable_if_t< std::is_arithmetic<Ts>::value, qX_real<T,Ab> > {
     return operator_div_qX( T(a), b );
   }
   template < typename Ts, typename T, Algorithm Aa >
   inline auto operator/ ( qX_real<T,Aa> const& a, Ts const& b)
-  -> std::enable_if_t< std::is_scalar<Ts>::value, qX_real<T,Aa> > {
+  -> std::enable_if_t< std::is_arithmetic<Ts>::value, qX_real<T,Aa> > {
     return operator_div_qX( a, T(b) );
   }
 
