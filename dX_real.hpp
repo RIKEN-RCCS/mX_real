@@ -428,9 +428,11 @@ namespace mX_real {
   // Sloppy in QD by Bailey and Hida
   //
     using TX = dX_real<T,A>;
-    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
-    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
-    if ( b.x[0] == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b.x[0] ); return TX( c,c ); }
+    {
+      if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+      if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+      if ( b.x[0] == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b.x[0] ); return TX( c,c ); }
+    }
     auto q0 = a.x[0] / b.x[0];
     auto r = b * q0;
     T s0, s1;
@@ -448,9 +450,11 @@ namespace mX_real {
   // Accurate in QD by Bailey and Hida
   //
     using TX = dX_real<T,A>;
-    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
-    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+    {
+      if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+        if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
     if ( b.x[0] == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b.x[0] ); return TX( c,c ); }
+    }
     auto q0 = a.x[0] / b.x[0];
     auto r = a - b * q0;
     auto q1 = r.x[0] / b.x[0];
@@ -467,11 +471,15 @@ namespace mX_real {
   // Quasi/PW by Ozaki
   //
     using TX = dX_real<T,A>;
-    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
-    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+    {
+      if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+      if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+    }
     auto s = b.x[0] + b.x[1];
-    if ( s == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, s ); return TX( c,c ); }
-    if ( b.x[0] == fp<T>::zero ) { return a / dX_real<T,A>( b.x[1], b.x[0] ); }
+    {
+      if ( s == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, s ); return TX( c,c ); }
+      if ( b.x[0] == fp<T>::zero ) { return a / dX_real<T,A>( b.x[1], b.x[0] ); }
+    }
     auto ch = a.x[0] / b.x[0];
     auto p  = std::fma( -b.x[0], ch, a.x[0] ) + a.x[1];
     auto cl = std::fma( ch, -b.x[1], p ) / b.x[0];
@@ -490,9 +498,11 @@ namespace mX_real {
   template < typename T, Algorithm A >
   inline dX_real<T,A> operator_div_dX ( T const& a, T const& b ) {
     using TX = dX_real<T,A>;
-    if ( b == fp<T>::inf ) { return TX::zero(); }
-    if ( b == -fp<T>::inf ) { return -TX::zero(); }
-    if ( b == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b ); return TX( c,c ); }
+    {
+      if ( b == fp<T>::inf ) { return TX::zero(); }
+      if ( b == -fp<T>::inf ) { return -TX::zero(); }
+      if ( b == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b ); return TX( c,c ); }
+    }
     T c[2];
     c[0] = a / b;
     c[1] = std::fma( -b, c[0], a );

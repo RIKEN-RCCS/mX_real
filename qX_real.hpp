@@ -633,9 +633,11 @@ namespace mX_real {
   // Accurate in QD by Bailey and Hida
   //
     using TX = qX_real<T,A>;
-    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
-    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
-    if ( b.x[0] == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b.x[0] ); return TX( c,c,c,c ); }
+    {
+      if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+      if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+      if ( b.x[0] == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b.x[0] ); return TX( c,c,c,c ); }
+    }
     auto q0 = a.x[0] / b.x[0];
     auto r = a - (b * q0);
       //
@@ -664,13 +666,17 @@ namespace mX_real {
   // Quasi by Ozaki
   //
     using TX = qX_real<T,A>;
-    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
-    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+    {
+      if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+      if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+    }
     auto s = b.x[0] + b.x[1] + b.x[2];
-    if ( s + b.x[3] == fp<T>::zero ) {
-      s = s + b.x[3]; auto c = std::copysign( fp<T>::inf, s ); return TX( c,c,c,c ); }
-    if ( b.x[0] == fp<T>::zero ) { return a / qX_real<T,A>( b.x[1], b.x[2], b.x[3], b.x[0] ); }
-    auto c = qX_real<T,A>( tX_real<T,A>( a ) / tX_real<T,A>( b ) );
+    {
+      if ( s + b.x[3] == fp<T>::zero ) {
+        s = s + b.x[3]; auto c = std::copysign( fp<T>::inf, s ); return TX( c,c,c,c ); }
+      if ( b.x[0] == fp<T>::zero ) { return a / qX_real<T,A>( b.x[1], b.x[2], b.x[3], b.x[0] ); }
+    }
+    auto c = tX_real<T,A>( a ) / tX_real<T,A>( b );
     auto t = a - c * b;
     c.x[3] = (t.x[0] + t.x[1] + t.x[2] + t.x[3]) / s;
     return c;
@@ -786,9 +792,8 @@ namespace mX_real {
       auto s = a.x[0] + a.x[1] + a.x[2] + a.x[3];
       if ( s == fp<T>::zero ) { return a; }
       if ( s < fp<T>::zero ) { return TX::nan(); }
+      if ( a.x[0] == fp<T>::zero ) { return sqrt( qX_real<T,Aa>( a.x[1], a.x[2], a.x[3], a.x[0] ) ); };
     }
-    if ( a.x[0] == fp<T>::zero ) { return sqrt( qX_real<T,Aa>( a.x[1], a.x[2], a.x[3], a.x[0] ) ); };
-
     auto r = sqrt( tX_real<T,Aa>( a ) );
     auto t = a - operator_mul_qX( r, r );
     auto c = TX( r );

@@ -673,8 +673,10 @@ namespace mX_real {
   //  IEEE Trans. Computers, Vol 68, Issue 11, 2019
   //
     using TX = tX_real<T,A>;
-    if ( b.x[0] == fp<T>::zero ) { return TX::inf(); }
-    if ( b.x[0] == -fp<T>::zero ) { return -TX::inf(); }
+    {
+      if ( b.x[0] == fp<T>::zero ) { return TX::inf(); }
+      if ( b.x[0] == -fp<T>::zero ) { return -TX::inf(); }
+    }
 
     T _2u    = fp<T>::epsilon;
     T one_2u = fp<T>::one + _2u;
@@ -697,25 +699,29 @@ namespace mX_real {
   // Quasi by Ozaki
   //
     using TX = tX_real<T,A>;
-    if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
-    if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+    {
+      if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
+      if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+    }
     auto s = b.x[0] + b.x[1];
-    if ( s + b.x[2] == fp<T>::zero ) {
-      s = s + b.x[2]; auto c = std::copysign( fp<T>::inf, s ); return TX( c,c,c ); }
-    if ( b.x[0] == fp<T>::zero ) { return a / tX_real<T,A>( b.x[1], b.x[2], b.x[0] ); }
-    auto c = TX ( dX_real<T,A> ( a )  / dX_real<T,A> ( b ) );
+    {
+      if ( s + b.x[2] == fp<T>::zero ) {
+        s = s + b.x[2]; auto c = std::copysign( fp<T>::inf, s ); return TX( c,c,c ); }
+      if ( b.x[0] == fp<T>::zero ) { return a / tX_real<T,A>( b.x[1], b.x[2], b.x[0] ); }
+    }
+    auto c = dX_real<T,A>( a ) / dX_real<T,A>( b );
     auto t = a - c * b;
     c.x[2] = (t.x[0] + t.x[1] + t.x[2]) / s;
     return c;
   }
-  template < typename T, Algorithm Aa, Algorithm Ab >
-  inline tX_real<T,Ab> operator_div_tX ( dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
-    using TX = tX_real<T,Aa>;
+  template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
+  inline tX_real<T,A> operator_div_tX ( dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
+    using TX = tX_real<T,A>;
     return TX(a) / b;
   }
-  template < typename T, Algorithm Aa, Algorithm Ab >
-  inline tX_real<T,Ab> operator_div_tX ( tX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) {
-    using TX = tX_real<T,Ab>;
+  template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
+  inline tX_real<T,A> operator_div_tX ( tX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) {
+    using TX = tX_real<T,A>;
     return a / TX( b );
   }
   template < typename T, Algorithm Ab >
@@ -727,6 +733,11 @@ namespace mX_real {
   inline tX_real<T,Aa> operator_div_tX ( tX_real<T,Aa> const& a, T const& b ) {
     using TX = tX_real<T,Aa>;
     return a / TX(b);
+  }
+  template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
+  inline tX_real<T,A> operator_div_tX ( dX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) {
+    using TX = tX_real<T,A>;
+    return TX(a) / TX(b);
   }
   //
   template < typename T, Algorithm Aa, Algorithm Ab >
@@ -855,9 +866,8 @@ namespace mX_real {
       auto s = a.x[0] + a.x[1] + a.x[2];
       if ( s == fp<T>::zero ) { return a; }
       if ( s < fp<T>::zero ) { return TX::nan(); }
+      if ( a.x[0] == fp<T>::zero ) { return sqrt( tX_real<T,Aa>( a.x[1], a.x[2], a.x[0] ) ); }
     }
-    if ( a.x[0] == fp<T>::zero ) { return sqrt( tX_real<T,Aa>( a.x[1], a.x[2], a.x[0] ) ); }
-
     auto r = sqrt( dX_real<T,Aa>( a ) );
     auto t = a - operator_mul_tX<T,Aa>( r, r );
     auto c = TX( r );
