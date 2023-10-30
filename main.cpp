@@ -228,7 +228,7 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
 
   {
     auto y = T(0);
-    for(int i=0x1000000;i>=1;i--) {
+    for(int i=0x200000;i>=1;i--) {
       auto x = T(i);
       auto x2 = x * x;
       y = y + T(1) / (x2*x2);

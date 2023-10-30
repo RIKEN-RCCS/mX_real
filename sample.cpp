@@ -32,7 +32,7 @@ void benchmark( int const& N ) {
     //
     // optimized GEMV-n kernel
     //
-    int constexpr STEP_i = 64;
+    int constexpr STEP_i = 96;
     int constexpr STEP_j = 64;
 
     #pragma omp parallel

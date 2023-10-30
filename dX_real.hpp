@@ -285,6 +285,11 @@ namespace mX_real {
   //
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline dX_real<T,A> operator_add_dX ( dX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) {
+  //
+  // Sloppy in QD by Bailey and Hida
+  // Accurate
+  // Quasi/PW by Ozaki
+  //
     using TX = dX_real<T,A>;
     T p0, q0;
     twoSum( a.x[0], b.x[0], p0, q0 );
@@ -297,21 +302,16 @@ namespace mX_real {
     } else {
       q0 = (a.x[1] + b.x[1]) + q0;
     }
-    if ( A != Algorithm::Quasi ) Normalize<2>( p0, q0 );
+    if ( A != Algorithm::Quasi ) { Normalize<2>( p0, q0 ); }
     return TX( p0, q0 );
   }
   template < typename T, Algorithm Ab >
   inline dX_real<T,Ab> operator_add_dX ( T const& a, dX_real<T,Ab> const& b ) {
-  //
-  // Sloppy in QD by Bailey and Hida
-  // Accurate
-  // Quasi/PW by Ozaki
-  //
     using TX = dX_real<T,Ab>;
     T p0, q0;
     twoSum( a, b.x[0], p0, q0 );
     q0 = b.x[1] + q0;
-    if ( Ab != Algorithm::Quasi ) Normalize<2>( p0, q0 );
+    if ( Ab != Algorithm::Quasi ) { Normalize<2>( p0, q0 ); }
     return TX( p0, q0 );
   }
   template < typename T, Algorithm A >
@@ -319,7 +319,7 @@ namespace mX_real {
     using TX = dX_real<T,A>;
     T p0, q0;
     twoSum( a, b, p0, q0 );
-    if ( A != Algorithm::Quasi ) { quickSum( p0, q0, p0, q0 ); }
+    if ( A != Algorithm::Quasi ) { Normalize<2>( p0, q0 ); }
     return TX( p0, q0 );
   }
   //
@@ -376,7 +376,7 @@ namespace mX_real {
     // full-compatible to the QD-library
       q0 = q0 + (a.x[0] * b.x[1] + a.x[1] * b.x[0]);
     }
-    if ( A != Algorithm::Quasi ) Normalize<2>( p0, q0 );
+    if ( A != Algorithm::Quasi ) { Normalize<2>( p0, q0 ); }
     return TX( p0, q0 );
   }
   template < typename T, Algorithm Ab >
@@ -392,7 +392,7 @@ namespace mX_real {
     // full-compatible to the QD-library
       q0 = q0 + a * b.x[1];
     }
-    if ( Ab != Algorithm::Quasi ) Normalize<2>( p0, q0 );
+    if ( Ab != Algorithm::Quasi ) { Normalize<2>( p0, q0 ); }
     return TX( p0, q0 );
   }
   template < typename T, Algorithm A >
@@ -452,8 +452,8 @@ namespace mX_real {
     using TX = dX_real<T,A>;
     {
       if ( b.x[0] == fp<T>::inf ) { return TX::zero(); }
-        if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
-    if ( b.x[0] == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b.x[0] ); return TX( c,c ); }
+      if ( b.x[0] == -fp<T>::inf ) { return -TX::zero(); }
+      if ( b.x[0] == fp<T>::zero ) { auto c = std::copysign( fp<T>::inf, b.x[0] ); return TX( c,c ); }
     }
     auto q0 = a.x[0] / b.x[0];
     auto r = a - b * q0;
