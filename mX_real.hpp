@@ -249,11 +249,11 @@ namespace mX_real {
 
   template < int n, typename T >
   inline void vecSum( T * f ) {
-    if ( n < 0 ) { // f[0] > f[1] > ... > f[n-1]
+    if ( n < 0 ) { // f[0] 
       for(int i=(-n)-2; i>=0; i--) {
         twoSum( f[i], f[i+1], f[i], f[i+1] );
       }
-    } else { // f[0] < f[1] < ... < f[n-1]
+    } else { // f[n-1]
       for(int i=1; i<n; i++) {
         twoSum( f[i], f[i-1], f[i], f[i-1] );
       }
@@ -262,11 +262,11 @@ namespace mX_real {
 
   template < int n, typename T >
   inline void vecSum_Sloppy( T * f ) {
-    if ( n < 0 ) { // f[0] > f[1] > ... > f[n-1]
+    if ( n < 0 ) { // f[0]
       for(int i=(-n)-2; i>=0; i--) {
         quickSum( f[i], f[i+1], f[i], f[i+1] );
       }
-    } else { // f[0] < f[1] < ... < f[n-1]
+    } else { // f[n-1]
       for(int i=1; i<n; i++) {
         quickSum( f[i], f[i-1], f[i], f[i-1] );
       }
@@ -378,6 +378,7 @@ namespace mX_real {
   template < typename T >
   struct check_mX_real {
   private:
+  // very ad-hoc implementation
     template < class U >
     static auto check( U v ) -> decltype( U::__is_mX_real__, std::true_type() );
     static auto check( ... ) -> decltype( std::false_type() );

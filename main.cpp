@@ -11,6 +11,7 @@
 // include their headers in advance of the inclusion of mX_real.hpp
 //
 
+
 #include "mX_real.hpp"
 using namespace mX_real;
 
@@ -18,6 +19,10 @@ using namespace mX_real;
 #include "mpfr_convert.hpp"
 using mp_real = mpfr::mpreal;
 
+
+#include <boost/type_index.hpp>
+template < typename T > void printTYPE( void ) {
+  std::cout << boost::typeindex::type_id_with_cvr<T>().pretty_name(); }
 
 
 template < typename T >
@@ -99,7 +104,6 @@ init( int const L, mp_real const& alpha, mp_real * x, mp_real * y, mp_real * z )
   z[4] = nrm2( M, z+8+L );
 
 }
-
 
 template < typename T >
 void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real *Z ) {
@@ -229,7 +233,7 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
       auto x2 = x * x;
       y = y + T(1) / (x2*x2);
     }
-    y = sqrt(sqrt( 90*y ));
+    y = sqrt( sqrt( y*90 ) );
     auto ans = y;
     print( "pai by sqrt(sqrt(90*sum 1/k^4)) ", ans );
   }
@@ -251,6 +255,16 @@ main(int argc, char *argv[])
 
   auto alpha = sqrt( mp_real(2) );
 
+{
+   auto cp = df_Real_quasi( 1); cp.x[1] = fp<float>::epsilon/4;
+   auto cn = df_Real_quasi(-1); cn.x[1] = fp<float>::epsilon/4;
+   print( "Quasi cp=", cp );
+   print( "Quasi cn=", cn );
+   auto c = cp + cn;
+   print( "Quasi c= cp + cn", c );
+   auto cx = df_Real( cp ) + df_Real( cn );
+   print( "Acc cx = Acc(cp) + Acc(cn)", cx );
+}
 {
    print( "rand", df_Real::rand() );
    print( "rand", tf_Real::rand() );
