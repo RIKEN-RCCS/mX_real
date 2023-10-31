@@ -377,20 +377,19 @@ namespace mX_real {
 
 
 #if __cplusplus < 201703L
-#define	BOOL_type(x)	std::integral_constant<bool,(x)>
+#define	_BOOL_const_type(x)	std::integral_constant<bool,(x)>
 #else
-#define	BOOL_type(x)	std::bool_constant<(x)>
+#define	_BOOL_const_type(x)	std::bool_constant<(x)>
 #endif
   //
   template < typename TX >
   struct check_mX_real : std::false_type{};
   template < typename T, Algorithm A >
-  struct check_mX_real< dX_real::dX_real<T,A> >: BOOL_type(fp<T>::value){};
+  struct check_mX_real< dX_real::dX_real<T,A> > : _BOOL_const_type(fp<T>::value){};
   template < typename T, Algorithm A >
-  struct check_mX_real< tX_real::tX_real<T,A> >: BOOL_type(fp<T>::value){};
+  struct check_mX_real< tX_real::tX_real<T,A> > : _BOOL_const_type(fp<T>::value){};
   template < typename T, Algorithm A >
-  struct check_mX_real< qX_real::qX_real<T,A> >: BOOL_type(fp<T>::value){};
-#undef BOOL_type
+  struct check_mX_real< qX_real::qX_real<T,A> > : _BOOL_const_type(fp<T>::value){};
 #ifdef __MPREAL_H__
   template <>struct check_mX_real <mpfr::mpreal> { static bool constexpr value  = false; };
 #endif
@@ -400,6 +399,7 @@ namespace mX_real {
 #ifdef  _QD_QD_REAL_H
   template <> struct check_mX_real <qd_real> { static bool constexpr value  = false; };
 #endif
+#undef _BOOL_const_type
   //
 
 
