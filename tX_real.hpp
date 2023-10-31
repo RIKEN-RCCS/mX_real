@@ -215,10 +215,6 @@ namespace tX_real {
       T c2 = c1 * fp<T>::epsilon * fp<T>::half;
       return tX_real<T,A>( c0, c1, c2 );
     }
-
-    //
-    // friend functions
-    //
     static inline tX_real<T,A> const rand ();
 
   };

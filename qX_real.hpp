@@ -209,10 +209,6 @@ namespace qX_real {
       T c3 = c2 * fp<T>::epsilon * fp<T>::half;
       return qX_real<T,A>( c0, c1, c2, c3 );
     }
-
-    //
-    // friend functions
-    //
     static inline qX_real<T,A> const rand ();
 
   };

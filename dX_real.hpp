@@ -224,10 +224,6 @@ namespace dX_real {
       T c1 = c0 * fp<T>::epsilon * fp<T>::half;
       return dX_real<T,A>( c0, c1 );
     }
-
-    //
-    // friend functions
-    //
     static inline dX_real<T,A> const rand ();
 
   };
