@@ -12,8 +12,8 @@
 namespace std {
 
   template < typename T, mX_real::Algorithm A >
-  class numeric_limits<mX_real::dX_real<T,A>> {
-    using TX = mX_real::dX_real<T,A>;
+  class numeric_limits<mX_real::dX_real::dX_real<T,A>> {
+    using TX = mX_real::dX_real::dX_real<T,A>;
   public:
     inline static TX epsilon() { return TX::epsilon(); }
     inline static TX denorm_min() { return TX::denorm_min(); }
@@ -26,28 +26,28 @@ namespace std {
   };
 
   template < typename T, mX_real::Algorithm A >
-  bool isnan( mX_real::dX_real<T,A> const& x ) {
-    return mX_real::isnan(x);
+  bool isnan( mX_real::dX_real::dX_real<T,A> const& x ) {
+    return mX_real::dX_real::isnan(x);
   }
   template < typename T, mX_real::Algorithm A >
-  bool signbit( mX_real::dX_real<T,A> const& x ) {
-    return mX_real::signbit(x);
+  bool signbit( mX_real::dX_real::dX_real<T,A> const& x ) {
+    return mX_real::dX_real::signbit(x);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::dX_real<T,A> abs( mX_real::dX_real<T,A> const& x ) {
-    return mX_real::abs(x);
+  mX_real::dX_real::dX_real<T,A> abs( mX_real::dX_real::dX_real<T,A> const& x ) {
+    return mX_real::dX_real::abs(x);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::dX_real<T,A> fmin( mX_real::dX_real<T,A> const& x, mX_real::dX_real<T,A> const& y ) {
-    return mX_real::fmin(x,y);
+  mX_real::dX_real::dX_real<T,A> fmin( mX_real::dX_real::dX_real<T,A> const& x, mX_real::dX_real::dX_real<T,A> const& y ) {
+    return mX_real::dX_real::fmin(x,y);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::dX_real<T,A> fmax( mX_real::dX_real<T,A> const& x, mX_real::dX_real<T,A> const& y ) {
-    return mX_real::fmax(x,y);
+  mX_real::dX_real::dX_real<T,A> fmax( mX_real::dX_real::dX_real<T,A> const& x, mX_real::dX_real::dX_real<T,A> const& y ) {
+    return mX_real::dX_real::fmax(x,y);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::dX_real<T,A> sqrt( mX_real::dX_real<T,A> const& x ) {
-    return mX_real::sqrt(x);
+  mX_real::dX_real::dX_real<T,A> sqrt( mX_real::dX_real::dX_real<T,A> const& x ) {
+    return mX_real::dX_real::sqrt(x);
   }
 
 }
@@ -56,8 +56,8 @@ namespace std {
 namespace std {
 
   template < typename T, mX_real::Algorithm A >
-  class numeric_limits<mX_real::tX_real<T,A>> {
-    using TX = mX_real::tX_real<T,A>;
+  class numeric_limits<mX_real::tX_real::tX_real<T,A>> {
+    using TX = mX_real::tX_real::tX_real<T,A>;
   public:
     inline static TX epsilon() { return TX::epsilon(); }
     inline static TX denorm_min() { return TX::denorm_min(); }
@@ -70,28 +70,28 @@ namespace std {
   };
 
   template < typename T, mX_real::Algorithm A >
-  bool isnan( mX_real::tX_real<T,A> const& x ) {
-    return mX_real::isnan(x);
+  bool isnan( mX_real::tX_real::tX_real<T,A> const& x ) {
+    return mX_real::tX_real::isnan(x);
   }
   template < typename T, mX_real::Algorithm A >
-  bool sigbit( mX_real::tX_real<T,A> const& x ) {
-    return mX_real::signbit(x);
+  bool sigbit( mX_real::tX_real::tX_real<T,A> const& x ) {
+    return mX_real::tX_real::signbit(x);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::tX_real<T,A> abs( mX_real::tX_real<T,A> const& x ) {
-    return mX_real::abs(x);
+  mX_real::tX_real::tX_real<T,A> abs( mX_real::tX_real::tX_real<T,A> const& x ) {
+    return mX_real::tX_real::abs(x);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::tX_real<T,A> fmin( mX_real::tX_real<T,A> const& x, mX_real::tX_real<T,A> const& y ) {
-    return mX_real::fmin(x,y);
+  mX_real::tX_real::tX_real<T,A> fmin( mX_real::tX_real::tX_real<T,A> const& x, mX_real::tX_real::tX_real<T,A> const& y ) {
+    return mX_real::tX_real::fmin(x,y);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::tX_real<T,A> fmax( mX_real::tX_real<T,A> const& x, mX_real::tX_real<T,A> const& y ) {
-    return mX_real::fmax(x,y);
+  mX_real::tX_real::tX_real<T,A> fmax( mX_real::tX_real::tX_real<T,A> const& x, mX_real::tX_real::tX_real<T,A> const& y ) {
+    return mX_real::tX_real::fmax(x,y);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::tX_real<T,A> sqrt( mX_real::tX_real<T,A> const& x ) {
-    return mX_real::sqrt(x);
+  mX_real::tX_real::tX_real<T,A> sqrt( mX_real::tX_real::tX_real<T,A> const& x ) {
+    return mX_real::tX_real::sqrt(x);
   }
 
 }
@@ -100,8 +100,8 @@ namespace std {
 namespace std {
 
   template < typename T, mX_real::Algorithm A >
-  class numeric_limits<mX_real::qX_real<T,A>> {
-    using TX = mX_real::qX_real<T,A>;
+  class numeric_limits<mX_real::qX_real::qX_real<T,A>> {
+    using TX = mX_real::qX_real::qX_real<T,A>;
   public:
     inline static TX epsilon() { return TX::epsilon(); }
     inline static TX denorm_min() { return TX::denorm_min(); }
@@ -114,28 +114,28 @@ namespace std {
   };
 
   template < typename T, mX_real::Algorithm A >
-  bool isnan( mX_real::qX_real<T,A> const& x ) {
-    return mX_real::isnan(x);
+  bool isnan( mX_real::qX_real::qX_real<T,A> const& x ) {
+    return mX_real::qX_real::isnan(x);
   }
   template < typename T, mX_real::Algorithm A >
-  bool signbit( mX_real::qX_real<T,A> const& x ) {
-    return mX_real::signbit(x);
+  bool signbit( mX_real::qX_real::qX_real<T,A> const& x ) {
+    return mX_real::qX_real::signbit(x);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::qX_real<T,A> abs( mX_real::qX_real<T,A> const& x ) {
-    return mX_real::abs(x);
+  mX_real::qX_real::qX_real<T,A> abs( mX_real::qX_real::qX_real<T,A> const& x ) {
+    return mX_real::qX_real::abs(x);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::qX_real<T,A> fmin( mX_real::qX_real<T,A> const& x, mX_real::qX_real<T,A> const& y ) {
-    return mX_real::fmin(x,y);
+  mX_real::qX_real::qX_real<T,A> fmin( mX_real::qX_real::qX_real<T,A> const& x, mX_real::qX_real::qX_real<T,A> const& y ) {
+    return mX_real::qX_real::fmin(x,y);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::qX_real<T,A> fmax( mX_real::qX_real<T,A> const& x, mX_real::qX_real<T,A> const& y ) {
-    return mX_real::fmax(x,y);
+  mX_real::qX_real::qX_real<T,A> fmax( mX_real::qX_real::qX_real<T,A> const& x, mX_real::qX_real::qX_real<T,A> const& y ) {
+    return mX_real::qX_real::fmax(x,y);
   }
   template < typename T, mX_real::Algorithm A >
-  mX_real::qX_real<T,A> sqrt( mX_real::qX_real<T,A> const& x ) {
-    return mX_real::sqrt(x);
+  mX_real::qX_real::qX_real<T,A> sqrt( mX_real::qX_real::qX_real<T,A> const& x ) {
+    return mX_real::qX_real::sqrt(x);
   }
 
 }

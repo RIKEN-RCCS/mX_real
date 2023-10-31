@@ -323,12 +323,20 @@ main(int argc, char *argv[])
    print( "max", d );
 }
 {
-   auto s = df_Real( 1.0 + 1.0/(1<<23), -1.0/(1<<24) );
+   auto s = df_Real( 0.1 + 0.1/(1<<23), -0.1/(1<<24) );
    print( "test negative", s );
    Normalize<2>( s.x[0], s.x[1] );
    print( "test negative", s );
    Normalize<2>( s.x[0], s.x[1] );
    print( "test negative", s );
+   print( "sqrt", dX_real::sqrt( (float)0.1 ) );
+   print( "sqrt", tX_real::sqrt( (float)0.1 ) );
+   print( "sqrt", dX_real::sqrt( s ) );
+   print( "sqrt", tX_real::sqrt( s ) );
+}
+{
+   auto s = tf_Real( 1.0 + 1.0/(1<<23), -1.0/(1<<24), 1.0/(1<<24)/(1<<24) );
+   print( "sqrt", sqrt( s ) );
 }
 {
    float x = std::numeric_limits<float>::quiet_NaN();

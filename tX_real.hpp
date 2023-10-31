@@ -5,6 +5,7 @@
 
 
 namespace mX_real {
+namespace tX_real {
 
   template < typename T, Algorithm A=Algorithm::Accurate >
   struct tX_real {
@@ -44,7 +45,7 @@ namespace mX_real {
       x[0] = h; x[1] = x[2] = fp<T>::zero;
     }
     template < Algorithm _A_ >
-    inline tX_real( dX_real<T,_A_> const &h ) {
+    inline tX_real( dX_real::dX_real<T,_A_> const &h ) {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = fp<T>::zero;
       } else {
@@ -63,7 +64,7 @@ namespace mX_real {
       }
     }
     template < Algorithm _A_ >
-    inline tX_real( qX_real<T,_A_> const &h ) {
+    inline tX_real( qX_real::qX_real<T,_A_> const &h ) {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
@@ -85,7 +86,7 @@ namespace mX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    inline tX_real<T,A> &operator=( dX_real<T,_A_> const &h ) {
+    inline tX_real<T,A> &operator=( dX_real::dX_real<T,_A_> const &h ) {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = fp<T>::zero;
       } else {
@@ -107,7 +108,7 @@ namespace mX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    inline tX_real<T,A> &operator=( qX_real<T,_A_> const &h ) {
+    inline tX_real<T,A> &operator=( qX_real::qX_real<T,_A_> const &h ) {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
@@ -129,14 +130,14 @@ namespace mX_real {
       }
     }
     template < Algorithm _A_ >
-    inline operator dX_real<T,_A_>() const {
+    inline operator dX_real::dX_real<T,_A_>() const {
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         T f[3] = { x[0], x[1], x[2] };
         vecSum<-3>( f );
         VSEB_Sloppy<2,3>( f );
-	return dX_real<T,_A_>( f );
+	return dX_real::dX_real<T,_A_>( f );
       } else {
-        return dX_real<T,_A_>( x );
+        return dX_real::dX_real<T,_A_>( x );
       }
     }
     template < Algorithm _A_ >
@@ -151,15 +152,15 @@ namespace mX_real {
       }
     }
     template < Algorithm _A_ >
-    inline operator qX_real<T,_A_>() const {
-      auto c = qX_real<T,_A_>( x[0], x[1], x[2], fp<T>::zero );
+    inline operator qX_real::qX_real<T,_A_>() const {
+      auto c = qX_real::qX_real<T,_A_>( x[0], x[1], x[2], fp<T>::zero );
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         T f[3] = { x[0], x[1], x[2] };
         vecSum<-3>( c.x );
         VSEB_Sloppy<3,3>( c.x );
-        return qX_real<T,_A_>( f[0], f[1], f[2], fp<T>::zero );
+        return qX_real::qX_real<T,_A_>( f[0], f[1], f[2], fp<T>::zero );
       } else {
-        return qX_real<T,_A_>( x[0], x[1], x[2], fp<T>::zero );
+        return qX_real::qX_real<T,_A_>( x[0], x[1], x[2], fp<T>::zero );
       }
     }
 
@@ -215,13 +216,10 @@ namespace mX_real {
       return tX_real<T,A>( c0, c1, c2 );
     }
 
-
     //
     // friend functions
     //
     static inline tX_real<T,A> const rand ();
-    static inline tX_real<T,A> const sqrt ( T const& x );
-    static inline tX_real<T,A> const sqrt ( dX_real<T,A> const& x );
 
   };
 
@@ -307,7 +305,7 @@ namespace mX_real {
     return TX( c );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto operator_add_tX ( dX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
+  inline auto operator_add_tX ( dX_real::dX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
   -> std::enable_if_t< A!=Algorithm::Quasi, tX_real<T,A> > {
   //
   //  Accurate or Sloppy
@@ -320,7 +318,7 @@ namespace mX_real {
     return TX( f );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto operator_add_tX ( dX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
+  inline auto operator_add_tX ( dX_real::dX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
   -> std::enable_if_t< A==Algorithm::Quasi, tX_real<T,A> > {
   //
   // Quasi by Ozaki
@@ -365,17 +363,17 @@ namespace mX_real {
     return operator_add_tX( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab >
-  inline auto operator+ ( dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
+  inline auto operator+ ( dX_real::dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
     using TX = tX_real<T,Aa>;
     return operator_add_tX( TX( a ), b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab >
-  inline auto operator+ ( tX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) {
+  inline auto operator+ ( tX_real<T,Aa> const& a, dX_real::dX_real<T,Ab> const& b ) {
     return b + a;
   }
   template < typename Ts, typename T, Algorithm Ab >
   inline auto operator+ ( Ts const& a, tX_real<T,Ab> const& b )
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dX_real<T,Ab> > {
+  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dX_real::dX_real<T,Ab> > {
     return operator_add_tX( T(a), b );
   }
   template < typename Ts, typename T, Algorithm Aa >
@@ -392,11 +390,11 @@ namespace mX_real {
     return a + (-b);
   }
   template < typename T, Algorithm Aa, Algorithm Ab >
-  inline auto operator- ( dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
+  inline auto operator- ( dX_real::dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
     return a + (-b);
   }
   template < typename T, Algorithm Aa, Algorithm Ab >
-  inline auto operator- ( tX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) {
+  inline auto operator- ( tX_real<T,Aa> const& a, dX_real::dX_real<T,Ab> const& b ) {
     return a + (-b);
   }
   template < typename Ts, typename T, Algorithm Ab >
@@ -473,7 +471,7 @@ namespace mX_real {
     return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto operator_mul_tX ( dX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
+  inline auto operator_mul_tX ( dX_real::dX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
   -> std::enable_if_t< A!=Algorithm::Quasi, tX_real<T,A> > {
   // 
   // Accurate
@@ -510,7 +508,7 @@ namespace mX_real {
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto operator_mul_tX ( dX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
+  inline auto operator_mul_tX ( dX_real::dX_real<T,Aa> const& a, tX_real<T,Ab> const& b )
   -> std::enable_if_t< A==Algorithm::Quasi, tX_real<T,A> > {
   //
   // Quasi by Ozaki
@@ -577,7 +575,7 @@ namespace mX_real {
     return TX( c );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto operator_mul_tX ( dX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) 
+  inline auto operator_mul_tX ( dX_real::dX_real<T,Aa> const& a, dX_real::dX_real<T,Ab> const& b ) 
   -> std::enable_if_t< A!=Algorithm::Quasi, tX_real<T,A> > {
     using TX = tX_real<T,A>;
     T p00, q00;
@@ -610,7 +608,7 @@ namespace mX_real {
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto operator_mul_tX ( dX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) 
+  inline auto operator_mul_tX ( dX_real::dX_real<T,Aa> const& a, dX_real::dX_real<T,Ab> const& b ) 
   -> std::enable_if_t< A==Algorithm::Quasi, tX_real<T,A> > {
   //
   // Quasi by Ozaki
@@ -641,11 +639,11 @@ namespace mX_real {
     return operator_mul_tX( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab >
-  inline auto operator* ( dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
+  inline auto operator* ( dX_real::dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
     return operator_mul_tX( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab >
-  inline auto operator* ( tX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) {
+  inline auto operator* ( tX_real<T,Aa> const& a, dX_real::dX_real<T,Ab> const& b ) {
     return b * a;
   }
   template < typename Ts, typename T, Algorithm Ab >
@@ -709,18 +707,18 @@ namespace mX_real {
         s = s + b.x[2]; auto c = std::copysign( fp<T>::inf, s ); return TX( c,c,c ); }
       if ( b.x[0] == fp<T>::zero ) { return a / tX_real<T,A>( b.x[1], b.x[2], b.x[0] ); }
     }
-    auto c = dX_real<T,A>( a ) / dX_real<T,A>( b );
+    auto c = dX_real::dX_real<T,A>( a ) / dX_real::dX_real<T,A>( b );
     auto t = a - c * b;
     c.x[2] = (t.x[0] + t.x[1] + t.x[2]) / s;
     return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline tX_real<T,A> operator_div_tX ( dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
+  inline tX_real<T,A> operator_div_tX ( dX_real::dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
     using TX = tX_real<T,A>;
     return TX(a) / b;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline tX_real<T,A> operator_div_tX ( tX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) {
+  inline tX_real<T,A> operator_div_tX ( tX_real<T,Aa> const& a, dX_real::dX_real<T,Ab> const& b ) {
     using TX = tX_real<T,A>;
     return a / TX( b );
   }
@@ -735,7 +733,7 @@ namespace mX_real {
     return a / TX(b);
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline tX_real<T,A> operator_div_tX ( dX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) {
+  inline tX_real<T,A> operator_div_tX ( dX_real::dX_real<T,Aa> const& a, dX_real::dX_real<T,Ab> const& b ) {
     using TX = tX_real<T,A>;
     return TX(a) / TX(b);
   }
@@ -745,21 +743,21 @@ namespace mX_real {
     return operator_div_tX( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab >
-  inline auto operator/ ( dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
+  inline auto operator/ ( dX_real::dX_real<T,Aa> const& a, tX_real<T,Ab> const& b ) {
     return operator_div_tX( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab  >
-  inline auto operator/ ( tX_real<T,Aa> const& a, dX_real<T,Ab> const& b ) {
+  inline auto operator/ ( tX_real<T,Aa> const& a, dX_real::dX_real<T,Ab> const& b ) {
     return operator_div_tX( a, b );
   }
   template < typename Ts, typename T, Algorithm Ab >
   inline auto operator/ ( Ts const& a, tX_real<T,Ab> const& b )
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dX_real<T,Ab> > {
+  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dX_real::dX_real<T,Ab> > {
     return operator_div_tX( T(a), b );
   }
   template < typename Ts, typename T, Algorithm Aa >
   inline auto operator/ ( tX_real<T,Aa> const& a, Ts const& b ) 
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dX_real<T,Aa> > {
+  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dX_real::dX_real<T,Aa> > {
     return operator_div_tX( a, T(b) );
   }
 
@@ -868,18 +866,18 @@ namespace mX_real {
       if ( s < fp<T>::zero ) { return TX::nan(); }
       if ( a.x[0] == fp<T>::zero ) { return sqrt( tX_real<T,Aa>( a.x[1], a.x[2], a.x[0] ) ); }
     }
-    auto r = sqrt( dX_real<T,Aa>( a ) );
+    auto r = dX_real::sqrt( dX_real::dX_real<T,Aa>( a ) );
     auto t = a - operator_mul_tX<T,Aa>( r, r );
     auto c = TX( r );
     c.x[2] = (t.x[0] + t.x[1] + t.x[2]) / (2*(c.x[0] + c.x[1]));
     return c;
   }
   template < typename T, Algorithm Aa >
-  inline tX_real<T,Aa> const tX_real<T,Aa>::sqrt ( dX_real<T,Aa> const& a ) {
+  inline tX_real<T,Aa> const sqrt ( dX_real::dX_real<T,Aa> const& a ) {
     return sqrt( tX_real<T,Aa>( a ) );
   }
-  template < typename T, Algorithm Aa >
-  inline tX_real<T,Aa> const tX_real<T,Aa>::sqrt ( T const& a ) {
+  template < typename T, Algorithm Aa=Algorithm::Accurate >
+  inline tX_real<T,Aa> const sqrt ( T const& a ) {
     return sqrt( tX_real<T,Aa>( a ) );
   }
 
@@ -985,6 +983,7 @@ namespace mX_real {
     return stream;
   }
 
+}
 }
 
 

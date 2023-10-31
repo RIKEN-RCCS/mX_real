@@ -14,7 +14,7 @@ namespace mX_real {
   //
   //
   template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, dX_real<T,A> const &x, bool const flag = false )
+  inline auto debug_print ( std::string message, dX_real::dX_real<T,A> const &x, bool const flag = false )
   -> std::enable_if_t< std::is_same< T, float >::value, void > {
     uint32_t * d = (uint32_t *)(&x.x[0]);
     long double xx =
@@ -31,7 +31,7 @@ namespace mX_real {
   }
 
   template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, dX_real<T,A> const &x, bool const flag = false )
+  inline auto debug_print ( std::string message, dX_real::dX_real<T,A> const &x, bool const flag = false )
   -> std::enable_if_t< std::is_same< T, double >::value, void > {
     uint64_t * d = (uint64_t *)(&x.x[0]);
     long double xx =
@@ -52,7 +52,7 @@ namespace mX_real {
   //
   //
   template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, tX_real<T,A> const &x, bool const flag = false )
+  inline auto debug_print ( std::string message, tX_real::tX_real<T,A> const &x, bool const flag = false )
   -> std::enable_if_t< std::is_same< T, float >::value, void > {
     uint32_t * d = (uint32_t *)(&x.x[0]);
     long double xx = (long double)x.x[2]
@@ -69,7 +69,7 @@ namespace mX_real {
     }
   }
   template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, tX_real<T,A> const &x, bool const flag = false )
+  inline auto debug_print ( std::string message, tX_real::tX_real<T,A> const &x, bool const flag = false )
   -> std::enable_if_t< std::is_same< T, double >::value, void > {
     uint64_t * d = (uint64_t *)(&x.x[0]);
     long double xx = (long double)x.x[2]
@@ -91,7 +91,7 @@ namespace mX_real {
   //
   //
   template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, qX_real<T,A> const &x, bool const flag = false )
+  inline auto debug_print ( std::string message, qX_real::qX_real<T,A> const &x, bool const flag = false )
   -> std::enable_if_t< std::is_same< T, float >::value, void > {
     uint32_t * d = (uint32_t *)(&x.x[0]);
     long double xx = (long double)x.x[3]
@@ -108,7 +108,7 @@ namespace mX_real {
     }
   }
   template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, qX_real<T,A> const &x, bool const flag = false )
+  inline auto debug_print ( std::string message, qX_real::qX_real<T,A> const &x, bool const flag = false )
   -> std::enable_if_t< std::is_same< T, double >::value, void > {
     uint64_t * d = (uint64_t *)(&x.x[0]);
     long double xx = (long double)x.x[3]

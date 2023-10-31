@@ -359,16 +359,18 @@ namespace mX_real {
 
 
   // for cross-reference
-  template < typename T, Algorithm A > struct dX_real;
-  template < typename T, Algorithm A > struct tX_real;
-  template < typename T, Algorithm A > struct qX_real;
+  namespace dX_real { template < typename T, Algorithm A > struct dX_real; }
+  namespace tX_real { template < typename T, Algorithm A > struct tX_real; }
+  namespace qX_real { template < typename T, Algorithm A > struct qX_real; }
 
 }
+
 
 //
 #include "dX_real.hpp"
 #include "tX_real.hpp"
 #include "qX_real.hpp"
+//
 
 
 namespace mX_real {
@@ -468,29 +470,29 @@ namespace mX_real {
 
 
 //
-using df_Real        = mX_real::dX_real_accurate<float>;
-using df_Real_sloppy = mX_real::dX_real_sloppy<float>;
-using df_Real_quasi  = mX_real::dX_real_quasi<float>;
+using df_Real        = mX_real::dX_real::dX_real_accurate<float>;
+using df_Real_sloppy = mX_real::dX_real::dX_real_sloppy<float>;
+using df_Real_quasi  = mX_real::dX_real::dX_real_quasi<float>;
 
-using dd_Real        = mX_real::dX_real_accurate<double>;
-using dd_Real_sloppy = mX_real::dX_real_sloppy<double>;
-using dd_Real_quasi  = mX_real::dX_real_quasi<double>;
+using dd_Real        = mX_real::dX_real::dX_real_accurate<double>;
+using dd_Real_sloppy = mX_real::dX_real::dX_real_sloppy<double>;
+using dd_Real_quasi  = mX_real::dX_real::dX_real_quasi<double>;
 
-using tf_Real        = mX_real::tX_real_accurate<float>;
-using tf_Real_sloppy = mX_real::tX_real_sloppy<float>;
-using tf_Real_quasi  = mX_real::tX_real_quasi<float>;
+using tf_Real        = mX_real::tX_real::tX_real_accurate<float>;
+using tf_Real_sloppy = mX_real::tX_real::tX_real_sloppy<float>;
+using tf_Real_quasi  = mX_real::tX_real::tX_real_quasi<float>;
 
-using td_Real        = mX_real::tX_real_accurate<double>;
-using td_Real_sloppy = mX_real::tX_real_sloppy<double>;
-using td_Real_quasi  = mX_real::tX_real_quasi<double>;
+using td_Real        = mX_real::tX_real::tX_real_accurate<double>;
+using td_Real_sloppy = mX_real::tX_real::tX_real_sloppy<double>;
+using td_Real_quasi  = mX_real::tX_real::tX_real_quasi<double>;
 
-using qf_Real        = mX_real::qX_real_accurate<float>;
-using qf_Real_sloppy = mX_real::qX_real_sloppy<float>;
-using qf_Real_quasi  = mX_real::qX_real_quasi<float>;
+using qf_Real        = mX_real::qX_real::qX_real_accurate<float>;
+using qf_Real_sloppy = mX_real::qX_real::qX_real_sloppy<float>;
+using qf_Real_quasi  = mX_real::qX_real::qX_real_quasi<float>;
 
-using qd_Real        = mX_real::qX_real_accurate<double>;
-using qd_Real_sloppy = mX_real::qX_real_sloppy<double>;
-using qd_Real_quasi  = mX_real::qX_real_quasi<double>;
+using qd_Real        = mX_real::qX_real::qX_real_accurate<double>;
+using qd_Real_sloppy = mX_real::qX_real::qX_real_sloppy<double>;
+using qd_Real_quasi  = mX_real::qX_real::qX_real_quasi<double>;
 
 #endif
 
