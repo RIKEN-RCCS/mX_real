@@ -14,13 +14,11 @@ namespace dX_real {
                    "The base type must be out of the defined types, such as float or double." );
 
     //
-    static bool constexpr __is_mX_real__ = true;
-    //
-    static int constexpr L = 2;
     //
     using base_T = T;
     static Algorithm constexpr base_A = A;
     //
+    static int constexpr L = 2;
     T x[L];
 
     //

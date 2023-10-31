@@ -377,19 +377,16 @@ namespace mX_real {
 
 
   //
-  template < typename T >
-  struct check_mX_real {
-  private:
-  // very ad-hoc implementation
-    template < class U >
-    static auto check( U v ) -> decltype( U::__is_mX_real__, std::true_type() );
-    static auto check( ... ) -> decltype( std::false_type() );
-    using type = decltype( check( std::declval<T>() ) );
-  public:
-    static bool constexpr value = type::value;
-  };
+  template < typename TX >
+  struct check_mX_real : std::false_type{};
+  template < typename T, Algorithm A >
+  struct check_mX_real< dX_real::dX_real<T,A> >: std::true_type{};
+  template < typename T, Algorithm A >
+  struct check_mX_real< tX_real::tX_real<T,A> >: std::true_type{};
+  template < typename T, Algorithm A >
+  struct check_mX_real< qX_real::qX_real<T,A> >: std::true_type{};
 #ifdef __MPREAL_H__
-  template <> struct check_mX_real <mpfr::mpreal> { static bool constexpr value  = false; };
+  template <>struct check_mX_real <mpfr::mpreal> { static bool constexpr value  = false; };
 #endif
 #ifdef  _QD_DD_REAL_H
   template <> struct check_mX_real <dd_real> { static bool constexpr value  = false; };

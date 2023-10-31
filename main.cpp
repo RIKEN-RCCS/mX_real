@@ -331,12 +331,10 @@ main(int argc, char *argv[])
    print( "test negative", s );
    print( "sqrt", dX_real::sqrt( (float)0.1 ) );
    print( "sqrt", tX_real::sqrt( (float)0.1 ) );
+   print( "sqrt", qX_real::sqrt( (float)0.1 ) );
    print( "sqrt", dX_real::sqrt( s ) );
    print( "sqrt", tX_real::sqrt( s ) );
-}
-{
-   auto s = tf_Real( 1.0 + 1.0/(1<<23), -1.0/(1<<24), 1.0/(1<<24)/(1<<24) );
-   print( "sqrt", sqrt( s ) );
+   print( "sqrt", qX_real::sqrt( s ) );
 }
 {
    float x = std::numeric_limits<float>::quiet_NaN();
