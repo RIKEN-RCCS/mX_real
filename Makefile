@@ -1,5 +1,5 @@
-#CXX = g++ --std=c++14
-CXX = g++ --std=c++17
+CXX = g++ --std=c++14
+#CXX = g++ --std=c++17
 CCFLAGS := $(CCFLAGS) -O3
 #CCFLAGS := $(CCFLAGS) -g
 LDFLAGS = -fopenmp
