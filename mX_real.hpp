@@ -359,9 +359,9 @@ namespace mX_real {
 
 
   // for cross-reference
-  namespace dX_real { template < typename T, Algorithm A > struct dX_real; }
-  namespace tX_real { template < typename T, Algorithm A > struct tX_real; }
-  namespace qX_real { template < typename T, Algorithm A > struct qX_real; }
+  namespace dX_real { template < typename T, Algorithm A > struct dx_real; }
+  namespace tX_real { template < typename T, Algorithm A > struct tx_real; }
+  namespace qX_real { template < typename T, Algorithm A > struct qx_real; }
 
 }
 
@@ -385,11 +385,11 @@ namespace mX_real {
   template < typename TX >
   struct check_mX_real : std::false_type{};
   template < typename T, Algorithm A >
-  struct check_mX_real< dX_real::dX_real<T,A> > : _BOOL_const_type(fp<T>::value){};
+  struct check_mX_real< dX_real::dx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
   template < typename T, Algorithm A >
-  struct check_mX_real< tX_real::tX_real<T,A> > : _BOOL_const_type(fp<T>::value){};
+  struct check_mX_real< tX_real::tx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
   template < typename T, Algorithm A >
-  struct check_mX_real< qX_real::qX_real<T,A> > : _BOOL_const_type(fp<T>::value){};
+  struct check_mX_real< qX_real::qx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
 #ifdef __MPREAL_H__
   template <>struct check_mX_real <mpfr::mpreal> { static bool constexpr value  = false; };
 #endif

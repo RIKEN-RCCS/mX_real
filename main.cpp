@@ -335,6 +335,13 @@ main(int argc, char *argv[])
    print( "sqrt", dX_real::sqrt( s ) );
    print( "sqrt", tX_real::sqrt( s ) );
    print( "sqrt", qX_real::sqrt( s ) );
+   float a = 0.1;
+   float b = 0.3;
+   print( "mul ", a * b );
+   print( "mulx", dX_real::operator_mul(a,b) );
+   print( "add ", a + b );
+//   print( "mulx", operator+(a,b) );
+   print( "addx", dX_real::operator_add(a,b) );
 }
 {
    float x = std::numeric_limits<float>::quiet_NaN();
