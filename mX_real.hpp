@@ -166,9 +166,7 @@ namespace mX_real {
   // common operation functions
   //
   template < typename T >
-  inline void twoSum ( T const& _a_, T const& _b_, T & s, T & e ) {
-    auto const a = _a_;
-    auto const b = _b_;
+  inline void twoSum ( T const a, T const b, T & s, T & e ) {
     s = a + b;
     auto u = s - a;
     e = s - u;
@@ -178,9 +176,7 @@ namespace mX_real {
   }
 
   template < typename T >
-  inline void twoSub ( T const& _a_, T const& _b_, T & s, T & e ) {
-    auto const a = _a_;
-    auto const b = _b_;
+  inline void twoSub ( T const a, T const b, T & s, T & e ) {
     s = a - b;
     auto u = s - a;
     e = s - u;
@@ -215,18 +211,14 @@ namespace mX_real {
   }
 
   template < typename T >
-  inline void quickSum ( T const& _a_, T const& _b_, T & s, T & e ) {
-    auto const a = _a_;
-    auto const b = _b_;
+  inline void quickSum ( T const a, T const b, T & s, T & e ) {
     s = a + b;
     e = s - a;
     e = b - e;
   }
 
   template < typename T >
-  inline void twoProdFMA ( T const& _a_, T const& _b_, T & s, T & e ) {
-    auto const a = _a_;
-    auto const b = _b_;
+  inline void twoProdFMA ( T const a, T const b, T & s, T & e ) {
     s = a * b;
     auto const t = -s;
     e = std::fma( a, b, t );
@@ -365,6 +357,8 @@ namespace mX_real {
 
 }
 
+
+#include "Ozaki-QW/qxw.hpp"
 
 //
 #include "dX_real.hpp"

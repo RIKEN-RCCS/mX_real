@@ -341,9 +341,47 @@ namespace tX_real {
       return TX( c );
     }
   }
+  template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
+  inline auto operator_add ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) 
+  -> std::enable_if_t< fp<T>::value, tx_real<T,A> > {
+    using TX = tx_real<T,A>;
+    if ( A != Algorithm::Quasi ) {
+      T f[4];
+      vecMerge<2,2>( f, a.x, b.x );
+      vecSum_Sloppy<-4>( f );
+      VSEB_Sloppy<3,4>( f );
+      return TX( f );
+    } else {
+      T e1, e2, e3; TX c;
+      twoSum( a.x[0], b.x[0], c.x[0], e1 );
+      twoSum( a.x[1], b.x[1], c.x[1], e2 );
+      twoSum( c.x[1], e1, c.x[1], e3 );
+      c.x[2] = e2 + e3;
+      return c;
+    }
+  }
+  template < typename T, Algorithm Ab >
+  inline auto operator_add ( T const& a, dX_real::dx_real<T,Ab> const& b ) 
+  -> std::enable_if_t< fp<T>::value, tx_real<T,Ab> > {
+    using TX = tx_real<T,Ab>;
+    if ( Ab != Algorithm::Quasi ) {
+      T f[3];
+      vecMerge<1,2>( f, a.x, b.x );
+      vecSum_Sloppy<-3>( f );
+      VSEB_Sloppy<3,3>( f );
+      return TX( f );
+    } else {
+      T e1, e2, e3; TX c;
+      twoSum( a.x[0], b.x[0], c.x[0], e1 );
+      twoSum( a.x[1], b.x[1], c.x[1], e2 );
+      twoSum( c.x[1], e1, c.x[1], e3 );
+      c.x[2] = e2 + e3;
+      return c;
+    }
+  }
   template < typename T, Algorithm A >
   inline auto operator_add ( T const& a, T const& b ) 
-  -> std::enable_if_t< fp<T>::value, tX_real::tx_real<T,A> > {
+  -> std::enable_if_t< fp<T>::value, tx_real<T,A> > {
     using TX = tx_real<T,A>;
     T c[2];
     twoSum( a, b, c[0], c[1] );
@@ -365,7 +403,7 @@ namespace tX_real {
   }
   template < typename Ts, typename T, Algorithm Ab >
   inline auto operator+ ( Ts const& a, tx_real<T,Ab> const& b )
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, tX_real::tx_real<T,Ab> > {
+  -> std::enable_if_t< std::is_arithmetic<Ts>::value, tx_real<T,Ab> > {
     return tX_real::operator_add( T(a), b );
   }
   template < typename Ts, typename T, Algorithm Aa >
