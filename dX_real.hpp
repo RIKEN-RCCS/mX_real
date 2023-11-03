@@ -244,7 +244,7 @@ namespace dX_real {
   //
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto operator== ( dx_real<T,Aa> const& a, dx_real<T,Ab> const& b ) {
-    if ( Aa==Algorithm::Quasi ) {
+    if ( Aa == Algorithm::Quasi ) {
       return b == dx_real<T,Algorithm::Accurate>( a );
     } else {
       return a.x[0] == b.x[0] && a.x[1] == b.x[1];

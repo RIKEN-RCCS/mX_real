@@ -228,7 +228,7 @@ namespace qX_real {
   //
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto operator== ( qx_real<T,Aa> const& a, qx_real<T,Ab> const& b ) {
-    if ( A == Algorithm::Quasi ) {
+    if ( Aa == Algorithm::Quasi ) {
       return b == qx_real<T,Algorithm::Accurate>( a );
     } else {
       return a.x[0] == b.x[0] && a.x[1] == b.x[1] && a.x[2] == b.x[2] && a.x[3] == b.x[3];
