@@ -223,7 +223,19 @@ namespace dX_real {
       return dx_real<T,A>( c0, c1 );
     }
 
-    static inline dx_real<T,A> const rand ();
+    static inline dx_real<T,A> constexpr rand ();
+    static inline dx_real<T,A> constexpr negative ( dx_real<T,A> const& a ) {
+      return dx_real<T,A>( -a.x[0], -a.x[1] );
+    }
+
+    // operations to THIS object
+    inline void constexpr negative () {
+      x[0] = -x[0]; x[1] = -x[1];
+    }
+    inline void constexpr zerofy () {
+      x[0] = x[1] = fp<T>::zero;
+    }
+
 
   };
 
@@ -265,8 +277,7 @@ namespace dX_real {
   }
   template < typename T, Algorithm Aa >
   inline auto operator- ( dx_real<T,Aa> const& a ) {
-    using TX = dx_real<T,Aa>;
-    return TX( -a.x[0], -a.x[1] );
+    return dx_real<T,Aa>::negative( a );
   }
 
 
@@ -806,7 +817,7 @@ namespace dX_real {
     return r;
   }
   template < typename T, Algorithm A >
-  inline dx_real<T,A> const dx_real<T,A>::rand () {
+  inline dx_real<T,A> constexpr dx_real<T,A>::rand () {
     return dX_real::rand<T,A>();
   }
 

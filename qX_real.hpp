@@ -208,7 +208,19 @@ namespace qX_real {
       return qx_real<T,A>( c0, c1, c2, c3 );
     }
 
-    static inline qx_real<T,A> const rand ();
+    static inline qx_real<T,A> constexpr rand ();
+    static inline qx_real<T,A> constexpr negative ( qx_real<T,A> const& a ) {
+      return qx_real<T,A>( -a.x[0], -a.x[1], -a.x[2], -a.x[3] );
+    }
+
+    // operations to THIS object
+    inline void constexpr negative () {
+      x[0] = -x[0]; x[1] = -x[1]; x[2] = -x[2]; x[3] = -x[3];
+    }
+    inline void constexpr zerofy () {
+      x[0] = x[1] = x[2] = x[3] = fp<T>::zero;
+    }
+
 
   };
 
@@ -249,8 +261,7 @@ namespace qX_real {
   }
   template < typename T, Algorithm Aa >
   inline auto operator- ( qx_real<T,Aa> const& a ) {
-    using TX = qx_real<T,Aa>;
-    return TX( -a.x[0], -a.x[1], -a.x[2], -a.x[3] );
+    return qx_real<T,Aa>::negative( a );
   }
 
 
@@ -1121,7 +1132,7 @@ namespace qX_real {
     return r;
   }
   template < typename T, Algorithm A >
-  inline qx_real<T,A> const qx_real<T,A>::rand () {
+  inline qx_real<T,A> constexpr qx_real<T,A>::rand () {
     return qX_real::rand<T,A>();
   }
 
