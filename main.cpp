@@ -297,14 +297,14 @@ main(int argc, char *argv[])
    print( "min", std::numeric_limits<dd_Real>::min() );
    auto s = df_Real::min();
    print( "min", s );
-   Normalize<2>(s.x[0], s.x[1]);
+   quickSum(s.x[0], s.x[1]);
    print( "min", s );
 
    print( "min", std::numeric_limits<double>::min() );
    print( "min", std::numeric_limits<dd_Real>::min() );
    auto d = dd_Real::min();
    print( "min", d );
-   Normalize<2>(d.x[0],d.x[1]);
+   quickSum(d.x[0],d.x[1]);
    print( "min", d );
 }
 {
@@ -312,22 +312,22 @@ main(int argc, char *argv[])
    print( "max", std::numeric_limits<df_Real>::max() );
    auto s = df_Real::max();
    print( "max", s );
-   Normalize<2>(s.x[0], s.x[1]);
+   quickSum(s.x[0], s.x[1]);
    print( "max", s );
 
    print( "max", std::numeric_limits<double>::max() );
    print( "max", std::numeric_limits<dd_Real>::max() );
    auto d = dd_Real::max();
    print( "max", d );
-   Normalize<2>(d.x[0], d.x[1]);
+   quickSum(d.x[0], d.x[1]);
    print( "max", d );
 }
 {
    auto s = df_Real( 0.1 + 0.1/(1<<23), -0.1/(1<<24) );
    print( "test negative", s );
-   Normalize<2>( s.x[0], s.x[1] );
+   quickSum( s.x[0], s.x[1] );
    print( "test negative", s );
-   Normalize<2>( s.x[0], s.x[1] );
+   quickSum( s.x[0], s.x[1] );
    print( "test negative", s );
    print( "sqrt", dX_real::sqrt( (float)0.1 ) );
    print( "sqrt", tX_real::sqrt( (float)0.1 ) );

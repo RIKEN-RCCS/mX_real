@@ -174,6 +174,10 @@ namespace mX_real {
     u = b - u;
     e = e + u;
   }
+  template < typename T >
+  inline void twoSum ( T & a, T & b ) {
+    twoSum( a, b, a, b );
+  }
 
   template < typename T >
   inline void twoSub ( T const a, T const b, T & s, T & e ) {
@@ -183,6 +187,10 @@ namespace mX_real {
     e = a - e;
     u = b + u;
     e = e - u;
+  }
+  template < typename T >
+  inline void twoSub ( T & a, T & b ) {
+    twoSub( a, b, a, b );
   }
 
   template < typename T >
@@ -197,6 +205,10 @@ namespace mX_real {
     _b_ = b;
     _c_ = c;
   }
+  template < typename T >
+  inline void threeSum ( T * a ) {
+    threeSum( a[0], a[1], a[2] );
+  }
 
   template < typename T >
   inline void threeSum2 ( T & _a_, T & _b_, T const& _c_ ) {
@@ -209,12 +221,20 @@ namespace mX_real {
     _a_ = a;
     _b_ = b;
   }
+  template < typename T >
+  inline void threeSum2 ( T * a ) {
+    threeSum2( a[0], a[1], a[2] );
+  }
 
   template < typename T >
   inline void quickSum ( T const a, T const b, T & s, T & e ) {
     s = a + b;
     e = s - a;
     e = b - e;
+  }
+  template < typename T >
+  inline void quickSum ( T & a, T & b ) {
+    quickSum( a, b, a, b );
   }
 
   template < typename T >
@@ -243,11 +263,11 @@ namespace mX_real {
   inline void vecSum( T * f ) {
     if ( n < 0 ) { // f[0] 
       for(int i=(-n)-2; i>=0; i--) {
-        twoSum( f[i], f[i+1], f[i], f[i+1] );
+        twoSum( f[i], f[i+1] );
       }
     } else { // f[n-1]
       for(int i=1; i<n; i++) {
-        twoSum( f[i], f[i-1], f[i], f[i-1] );
+        twoSum( f[i], f[i-1] );
       }
     }
   }
@@ -256,16 +276,16 @@ namespace mX_real {
   inline void vecSum_Sloppy( T * f ) {
     if ( n < 0 ) { // f[0]
       for(int i=(-n)-2; i>=0; i--) {
-        quickSum( f[i], f[i+1], f[i], f[i+1] );
+        quickSum( f[i], f[i+1] );
       }
     } else { // f[n-1]
       for(int i=1; i<n; i++) {
-        quickSum( f[i], f[i-1], f[i], f[i-1] );
+        quickSum( f[i], f[i-1] );
       }
     }
   }
 
-  template < int L, int n, typename T >
+  template < int L, int n=L, typename T >
   inline void VSEB( T * f ) {
   //
   //  N. Fabiano, J-M Muller, and J. Picot
@@ -288,7 +308,7 @@ namespace mX_real {
     if ( j < L ) { twoSum( e, f[i+1], f[j], f[j+1] ); j=(j+1)+1; }
     if ( j < n ) { for(int i=j; i<n; i++) { f[i] = fp<T>::zero; } }
   }
-  template < int L, int n, typename T >
+  template < int L, int n=L, typename T >
   inline void VSEB_Sloppy( T * f ) {
   //
   //  N. Fabiano, J-M Muller, and J. Picot
@@ -313,47 +333,40 @@ namespace mX_real {
   }
 
 
-  //
-  template < int N, typename T > inline void Normalize( ... ) { }
-  template < int N, typename T >
-  inline auto Normalize( T & c0, T & c1 ) -> std::enable_if_t<N==2,void> {
-    quickSum( c0, c1, c0, c1 );
-    return;
-  }
-  template < int N, typename T >
-  inline auto Normalize( T & c0, T & c1, T & c2 ) -> std::enable_if_t<N==3,void> {
-    T f[3] = { c0, c1, c2 };
-    VSEB<3,3>( f );
-    c0 = f[0]; c1 = f[1]; c2 = f[2];
-    return;
-  }
-  template < int N, typename T >
-  inline auto Normalize( T & c0, T & c1, T & c2, T const& err ) -> std::enable_if_t<N==3,void> {
-    T f[4] = { c0, c1, c2, err };
-    VSEB<3,4>( f );
-    c0 = f[0]; c1 = f[1]; c2 = f[2];
-    return;
-  }
-  template < int N, typename T >
-  inline auto Normalize( T & c0, T & c1, T & c2, T & c3 ) -> std::enable_if_t<N==4,void> {
-    T f[4] = { c0, c1, c2, c3 };
-    VSEB<4,4>( f );
-    c0 = f[0]; c1 = f[1]; c2 = f[2]; c3 = f[3];
-    return;
-  }
-  template < int N, typename T >
-  inline auto Normalize( T & c0, T & c1, T & c2, T & c3, T const& err ) -> std::enable_if_t<N==4,void> {
-    T f[5] = { c0, c1, c2, c3, err };
-    VSEB<4,5>( f );
-    c0 = f[0]; c1 = f[1]; c2 = f[2]; c3 = f[3];
-    return;
-  }
-
-
   // for cross-reference
   namespace dX_real { template < typename T, Algorithm A > struct dx_real; }
   namespace tX_real { template < typename T, Algorithm A > struct tx_real; }
   namespace qX_real { template < typename T, Algorithm A > struct qx_real; }
+
+
+  //
+  template < typename T, Algorithm A >
+  inline auto Normalize( dX_real::dx_real<T,A> & c ) {
+    quickSum( c.x[0], c.x[1] );
+  }
+  template < typename T, Algorithm A >
+  inline auto NormalizeStrict( dX_real::dx_real<T,A> & c ) {
+    twoSum( c.x[0], c.x[1] );
+  }
+  //
+  template < typename T, Algorithm A >
+  inline auto Normalize( tX_real::tx_real<T,A> & c ) {
+    VSEB_Sloppy<3>( c.x );
+  }
+  template < typename T, Algorithm A >
+  inline auto NormalizeStrict( tX_real::tx_real<T,A> & c ) {
+    VSEB<3>( c.x );
+  }
+  //
+  template < typename T, Algorithm A >
+  inline auto Normalize( qX_real::qx_real<T,A> & c ) {
+    VSEB_Sloppy<4>( c.x );
+  }
+  template < typename T, Algorithm A >
+  inline auto NormalizeStrict( qX_real::qx_real<T,A> & c ) {
+    VSEB<4>( c.x );
+  }
+
 
 }
 

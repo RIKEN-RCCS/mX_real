@@ -85,7 +85,8 @@ void add_SW_PA_QQW(float a, float b1, float b2, float *c1, float *c2, float *c3,
 {
     float e1;
     TwoSum(a,b1,c1,&e1);
-    TwoSum(a,b2,c2,c3);
+//    TwoSum(a,b2,c2,c3);
+    TwoSum(b2,e1,c2,c3);
     *c4 = 0;
 }
 

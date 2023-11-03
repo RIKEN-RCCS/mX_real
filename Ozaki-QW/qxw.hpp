@@ -106,7 +106,8 @@ template < typename T > inline void add_SW_PA_QQW(T const& a, T const& b1, T con
 {
     T e1;
     TwoSum(a,b1,c1,e1);
-    TwoSum(a,b2,c2,c3);
+//    TwoSum(a,b2,c2,c3);
+    TwoSum(b2,e1,c2,c3);
     c4 = fp_const<T>::zero();
 }
 
