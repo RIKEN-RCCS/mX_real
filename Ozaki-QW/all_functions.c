@@ -86,7 +86,7 @@ void add_SW_PA_QQW(float a, float b1, float b2, float *c1, float *c2, float *c3,
     float e1;
     TwoSum(a,b1,c1,&e1);
 //    TwoSum(a,b2,c2,c3);
-    TwoSum(b2,e1,c2,c3);
+    TwoSum(b2,e1,c2,c3); //
     *c4 = 0;
 }
 
@@ -1023,7 +1023,7 @@ void mul_SW_PA_QQW(float a, float b1, float b2, float *c1, float *c2, float *c3,
 //mul: 1-3-1
 void mul_SW_QTW_SW(float a, float b1, float b2, float b3, float *c)
 {
-    *c = a * (b1 + b2 + b3);
+    *c = a * (b3 + b2 + b1);
 }
 
 //mul: 1-3-2
@@ -1061,7 +1061,8 @@ void mul_SW_QTW_QQW(float a, float b1, float b2, float b3, float *c1, float *c2,
 //mul: 1-4-1
 void mul_SW_QQW_SW(float a1, float b1, float b2, float b3, float b4, float *c)
 {
-    *c = a1 + b1 + b2 + b3 + b4;
+//    *c = a1 + b1 + b2 + b3 + b4;
+    *c = a1 * (b4 + b3 + b2 + b1); //
 }
 
 //mul: 1-4-2
@@ -1185,7 +1186,7 @@ void mul_PA_PA_QQW(float a1,float a2,float b1,float b2,float *c1,float *c2,float
 //mul: 2-3-1
 void mul_PA_QTW_SW(float a1, float a2, float b1, float b2, float b3, float *c)
 {
-    *c = (a1+a2)*(b1+b2+b3);
+    *c = (a1+a2)*(b3+b2+b1);
 }
 
 //mul: 2-3-2
@@ -1233,7 +1234,8 @@ void mul_PA_QTW_QQW(float a1,float a2,float b1,float b2,float b3,float *c1,float
 //mul: 2-4-1
 void mul_PA_QQW_SW(float a1, float a2, float b1, float b2, float b3, float b4, float *c)
 {
-    *c = a1 + b1 + a2 + b2 + b3 + b4;
+//    *c = a1 + b1 + a2 + b2 + b3 + b4;
+    *c = (a1 + a2) * (b1 + b2 + b3 + b4); //
 }
 
 //mul: 2-4-2
@@ -1283,7 +1285,7 @@ void mul_PA_QQW_QQW(float a1,float a2,float b1,float b2,float b3,float b4,float 
 //mul: 3-1-1
 void mul_QTW_SW_SW(float a1, float a2, float a3, float b, float *c)
 {
-    *c = (a1+a2+a3)*b;
+    *c = (a3+a2+a1)*b;
 }
 
 //mul: 3-1-2
@@ -1323,7 +1325,7 @@ void mul_QTW_SW_QQW(float a1,float a2,float a3,float b,float *c1,float *c2,float
 //mul: 3-2-1
 void mul_QTW_PA_SW(float a1, float a2, float a3, float b1, float b2, float *c)
 {
-    *c = (a1+a2+a3)*(b1+b2);
+    *c = (a3+a2+a1)*(b1+b2);
 }
 
 //mul: 3-2-2
@@ -1424,7 +1426,8 @@ void mul_QTW_QTW_QQW(float a1,float a2,float a3,float b1,float b2,float b3,float
 //mul: 3-4-1
 void mul_QTW_QQW_SW(float a1, float a2, float a3, float b1, float b2, float b3, float b4, float *c)
 {
-    *c = a1 + b1 + a2 + b2 + a3 + b3 + b4;
+//    *c = a1 + b1 + a2 + b2 + a3 + b3 + b4;
+    *c = (a3 + a2 + a1) * (b4 + b3 + b2 + b1); //
 }
 
 //mul: 3-4-2
@@ -1477,7 +1480,8 @@ void mul_QTW_QQW_QQW(float a1,float a2,float a3,float b1,float b2,float b3,float
 //mul: 4-1-1
 void mul_QQW_SW_SW(float a1, float a2, float a3, float a4, float b, float *c)
 {
-    *c = a1 + b + a2  + a3 + a4;
+//    *c = a1 + b + a2  + a3 + a4;
+    *c = (a4 + a3  + a2 + a1) * b; //
 }
 
 //mul: 4-1-2
@@ -1518,7 +1522,8 @@ void mul_QQW_SW_QQW(float a1,float a2,float a3,float a4,float b,float *c1,float 
 //mul: 4-2-1
 void mul_QQW_PA_SW(float a1, float a2, float a3, float a4, float b1, float b2, float *c)
 {
-    *c = a1 + b1 + a2 + b2 + a3 + a4;
+//    *c = a1 + b1 + a2 + b2 + a3 + a4;
+    *c = (a4 + a3 + a2 + a1) * (b1 + b2);
 }
 
 //mul: 4-2-2
@@ -1569,7 +1574,8 @@ void mul_QQW_PA_QQW(float a1,float a2,float a3,float a4,float b1,float b2,float 
 //mul: 4-3-1
 void mul_QQW_QTW_SW(float a1, float a2, float a3, float a4, float b1, float b2, float b3, float *c)
 {
-    *c = a1 + b1 + a2 + b2 + a3 + b3 + a4;
+//    *c = a1 + b1 + a2 + b2 + a3 + b3 + a4;
+    *c = (a4 + a3 + a2 + a1) * (b3 + b2 + b1);
 }
 
 //mul: 4-3-2
@@ -1622,7 +1628,8 @@ void mul_QQW_QTW_QQW(float a1,float a2,float a3,float a4,float b1,float b2,float
 //mul: 4-4-1
 void mul_QQW_QQW_SW(float a1,float a2,float a3,float a4,float b1,float b2,float b3,float b4,float *c)
 {
-    *c = a1 + b1 + a2 + b2 + a3 + b3 + a4 + b4;
+//    *c = a1 + b1 + a2 + b2 + a3 + b3 + a4 + b4;
+    *c = (a4 + a3 + a2 + a1) * (b4 + b3 + b2 + b1);
 }
 
 //mul: 4-4-2
@@ -2457,7 +2464,11 @@ void add_SW_SW_DW(float a, float b, float *ch, float *cl)
 
 void add_SW_DW_SW(float a, float bh, float bl, float *c)
 {
-    *c = a + bh;
+//    *c = a + bh;
+    float sh, se, eh; //
+    TwoSum(a, bh, &sh, &eh); //
+    se = eh + bl; //
+    *c = sh + se; //
 }
 
 void add_SW_DW_DW(float a, float bh, float bl, float *ch, float *cl)
@@ -2465,7 +2476,7 @@ void add_SW_DW_DW(float a, float bh, float bl, float *ch, float *cl)
     float sh, sl, eh, el, se, te;
     TwoSum(a, bh, &sh, &eh);
     se = eh + bl;
-    FastTwoSum(sh, se, &sh, &se);
+//    FastTwoSum(sh, se, &sh, &se);
     FastTwoSum(sh, se, ch, cl);
 }
 
@@ -2483,7 +2494,7 @@ void add_DW_SW_DW(float ah, float al, float bh, float *ch, float *cl)
     float sh, eh, el, se, te;
     TwoSum(ah, bh, &sh, &eh);
     se = eh + al;
-    FastTwoSum(sh, se, &sh, &se);
+//    FastTwoSum(sh, se, &sh, &se);
     FastTwoSum(sh, se, ch, cl);
 }
 

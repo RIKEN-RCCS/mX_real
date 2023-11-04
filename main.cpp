@@ -329,9 +329,12 @@ main(int argc, char *argv[])
    print( "test negative", s );
    quickSum( s.x[0], s.x[1] );
    print( "test negative", s );
-   print( "sqrt", dX_real::sqrt( (float)0.1 ) );
-   print( "sqrt", tX_real::sqrt( (float)0.1 ) );
-   print( "sqrt", qX_real::sqrt( (float)0.1 ) );
+   print( "sqrt", dX_real::dx_real<float,Algorithm::Quasi>::sqrt( df_Real_quasi( 0.1f ) + s ) );
+   print( "sqrt", dX_real::dx_real<float,Algorithm::Sloppy>::sqrt( df_Real_sloppy( 0.1f ) + s ) );
+   print( "sqrt", dX_real::dx_real<float,Algorithm::Accurate>::sqrt( df_Real( 0.1f ) + s ) );
+   print( "sqrt", dX_real::sqrt( 0.1f ) );
+   print( "sqrt", tX_real::sqrt( 0.1f ) );
+   print( "sqrt", qX_real::sqrt( 0.1f ) );
    print( "sqrt", dX_real::sqrt( s ) );
    print( "sqrt", tX_real::sqrt( s ) );
    print( "sqrt", qX_real::sqrt( s ) );
