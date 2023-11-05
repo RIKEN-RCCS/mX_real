@@ -26,6 +26,10 @@ namespace std {
   };
 
   template < typename T, mX_real::Algorithm A >
+  bool isinf( mX_real::dX_real::dx_real<T,A> const& x ) {
+    return mX_real::dX_real::isinf(x);
+  }
+  template < typename T, mX_real::Algorithm A >
   bool isnan( mX_real::dX_real::dx_real<T,A> const& x ) {
     return mX_real::dX_real::isnan(x);
   }
@@ -70,6 +74,10 @@ namespace std {
   };
 
   template < typename T, mX_real::Algorithm A >
+  bool isinf( mX_real::tX_real::tx_real<T,A> const& x ) {
+    return mX_real::tX_real::isinf(x);
+  }
+  template < typename T, mX_real::Algorithm A >
   bool isnan( mX_real::tX_real::tx_real<T,A> const& x ) {
     return mX_real::tX_real::isnan(x);
   }
@@ -113,6 +121,10 @@ namespace std {
     static int const digits = numeric_limits<T>::digits * TX::L;
   };
 
+  template < typename T, mX_real::Algorithm A >
+  bool isinf( mX_real::qX_real::qx_real<T,A> const& x ) {
+    return mX_real::qX_real::isinf(x);
+  }
   template < typename T, mX_real::Algorithm A >
   bool isnan( mX_real::qX_real::qx_real<T,A> const& x ) {
     return mX_real::qX_real::isnan(x);

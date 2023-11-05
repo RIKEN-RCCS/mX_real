@@ -108,7 +108,7 @@ namespace mX_real {
     }
 
     using uint_t = uint32_t;
-    static inline float ufp( float const &a ) {
+    static inline float ufp( float const a ) {
       if ( a == zero ) return a;
       uint32_t e = *(uint32_t *)&a;
       uint32_t s = e & 0x80000000;
@@ -119,14 +119,14 @@ namespace mX_real {
       return *(float *)&e;
     }
 
-    static inline float exponent( float const &a ) {
+    static inline float exponent( float const a ) {
       if ( a == zero ) return one;
       uint32_t e = *(uint32_t *)&a;
       e &= 0x7f800000;
       if ( e == 0x7f800000 ) return one;
       return *(float *)&e;
     }
-    static inline float exponenti( float const &a ) {
+    static inline float exponenti( float const a ) {
       if ( a == zero ) return one;
       uint32_t e = *(uint32_t *)&a;
       e &= 0x7f800000;
@@ -188,7 +188,7 @@ namespace mX_real {
     }
 
     using uint_t = uint64_t;
-    static inline double ufp( double const &a ) {
+    static inline double ufp( double const a ) {
       if ( a == zero ) return a;
       uint64_t e = *(uint64_t *)&a;
       uint64_t s = e & 0x8000000000000000;
@@ -199,14 +199,14 @@ namespace mX_real {
       return *(double *)&e;
     }
 
-    static inline double exponent( double const &a ) {
+    static inline double exponent( double const a ) {
       if ( a == zero ) return one;
       uint64_t e = *(uint64_t *)&a;
       e &= 0x7ff0000000000000;
       if ( e == 0x7ff0000000000000 ) return one;
       return *(double *)&e;
     }
-    static inline double exponenti( double const &a ) {
+    static inline double exponenti( double const a ) {
       if ( a == zero ) return one;
       uint64_t e = *(uint64_t *)&a;
       e &= 0x7ff0000000000000;

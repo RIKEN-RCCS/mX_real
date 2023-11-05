@@ -30,20 +30,20 @@ namespace tX_real {
     inline tx_real( T const& x0, T const& x1, T const& x2 ) {
       x[0] = x0; x[1] = x1; x[2] = x2;
     }
-    inline tx_real( int const &h ) {
+    inline tx_real( int const& h ) {
       x[0] = T(h); x[1] = x[2] = fp<T>::zero;
     }
-    inline tx_real( T const *d ) {
+    inline tx_real( T const* d ) {
       x[0] = d[0]; x[1] = d[1]; x[2] = d[2];
     }
 
     //
     //
-    inline tx_real( T const &h ) {
+    inline tx_real( T const& h ) {
       x[0] = h; x[1] = x[2] = fp<T>::zero;
     }
     template < Algorithm _A_ >
-    inline tx_real( dX_real::dx_real<T,_A_> const &h ) {
+    inline tx_real( dX_real::dx_real<T,_A_> const& h ) {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = fp<T>::zero;
       } else {
@@ -53,7 +53,7 @@ namespace tX_real {
       }
     }
     template < Algorithm _A_ >
-    inline tx_real( tx_real<T,_A_> const &h ) {
+    inline tx_real( tx_real<T,_A_> const& h ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
       } else {
@@ -62,7 +62,7 @@ namespace tX_real {
       }
     }
     template < Algorithm _A_ >
-    inline tx_real( qX_real::qx_real<T,_A_> const &h ) {
+    inline tx_real( qX_real::qx_real<T,_A_> const& h ) {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
@@ -75,16 +75,16 @@ namespace tX_real {
 
     //
     //
-    inline tx_real<T,A> &operator=( int const &h ) {
+    inline tx_real<T,A> &operator=( int const& h ) {
       x[0] = T(h); x[1] = x[2] = fp<T>::zero;
       return *this;
     }
-    inline tx_real<T,A> &operator=( T const &h ) {
+    inline tx_real<T,A> &operator=( T const& h ) {
       x[0] = h; x[1] = x[2] = fp<T>::zero;
       return *this;
     }
     template < Algorithm _A_ >
-    inline tx_real<T,A> &operator=( dX_real::dx_real<T,_A_> const &h ) {
+    inline tx_real<T,A> &operator=( dX_real::dx_real<T,_A_> const& h ) {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = fp<T>::zero;
       } else {
@@ -95,7 +95,7 @@ namespace tX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    inline tx_real<T,A> &operator=( tx_real<T,_A_> const &h ) {
+    inline tx_real<T,A> &operator=( tx_real<T,_A_> const& h ) {
       if ( A == _A_ && this == (tx_real<T,A>*)(&h) ) { return *this; }
       x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
@@ -106,7 +106,7 @@ namespace tX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    inline tx_real<T,A> &operator=( qX_real::qx_real<T,_A_> const &h ) {
+    inline tx_real<T,A> &operator=( qX_real::qx_real<T,_A_> const& h ) {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
@@ -213,9 +213,18 @@ namespace tX_real {
       return tx_real<T,A>( c0, c1, c2 );
     }
 
+
     static inline tx_real<T,A> constexpr rand ();
+    //
     static inline tx_real<T,A> constexpr reversed_sign ( tx_real<T,A> const& a );
+    static inline bool constexpr signbit      ( tx_real<T,A> const& a );
+    static inline bool constexpr isinf        ( tx_real<T,A> const& a );
+    static inline bool constexpr isnan        ( tx_real<T,A> const& a );
+    static inline bool constexpr is_zero      ( tx_real<T,A> const& a );
+    static inline bool constexpr is_positive  ( tx_real<T,A> const& a );
+    static inline bool constexpr is_negative  ( tx_real<T,A> const& a );
     static inline tx_real<T,A> constexpr sqrt ( tx_real<T,A> const& a );
+    static inline tx_real<T,A> constexpr abs  ( tx_real<T,A> const& a );
     static inline T constexpr quick_Normalized( tx_real<T,A> const& a ) {
       T s = a.x[0];
       if ( A == Algorithm::Quasi ) { s += a.x[1] + a.x[2]; }
@@ -224,25 +233,21 @@ namespace tX_real {
 
 
     // operations to THIS object
-    inline void constexpr reverse_sign () {
-      x[0] = -x[0]; x[1] = -x[1]; x[2] = -x[2];
-    }
-    inline void constexpr zerofy () {
-      x[0] = x[1] = x[2] = fp<T>::zero;
-    }
+    inline void constexpr reverse_sign () { x[0] = -x[0]; x[1] = -x[1]; x[2] = -x[2]; }
+    inline void constexpr zerofy () { x[0] = x[1] = x[2] = fp<T>::zero; }
     //
-    inline tx_real<T,A> const reversed_sign () const {
-      return reversed_sign( *this );
-    }
-    inline tx_real<T,A> const sqrt () const {
-      return sqrt( *this );
-    }
-    inline T const quick_Normalized () const {
-      return quick_Normalized( *this );
-    }
-    inline tx_real<T,A> const element_rotate () const {
-      return tx_real<T,A>( x[1], x[2], x[0] );
-    }
+    inline tx_real<T,A> const reversed_sign () const { return reversed_sign( *this ); }
+    inline bool signbit () const { return signbit( *this ); }
+    inline bool isinf () const { return isinf( *this ); }
+    inline bool isnan () const { return isnan( *this ); }
+    inline bool is_zero () const { return is_zero( *this ); }
+    inline bool is_positive () const { return is_positive( *this ); }
+    inline bool is_negative () const { return is_negative( *this ); }
+    inline tx_real<T,A> const sqrt () const { return sqrt( *this ); }
+    inline tx_real<T,A> const abs () const { return abs( *this ); }
+    inline T const quick_Normalized () const { return quick_Normalized( *this ); }
+    //
+    inline tx_real<T,A> const element_rotate () const { return tx_real<T,A>( x[1], x[2], x[0] ); }
 
   };
 
@@ -259,35 +264,60 @@ namespace tX_real {
 
 
   //
-  // Bit-ops and Comparations
+  // Bit-ops and Comparisons
   //
   template < typename T, Algorithm Aa >
-  static inline auto constexpr isinf ( tx_real<T,Aa> const a ) {
+  static inline auto constexpr isinf ( tx_real<T,Aa> const& a ) {
     return fp<T>::isinf( a.quick_Normalized() );
   }
   template < typename T, Algorithm Aa >
-  static inline auto constexpr isnan ( tx_real<T,Aa> const a ) {
+  static inline auto constexpr isnan ( tx_real<T,Aa> const& a ) {
     return fp<T>::isnan( a.quick_Normalized() );
   }
   template < typename T, Algorithm Aa >
-  static inline auto constexpr signbit ( tx_real<T,Aa> const a ) {
+  static inline auto constexpr signbit ( tx_real<T,Aa> const& a ) {
     return fp<T>::signbit( a.quick_Normalized() );
   }
   template < typename T, Algorithm Aa >
-  static inline auto constexpr is_zero ( tx_real<T,Aa> const a ) {
+  static inline auto constexpr is_zero ( tx_real<T,Aa> const& a ) {
     return a.quick_Normalized() == fp<T>::zero;
   }
   template < typename T, Algorithm Aa >
-  static inline auto constexpr is_positive ( tx_real<T,Aa> const a ) {
+  static inline auto constexpr is_positive ( tx_real<T,Aa> const& a ) {
     return a.quick_Normalized() > fp<T>::zero;
   }
   template < typename T, Algorithm Aa >
-  static inline auto constexpr is_negative ( tx_real<T,Aa> const a ) {
+  static inline auto constexpr is_negative ( tx_real<T,Aa> const& a ) {
     return a.quick_Normalized() < fp<T>::zero;
   }
   //
+  template < typename T, Algorithm Aa >
+  inline bool constexpr tx_real<T,Aa>::isinf ( tx_real<T,Aa> const& a ) {
+    return tX_real::isinf<T,Aa>( a );
+  }
+  template < typename T, Algorithm Aa >
+  inline bool constexpr tx_real<T,Aa>::isnan ( tx_real<T,Aa> const& a ) {
+    return tX_real::isnan<T,Aa>( a );
+  }
+  template < typename T, Algorithm Aa >
+  inline bool constexpr tx_real<T,Aa>::signbit ( tx_real<T,Aa> const& a ) {
+    return tX_real::signbit<T,Aa>( a );
+  }
+  template < typename T, Algorithm Aa >
+  inline bool constexpr tx_real<T,Aa>::is_zero ( tx_real<T,Aa> const& a ) {
+    return tX_real::is_zero<T,Aa>( a );
+  }
+  template < typename T, Algorithm Aa >
+  inline bool constexpr tx_real<T,Aa>::is_positive ( tx_real<T,Aa> const& a ) {
+    return tX_real::is_positive<T,Aa>( a );
+  }
+  template < typename T, Algorithm Aa >
+  inline bool constexpr tx_real<T,Aa>::is_negative ( tx_real<T,Aa> const& a ) {
+    return tX_real::is_negative<T,Aa>( a );
+  }
+  //
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  inline auto operator== ( tx_real<T,Aa> const a, tx_real<T,Ab> const b ) {
+  inline auto operator== ( tx_real<T,Aa> const a, tx_real<T,Ab> const& b ) {
     if ( Aa == Algorithm::Quasi ) {
       return b == tx_real<T,Algorithm::Accurate>( a );
     } else {
@@ -295,7 +325,7 @@ namespace tX_real {
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab >
-  inline auto operator!= ( tx_real<T,Aa> const a, tx_real<T,Ab> const b ) {
+  inline auto operator!= ( tx_real<T,Aa> const& a, tx_real<T,Ab> const& b ) {
     return !(a == b);
   }
 
@@ -330,10 +360,29 @@ namespace tX_real {
     using TX = tx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
       T f[6];
+      twoSum( a.x[2], b.x[2], f[4], f[5] );
+      twoSum( b.x[1], f[4], f[3], f[4] );
+      twoSum( a.x[1], f[3], f[2], f[3] );
+      twoSum( b.x[0], f[2], f[1], f[2] );
+      twoSum( a.x[0], f[1], f[0], f[1] );
+
+      quickSum( f[1], f[2], f[1], f[2] );
+      quickSum( f[2], f[3], f[2], f[3] );
+      quickSum( f[3], f[4], f[3], f[4] );
+
+      quickSum( f[2], f[3], f[2], f[3] );
+      quickSum( f[1], f[2], f[1], f[2] );
+      quickSum( f[0], f[1], f[0], f[1] );
+
+      quickSum( f[1], f[2], f[1], f[2] );
+
+      return TX( f );
+#if 0
       vecMerge<3,3>( f, a.x, b.x );
       vecSum_Sloppy<-6>( f );
       VSEB_Sloppy<3,6>( f );
       return TX( f );
+#endif
     } else {
       TX c;
       QxW::add_QTW_QTW_QTW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
@@ -467,18 +516,17 @@ namespace tX_real {
       twoProdFMA( a.x[0], b.x[1], p01, q01 ); // e, e^2
       twoProdFMA( a.x[1], b.x[0], p10, q10 ); // e, e^2
 
-      T b_[4] = { q00, p01, p10, };
-      vecSum<-3>( b_ ); // e, e^2, e^2
+      T e[4] = { q00, p01, p10 };
+      vecSum<-3>( e ); // e, e^2, e^2
 
-      b_[1] = fp<T>::fma( a.x[1], b.x[1], b_[1]+b_[2] ); // e^2+e^2 -> e^2
-      b_[2] = fp<T>::fma( a.x[0], b.x[2], q01 ); // e^2+e^2 -> e^2
-      b_[3] = fp<T>::fma( a.x[2], b.x[0], q10 ); // e^2+e^2 -> e^2
+      e[1] = e[1] + fp<T>::fma( a.x[1], b.x[1], e[2] ) // e^2+e^2 -> e^2
+                  + fp<T>::fma( a.x[0], b.x[2], q01 ) // e^2+e^2 -> e^2
+                  + fp<T>::fma( a.x[2], b.x[0], q10 ); // e^2+e^2 -> e^2
 
-      T e[3] = { p00, b_[0], b_[1]+b_[2]+b_[3] }; // 1, e, e^2
-      vecSum<-3>( e ); // 1, e, e^2, e^3, e^3, e^3
+      T f[3] = { p00, e[0], e[1] }; // 1, e, e^2
 
-      VSEB_Sloppy<3>( e );
-      return TX( e );
+      VSEB_Sloppy<3>( f );
+      return TX( f );
     } else {
       TX c;
       QxW::mul_QTW_QTW_QTW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
@@ -497,17 +545,17 @@ namespace tX_real {
       twoProdFMA( a.x[0], b.x[1], p01, q01 );
       twoProdFMA( a.x[1], b.x[0], p10, q10 );
 
-      T b_[3] = { q00, p01, p10 };
-      vecSum<-3>( b_ ); // e, e^2, e^2
+      T d[4] = { q00, p01, p10 };
+      vecSum<-3>( d ); // e, e^2, e^2
 
-      T c   = fp<T>::fma( a.x[1], b.x[1], b_[2]);
-      T z31 = fp<T>::fma( a.x[0], b.x[2], q10 );
-      T z32 = q01;
+      d[1] = fp<T>::fma( a.x[1], b.x[1], d[1]+d[2]);
+      d[2] = fp<T>::fma( a.x[0], b.x[2], q10 );
+      d[3] = q01;
 
-      T e[6] = { p00, b_[0], b_[1], c, z31, z32 };
-      vecSum<-6>( e );
+      T e[3] = { p00, d[0], d[1]+d[2]+d[3] };
+//      vecSum<-6>( e );
 
-      VSEB_Sloppy<2,5>( &e[1] );
+      VSEB_Sloppy<3>( e );
       return TX( e );
     } else {
       TX c;
@@ -525,15 +573,15 @@ namespace tX_real {
       twoProdFMA( a, b.x[0], p00, q00 );
       twoProdFMA( a, b.x[1], p01, q01 );
 
-      T b_[2] = { q00, p01 };
-      twoSum( b_[0], b_[1] );
+      T d[2] = { q00, p01 };
+      twoSum( d[0], d[1] );
 
-      T s3 = fp<T>::fma( a, b.x[2], q01 );
+      d[1] = fp<T>::fma( a, b.x[2], d[1]+q01 );
 
-      T e[4] = { p00, b_[0], b_[1], s3 };
-      vecSum<-4>( e );
+      T e[3] = { p00, d[0], d[1] };
+//      vecSum<-3>( e );
 
-      VSEB_Sloppy<2,3>( &e[1] );
+      VSEB_Sloppy<3>( e );
       return TX( e );
     } else {
       TX c;
@@ -553,15 +601,15 @@ namespace tX_real {
       twoProdFMA( a.x[0], b.x[1], p01, q01 );
       twoProdFMA( a.x[1], b.x[0], p10, q10 );
 
-      T b_[3] = { q00, p01, p10 };
-      vecSum<-3>( b_ ); // e, e^2, e^2
+      T d[3] = { q00, p01, p10 };
+      vecSum<-3>( d ); // e, e^2, e^2
 
-      T c   = fp<T>::fma( a.x[1], b.x[1], b_[2] );
+      d[1]  = fp<T>::fma( a.x[1], b.x[1], d[1]+d[2] );
 
-      T e[6] = { p00, b_[0], b_[1], c, q01, q10 };
-      vecSum<-6>( e );
+      T e[3] = { p00, d[0], d[1]+q01+q10 };
+//      vecSum<-6>( e );
 
-      VSEB_Sloppy<2,5>( &e[1] );
+      VSEB_Sloppy<3>( e );
       return TX( e );
     } else {
       TX c;
@@ -786,6 +834,11 @@ namespace tX_real {
     } else {
       return  a;
     }
+  }
+  //
+  template < typename T, Algorithm Aa >
+  inline tx_real<T,Aa> constexpr tx_real<T,Aa>::abs ( tx_real<T,Aa> const& a ) {
+    return tX_real::abs( a );
   }
 
 
