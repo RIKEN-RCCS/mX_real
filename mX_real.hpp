@@ -69,6 +69,43 @@ namespace mX_real {
     STATIC_VAR float constexpr epsiloni = one/std::numeric_limits<float>::epsilon();
     STATIC_VAR float constexpr nan     = std::numeric_limits<float>::quiet_NaN();
     STATIC_VAR float constexpr inf     = std::numeric_limits<float>::infinity();
+    STATIC_VAR float constexpr denorm_min = std::numeric_limits<float>::denorm_min();
+    STATIC_VAR float constexpr min     = std::numeric_limits<float>::min();
+    STATIC_VAR float constexpr max     = std::numeric_limits<float>::max();
+
+    static inline auto constexpr isinf       ( float  const a ) {
+      return std::isinf( a );
+    }
+    static inline auto constexpr isnan       ( float  const a ) {
+      return std::isnan( a );
+    }
+    static inline auto constexpr copysign    ( float  const a, float  const b ) {
+      return std::copysign( a, b );
+    }
+    static inline auto constexpr signbit     ( float  const a ) {
+      return std::signbit( a );
+    }
+    static inline auto constexpr is_zero     ( float  const a ) {
+      return a == fp<float>::zero;
+    }
+    static inline auto constexpr is_positive ( float  const a ) {
+      return a >  fp<float>::zero;
+    }
+    static inline auto constexpr is_negative ( float  const a ) {
+      return a <  fp<float>::zero;
+    }
+    static inline auto const fabs ( float const a ) {
+      return std::fabs( a );
+    }
+    static inline auto const sqrt ( float const a ) {
+      return std::sqrt( a );
+    }
+    static inline auto const fma ( float const a, float const b, float const c ) {
+      return std::fma( a, b, c );
+    }
+    static inline auto const rand () {
+      return std::rand();
+    }
 
     using uint_t = uint32_t;
     static inline float ufp( float const &a ) {
@@ -112,6 +149,43 @@ namespace mX_real {
     STATIC_VAR double constexpr epsiloni = one/std::numeric_limits<double>::epsilon();
     STATIC_VAR double constexpr nan     = std::numeric_limits<double>::quiet_NaN();
     STATIC_VAR double constexpr inf     = std::numeric_limits<double>::infinity();
+    STATIC_VAR double constexpr denorm_min = std::numeric_limits<double>::denorm_min();
+    STATIC_VAR double constexpr min     = std::numeric_limits<double>::min();
+    STATIC_VAR double constexpr max     = std::numeric_limits<double>::max();
+
+    static inline auto constexpr isinf       ( double  const a ) {
+      return std::isinf( a );
+    }
+    static inline auto constexpr isnan       ( double  const a ) {
+      return std::isnan( a );
+    }
+    static inline auto constexpr copysign    ( double  const a, double  const b ) {
+      return std::copysign( a, b );
+    }
+    static inline auto constexpr signbit     ( double  const a ) {
+      return std::signbit( a );
+    }
+    static inline auto constexpr is_zero     ( double  const a ) {
+      return a == fp<double>::zero;
+    }
+    static inline auto constexpr is_positive ( double  const a ) {
+      return a >  fp<double>::zero;
+    }
+    static inline auto constexpr is_negative ( double  const a ) {
+      return a <  fp<double>::zero;
+    }
+    static inline auto constexpr fabs ( double const a ) {
+      return std::fabs( a );
+    }
+    static inline auto constexpr sqrt ( double const a ) {
+      return std::sqrt( a );
+    }
+    static inline auto constexpr fma ( double const a, double const b, double const c ) {
+      return std::fma( a, b, c );
+    }
+    static inline auto const rand () {
+      return std::rand();
+    }
 
     using uint_t = uint64_t;
     static inline double ufp( double const &a ) {
@@ -151,6 +225,9 @@ namespace mX_real {
   float  constexpr fp<float>::epsilon;
   float  constexpr fp<float>::inf;
   float  constexpr fp<float>::nan;
+  float  constexpr fp<float>::denorm_min;
+  float  constexpr fp<float>::min;
+  float  constexpr fp<float>::max;
   //
   double constexpr fp<double>::zero;
   double constexpr fp<double>::one;
@@ -159,6 +236,9 @@ namespace mX_real {
   double constexpr fp<double>::epsilon;
   double constexpr fp<double>::inf;
   double constexpr fp<double>::nan;
+  double constexpr fp<double>::denorm_min;
+  double constexpr fp<double>::min;
+  double constexpr fp<double>::max;
 #endif
 
 
@@ -241,16 +321,17 @@ namespace mX_real {
   inline void twoProdFMA ( T const a, T const b, T & s, T & e ) {
     s = a * b;
     auto const t = -s;
-    e = std::fma( a, b, t );
+    e = fp<T>::fma( a, b, t );
   }
 
   template < int n, int m = n, typename T >
   inline void vecMerge( T * f, T const * a, T const * b ) {
-    int ia, ib, j; for(ia=ib=j=0; ia<n && ib<m; j++ ) {
-      if ( std::fabs(a[ia]) >= std::fabs(b[ib]) ) {
-        f[j] = a[ia++];
+    int ia, ib, j; T fa, fb;
+    for(ia=ib=j=0,fa=fp<T>::fabs(a[ia]),fb=fp<T>::fabs(b[ib]); ia<n && ib<m; j++ ) {
+      if ( fa >= fb ) {
+        f[j] = a[ia++]; fa = fp<T>::fabs(a[ia]);
       } else {
-        f[j] = b[ib++];
+        f[j] = b[ib++]; fb = fp<T>::fabs(b[ib]);
       }
     }
     if (j<n+m) {
@@ -368,21 +449,6 @@ namespace mX_real {
   }
 
 
-}
-
-
-#include "Ozaki-QW/qxw.hpp"
-
-//
-#include "dX_real.hpp"
-#include "tX_real.hpp"
-#include "qX_real.hpp"
-//
-
-
-namespace mX_real {
-
-
 #if __cplusplus < 201703L
 #define	_BOOL_const_type(x)	std::integral_constant<bool,(x)>
 #else
@@ -408,6 +474,38 @@ namespace mX_real {
 #endif
 #undef _BOOL_const_type
   //
+
+
+  // Definition of shortcut structs
+  template < typename Ts >
+  using if_T_fp = typename std::enable_if_t<fp<Ts>::value>;
+  template < typename Ts >
+  using if_T_scalar = typename std::enable_if_t<std::is_arithmetic<Ts>::value>;
+  template < typename Ts, typename T >
+  using if_T_float = typename std::enable_if_t<std::is_same<Ts,float>::value, T>;
+  template < typename Ts, typename T >
+  using if_T_double = typename std::enable_if_t<std::is_same<Ts,double>::value, T>;
+
+}
+
+#include "Ozaki-QW/qxw.hpp"
+
+
+// very short MACRON which mush be ib the template parameter definition
+#define IF_T_fp		typename __dummy__=if_T_fp
+#define IF_T_scalar	typename __dummy__=if_T_scalar
+
+//
+#include "dX_real.hpp"
+#include "tX_real.hpp"
+#include "qX_real.hpp"
+//
+
+#undef IF_T_fp
+#undef IF_T_scalar
+
+
+namespace mX_real {
 
 
   //

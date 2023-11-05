@@ -210,15 +210,15 @@ namespace dX_real {
     static inline dx_real<T,A> constexpr inf  () { T c = fp<T>::inf; return dx_real<T,A>( c,c ); }
 
     static inline dx_real<T,A> constexpr denorm_min  () {
-      T c0 = std::numeric_limits<T>::denorm_min();
+      T c0 = fp<T>::denorm_min;
       return dx_real<T,A>( c0 );
     }
     static inline dx_real<T,A> constexpr min  () {
-      T c0 = (std::numeric_limits<T>::min() * 2) * fp<T>::epsiloni;
+      T c0 = (fp<T>::min * 2) * fp<T>::epsiloni;
       return dx_real<T,A>( c0 );
     }
     static inline dx_real<T,A> constexpr max  () {
-      T c0 = std::numeric_limits<T>::max();
+      T c0 = fp<T>::max;
       T c1 = c0 * fp<T>::epsilon * fp<T>::half;
       return dx_real<T,A>( c0, c1 );
     }
@@ -234,25 +234,13 @@ namespace dX_real {
 
 
     // operations to THIS object
-    inline void constexpr reverse_sign () {
-      x[0] = -x[0]; x[1] = -x[1];
-    }
-    inline void constexpr zerofy () {
-      x[0] = x[1] = fp<T>::zero;
-    }
+    inline void constexpr reverse_sign () { x[0] = -x[0]; x[1] = -x[1]; }
+    inline void constexpr zerofy () { x[0] = x[1] = fp<T>::zero; }
     //
-    inline dx_real<T,A> reversed_sign () const {
-      return reversed_sign( *this );
-    }
-    inline dx_real<T,A> sqrt () const {
-      return sqrt( *this );
-    }
-    inline T const quick_Normalized () const {
-      return quick_Normalized( *this );
-    }
-    inline dx_real<T,A> element_rotate () const {
-      return dx_real<T,A>( x[1], x[0] );
-    }
+    inline dx_real<T,A> reversed_sign () const { return reversed_sign( *this ); }
+    inline dx_real<T,A> sqrt () const { return sqrt( *this ); }
+    inline T const quick_Normalized () const { return quick_Normalized( *this ); }
+    inline dx_real<T,A> element_rotate () const { return dx_real<T,A>( x[1], x[0] ); }
 
   };
 
@@ -272,12 +260,16 @@ namespace dX_real {
   // Bit-ops and Comparation
   //
   template < typename T, Algorithm Aa >
+  inline auto const isinf ( dx_real<T,Aa> const& a ) {
+    return fp<T>::isinf( a.quick_Normalized() );
+  }
+  template < typename T, Algorithm Aa >
   inline auto const isnan ( dx_real<T,Aa> const& a ) {
-    return std::isnan( a.quick_Normalized() );
+    return fp<T>::isnan( a.quick_Normalized() );
   }
   template < typename T, Algorithm Aa >
   inline auto const signbit ( dx_real<T,Aa> const& a ) {
-    return std::signbit( a.quick_Normalized() );
+    return fp<T>::signbit( a.quick_Normalized() );
   }
   template < typename T, Algorithm Aa >
   static inline bool constexpr is_zero ( dx_real<T,Aa> const& a ) {
@@ -355,9 +347,8 @@ namespace dX_real {
     }
     return c;
   }
-  template < typename T, Algorithm A=Algorithm::Accurate >
-  inline auto operator_add ( T const& a, T const& b )
-  -> std::enable_if_t< fp<T>::value, dx_real<T,A> > {
+  template < typename T, Algorithm A=Algorithm::Accurate, IF_T_fp<T> >
+  inline auto operator_add ( T const& a, T const& b ) {
     using TX = dx_real<T,A>;
     TX c;
     QxW::add_SW_SW_PA( a, b, c.x[0], c.x[1] );
@@ -368,14 +359,12 @@ namespace dX_real {
   inline auto operator+ ( dx_real<T,Aa> const& a, dx_real<T,Ab> const& b ) {
     return dX_real::operator_add( a, b );
   }
-  template < typename Ts, typename T, Algorithm Ab >
-  inline auto operator+ ( Ts const& a, dx_real<T,Ab> const& b )
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dx_real<T,Ab> > {
+  template < typename Ts, typename T, Algorithm Ab, IF_T_scalar<Ts> >
+  inline auto operator+ ( Ts const& a, dx_real<T,Ab> const& b ) {
     return dX_real::operator_add( T(a), b );
   }
-  template < typename Ts, typename T, Algorithm Aa >
-  inline auto operator+ ( dx_real<T,Aa> const& a, Ts const& b )
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dx_real<T,Aa> > {
+  template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
+  inline auto operator+ ( dx_real<T,Aa> const& a, Ts const& b ) {
     return b + a;
   }
 
@@ -387,14 +376,12 @@ namespace dX_real {
   inline auto operator- ( dx_real<T,Aa> const& a, dx_real<T,Ab> const& b ) {
     return a + (-b);
   }
-  template < typename Ts, typename T, Algorithm Ab >
-  inline auto operator- ( Ts const& a, dx_real<T,Ab> const& b )
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dx_real<T,Ab> > {
+  template < typename Ts, typename T, Algorithm Ab, IF_T_scalar<Ts> >
+  inline auto operator- ( Ts const& a, dx_real<T,Ab> const& b ) {
     return a + (-b);
   }
-  template < typename Ts, typename T, Algorithm Aa >
-  inline auto operator- ( dx_real<T,Aa> const& a, Ts const& b )
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dx_real<T,Aa> > {
+  template < typename Ts, typename T, Algorithm Aa , IF_T_scalar<Ts> >
+  inline auto operator- ( dx_real<T,Aa> const& a, Ts const& b ) {
     return a + (-b);
   }
 
@@ -426,9 +413,8 @@ namespace dX_real {
     }
     return c;
   }
-  template < typename T, Algorithm A=Algorithm::Accurate >
-  inline auto operator_mul ( T const& a, T const& b )
-  -> std::enable_if_t< fp<T>::value, dx_real<T,A> > {
+  template < typename T, Algorithm A=Algorithm::Accurate, IF_T_fp<T> >
+  inline auto operator_mul ( T const& a, T const& b ) {
     using TX = dx_real<T,A>;
     TX c;
     QxW::mul_SW_SW_PA( a, b, c.x[0], c.x[1] );
@@ -440,14 +426,12 @@ namespace dX_real {
   inline auto operator* ( dx_real<T,Aa> const& a, dx_real<T,Ab> const& b ) {
     return dX_real::operator_mul( a, b );
   }
-  template < typename Ts, typename T, Algorithm Ab >
-  inline auto operator* ( Ts const& a, dx_real<T,Ab> const& b )
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dx_real<T,Ab> > {
+  template < typename Ts, typename T, Algorithm Ab, IF_T_scalar<Ts> >
+  inline auto operator* ( Ts const& a, dx_real<T,Ab> const& b ) {
     return dX_real::operator_mul( T(a), b );
   }
-  template < typename Ts, typename T, Algorithm Aa >
-  inline auto operator* ( dx_real<T,Aa> const& a, Ts const& b )
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dx_real<T,Aa> > {
+  template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
+  inline auto operator* ( dx_real<T,Aa> const& a, Ts const& b ) {
     return b * a;
   }
 
@@ -459,15 +443,15 @@ namespace dX_real {
   inline auto operator_div ( dx_real<T,Aa> const& a, dx_real<T,Ab> const& b ) {
     using TX = dx_real<T,A>;
     {
-      if ( std::isinf( b ) ) {
-        auto c = std::copysign( fp<T>::zero, b ); return TX( c );
+      if ( fp<T>::isinf( b ) ) {
+        auto c = fp<T>::copysign( fp<T>::zero, b ); return TX( c );
       }
       auto s = b.quick_Normalized();
-      if ( s == fp<T>::zero ) {
-        auto c = std::copysign( fp<T>::inf, s ); return TX( c,c );
+      if ( fp<T>::is_zero( s ) ) {
+        auto c = fp<T>::copysign( fp<T>::inf, s ); return TX( c,c );
       }
       if ( A == Algorithm::Quasi ) {
-        if ( b.x[0] == fp<T>::zero ) { return dX_real::operator_div( a, b.element_rotate() ); }
+        if ( fp<T>::is_zero( b.x[0] ) ) { return dX_real::operator_div( a, b.element_rotate() ); }
       }
     }
     TX c;
@@ -483,15 +467,15 @@ namespace dX_real {
   inline auto operator_div ( T const& a, dx_real<T,Ab> const& b ) {
     using TX = dx_real<T,Ab>;
     {
-      if ( std::isinf( b ) ) {
-        auto c = std::copysign( fp<T>::zero, b ); return TX( c );
+      if ( fp<T>::isinf( b ) ) {
+        auto c = fp<T>::copysign( fp<T>::zero, b ); return TX( c );
       }
       auto s = b.quick_Normalized();
-      if ( s == fp<T>::zero ) {
-        auto c = std::copysign( fp<T>::inf, s ); return TX( c,c );
+      if ( fp<T>::is_zero( s ) ) {
+        auto c = fp<T>::copysign( fp<T>::inf, s ); return TX( c,c );
       }
       if ( Ab == Algorithm::Quasi ) {
-        if ( b.x[0] == fp<T>::zero ) { return dX_real::operator_div( a, b.element_rotate() ); }
+        if ( fp<T>::is_zero( b.x[0] ) ) { return dX_real::operator_div( a, b.element_rotate() ); }
       }
     }
     TX c;
@@ -507,11 +491,11 @@ namespace dX_real {
   inline auto operator_div ( dx_real<T,Aa> const& a, T const& b ) {
     using TX = dx_real<T,Aa>;
     {
-      if ( std::isinf( b ) ) {
-        auto c = std::copysign( fp<T>::zero, b ); return TX( c );
+      if ( fp<T>::isinf( b ) ) {
+        auto c = fp<T>::copysign( fp<T>::zero, b ); return TX( c );
       }
-      if ( b == fp<T>::zero ) {
-        auto c = std::copysign( fp<T>::inf, b ); return TX( c,c );
+      if ( fp<T>::is_zero( b ) ) {
+        auto c = fp<T>::copysign( fp<T>::inf, b ); return TX( c,c );
       }
     }
     TX c;
@@ -523,16 +507,15 @@ namespace dX_real {
     }
     return c;
   }
-  template < typename T, Algorithm A >
-  inline auto operator_div ( T const& a, T const& b )
-  -> std::enable_if_t< fp<T>::value, dx_real<T,A> > {
+  template < typename T, Algorithm A, IF_T_fp<T> >
+  inline auto operator_div ( T const& a, T const& b ) {
     using TX = dx_real<T,A>;
     {
-      if ( std::isinf( b ) ) {
-        auto c = std::copysign( fp<T>::zero, b ); return TX( c );
+      if ( fp<T>::isinf( b ) ) {
+        auto c = fp<T>::copysign( fp<T>::zero, b ); return TX( c );
       }
-      if ( b == fp<T>::zero ) {
-        auto c = std::copysign( fp<T>::inf, b ); return TX( c,c );
+      if ( fp<T>::is_zero( b ) ) {
+        auto c = fp<T>::copysign( fp<T>::inf, b ); return TX( c,c );
       }
     }
     TX c;
@@ -545,14 +528,12 @@ namespace dX_real {
   inline auto operator/ ( dx_real<T,Aa> const& a, dx_real<T,Ab> const& b ) {
     return dX_real::operator_div( a, b );
   }
-  template < typename Ts, typename T, Algorithm Ab >
-  inline auto operator/ ( Ts const& a, dx_real<T,Ab> const& b )
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dx_real<T,Ab> > {
+  template < typename Ts, typename T, Algorithm Ab, IF_T_scalar<Ts> >
+  inline auto operator/ ( Ts const& a, dx_real<T,Ab> const& b ) {
     return dX_real::operator_div( T(a), b );
   }
-  template < typename Ts, typename T, Algorithm Aa >
-  inline auto operator/ ( dx_real<T,Aa> const& a, Ts const& b )
-  -> std::enable_if_t< std::is_arithmetic<Ts>::value, dx_real<T,Aa> > {
+  template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
+  inline auto operator/ ( dx_real<T,Aa> const& a, Ts const& b ) {
     return dX_real::operator_div( a, T(b) );
   }
 
@@ -578,10 +559,10 @@ namespace dX_real {
     using TX = dx_real<T,Aa>;
     {
       auto s = a.quick_Normalized();
-      if ( s == fp<T>::zero ) { return TX( s ); }
-      if ( s < fp<T>::zero ) { return TX::nan(); }
+      if ( fp<T>::is_zero( s ) ) { return TX( s ); }
+      if ( fp<T>::is_negative( s ) ) { return TX::nan(); }
       if ( Aa == Algorithm::Quasi ) {
-        if ( a.x[0] == fp<T>::zero ) { return dX_real::sqrt( a.element_rotate() ); }
+        if ( fp<T>::is_zero( a.x[0] ) ) { return dX_real::sqrt( a.element_rotate() ); }
       }
     }
     TX c;
@@ -593,13 +574,12 @@ namespace dX_real {
     }
     return c;
   }
-  template < typename T, Algorithm Aa=Algorithm::Accurate >
-  inline auto const sqrt ( T const& a ) 
-  -> std::enable_if_t< fp<T>::value, dx_real<T,Aa> > {
+  template < typename T, Algorithm Aa=Algorithm::Accurate, IF_T_fp<T> >
+  inline auto const sqrt ( T const& a ) {
     using TX = dx_real<T,Aa>;
     {
-      if ( a == fp<T>::zero ) { return TX( a ); }
-      if ( a < fp<T>::zero ) { return TX::nan(); }
+      if ( fp<T>::is_zero( a ) ) { return TX( a ); }
+      if ( fp<T>::is_negative( a ) ) { return TX::nan(); }
     }
     TX c;
     if ( Aa == Algorithm::Accurate ) {
@@ -665,15 +645,14 @@ namespace dX_real {
   // PRNG
   //
   template < typename T, Algorithm A >
-  inline auto const rand ()
-  -> std::enable_if_t< std::is_same<T,double>::value, dx_real<T,A> > {
+  inline auto const rand () -> if_T_double<T,dx_real<T,A>> {
     using TX = dx_real<T,A>;
     auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
     auto g = f;
     auto r = TX::zero();
     auto bits = TX::L * 53;
     for(int i=0; i<bits; i+=31 ) {
-      auto b_ = std::rand();
+      auto b_ = fp<T>::rand();
       auto b = T(b_);
       auto c = b * g;
            r = r + TX( c );
@@ -682,15 +661,14 @@ namespace dX_real {
     return r;
   }
   template < typename T, Algorithm A >
-  inline auto const rand ()
-  -> std::enable_if_t< std::is_same<T,float>::value, dx_real<T,A> > {
+  inline auto const rand () -> if_T_float<T,dx_real<T,A>> {
     using TX = dx_real<T,A>;
     auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
     auto g = f;
     auto r = TX::zero();
     auto bits = TX::L * 24;
     for(int i=0; i<bits; i+=31 ) {
-      auto b_ = std::rand();
+      auto b_ = fp<T>::rand();
       auto b = T( b_ & 0x7fff0000 );
       auto c = b * g;
            r = r + TX( c );
