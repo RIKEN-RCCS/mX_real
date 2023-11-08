@@ -57,8 +57,11 @@ namespace tX_real {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
       } else {
-        vecSum<-3>( x );
-        VSEB_Sloppy<3>( x );
+        twoSum( x[0], x[1] );
+        twoSum( x[0], x[2] );
+        twoSum( x[1], x[2] );
+        quickSum( x[0], x[1] );
+        quickSum( x[1], x[2] );
       }
     }
     template < Algorithm _A_ >
@@ -66,10 +69,15 @@ namespace tX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
-        T f[4] = { h.x[0], h.x[1], h.x[2], h.x[3] };
-        vecSum<-4>( f );
-        VSEB_Sloppy<3,4>( f );
-	x[0] = f[0]; x[1] = f[1]; x[2] = f[2];
+        twoSum( h.x[2], h.x[3], x[2], x[3] );
+        twoSum( h.x[1], x[2], x[1], x[2] );
+        twoSum( h.x[0], x[1], x[0], x[1] );
+        twoSum( x[2], x[3], x[2], x[3] );
+        twoSum( x[1], x[2], x[1], x[2] );
+        twoSum( x[2], x[3], x[2], x[3] );
+        quickSum( x[0], x[1] );
+        quickSum( x[1], x[2] );
+        quickSum( x[2], x[3] );
       }
     }
 
@@ -100,8 +108,11 @@ namespace tX_real {
       x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
       } else {
-        vecSum<-3>( x );
-        VSEB_Sloppy<3>( x );
+        twoSum( x[0], x[1] );
+        twoSum( x[0], x[2] );
+        twoSum( x[1], x[2] );
+        quickSum( x[0], x[1] );
+        quickSum( x[1], x[2] );
       }
       return *this;
     }
@@ -110,10 +121,15 @@ namespace tX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
-        T f[4] = { h.x[0], h.x[1], h.x[2], h.x[3] };
-        vecSum<-4>( f );
-        VSEB_Sloppy<3,4>( f );
-        x[0] = f[0]; x[1] = f[1]; x[2] = f[2];
+        twoSum( h.x[2], h.x[3], x[2], x[3] );
+        twoSum( h.x[1], x[2], x[1], x[2] );
+        twoSum( h.x[0], x[1], x[0], x[1] );
+        twoSum( x[2], x[3], x[2], x[3] );
+        twoSum( x[1], x[2], x[1], x[2] );
+        twoSum( x[2], x[3], x[2], x[3] );
+        quickSum( x[0], x[1] );
+        quickSum( x[1], x[2] );
+        quickSum( x[2], x[3] );
       }
       return *this;
     }
@@ -131,8 +147,10 @@ namespace tX_real {
     inline operator dX_real::dx_real<T,_A_>() const {
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         T f[3] = { x[0], x[1], x[2] };
-        vecSum<-3>( f );
-        VSEB_Sloppy<2,3>( f );
+        twoSum( f[0], f[1] );
+        twoSum( f[0], f[2] );
+	f[1] = f[1] + f[2];
+        quickSum( f[0], f[1] );
 	return dX_real::dx_real<T,_A_>( f );
       } else {
         return dX_real::dx_real<T,_A_>( x );
@@ -142,8 +160,11 @@ namespace tX_real {
     inline operator tx_real<T,_A_>() const {
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         T f[3] = { x[0], x[1], x[2] };
-        vecSum<-3>( f );
-        VSEB_Sloppy<3>( f );
+        twoSum( f[0], f[1] );
+        twoSum( f[0], f[2] );
+        twoSum( f[1], f[2] );
+        quickSum( f[0], f[1] );
+        quickSum( f[1], f[2] );
         return tx_real<T,_A_>( f );
       } else {
         return tx_real<T,_A_>( x );
@@ -153,8 +174,11 @@ namespace tX_real {
     inline operator qX_real::qx_real<T,_A_>() const {
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         T f[3] = { x[0], x[1], x[2] };
-        vecSum<-3>( f );
-        VSEB_Sloppy<3>( f );
+        twoSum( f[0], f[1] );
+        twoSum( f[0], f[2] );
+        twoSum( f[1], f[2] );
+        quickSum( f[0], f[1] );
+        quickSum( f[1], f[2] );
         return qX_real::qx_real<T,_A_>( f[0], f[1], f[2], fp<T>::zero );
       } else {
         return qX_real::qx_real<T,_A_>( x[0], x[1], x[2], fp<T>::zero );
@@ -359,30 +383,16 @@ namespace tX_real {
   inline auto operator_add ( tx_real<T,Aa> const& a, tx_real<T,Ab> const& b ) {
     using TX = tx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      T f[6];
-      twoSum( a.x[2], b.x[2], f[4], f[5] );
-      twoSum( b.x[1], f[4], f[3], f[4] );
-      twoSum( a.x[1], f[3], f[2], f[3] );
-      twoSum( b.x[0], f[2], f[1], f[2] );
-      twoSum( a.x[0], f[1], f[0], f[1] );
+      T f[4];
+      twoSum( a.x[0], b.x[0], f[0], f[1] );
+      twoSum( a.x[1], b.x[1], f[2], f[3] );
+      f[3] = f[3] + a.x[2] + b.x[2];
+      twoSum( f[1], f[2], f[1], f[2] );
+      f[2] = f[2] + f[3];
 
-      quickSum( f[1], f[2], f[1], f[2] );
-      quickSum( f[2], f[3], f[2], f[3] );
-      quickSum( f[3], f[4], f[3], f[4] );
-
-      quickSum( f[2], f[3], f[2], f[3] );
-      quickSum( f[1], f[2], f[1], f[2] );
-      quickSum( f[0], f[1], f[0], f[1] );
-
-      quickSum( f[1], f[2], f[1], f[2] );
-
-      return TX( f );
-#if 0
-      vecMerge<3,3>( f, a.x, b.x );
-      vecSum_Sloppy<-6>( f );
-      VSEB_Sloppy<3,6>( f );
-      return TX( f );
-#endif
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::add_QTW_QTW_QTW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
@@ -394,11 +404,16 @@ namespace tX_real {
   inline auto operator_add ( dX_real::dx_real<T,Aa> const& a, tx_real<T,Ab> const& b ) {
     using TX = tx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      T f[5];
-      vecMerge<2,3>( f, a.x, b.x );
-      vecSum_Sloppy<-5>( f );
-      VSEB_Sloppy<3,5>( f );
-      return TX( f );
+      T f[4];
+      twoSum( a.x[0], b.x[0], f[0], f[1] );
+      twoSum( a.x[1], b.x[1], f[2], f[3] );
+      f[3] = f[3] + b.x[2];
+      twoSum( f[1], f[2], f[1], f[2] );
+      f[2] = f[2] + f[3];
+
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::add_PA_QTW_QTW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
@@ -411,10 +426,13 @@ namespace tX_real {
     using TX = tx_real<T,Ab>;
     if ( Ab == Algorithm::Accurate ) {
       T f[4];
-      vecMerge<1,3>( f, &a, b.x );
-      vecSum_Sloppy<-4>( f );
-      VSEB_Sloppy<3,4>( f );
-      return TX( f );
+      twoSum( a.x[0], b.x[0], f[0], f[1] );
+      twoSum( f[1], b.x[1], f[1], f[2] );
+      f[2] = f[2] + b.x[2];
+
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::add_SW_QTW_QTW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
@@ -427,10 +445,14 @@ namespace tX_real {
     using TX = tx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
       T f[4];
-      vecMerge<2,2>( f, a.x, b.x );
-      vecSum_Sloppy<-4>( f );
-      VSEB_Sloppy<3,4>( f );
-      return TX( f );
+      twoSum( a.x[0], b.x[0], f[0], f[1] );
+      twoSum( a.x[1], b.x[1], f[2], f[3] );
+      twoSum( f[1], f[2], f[1], f[2] );
+      f[2] = f[2] + f[3];
+
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::add_PA_PA_QTW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2] );
@@ -516,8 +538,9 @@ namespace tX_real {
       twoProdFMA( a.x[0], b.x[1], p01, q01 ); // e, e^2
       twoProdFMA( a.x[1], b.x[0], p10, q10 ); // e, e^2
 
-      T e[4] = { q00, p01, p10 };
-      vecSum<-3>( e ); // e, e^2, e^2
+      T e[3] = { q00, p01, p10 };
+      twoSum( q00, p01, e[0], e[1] );
+      twoSum( e[0], p10, e[0], e[2] );
 
       e[1] = e[1] + fp<T>::fma( a.x[1], b.x[1], e[2] ) // e^2+e^2 -> e^2
                   + fp<T>::fma( a.x[0], b.x[2], q01 ) // e^2+e^2 -> e^2
@@ -525,8 +548,9 @@ namespace tX_real {
 
       T f[3] = { p00, e[0], e[1] }; // 1, e, e^2
 
-      VSEB_Sloppy<3>( f );
-      return TX( f );
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::mul_QTW_QTW_QTW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
@@ -545,18 +569,18 @@ namespace tX_real {
       twoProdFMA( a.x[0], b.x[1], p01, q01 );
       twoProdFMA( a.x[1], b.x[0], p10, q10 );
 
-      T d[4] = { q00, p01, p10 };
-      vecSum<-3>( d ); // e, e^2, e^2
+      T e[4];
+      e[0] = p00;
+      twoSum( q00, p01, e[1], e[2] );
+      twoSum( e[1], p10, e[1], e[3] );
+      e[2] = e[2]
+           + fp<T>::fma( a.x[1], b.x[1], e[3] )
+           + fp<T>::fma( a.x[0], b.x[2], q01 )
+           + fp<T>::fma( a.x[2], b.x[0], q10 );
 
-      d[1] = fp<T>::fma( a.x[1], b.x[1], d[1]+d[2]);
-      d[2] = fp<T>::fma( a.x[0], b.x[2], q10 );
-      d[3] = q01;
-
-      T e[3] = { p00, d[0], d[1]+d[2]+d[3] };
-//      vecSum<-6>( e );
-
-      VSEB_Sloppy<3>( e );
-      return TX( e );
+      auto c = TX( e );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::mul_PA_QTW_QTW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
@@ -579,10 +603,10 @@ namespace tX_real {
       d[1] = fp<T>::fma( a, b.x[2], d[1]+q01 );
 
       T e[3] = { p00, d[0], d[1] };
-//      vecSum<-3>( e );
 
-      VSEB_Sloppy<3>( e );
-      return TX( e );
+      auto c = TX( e );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::mul_SW_QTW_QTW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
@@ -602,15 +626,17 @@ namespace tX_real {
       twoProdFMA( a.x[1], b.x[0], p10, q10 );
 
       T d[3] = { q00, p01, p10 };
-      vecSum<-3>( d ); // e, e^2, e^2
+      twoSum( q00, p01, d[0], d[1] );
+      twoSum( d[0], p10, d[0], d[2] );
+      twoSum( d[1], d[2] );
 
       d[1]  = fp<T>::fma( a.x[1], b.x[1], d[1]+d[2] );
 
       T e[3] = { p00, d[0], d[1]+q01+q10 };
-//      vecSum<-6>( e );
 
-      VSEB_Sloppy<3>( e );
-      return TX( e );
+      auto c = TX( e );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::mul_PA_PA_QTW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2] );

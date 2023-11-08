@@ -432,20 +432,26 @@ namespace mX_real {
   //
   template < typename T, Algorithm A >
   inline auto Normalize( tX_real::tx_real<T,A> & c ) {
-    VSEB_Sloppy<3>( c.x );
+    quickSum( c.x[0], c.x[1] );
+    quickSum( c.x[1], c.x[2] );
   }
   template < typename T, Algorithm A >
   inline auto NormalizeStrict( tX_real::tx_real<T,A> & c ) {
-    VSEB<3>( c.x );
+    twoSum( c.x[0], c.x[1] );
+    twoSum( c.x[1], c.x[2] );
   }
   //
   template < typename T, Algorithm A >
   inline auto Normalize( qX_real::qx_real<T,A> & c ) {
-    VSEB_Sloppy<4>( c.x );
+    quickSum( c.x[0], c.x[1] );
+    quickSum( c.x[1], c.x[2] );
+    quickSum( c.x[2], c.x[3] );
   }
   template < typename T, Algorithm A >
   inline auto NormalizeStrict( qX_real::qx_real<T,A> & c ) {
-    VSEB<4>( c.x );
+    twoSum( c.x[0], c.x[1] );
+    twoSum( c.x[1], c.x[2] );
+    twoSum( c.x[2], c.x[3] );
   }
 
 
