@@ -354,11 +354,22 @@ namespace qX_real {
   inline auto operator_add ( qx_real<T,Aa> const& a, qx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      T f[8];
-      vecMerge<4,4>( f, a.x, b.x );
-      vecSum_Sloppy<-8>( f );
-      VSEB_Sloppy<4,8>( f );
-      return TX( f );
+
+      T f[6];
+      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1 e
+      twoSum( a.x[1], b.x[1], f[2], f[3] ); // e e^2
+      twoSum( a.x[2], b.x[2], f[4], f[5] ); // e^2 e^3
+      f[5] = f[5] + a.x[3] + b.x[3]; // e^3
+
+      twoSum( f[1], f[2], f[1], f[2] ); // e e^2
+      twoSum( f[2], f[3], f[2], f[3] ); // e^2 e^3
+      twoSum( f[2], f[4], f[2], f[4] ); // e^2 e^3
+      f[3] = f[3] + f[4] + f[5];
+
+      auto c = TX( f );
+      Normalize( c );
+      return c;
+
     } else {
       TX c;
       QxW::add_QQW_QQW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -370,11 +381,21 @@ namespace qX_real {
   inline auto operator_add ( tX_real::tx_real<T,Aa> const& a, qx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      T f[7];
-      vecMerge<3,4>( f, a.x, b.x );
-      vecSum_Sloppy<-7>( f );
-      VSEB_Sloppy<4,7>( f );
-      return TX( f );
+
+      T f[6];
+      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1 e
+      twoSum( a.x[1], b.x[1], f[2], f[3] ); // e e^2
+      twoSum( a.x[2], b.x[2], f[4], f[5] ); // e^2 e^3
+      f[5] = f[5] + b.x[3]; // e^3
+
+      twoSum( f[1], f[2], f[1], f[2] ); // e e^2
+      twoSum( f[2], f[3], f[2], f[3] ); // e^2 e^3
+      twoSum( f[2], f[4], f[2], f[4] ); // e^2 e^3
+      f[3] = f[3] + f[4] + f[5];
+
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::add_QTW_QQW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -386,11 +407,19 @@ namespace qX_real {
   inline auto operator_add ( dX_real::dx_real<T,Aa> const& a, qx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
+
       T f[6];
-      vecMerge<2,4>( f, a.x, b.x );
-      vecSum_Sloppy<-6>( f );
-      VSEB_Sloppy<4,6>( f );
-      return TX( f );
+      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1 e
+      twoSum( a.x[1], b.x[1], f[2], f[3] ); // e e^2
+      twoSum( f[3], b.x[2], f[3], f[4] ); // e^2 e^3
+
+      twoSum( f[1], f[2], f[1], f[2] ); // e e^2
+      twoSum( f[2], f[3], f[2], f[3] ); // e^2 e^3
+      f[3] = f[3] + f[4];
+
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::add_PA_QQW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -402,11 +431,15 @@ namespace qX_real {
   inline auto operator_add ( T const& a, qx_real<T,Ab> const& b ) {
     using TX = qx_real<T,Ab>;
     if ( Ab == Algorithm::Accurate ) {
-      T f[5];
-      vecMerge<1,4>( f, &a, b.x );
-      vecSum_Sloppy<-5>( f );
-      VSEB_Sloppy<4,5>( f );
-      return TX( f );
+
+      T f[6];
+      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1 e
+      twoSum( f[1], b.x[1], f[1], f[2] ); // e e^2
+      twoSum( f[2], b.x[2], f[2], f[3] ); // e^2 e^3
+
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::add_SW_QQW_QQW( a.x[0], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -606,7 +639,11 @@ namespace qX_real {
       twoProdFMA( a.x[3], b.x[0], q3[3], q4[3] );
       p4 = p4 + q4[0] + q4[1] + q4[2] + q4[3];
 
-      vecSum<-4>( q3 );
+//      vecSum<-4>( q3 );
+      twoSum( q3[2], q3[3] );
+      twoSum( q3[1], q3[2] );
+      twoSum( q3[0], q3[1] );
+
       p3 = p3 + q3[0];
       p4 = p4 + q3[1] + q3[2] + q3[3];
 
@@ -616,8 +653,17 @@ namespace qX_real {
            fp<T>::fma( a.x[3], b.x[1], p4 ) ) );
 
       T f[5] = { p0, p1, p2, p3, p4 };
-      VSEB_Sloppy<4,5>( f );
+#if 0
+      quickSum( f[3], f[4] );
+      quickSum( f[2], f[3] );
+      quickSum( f[1], f[2] );
+      quickSum( f[0], f[1] );
+//      VSEB_Sloppy<4,5>( f );
       return TX( f );
+#endif
+      auto c = TX( f );
+      Normalize( c );
+      return c;
 
     } else {
       TX c;
