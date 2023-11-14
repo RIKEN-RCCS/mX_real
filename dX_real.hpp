@@ -59,7 +59,7 @@ namespace dX_real {
     }
     template < Algorithm _A_ >
     INLINE dx_real( DX_REAL<_A_> const& h ) {
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi || std::isinf(h.x[0]) ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         twoSum( h.x[0], h.x[1], x[0], x[1] );
@@ -68,7 +68,7 @@ namespace dX_real {
     }
     template < Algorithm _A_ >
     INLINE dx_real( TX_REAL<_A_> const& h ) {
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi || std::isinf(h.x[0]) ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         T f[3] = { h.x[0], h.x[1], h.x[2] };
@@ -79,7 +79,7 @@ namespace dX_real {
     }
     template < Algorithm _A_ >
     INLINE dx_real( QX_REAL<_A_> const& h ) {
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi || std::isinf(h.x[0]) ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         T f[4] = { h.x[0], h.x[1], h.x[2], h.x[3] };
@@ -105,7 +105,7 @@ namespace dX_real {
     template < Algorithm _A_ >
     INLINE DX_REAL<> const &operator=( DX_REAL<_A_> const& h ) {
       if ( A == _A_ && this == (DX_REAL<>*)(&h) ) { return *this; }
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi || std::isinf(h.x[0]) ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         twoSum( h.x[0], h.x[1], x[0], x[1] );
@@ -115,7 +115,7 @@ namespace dX_real {
     }
     template < Algorithm _A_ >
     INLINE DX_REAL<> const &operator=( TX_REAL<_A_> const& h ) {
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi || std::isinf(h.x[0]) ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         T f[3] = { h.x[0], h.x[1], h.x[2] };
@@ -127,7 +127,7 @@ namespace dX_real {
     }
     template < Algorithm _A_ >
     INLINE DX_REAL<> const &operator=( QX_REAL<_A_> const& h ) {
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi || std::isinf(h.x[0]) ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         T f[4] = { h.x[0], h.x[1], h.x[2], h.x[3] };
@@ -152,7 +152,7 @@ namespace dX_real {
     }
     template < Algorithm _A_ >
     INLINE operator DX_REAL<_A_>() const {
-      if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
+      if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi && ! std::isinf(x[0]) ) {
         T f[2];
         twoSum( x[0], x[1], f[0], f[1] );
         VSEB_Sloppy<2>( f );
@@ -163,24 +163,26 @@ namespace dX_real {
     }
     template < Algorithm _A_ >
     INLINE operator TX_REAL<_A_>() const {
-      if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
+      if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi && ! std::isinf(x[0]) ) {
         T f[2];
         twoSum( x[0], x[1], f[0], f[1] );
         VSEB_Sloppy<2>( f );
         return TX_REAL<_A_>( f[0], f[1], fp<T>::zero );
       } else {
-        return TX_REAL<_A_>( x[0], x[1], fp<T>::zero );
+        T c = std::isinf(x[0]) ? x[0] : fp<T>::zero;
+        return TX_REAL<_A_>( x[0], x[1], c );
       }
     }
     template < Algorithm _A_ >
     INLINE operator QX_REAL<_A_>() const {
-      if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
+      if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi && ! std::isinf(x[0]) ) {
         T f[2];
         twoSum( x[0], x[1], f[0], f[1] );
         VSEB_Sloppy<2>( f );
         return QX_REAL<_A_>( f[0], f[1], fp<T>::zero, fp<T>::zero );
       } else {
-        return QX_REAL<_A_>( x[0], x[1], fp<T>::zero, fp<T>::zero );
+        T c = std::isinf(x[0]) ? x[0] : fp<T>::zero;
+        return QX_REAL<_A_>( x[0], x[1], c, c );
       }
     }
 
@@ -238,16 +240,16 @@ namespace dX_real {
 
     static INLINE DX_REAL<> constexpr rand ();
     //
-    static INLINE DX_REAL<> constexpr reversed_sign ( DX_REAL<> const& a );
-    static INLINE bool constexpr signbit            ( DX_REAL<> const& a );
-    static INLINE bool constexpr isinf              ( DX_REAL<> const& a );
-    static INLINE bool constexpr isnan              ( DX_REAL<> const& a );
-    static INLINE bool constexpr is_zero            ( DX_REAL<> const& a );
-    static INLINE bool constexpr is_positive        ( DX_REAL<> const& a );
-    static INLINE bool constexpr is_negative        ( DX_REAL<> const& a );
-    static INLINE DX_REAL<> constexpr sqrt          ( DX_REAL<> const& a );
-    static INLINE DX_REAL<> constexpr abs           ( DX_REAL<> const& a );
-    static INLINE T constexpr quick_Normalized      ( DX_REAL<> const& a ) {
+    static INLINE DX_REAL<> constexpr reversed_sign    ( DX_REAL<> const& a );
+    static INLINE bool      constexpr signbit          ( DX_REAL<> const& a );
+    static INLINE bool      constexpr isinf            ( DX_REAL<> const& a );
+    static INLINE bool      constexpr isnan            ( DX_REAL<> const& a );
+    static INLINE bool      constexpr is_zero          ( DX_REAL<> const& a );
+    static INLINE bool      constexpr is_positive      ( DX_REAL<> const& a );
+    static INLINE bool      constexpr is_negative      ( DX_REAL<> const& a );
+    static INLINE DX_REAL<> constexpr sqrt             ( DX_REAL<> const& a );
+    static INLINE DX_REAL<> constexpr abs              ( DX_REAL<> const& a );
+    static INLINE T         constexpr quick_Normalized ( DX_REAL<> const& a ) {
       T s = a.x[0];
       if ( A == Algorithm::Quasi ) { s += a.x[1]; }
       return s;
@@ -260,15 +262,15 @@ namespace dX_real {
     INLINE void constexpr Normalize () { mX_real::Normalize( *this ); }
     //
     INLINE DX_REAL<A> const reversed_sign () const { return reversed_sign( *this ); }
-    INLINE bool const signbit () const { return signbit( *this ); }
-    INLINE bool const isinf () const { return isinf( *this ); }
-    INLINE bool const isnan () const { return isnan( *this ); }
-    INLINE bool const is_zero () const { return is_zero( *this ); }
-    INLINE bool const is_positive () const { return is_positive( *this ); }
-    INLINE bool const is_negative () const { return is_negative( *this ); }
-    INLINE DX_REAL<A> const sqrt () const { return sqrt( *this ); }
-    INLINE DX_REAL<A> const abs () const { return abs( *this ); }
-    INLINE T const quick_Normalized () const { return quick_Normalized( *this ); }
+    INLINE bool       const signbit ()       const { return signbit( *this ); }
+    INLINE bool       const isinf ()         const { return isinf( *this ); }
+    INLINE bool       const isnan ()         const { return isnan( *this ); }
+    INLINE bool       const is_zero ()       const { return is_zero( *this ); }
+    INLINE bool       const is_positive ()   const { return is_positive( *this ); }
+    INLINE bool       const is_negative ()   const { return is_negative( *this ); }
+    INLINE DX_REAL<A> const sqrt ()          const { return sqrt( *this ); }
+    INLINE DX_REAL<A> const abs ()           const { return abs( *this ); }
+    INLINE T          const quick_Normalized () const { return quick_Normalized( *this ); }
     //
     INLINE DX_REAL<A> const element_rotate () const {
       T y[L]; y[0] = x[0]; y[1] = x[1];
