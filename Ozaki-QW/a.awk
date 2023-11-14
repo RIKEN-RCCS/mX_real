@@ -82,7 +82,10 @@ BEGIN{
 	gsub(/0\.5/,"fp_const<T>::half()");
 	gsub(/1\//,"fp_const<T>::one()/");
 
-	gsub(/^void /,"template < typename T > inline &");
+	if ( $0~/^void/ ) {
+#	gsub(/^void /,"template < typename T > inline &");
+	gsub(/^void /,"template < typename T > __always_inline &");
+	}
 	gsub(/float/,"T");
 }
 /^template/{
@@ -96,6 +99,7 @@ BEGIN{
 	if( $0~/ TwoProductFMA/ ) {
 		gsub( /T const&/, "T const" );
 	}
+	gsub( /T[ ]*&/, "T __restrict__ \\&" );
 }
 { print }
 END {

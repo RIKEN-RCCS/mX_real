@@ -1,13 +1,15 @@
-CXX = g++ --std=c++14
+CXX = g++-10 --std=c++14
+#CXX = g++ --std=c++14
 #CXX = g++ --std=c++17
 CCFLAGS := $(CCFLAGS) -O3
-#CCFLAGS := $(CCFLAGS) -g
-LDFLAGS = -fopenmp
+CCFLAGS := $(CCFLAGS) -g
+LDFLAGS = -fopenmp -lgomp
 
 # Optimizations
-CCFLAGS := $(CCFLAGS) -mfma -mavx2 -mavx512f
+CCFLAGS := $(CCFLAGS) -mfma -mavx2
+#-mavx512f
 CCFLAGS := $(CCFLAGS) -fopenmp
-CCFLAGS := $(CCFLAGS) -fsel-sched-pipelining --param max-inline-insns-single=128 --param max-inline-insns-size=256
+#CCFLAGS := $(CCFLAGS) -fsel-sched-pipelining --param max-inline-insns-single=1024 --param max-inline-insns-size=1024
 
 # QD
 CCFLAGS := $(CCFLAGS) -I../tm_blas/others/qd-2.3.23/include/
@@ -26,7 +28,8 @@ main.o: main.cpp mpreal
 	$(CXX) -c main.cpp $(CCFLAGS)
 
 sample.exe: sample.cpp mpreal
-	$(CXX) -o sample.exe sample.cpp $(CCFLAGS)  $(LDFLAGS)
+	$(CXX) -S            sample.cpp $(CCFLAGS)  # $(LDFLAGS)
+	$(CXX) -o sample.exe sample.cpp $(CCFLAGS)  # $(LDFLAGS)
 
 mpreal:
 	mkdir mpreal

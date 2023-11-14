@@ -34,7 +34,7 @@ template <> struct fp_const<double> {
 // Basic Part
 // ------------------------
 
-template < typename T > inline void TwoSum(T const a, T const b, T &x, T &y)
+template < typename T > __always_inline void TwoSum(T const a, T const b, T __restrict__ &x, T __restrict__ &y)
 {
     T z;
     x = a + b;
@@ -42,13 +42,13 @@ template < typename T > inline void TwoSum(T const a, T const b, T &x, T &y)
     y = ( a - (x-z) ) + (b-z);
 }
 
-template < typename T > inline void FastTwoSum(T const a, T const b, T &x, T &y)
+template < typename T > __always_inline void FastTwoSum(T const a, T const b, T __restrict__ &x, T __restrict__ &y)
 {
     x = a + b;
     y = (a-x) + b;
 }
 
-template < typename T > inline void TwoProductFMA(T const a, T const b, T &x, T &y)
+template < typename T > __always_inline void TwoProductFMA(T const a, T const b, T __restrict__ &x, T __restrict__ &y)
 {
     x = a*b;
     y = std::fma(a,b,-x);
@@ -59,20 +59,20 @@ template < typename T > inline void TwoProductFMA(T const a, T const b, T &x, T 
 //------------------------------
 
 //add: 1-1-2
-template < typename T > inline void add_SW_SW_PA(T const& a, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void add_SW_SW_PA(T const& a, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     TwoSum(a,b,ch,cl);
 }
 
 //add: 1-1-3
-template < typename T > inline void add_SW_SW_QTW(T const& a, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_SW_SW_QTW(T const& a, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     TwoSum(a,b,c1,c2);
     c3 = fp_const<T>::zero();
 }
 
 //add: 1-1-4
-template < typename T > inline void add_SW_SW_QQW(T const& a, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_SW_SW_QQW(T const& a, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     TwoSum(a,b,c1,c2);
     c3= fp_const<T>::zero();
@@ -80,13 +80,13 @@ template < typename T > inline void add_SW_SW_QQW(T const& a, T const& b, T &c1,
 }
 
 //add: 1-2-1
-template < typename T > inline void add_SW_PA_SW(T const& ah, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void add_SW_PA_SW(T const& ah, T const& bh, T const& bl, T __restrict__ &c)
 {
     c = ah + bh + bl;
 }
 
 //add: 1-2-2
-template < typename T > inline void add_SW_PA_PA(T const& a, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void add_SW_PA_PA(T const& a, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T t;
     TwoSum(a,bh,ch,t);
@@ -94,7 +94,7 @@ template < typename T > inline void add_SW_PA_PA(T const& a, T const& bh, T cons
 }
 
 //add: 1-2-3
-template < typename T > inline void add_SW_PA_QTW(T const& a, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_SW_PA_QTW(T const& a, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1;
     TwoSum(a,b1,c1,e1);
@@ -102,7 +102,7 @@ template < typename T > inline void add_SW_PA_QTW(T const& a, T const& b1, T con
 }
 
 //add: 1-2-4
-template < typename T > inline void add_SW_PA_QQW(T const& a, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_SW_PA_QQW(T const& a, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1;
     TwoSum(a,b1,c1,e1);
@@ -112,13 +112,13 @@ template < typename T > inline void add_SW_PA_QQW(T const& a, T const& b1, T con
 }
 
 //add: 1-3-1
-template < typename T > inline void add_SW_QTW_SW(T const& a, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void add_SW_QTW_SW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     c = a + b1 + b2 + b3;
 }
 
 //add: 1-3-2
-template < typename T > inline void add_SW_QTW_PA(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void add_SW_QTW_PA(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a,b1,c1,e1);
@@ -126,7 +126,7 @@ template < typename T > inline void add_SW_QTW_PA(T const& a, T const& b1, T con
 }
 
 //add: 1-3-3
-template < typename T > inline void add_SW_QTW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_SW_QTW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e3;
     TwoSum(a,b1,c1,e1);
@@ -135,7 +135,7 @@ template < typename T > inline void add_SW_QTW_QTW(T const& a, T const& b1, T co
 }
 
 //add: 1-3-4
-template < typename T > inline void add_SW_QTW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_SW_QTW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2;
     TwoSum(a,b1,c1,e1);
@@ -143,19 +143,19 @@ template < typename T > inline void add_SW_QTW_QQW(T const& a, T const& b1, T co
     TwoSum(b3,e2,c3,c4);
 }
 //add: 1-4-1
-template < typename T > inline void add_SW_QQW_SW(T const& a1, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void add_SW_QQW_SW(T const& a1, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     c = a1 + b1 + b2 + b3 + b4;
 }
 //add: 1-4-2
-template < typename T > inline void add_SW_QQW_PA(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void add_SW_QQW_PA(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a,b1,c1,e1);
     c2 = b2 + e1 + b3 + b4;
 }
 //add: 1-4-3
-template < typename T > inline void add_SW_QQW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_SW_QQW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2;
     TwoSum(a,b1,c1,e1);
@@ -164,7 +164,7 @@ template < typename T > inline void add_SW_QQW_QTW(T const& a, T const& b1, T co
 }
 
 //add: 1-4-4
-template < typename T > inline void add_SW_QQW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_SW_QQW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3;
     TwoSum(a,b1,c1,e1);
@@ -174,13 +174,13 @@ template < typename T > inline void add_SW_QQW_QQW(T const& a, T const& b1, T co
 }
 
 //add: 2-1-1
-template < typename T > inline void add_PA_SW_SW(T const& ah, T const& al, T const& b, T &c)
+template < typename T > __always_inline void add_PA_SW_SW(T const& ah, T const& al, T const& b, T __restrict__ &c)
 {
     c = ah + b + al;
 }
 
 //add: 2-1-2
-template < typename T > inline void add_PA_SW_PA(T const& ah, T const& al, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void add_PA_SW_PA(T const& ah, T const& al, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     T t;
     TwoSum(ah,b,ch,t);
@@ -188,7 +188,7 @@ template < typename T > inline void add_PA_SW_PA(T const& ah, T const& al, T con
 }
 
 //add: 2-1-3
-template < typename T > inline void add_PA_SW_QTW(T const& a1, T const& a2, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_PA_SW_QTW(T const& a1, T const& a2, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1;
     TwoSum(a1,b,c1,e1);
@@ -196,7 +196,7 @@ template < typename T > inline void add_PA_SW_QTW(T const& a1, T const& a2, T co
 }
 
 //add: 2-1-4
-template < typename T > inline void add_PA_SW_QQW(T const& a1, T const& a2, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_PA_SW_QQW(T const& a1, T const& a2, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1;
     TwoSum(a1,b,c1,e1);
@@ -205,13 +205,13 @@ template < typename T > inline void add_PA_SW_QQW(T const& a1, T const& a2, T co
 }
 
 //add: 2-2-1
-template < typename T > inline void add_PA_PA_SW(T const& ah, T const& al, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void add_PA_PA_SW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &c)
 {
     c = ah + bh + al + bl;
 }
 
 //add: 2-2-2
-template < typename T > inline void add_PA_PA_PA(T const& ah, T const& al, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void add_PA_PA_PA(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T t;
     TwoSum(ah,bh,ch,t);
@@ -219,7 +219,7 @@ template < typename T > inline void add_PA_PA_PA(T const& ah, T const& al, T con
 }
 
 //add: 2-2-3
-template < typename T > inline void add_PA_PA_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_PA_PA_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3;
     TwoSum(a1,b1,c1,e1);
@@ -229,7 +229,7 @@ template < typename T > inline void add_PA_PA_QTW(T const& a1, T const& a2, T co
 }
 
 //add: 2-2-4
-template < typename T > inline void add_PA_PA_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_PA_PA_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3;
     TwoSum(a1,b1,c1,e1);
@@ -239,13 +239,13 @@ template < typename T > inline void add_PA_PA_QQW(T const& a1, T const& a2, T co
 }
 
 //add: 2-3-1
-template < typename T > inline void add_PA_QTW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void add_PA_QTW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     c = a1 + b1 + a2 + b2 + b3;
 }
 
 //add: 2-3-2
-template < typename T > inline void add_PA_QTW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void add_PA_QTW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a1,b1,c1,e1);
@@ -253,7 +253,7 @@ template < typename T > inline void add_PA_QTW_PA(T const& a1, T const& a2, T co
 }
 
 //add: 2-3-3
-template < typename T > inline void add_PA_QTW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_PA_QTW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3;
     TwoSum(a1,b1,c1,e1);
@@ -263,7 +263,7 @@ template < typename T > inline void add_PA_QTW_QTW(T const& a1, T const& a2, T c
 }
 
 //add: 2-3-4
-template < typename T > inline void add_PA_QTW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_PA_QTW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e5, e6;
     TwoSum(a1,b1,c1,e1);
@@ -275,13 +275,13 @@ template < typename T > inline void add_PA_QTW_QQW(T const& a1, T const& a2, T c
 }
 
 //add: 2-4-1
-template < typename T > inline void add_PA_QQW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void add_PA_QQW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     c = a1 + b1 + a2 + b2 + b3 + b4;
 }
 
 //add: 2-4-2
-template < typename T > inline void add_PA_QQW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void add_PA_QQW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a1,b1,c1,e1);
@@ -289,7 +289,7 @@ template < typename T > inline void add_PA_QQW_PA(T const& a1, T const& a2, T co
 }
 
 //add: 2-4-3
-template < typename T > inline void add_PA_QQW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_PA_QQW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3;
     TwoSum(a1,b1,c1,e1);
@@ -299,7 +299,7 @@ template < typename T > inline void add_PA_QQW_QTW(T const& a1, T const& a2, T c
 }
 
 //add: 2-4-4
-template < typename T > inline void add_PA_QQW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_PA_QQW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e5, e6;
     TwoSum(a1,b1,c1,e1);
@@ -311,13 +311,13 @@ template < typename T > inline void add_PA_QQW_QQW(T const& a1, T const& a2, T c
 }
 
 //add: 3-1-1
-template < typename T > inline void add_QTW_SW_SW(T const& a1, T const& a2, T const& a3, T const& b, T &c)
+template < typename T > __always_inline void add_QTW_SW_SW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c)
 {
     c = a1 + b + a2 + a3;
 }
 
 //add: 3-1-2
-template < typename T > inline void add_QTW_SW_PA(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2)
+template < typename T > __always_inline void add_QTW_SW_PA(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a1,b,c1,e1);
@@ -325,7 +325,7 @@ template < typename T > inline void add_QTW_SW_PA(T const& a1, T const& a2, T co
 }
 
 //add: 3-1-3
-template < typename T > inline void add_QTW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_QTW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e3;
     TwoSum(a1,b,c1,e1);
@@ -334,7 +334,7 @@ template < typename T > inline void add_QTW_SW_QTW(T const& a1, T const& a2, T c
 }
 
 //add: 3-1-4
-template < typename T > inline void add_QTW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_QTW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2;
     TwoSum(a1,b,c1,e1);
@@ -343,13 +343,13 @@ template < typename T > inline void add_QTW_SW_QQW(T const& a1, T const& a2, T c
 }
 
 //add: 3-2-1
-template < typename T > inline void add_QTW_PA_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c)
+template < typename T > __always_inline void add_QTW_PA_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c)
 {
     c = a1 + b1 + a2 + b2 + a3;
 }
 
 //add: 3-2-2
-template < typename T > inline void add_QTW_PA_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2)
+template < typename T > __always_inline void add_QTW_PA_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a1,b1,c1,e1);
@@ -357,7 +357,7 @@ template < typename T > inline void add_QTW_PA_PA(T const& a1, T const& a2, T co
 }
 
 //add: 3-2-3
-template < typename T > inline void add_QTW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_QTW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3;
     TwoSum(a1,b1,c1,e1);
@@ -367,7 +367,7 @@ template < typename T > inline void add_QTW_PA_QTW(T const& a1, T const& a2, T c
 }
 
 //add: 3-2-4
-template < typename T > inline void add_QTW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_QTW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e5, e6;
     TwoSum(a1,b1,c1,e1);
@@ -379,13 +379,13 @@ template < typename T > inline void add_QTW_PA_QQW(T const& a1, T const& a2, T c
 }
 
 //add: 3-3-1
-template < typename T > inline void add_QTW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void add_QTW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     c = a1 + b1 + a2 + b2 + a3 + b3;
 }
 
 //add: 3-3-2
-template < typename T > inline void add_QTW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void add_QTW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a1,b1,c1,e1);
@@ -393,7 +393,7 @@ template < typename T > inline void add_QTW_QTW_PA(T const& a1, T const& a2, T c
 }
 
 //add: 3-3-3
-template < typename T > inline void add_QTW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_QTW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3;
     TwoSum(a1,b1,c1,e1);
@@ -403,7 +403,7 @@ template < typename T > inline void add_QTW_QTW_QTW(T const& a1, T const& a2, T 
 }
 
 //add: 3-3-4
-template < typename T > inline void add_QTW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_QTW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5, e6;
     TwoSum(a1,b1,c1,e1);
@@ -416,13 +416,13 @@ template < typename T > inline void add_QTW_QTW_QQW(T const& a1, T const& a2, T 
 }
 
 //add: 3-4-1
-template < typename T > inline void add_QTW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void add_QTW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     c = a1 + b1 + a2 + b2 + a3 + b3 + b4;
 }
 
 //add: 3-4-2
-template < typename T > inline void add_QTW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void add_QTW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a1,b1,c1,e1);
@@ -430,7 +430,7 @@ template < typename T > inline void add_QTW_QQW_PA(T const& a1, T const& a2, T c
 }
 
 //add: 3-4-3
-template < typename T > inline void add_QTW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_QTW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3;
     TwoSum(a1,b1,c1,e1);
@@ -440,7 +440,7 @@ template < typename T > inline void add_QTW_QQW_QTW(T const& a1, T const& a2, T 
 }
 
 //add: 3-4-4
-template < typename T > inline void add_QTW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_QTW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5, e6;
     TwoSum(a1,b1,c1,e1);
@@ -453,13 +453,13 @@ template < typename T > inline void add_QTW_QQW_QQW(T const& a1, T const& a2, T 
 }
 
 //add: 4-1-1
-template < typename T > inline void add_QQW_SW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c)
+template < typename T > __always_inline void add_QQW_SW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c)
 {
     c = a1 + b + a2 + a3 + a4;
 }
 
 //add: 4-1-2
-template < typename T > inline void add_QQW_SW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2)
+template < typename T > __always_inline void add_QQW_SW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a1,b,c1,e1);
@@ -467,7 +467,7 @@ template < typename T > inline void add_QQW_SW_PA(T const& a1, T const& a2, T co
 }
 
 //add: 4-1-3
-template < typename T > inline void add_QQW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_QQW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2;
     TwoSum(a1,b,c1,e1);
@@ -476,7 +476,7 @@ template < typename T > inline void add_QQW_SW_QTW(T const& a1, T const& a2, T c
 }
 
 //add: 4-1-4
-template < typename T > inline void add_QQW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_QQW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3;
     TwoSum(a1,b,c1,e1);
@@ -486,13 +486,13 @@ template < typename T > inline void add_QQW_SW_QQW(T const& a1, T const& a2, T c
 }
 
 //add: 4-2-1
-template < typename T > inline void add_QQW_PA_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c)
+template < typename T > __always_inline void add_QQW_PA_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c)
 {
     c = a1 + b1 + a2 + b2 + a3 + a4;
 }
 
 //add: 4-2-2
-template < typename T > inline void add_QQW_PA_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2)
+template < typename T > __always_inline void add_QQW_PA_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a1,b1,c1,e1);
@@ -500,7 +500,7 @@ template < typename T > inline void add_QQW_PA_PA(T const& a1, T const& a2, T co
 }
 
 //add: 4-2-3
-template < typename T > inline void add_QQW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_QQW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3;
     TwoSum(a1,b1,c1,e1);
@@ -510,7 +510,7 @@ template < typename T > inline void add_QQW_PA_QTW(T const& a1, T const& a2, T c
 }
 
 //add: 4-2-4
-template < typename T > inline void add_QQW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_QQW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e5, e6;
     TwoSum(a1,b1,c1,e1);
@@ -522,13 +522,13 @@ template < typename T > inline void add_QQW_PA_QQW(T const& a1, T const& a2, T c
 }
 
 //add: 4-3-1
-template < typename T > inline void add_QQW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void add_QQW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     c = a1 + b1 + a2 + b2 + a3 + b3 + a4;
 }
 
 //add: 4-3-2
-template < typename T > inline void add_QQW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void add_QQW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a1,b1,c1,e1);
@@ -536,7 +536,7 @@ template < typename T > inline void add_QQW_QTW_PA(T const& a1, T const& a2, T c
 }
 
 //add: 4-3-3
-template < typename T > inline void add_QQW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_QQW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3;
     TwoSum(a1,b1,c1,e1);
@@ -546,7 +546,7 @@ template < typename T > inline void add_QQW_QTW_QTW(T const& a1, T const& a2, T 
 }
 
 //add: 4-3-4
-template < typename T > inline void add_QQW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_QQW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5, e6;
     TwoSum(a1,b1,c1,e1);
@@ -559,13 +559,13 @@ template < typename T > inline void add_QQW_QTW_QQW(T const& a1, T const& a2, T 
 }
 
 //add: 4-4-1
-template < typename T > inline void add_QQW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void add_QQW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     c = a1 + b1 + a2 + b2 + a3 + b3 + a4 + b4;
 }
 
 //add: 4-4-2
-template < typename T > inline void add_QQW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void add_QQW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoSum(a1,b1,c1,e1);
@@ -573,7 +573,7 @@ template < typename T > inline void add_QQW_QQW_PA(T const& a1, T const& a2, T c
 }
 
 //add: 4-4-3
-template < typename T > inline void add_QQW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void add_QQW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3;
     TwoSum(a1,b1,c1,e1);
@@ -583,7 +583,7 @@ template < typename T > inline void add_QQW_QQW_QTW(T const& a1, T const& a2, T 
 }
 
 //add: 4-4-4
-template < typename T > inline void add_QQW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void add_QQW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5, e6;
     TwoSum(a1,b1,c1,e1);
@@ -600,121 +600,121 @@ template < typename T > inline void add_QQW_QQW_QQW(T const& a1, T const& a2, T 
 //------------------------------
 
 //sub: 1-1-2
-template < typename T > inline void sub_SW_SW_PA(T const& a, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void sub_SW_SW_PA(T const& a, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     TwoSum(a,-b,ch,cl);
 }
 
 //sub: 1-1-3
-template < typename T > inline void sub_SW_SW_QTW(T const& a, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_SW_SW_QTW(T const& a, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_SW_SW_QTW(a, -b, c1, c2, c3);
 }
 
 //sub: 1-1-4
-template < typename T > inline void sub_SW_SW_QQW(T const& a, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_SW_SW_QQW(T const& a, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_SW_SW_QQW(a, -b, c1, c2, c3, c4);
 }
 
 //sub: 1-2-1
-template < typename T > inline void sub_SW_PA_SW(T const& ah, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void sub_SW_PA_SW(T const& ah, T const& bh, T const& bl, T __restrict__ &c)
 {
     c = ah - bh - bl;
 }
 
 //sub: 1-2-2
-template < typename T > inline void sub_SW_PA_PA(T const& a, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void sub_SW_PA_PA(T const& a, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     add_SW_PA_PA(a, -bh, -bl, ch, cl);
 }
 
 //sub: 1-2-3
-template < typename T > inline void sub_SW_PA_QTW(T const& a, T const& bh, T const& bl, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_SW_PA_QTW(T const& a, T const& bh, T const& bl, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_SW_PA_QTW(a, -bh, -bl, c1, c2, c3);
 }
 
 //sub: 1-2-4
-template < typename T > inline void sub_SW_PA_QQW(T const& a, T const& bh, T const& bl, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_SW_PA_QQW(T const& a, T const& bh, T const& bl, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_SW_PA_QQW(a, -bh, -bl, c1, c2, c3, c4);
 }
 
 //sub: 1-3-1
-template < typename T > inline void sub_SW_QTW_SW(T const& a, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void sub_SW_QTW_SW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     add_SW_QTW_SW(a, -b1, -b2, -b3, c);
 }
 
 //sub: 1-3-2
-template < typename T > inline void sub_SW_QTW_PA(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void sub_SW_QTW_PA(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_SW_QTW_PA(a, -b1, -b2, -b3, c1, c2);
 }
 
 //sub: 1-3-3
-template < typename T > inline void sub_SW_QTW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_SW_QTW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_SW_QTW_QTW(a, -b1, -b2, -b3, c1, c2, c3);
 }
 
 //sub: 1-3-4
-template < typename T > inline void sub_SW_QTW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_SW_QTW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_SW_QTW_QQW(a, -b1, -b2, -b3, c1, c2, c3, c4);
 }
 
 //sub: 1-4-1
-template < typename T > inline void sub_SW_QQW_SW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void sub_SW_QQW_SW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     add_SW_QQW_SW(a, -b1, -b2, -b3, -b4, c);
 }
 
 //sub: 1-4-2
-template < typename T > inline void sub_SW_QQW_PA(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void sub_SW_QQW_PA(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_SW_QQW_PA(a, -b1, -b2, -b3, -b4, c1, c2);
 }
 
 //sub: 1-4-3
-template < typename T > inline void sub_SW_QQW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_SW_QQW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_SW_QQW_QTW(a, -b1, -b2, -b3, -b4, c1, c2, c3);
 }
 
 //sub: 1-4-4
-template < typename T > inline void sub_SW_QQW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_SW_QQW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_SW_QQW_QQW(a, -b1, -b2, -b3, -b4, c1, c2, c3, c4);
 }
 
 //sub: 2-1-1
-template < typename T > inline void sub_PA_SW_SW(T const& ah, T const& al, T const& b, T &c)
+template < typename T > __always_inline void sub_PA_SW_SW(T const& ah, T const& al, T const& b, T __restrict__ &c)
 {
     c = ah - b + al;
 }
 
 //sub: 2-1-2
-template < typename T > inline void sub_PA_SW_PA(T const& ah, T const& al, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void sub_PA_SW_PA(T const& ah, T const& al, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     add_PA_SW_PA(ah, al, -b, ch, cl);
 }
 
 //sub: 2-1-3
-template < typename T > inline void sub_PA_SW_QTW(T const& ah, T const& al, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_PA_SW_QTW(T const& ah, T const& al, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_PA_SW_QTW(ah, al, -b, c1, c2, c3);
 }
 
 //sub: 2-1-4
-template < typename T > inline void sub_PA_SW_QQW(T const& ah, T const& al, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_PA_SW_QQW(T const& ah, T const& al, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_PA_SW_QQW(ah, al, -b, c1, c2, c3, c4);
 }
 
 //sub: 2-2-1
-template < typename T > inline void sub_PA_PA_SW(T const& ah, T const& al, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void sub_PA_PA_SW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &c)
 {
     T t;
     TwoSum(ah,-bh,c,t);
@@ -722,261 +722,261 @@ template < typename T > inline void sub_PA_PA_SW(T const& ah, T const& al, T con
 }
 
 //sub: 2-2-2
-template < typename T > inline void sub_PA_PA_PA(T const& ah, T const& al, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void sub_PA_PA_PA(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     add_PA_PA_PA(ah, al, -bh, -bl, ch, cl);
 }
 
 //sub: 2-2-3
-template < typename T > inline void sub_PA_PA_QTW(T const& ah, T const& al, T const& bh, T const& bl, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_PA_PA_QTW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_PA_PA_QTW(ah, al, -bh, -bl, c1, c2, c3);
 }
 
 //sub: 2-2-4
-template < typename T > inline void sub_PA_PA_QQW(T const& ah, T const& al, T const& bh, T const& bl, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_PA_PA_QQW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_PA_PA_QQW(ah, al, -bh, -bl, c1, c2, c3, c4);
 }
 
 //sub: 2-3-1
-template < typename T > inline void sub_PA_QTW_SW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void sub_PA_QTW_SW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     add_PA_QTW_SW(ah, al, -b1, -b2, -b3, c);
 }
 
 //sub: 2-3-2
-template < typename T > inline void sub_PA_QTW_PA(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void sub_PA_QTW_PA(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_PA_QTW_PA(ah, al, -b1, -b2, -b3, c1, c2);
 }
 
 //sub: 2-3-3
-template < typename T > inline void sub_PA_QTW_QTW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_PA_QTW_QTW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_PA_QTW_QTW(ah, al, -b1, -b2, -b3, c1, c2, c3);
 }
 
 //sub: 2-3-4
-template < typename T > inline void sub_PA_QTW_QQW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_PA_QTW_QQW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_PA_QTW_QQW(ah, al, -b1, -b2, -b3, c1, c2, c3, c4);
 }
 
 //sub: 2-4-1
-template < typename T > inline void sub_PA_QQW_SW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void sub_PA_QQW_SW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     add_PA_QQW_SW(ah, al, -b1, -b2, -b3, -b4, c);
 }
 
 //sub: 2-4-2
-template < typename T > inline void sub_PA_QQW_PA(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void sub_PA_QQW_PA(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_PA_QQW_PA(ah, al, -b1, -b2, -b3, -b4, c1, c2);
 }
 
 //sub: 2-4-3
-template < typename T > inline void sub_PA_QQW_QTW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_PA_QQW_QTW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_PA_QQW_QTW(ah, al, -b1, -b2, -b3, -b4, c1, c2, c3);
 }
 
 //sub: 2-4-4
-template < typename T > inline void sub_PA_QQW_QQW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_PA_QQW_QQW(T const& ah, T const& al, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_PA_QQW_QQW(ah, al, -b1, -b2, -b3, -b4, c1, c2, c3, c4);
 }
 
 //sub: 3-1-1
-template < typename T > inline void sub_QTW_SW_SW(T const& a1, T const& a2, T const& a3, T const& b, T &c)
+template < typename T > __always_inline void sub_QTW_SW_SW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c)
 {
     add_QTW_SW_SW(a1, a2, a3, -b, c);
 }
 
 //sub: 3-1-2
-template < typename T > inline void sub_QTW_SW_PA(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2)
+template < typename T > __always_inline void sub_QTW_SW_PA(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_QTW_SW_PA(a1, a2, a3, -b, c1, c2);
 }
 
 //sub: 3-1-3
-template < typename T > inline void sub_QTW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_QTW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_QTW_SW_QTW(a1, a2, a3, -b, c1, c2, c3);
 }
 
 //sub: 3-1-4
-template < typename T > inline void sub_QTW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_QTW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_QTW_SW_QQW(a1, a2, a3, -b, c1, c2, c3, c4);
 }
 
 //sub: 3-2-1
-template < typename T > inline void sub_QTW_PA_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c)
+template < typename T > __always_inline void sub_QTW_PA_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c)
 {
     add_QTW_PA_SW(a1, a2, a3, -b1, -b2, c);
 }
 
 //sub: 3-2-2
-template < typename T > inline void sub_QTW_PA_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2)
+template < typename T > __always_inline void sub_QTW_PA_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_QTW_PA_PA(a1, a2, a3, -b1, -b2, c1, c2);
 }
 
 //sub: 3-2-3
-template < typename T > inline void sub_QTW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_QTW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_QTW_PA_QTW(a1, a2, a3, -b1, -b2, c1, c2, c3);
 }
 
 //sub: 3-2-4
-template < typename T > inline void sub_QTW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_QTW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_QTW_PA_QQW(a1, a2, a3, -b1, -b2, c1, c2, c3, c4);
 }
 
 //sub: 3-3-1
-template < typename T > inline void sub_QTW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void sub_QTW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     add_QTW_QTW_SW(a1, a2, a3, -b1, -b2, -b3, c);
 }
 
 //sub: 3-3-2
-template < typename T > inline void sub_QTW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void sub_QTW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_QTW_QTW_PA(a1, a2, a3, -b1, -b2, -b3, c1, c2);
 }
 
 //sub: 3-3-3
-template < typename T > inline void sub_QTW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_QTW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_QTW_QTW_QTW(a1, a2, a3, -b1, -b2, -b3, c1, c2, c3);
 }
 
 //sub: 3-3-4
-template < typename T > inline void sub_QTW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_QTW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_QTW_QTW_QQW(a1, a2, a3, -b1, -b2, -b3, c1, c2, c3, c4);
 }
 
 
 //sub: 3-4-1
-template < typename T > inline void sub_QTW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void sub_QTW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     add_QTW_QQW_SW(a1, a2, a3, -b1, -b2, -b3, -b4, c);
 }
 
 //sub: 3-4-2
-template < typename T > inline void sub_QTW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void sub_QTW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_QTW_QQW_PA(a1, a2, a3, -b1, -b2, -b3, -b4, c1, c2);
 }
 
 //sub: 3-4-3
-template < typename T > inline void sub_QTW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_QTW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_QTW_QQW_QTW(a1, a2, a3, -b1, -b2, -b3, -b4, c1, c2, c3);
 }
 
 //sub: 3-4-4
-template < typename T > inline void sub_QTW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_QTW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_QTW_QQW_QQW(a1, a2, a3, -b1, -b2, -b3, -b4, c1, c2, c3, c4);
 }
 
 //sub: 4-1-1
-template < typename T > inline void sub_QQW_SW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c)
+template < typename T > __always_inline void sub_QQW_SW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c)
 {
     add_QQW_SW_SW(a1, a2, a3, a4, -b, c);
 }
 
 //sub: 4-1-2
-template < typename T > inline void sub_QQW_SW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2)
+template < typename T > __always_inline void sub_QQW_SW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_QQW_SW_PA(a1, a2, a3, a4, -b, c1, c2);
 }
 
 //sub: 4-1-3
-template < typename T > inline void sub_QQW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_QQW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_QQW_SW_QTW(a1, a2, a3, a4, -b, c1, c2, c3);
 }
 
 //sub: 4-1-4
-template < typename T > inline void sub_QQW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_QQW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_QQW_SW_QQW(a1, a2, a3, a4, -b, c1, c2, c3, c4);
 }
 
 
 //sub: 4-2-1
-template < typename T > inline void sub_QQW_PA_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c)
+template < typename T > __always_inline void sub_QQW_PA_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c)
 {
     add_QQW_PA_SW(a1, a2, a3, a4, -b1, -b2, c);
 }
 
 //sub: 4-2-2
-template < typename T > inline void sub_QQW_PA_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2)
+template < typename T > __always_inline void sub_QQW_PA_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_QQW_PA_PA(a1, a2, a3, a4, -b1, -b2, c1, c2);
 }
 
 //sub: 4-2-3
-template < typename T > inline void sub_QQW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_QQW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_QQW_PA_QTW(a1, a2, a3, a4, -b1, -b2, c1, c2, c3);
 }
 
 //sub: 4-2-4
-template < typename T > inline void sub_QQW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_QQW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_QQW_PA_QQW(a1, a2, a3, a4, -b1, -b2, c1, c2, c3, c4);
 }
 
 //sub: 4-3-1
-template < typename T > inline void sub_QQW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void sub_QQW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     add_QQW_QTW_SW(a1, a2, a3, a4, -b1, -b2, -b3, c);
 }
 
 //sub: 4-3-2
-template < typename T > inline void sub_QQW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void sub_QQW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_QQW_QTW_PA(a1, a2, a3, a4, -b1, -b2, -b3, c1, c2);
 }
 
 //sub: 4-3-3
-template < typename T > inline void sub_QQW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_QQW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_QQW_QTW_QTW(a1, a2, a3, a4, -b1, -b2, -b3, c1, c2, c3);
 }
 
 //sub: 4-3-4
-template < typename T > inline void sub_QQW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_QQW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_QQW_QTW_QQW(a1, a2, a3, a4, -b1, -b2, -b3, c1, c2, c3, c4);
 }
 
 //sub: 4-4-1
-template < typename T > inline void sub_QQW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void sub_QQW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     add_QQW_QQW_SW(a1, a2, a3, a4, -b1, -b2, -b3, -b4, c);
 }
 
 //sub: 4-4-2
-template < typename T > inline void sub_QQW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void sub_QQW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     add_QQW_QQW_PA(a1, a2, a3, a4, -b1, -b2, -b3, -b4, c1, c2);
 }
 
 //sub: 4-4-3
-template < typename T > inline void sub_QQW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sub_QQW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     add_QQW_QQW_QTW(a1, a2, a3, a4, -b1, -b2, -b3, -b4, c1, c2, c3);
 }
 
 //sub: 4-4-4
-template < typename T > inline void sub_QQW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sub_QQW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     add_QQW_QQW_QQW(a1, a2, a3, a4, -b1, -b2, -b3, -b4, c1, c2, c3, c4);
 }
@@ -986,20 +986,20 @@ template < typename T > inline void sub_QQW_QQW_QQW(T const& a1, T const& a2, T 
 //------------------------------
 
 //mul: 1-1-2
-template < typename T > inline void mul_SW_SW_PA(T const& a, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void mul_SW_SW_PA(T const& a, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     TwoProductFMA(a,b,ch,cl);
 }
 
 //mul: 1-1-3
-template < typename T > inline void mul_SW_SW_QTW(T const& a, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_SW_SW_QTW(T const& a, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     TwoProductFMA(a, b, c1, c2);
     c3 = fp_const<T>::zero();
 }
 
 //mul: 1-1-4
-template < typename T > inline void mul_SW_SW_QQW(T const& a, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_SW_SW_QQW(T const& a, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     TwoProductFMA(a,b,c1,c2);
     c3 = fp_const<T>::zero();
@@ -1007,13 +1007,13 @@ template < typename T > inline void mul_SW_SW_QQW(T const& a, T const& b, T &c1,
 }
 
 //mul: 1-2-1
-template < typename T > inline void mul_SW_PA_SW(T const& a, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void mul_SW_PA_SW(T const& a, T const& bh, T const& bl, T __restrict__ &c)
 {
     c = a*(bh + bl);
 }
 
 //mul: 1-2-2
-template < typename T > inline void mul_SW_PA_PA(T const& a, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void mul_SW_PA_PA(T const& a, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T t;
     TwoProductFMA(a,bh,ch,t);
@@ -1021,7 +1021,7 @@ template < typename T > inline void mul_SW_PA_PA(T const& a, T const& bh, T cons
 }
 
 //mul: 1-2-3
-template < typename T > inline void mul_SW_PA_QTW(T const& a, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_SW_PA_QTW(T const& a, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e3, e5, t3;
     TwoProductFMA(a, b1, c1, e1);
@@ -1031,7 +1031,7 @@ template < typename T > inline void mul_SW_PA_QTW(T const& a, T const& b1, T con
 }
 
 //mul: 1-2-4
-template < typename T > inline void mul_SW_PA_QQW(T const& a, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_SW_PA_QQW(T const& a, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, e1, e2, e3;
     TwoProductFMA(a,b1,c1,e1);
@@ -1042,13 +1042,13 @@ template < typename T > inline void mul_SW_PA_QQW(T const& a, T const& b1, T con
 }
 
 //mul: 1-3-1
-template < typename T > inline void mul_SW_QTW_SW(T const& a, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void mul_SW_QTW_SW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     c = a * (b3 + b2 + b1);
 }
 
 //mul: 1-3-2
-template < typename T > inline void mul_SW_QTW_PA(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void mul_SW_QTW_PA(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a, b1, c1, e1);
@@ -1056,7 +1056,7 @@ template < typename T > inline void mul_SW_QTW_PA(T const& a, T const& b1, T con
 }
 
 //mul: 1-3-3
-template < typename T > inline void mul_SW_QTW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_SW_QTW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e4, e5, t2;
     TwoProductFMA(a, b1, c1, e1);
@@ -1066,7 +1066,7 @@ template < typename T > inline void mul_SW_QTW_QTW(T const& a, T const& b1, T co
 }
 
 //mul: 1-3-4
-template < typename T > inline void mul_SW_QTW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_SW_QTW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3;
     T e1, e2, e3, e4, e5, e6;
@@ -1080,14 +1080,14 @@ template < typename T > inline void mul_SW_QTW_QQW(T const& a, T const& b1, T co
 }
 
 //mul: 1-4-1
-template < typename T > inline void mul_SW_QQW_SW(T const& a1, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void mul_SW_QQW_SW(T const& a1, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
 //    c = a1 + b1 + b2 + b3 + b4;
     c = a1 * (b4 + b3 + b2 + b1); //
 }
 
 //mul: 1-4-2
-template < typename T > inline void mul_SW_QQW_PA(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void mul_SW_QQW_PA(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a,b1,c1,e1);
@@ -1095,7 +1095,7 @@ template < typename T > inline void mul_SW_QQW_PA(T const& a, T const& b1, T con
 }
 
 //mul: 1-4-3
-template < typename T > inline void mul_SW_QQW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_SW_QQW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e5, e6;
     T t2, t4;
@@ -1108,7 +1108,7 @@ template < typename T > inline void mul_SW_QQW_QTW(T const& a, T const& b1, T co
 }
 
 //mul: 1-4-4
-template < typename T > inline void mul_SW_QQW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_SW_QQW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e5, e6, e11, e14;
     T t2, t4;
@@ -1123,13 +1123,13 @@ template < typename T > inline void mul_SW_QQW_QQW(T const& a, T const& b1, T co
 }
 
 //mul: 2-1-1
-template < typename T > inline void mul_PA_SW_SW(T const& ah, T const& al, T const& b, T &c)
+template < typename T > __always_inline void mul_PA_SW_SW(T const& ah, T const& al, T const& b, T __restrict__ &c)
 {
     c = (ah+al)*b;
 }
 
 //mul: 2-1-2
-template < typename T > inline void mul_PA_SW_PA(T const& ah, T const& al, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void mul_PA_SW_PA(T const& ah, T const& al, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     T t;
     TwoProductFMA(ah,b,ch,t);
@@ -1137,7 +1137,7 @@ template < typename T > inline void mul_PA_SW_PA(T const& ah, T const& al, T con
 }
 
 //mul: 2-1-3
-template < typename T > inline void mul_PA_SW_QTW(T const& a1, T const& a2, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_PA_SW_QTW(T const& a1, T const& a2, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e3, e4, t3;
     TwoProductFMA(a1, b, c1, e1);
@@ -1147,7 +1147,7 @@ template < typename T > inline void mul_PA_SW_QTW(T const& a1, T const& a2, T co
 }
 
 //mul: 2-1-4
-template < typename T > inline void mul_PA_SW_QQW(T const& a1, T const& a2, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_PA_SW_QQW(T const& a1, T const& a2, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e3, e5;
     T t3;
@@ -1159,13 +1159,13 @@ template < typename T > inline void mul_PA_SW_QQW(T const& a1, T const& a2, T co
 }
 
 //mul: 2-2-1
-template < typename T > inline void mul_PA_PA_SW(T const& ah, T const& al, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void mul_PA_PA_SW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &c)
 {
     c = std::fma(al,bh,std::fma(ah,bh,ah*bl)); 
 }
 
 //mul: 2-2-2
-template < typename T > inline void mul_PA_PA_PA(T const& ah, T const& al, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void mul_PA_PA_PA(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T t;
     TwoProductFMA(ah,bh,ch,t);
@@ -1173,7 +1173,7 @@ template < typename T > inline void mul_PA_PA_PA(T const& ah, T const& al, T con
 }
 
 //mul: 2-2-3
-template < typename T > inline void mul_PA_PA_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_PA_PA_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3, e4, e5, t2, t3;
     TwoProductFMA(a1, b1, c1, e1);
@@ -1185,7 +1185,7 @@ template < typename T > inline void mul_PA_PA_QTW(T const& a1, T const& a2, T co
 }
 
 //mul: 2-2-4
-template < typename T > inline void mul_PA_PA_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_PA_PA_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5;
     T e7, e11, e12, e13, e14;
@@ -1205,13 +1205,13 @@ template < typename T > inline void mul_PA_PA_QQW(T const& a1, T const& a2, T co
 }
 
 //mul: 2-3-1
-template < typename T > inline void mul_PA_QTW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void mul_PA_QTW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     c = (a1+a2)*(b3+b2+b1);
 }
 
 //mul: 2-3-2
-template < typename T > inline void mul_PA_QTW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void mul_PA_QTW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1, b1, c1, e1);
@@ -1219,7 +1219,7 @@ template < typename T > inline void mul_PA_QTW_PA(T const& a1, T const& a2, T co
 }
 
 //mul: 2-3-3
-template < typename T > inline void mul_PA_QTW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_PA_QTW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3, e4, e5, t2, t3;
     TwoProductFMA(a1, b1, c1, e1);
@@ -1231,7 +1231,7 @@ template < typename T > inline void mul_PA_QTW_QTW(T const& a1, T const& a2, T c
 }
 
 //mul: 2-3-4
-template < typename T > inline void mul_PA_QTW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_PA_QTW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5;
     T e6, e7, e9, e11, e12, e13, e14;
@@ -1253,14 +1253,14 @@ template < typename T > inline void mul_PA_QTW_QQW(T const& a1, T const& a2, T c
 }
 
 //mul: 2-4-1
-template < typename T > inline void mul_PA_QQW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void mul_PA_QQW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
 //    c = a1 + b1 + a2 + b2 + b3 + b4;
     c = (a1 + a2) * (b1 + b2 + b3 + b4); //
 }
 
 //mul: 2-4-2
-template < typename T > inline void mul_PA_QQW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void mul_PA_QQW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1,b1,c1,e1);
@@ -1268,7 +1268,7 @@ template < typename T > inline void mul_PA_QQW_PA(T const& a1, T const& a2, T co
 }
 
 //mul: 2-4-3
-template < typename T > inline void mul_PA_QQW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_PA_QQW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3, e4, e5;
     T t2, t3;
@@ -1281,7 +1281,7 @@ template < typename T > inline void mul_PA_QQW_QTW(T const& a1, T const& a2, T c
 }
 
 //mul: 2-4-4
-template < typename T > inline void mul_PA_QQW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_PA_QQW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5;
     T e6, e7, e9;
@@ -1304,13 +1304,13 @@ template < typename T > inline void mul_PA_QQW_QQW(T const& a1, T const& a2, T c
 }
 
 //mul: 3-1-1
-template < typename T > inline void mul_QTW_SW_SW(T const& a1, T const& a2, T const& a3, T const& b, T &c)
+template < typename T > __always_inline void mul_QTW_SW_SW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c)
 {
     c = (a3+a2+a1)*b;
 }
 
 //mul: 3-1-2
-template < typename T > inline void mul_QTW_SW_PA(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2)
+template < typename T > __always_inline void mul_QTW_SW_PA(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1, b, c1, e1);
@@ -1318,7 +1318,7 @@ template < typename T > inline void mul_QTW_SW_PA(T const& a1, T const& a2, T co
 }
 
 //mul: 3-1-3
-template < typename T > inline void mul_QTW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_QTW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e3, e5;
     T t3;
@@ -1329,7 +1329,7 @@ template < typename T > inline void mul_QTW_SW_QTW(T const& a1, T const& a2, T c
 }
 
 //mul: 3-1-4
-template < typename T > inline void mul_QTW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_QTW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e3, e5, e8, e12, e14;
     T t3, t4, t5, t6;
@@ -1344,13 +1344,13 @@ template < typename T > inline void mul_QTW_SW_QQW(T const& a1, T const& a2, T c
 }
 
 //mul: 3-2-1
-template < typename T > inline void mul_QTW_PA_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c)
+template < typename T > __always_inline void mul_QTW_PA_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c)
 {
     c = (a3+a2+a1)*(b1+b2);
 }
 
 //mul: 3-2-2
-template < typename T > inline void mul_QTW_PA_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2)
+template < typename T > __always_inline void mul_QTW_PA_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1, b1, c1, e1);
@@ -1358,7 +1358,7 @@ template < typename T > inline void mul_QTW_PA_PA(T const& a1, T const& a2, T co
 }
 
 //mul: 3-2-3
-template < typename T > inline void mul_QTW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_QTW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3, e4, e5, t2, t3;
     TwoProductFMA(a1, b1, c1, e1);
@@ -1370,7 +1370,7 @@ template < typename T > inline void mul_QTW_PA_QTW(T const& a1, T const& a2, T c
 }
 
 //mul: 3-2-4
-template < typename T > inline void mul_QTW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_QTW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5;
     T e7, e8, e10;
@@ -1393,13 +1393,13 @@ template < typename T > inline void mul_QTW_PA_QQW(T const& a1, T const& a2, T c
 }
 
 //mul: 3-3-1
-template < typename T > inline void mul_QTW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void mul_QTW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     c = (a1+a2+a3)*(b1+b2+b3); //減らしてもよい
 }
 
 //mul: 3-3-2
-template < typename T > inline void mul_QTW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void mul_QTW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1, b1, c1, e1);
@@ -1407,7 +1407,7 @@ template < typename T > inline void mul_QTW_QTW_PA(T const& a1, T const& a2, T c
 }
 
 //mul: 3-3-3
-template < typename T > inline void mul_QTW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_QTW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3, e4, e5;
     T t2, t3;
@@ -1420,7 +1420,7 @@ template < typename T > inline void mul_QTW_QTW_QTW(T const& a1, T const& a2, T 
 }
 
 //mul: 3-3-4
-template < typename T > inline void mul_QTW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_QTW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5;
     T e6, e7, e8, e9, e10;
@@ -1445,14 +1445,14 @@ template < typename T > inline void mul_QTW_QTW_QQW(T const& a1, T const& a2, T 
 }
 
 //mul: 3-4-1
-template < typename T > inline void mul_QTW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void mul_QTW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
 //    c = a1 + b1 + a2 + b2 + a3 + b3 + b4;
     c = (a3 + a2 + a1) * (b4 + b3 + b2 + b1); //
 }
 
 //mul: 3-4-2
-template < typename T > inline void mul_QTW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void mul_QTW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1,b1,c1,e1);
@@ -1460,7 +1460,7 @@ template < typename T > inline void mul_QTW_QQW_PA(T const& a1, T const& a2, T c
 }
 
 //mul: 3-4-3
-template < typename T > inline void mul_QTW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_QTW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3, e4, e5;
     T t2, t3;
@@ -1474,7 +1474,7 @@ template < typename T > inline void mul_QTW_QQW_QTW(T const& a1, T const& a2, T 
 }
 
 //mul: 3-4-4
-template < typename T > inline void mul_QTW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_QTW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5;
     T e6, e7, e8, e9, e10;
@@ -1499,14 +1499,14 @@ template < typename T > inline void mul_QTW_QQW_QQW(T const& a1, T const& a2, T 
 }
 
 //mul: 4-1-1
-template < typename T > inline void mul_QQW_SW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c)
+template < typename T > __always_inline void mul_QQW_SW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c)
 {
 //    c = a1 + b + a2  + a3 + a4;
     c = (a4 + a3  + a2 + a1) * b; //
 }
 
 //mul: 4-1-2
-template < typename T > inline void mul_QQW_SW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2)
+template < typename T > __always_inline void mul_QQW_SW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1,b,c1,e1);
@@ -1514,7 +1514,7 @@ template < typename T > inline void mul_QQW_SW_PA(T const& a1, T const& a2, T co
 }
 
 //mul: 4-1-3
-template < typename T > inline void mul_QQW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_QQW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t3;
     T e1, e3, e5;
@@ -1525,7 +1525,7 @@ template < typename T > inline void mul_QQW_SW_QTW(T const& a1, T const& a2, T c
 }
 
 //mul: 4-1-4
-template < typename T > inline void mul_QQW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_QQW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e3, e5;
     T e8, e12, e14;
@@ -1541,14 +1541,14 @@ template < typename T > inline void mul_QQW_SW_QQW(T const& a1, T const& a2, T c
 }
 
 //mul: 4-2-1
-template < typename T > inline void mul_QQW_PA_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c)
+template < typename T > __always_inline void mul_QQW_PA_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c)
 {
 //    c = a1 + b1 + a2 + b2 + a3 + a4;
     c = (a4 + a3 + a2 + a1) * (b1 + b2);
 }
 
 //mul: 4-2-2
-template < typename T > inline void mul_QQW_PA_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2)
+template < typename T > __always_inline void mul_QQW_PA_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1,b1,c1,e1);
@@ -1556,7 +1556,7 @@ template < typename T > inline void mul_QQW_PA_PA(T const& a1, T const& a2, T co
 }
 
 //mul: 4-2-3
-template < typename T > inline void mul_QQW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_QQW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3, e4, e5;
     T t2, t3;
@@ -1570,7 +1570,7 @@ template < typename T > inline void mul_QQW_PA_QTW(T const& a1, T const& a2, T c
 }
 
 //mul: 4-2-4
-template < typename T > inline void mul_QQW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_QQW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5;
     T e7, e8, e10;
@@ -1593,14 +1593,14 @@ template < typename T > inline void mul_QQW_PA_QQW(T const& a1, T const& a2, T c
 }
 
 //mul: 4-3-1
-template < typename T > inline void mul_QQW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void mul_QQW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
 //    c = a1 + b1 + a2 + b2 + a3 + b3 + a4;
     c = (a4 + a3 + a2 + a1) * (b3 + b2 + b1);
 }
 
 //mul: 4-3-2
-template < typename T > inline void mul_QQW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void mul_QQW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1,b1,c1,e1);
@@ -1608,7 +1608,7 @@ template < typename T > inline void mul_QQW_QTW_PA(T const& a1, T const& a2, T c
 }
 
 //mul: 4-3-3
-template < typename T > inline void mul_QQW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_QQW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3, e4, e5;
     T t2, t3;
@@ -1622,7 +1622,7 @@ template < typename T > inline void mul_QQW_QTW_QTW(T const& a1, T const& a2, T 
 }
 
 //mul: 4-3-4
-template < typename T > inline void mul_QQW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_QQW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5;
     T e6, e7, e8, e9, e10;
@@ -1647,14 +1647,14 @@ template < typename T > inline void mul_QQW_QTW_QQW(T const& a1, T const& a2, T 
 }
 
 //mul: 4-4-1
-template < typename T > inline void mul_QQW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void mul_QQW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
 //    c = a1 + b1 + a2 + b2 + a3 + b3 + a4 + b4;
     c = (a4 + a3 + a2 + a1) * (b4 + b3 + b2 + b1);
 }
 
 //mul: 4-4-2
-template < typename T > inline void mul_QQW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void mul_QQW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1,b1,c1,e1);
@@ -1662,7 +1662,7 @@ template < typename T > inline void mul_QQW_QQW_PA(T const& a1, T const& a2, T c
 }
 
 //mul: 4-4-3
-template < typename T > inline void mul_QQW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void mul_QQW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3, e4, e5;
     T t2, t3;
@@ -1676,7 +1676,7 @@ template < typename T > inline void mul_QQW_QQW_QTW(T const& a1, T const& a2, T 
 }
 
 //mul: 4-4-4
-template < typename T > inline void mul_QQW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void mul_QQW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e3, e4, e5;
     T e6, e7, e8, e9, e10;
@@ -1705,14 +1705,14 @@ template < typename T > inline void mul_QQW_QQW_QQW(T const& a1, T const& a2, T 
 //------------------------------
 
 //div: 1-1-2
-template < typename T > inline void div_SW_SW_PA(T const& a, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void div_SW_SW_PA(T const& a, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     ch = a/b;
     cl = std::fma(-b,ch,a)/b;
 }
 
 //div: 1-1-3
-template < typename T > inline void div_SW_SW_QTW(T const& a, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_SW_SW_QTW(T const& a, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2, t3;
     div_SW_SW_PA(a,b,c1,c2); //// 3-3
@@ -1722,7 +1722,7 @@ template < typename T > inline void div_SW_SW_QTW(T const& a, T const& b, T &c1,
 }
 
 //div: 1-1-4
-template < typename T > inline void div_SW_SW_QQW(T const& a, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_SW_SW_QQW(T const& a, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_SW_SW_QTW(a,b,c1,c2,c3); //// 30-17
@@ -1732,13 +1732,13 @@ template < typename T > inline void div_SW_SW_QQW(T const& a, T const& b, T &c1,
 }
 
 //div: 1-2-1
-template < typename T > inline void div_SW_PA_SA(T const& a, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void div_SW_PA_SA(T const& a, T const& bh, T const& bl, T __restrict__ &c)
 {
     c = a/(bh+bl);
 }
 
 //div: 1-2-2
-template < typename T > inline void div_SW_PA_PA(T const& a, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void div_SW_PA_PA(T const& a, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T t;
     ch = a/bh;
@@ -1747,7 +1747,7 @@ template < typename T > inline void div_SW_PA_PA(T const& a, T const& bh, T cons
 }
 
 //div: 1-2-3
-template < typename T > inline void div_SW_PA_QTW(T const& a, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_SW_PA_QTW(T const& a, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2, t3;
     div_SW_PA_PA(a,b1,b2,c1,c2); //// 5-5
@@ -1757,7 +1757,7 @@ template < typename T > inline void div_SW_PA_QTW(T const& a, T const& b1, T con
 }
 
 //div: 1-2-4
-template < typename T > inline void div_SW_PA_QQW(T const& a, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_SW_PA_QQW(T const& a, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_SW_PA_QTW(a,b1,b2,c1,c2,c3); //// 42-26
@@ -1767,19 +1767,19 @@ template < typename T > inline void div_SW_PA_QQW(T const& a, T const& b1, T con
 }
 
 //div: 1-3-1
-template < typename T > inline void div_SW_QTW_SW(T const& a, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void div_SW_QTW_SW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     c = a/(b1+b2+b3);
 }
 
 //div: 1-3-2
-template < typename T > inline void div_SW_QTW_PA(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void div_SW_QTW_PA(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_SW_PA_PA(a,b1,b2+b3,c1,c2);
 }
 
 //div: 1-3-3
-template < typename T > inline void div_SW_QTW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_SW_QTW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2, t3;
     div_SW_PA_PA(a,b1,b2,c1,c2); //// 5-5
@@ -1789,7 +1789,7 @@ template < typename T > inline void div_SW_QTW_QTW(T const& a, T const& b1, T co
 }
 
 //div: 1-3-4
-template < typename T > inline void div_SW_QTW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_SW_QTW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_SW_QTW_QTW(a,b1,b2,b3,c1,c2,c3); //// 43-27
@@ -1799,26 +1799,26 @@ template < typename T > inline void div_SW_QTW_QQW(T const& a, T const& b1, T co
 }
 
 //div: 1-4-1
-template < typename T > inline void div_SW_QQW_SW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void div_SW_QQW_SW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     c = a / ( b1 + b2 + b3 + b4);
 }
 
 //div: 1-4-2
-template < typename T > inline void div_SW_QQW_PA(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void div_SW_QQW_PA(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_SW_PA_PA(a,b1,b2+b3+b4,c1,c2);
 }
 
 //div: 1-4-3
-template < typename T > inline void div_SW_QQW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_SW_QQW_QTW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     div_SW_QTW_QTW(a,b1,b2,b3+b4,c1,c2,c3);
 }
 
 
 //div: 1-4-4
-template < typename T > inline void div_SW_QQW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_SW_QQW_QQW(T const& a, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_SW_QTW_QTW(a,b1,b2,b3,c1,c2,c3);//// 43-27
@@ -1828,20 +1828,20 @@ template < typename T > inline void div_SW_QQW_QQW(T const& a, T const& b1, T co
 }
 
 //div: 2-1-1
-template < typename T > inline void div_PA_SW_SW(T const& ah, T const& al, T const& b, T &c)
+template < typename T > __always_inline void div_PA_SW_SW(T const& ah, T const& al, T const& b, T __restrict__ &c)
 {
     c = (ah+al)/b;
 }
 
 //div: 2-1-2
-template < typename T > inline void div_PA_SW_PA(T const& ah, T const& al, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void div_PA_SW_PA(T const& ah, T const& al, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     ch = ah/b;
     cl = (std::fma(-b,ch,ah) + al)/b;
 }
 
 //div: 2-1-3
-template < typename T > inline void div_PA_SW_QTW(T const& a1, T const& a2, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_PA_SW_QTW(T const& a1, T const& a2, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2, t3;
     div_PA_SW_PA(a1,a2,b,c1,c2); //// 4-4
@@ -1851,7 +1851,7 @@ template < typename T > inline void div_PA_SW_QTW(T const& a1, T const& a2, T co
 }
 
 //div: 2-1-4
-template < typename T > inline void div_PA_SW_QQW(T const& a1, T const& a2, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_PA_SW_QQW(T const& a1, T const& a2, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_PA_SW_QTW(a1,a2,b,c1,c2,c3); //// 38-20
@@ -1861,13 +1861,13 @@ template < typename T > inline void div_PA_SW_QQW(T const& a1, T const& a2, T co
 }
 
 //div: 2-2-1
-template < typename T > inline void div_PA_PA_SW(T const& ah, T const& al, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void div_PA_PA_SW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &c)
 {
     c = (ah+al)/(bh+bl);
 }
 
 //div: 2-2-2
-template < typename T > inline void div_PA_PA_PA(T const& ah, T const& al, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void div_PA_PA_PA(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T t, p;
     ch = ah/bh;
@@ -1877,7 +1877,7 @@ template < typename T > inline void div_PA_PA_PA(T const& ah, T const& al, T con
 }
 
 //div: 2-2-3
-template < typename T > inline void div_PA_PA_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_PA_PA_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2, t3;
     div_PA_PA_PA(a1,a2,b1,b2,c1,c2); //// 6-6
@@ -1887,7 +1887,7 @@ template < typename T > inline void div_PA_PA_QTW(T const& a1, T const& a2, T co
 }
 
 //div: 2-2-4
-template < typename T > inline void div_PA_PA_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_PA_PA_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_PA_PA_QTW(a1,a2,b1,b2,c1,c2,c3); //// 50-29
@@ -1897,19 +1897,19 @@ template < typename T > inline void div_PA_PA_QQW(T const& a1, T const& a2, T co
 }
 
 //div: 2-3-1
-template < typename T > inline void div_PA_QTW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void div_PA_QTW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     c = (a1+a2)/(b1+b2+b3);
 }
 
 //div: 2-3-2
-template < typename T > inline void div_PA_QTW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void div_PA_QTW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_PA_PA_PA(a1,a2,b1,b2+b3,c1,c2);
 }
 
 //div: 2-3-3
-template < typename T > inline void div_PA_QTW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_PA_QTW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2, t3;
     div_PA_PA_PA(a1,a2,b1,b2,c1,c2); //// 6-6
@@ -1919,7 +1919,7 @@ template < typename T > inline void div_PA_QTW_QTW(T const& a1, T const& a2, T c
 }
 
 //div: 2-3-4
-template < typename T > inline void div_PA_QTW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_PA_QTW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_PA_QTW_QTW(a1,a2,b1,b2,b3,c1,c2,c3); //// 51-30
@@ -1929,25 +1929,25 @@ template < typename T > inline void div_PA_QTW_QQW(T const& a1, T const& a2, T c
 }
 
 //div: 2-4-1
-template < typename T > inline void div_PA_QQW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void div_PA_QQW_SW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     c = (a1 + a2)/(b1 + b2 + b3 + b4);
 }
 
 //div: 2-4-2
-template < typename T > inline void div_PA_QQW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void div_PA_QQW_PA(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_PA_PA_PA(a1,a2,b1,b2+b3+b4,c1,c2);
 }
 
 //div: 2-4-3
-template < typename T > inline void div_PA_QQW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_PA_QQW_QTW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     div_PA_QTW_QTW(a1,a2,b1,b2,b3+b4,c1,c2,c3);
 }
 
 //div: 2-4-4
-template < typename T > inline void div_PA_QQW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_PA_QQW_QQW(T const& a1, T const& a2, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_PA_QTW_QTW(a1,a2,b1,b2,b3,c1,c2,c3); ////51-30
@@ -1957,19 +1957,19 @@ template < typename T > inline void div_PA_QQW_QQW(T const& a1, T const& a2, T c
 }
 
 //div: 3-1-1
-template < typename T > inline void div_QTW_SW_SW(T const& a1, T const& a2, T const& a3, T const& b, T &c)
+template < typename T > __always_inline void div_QTW_SW_SW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c)
 {
     c = (a1+a2+a3)/b;
 }
 
 //div: 3-1-2
-template < typename T > inline void div_QTW_SW_PA(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2)
+template < typename T > __always_inline void div_QTW_SW_PA(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_PA_SW_PA(a1,a2+a3,b,c1,c2);
 }
 
 //div: 3-1-3
-template < typename T > inline void div_QTW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_QTW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2, t3;
     div_PA_SW_PA(a1,a2,b,c1,c2); //// 4-4
@@ -1979,7 +1979,7 @@ template < typename T > inline void div_QTW_SW_QTW(T const& a1, T const& a2, T c
 }
 
 //div: 3-1-4
-template < typename T > inline void div_QTW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_QTW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_QTW_SW_QTW(a1,a2,a3,b,c1,c2,c3); //// 39-21
@@ -1989,19 +1989,19 @@ template < typename T > inline void div_QTW_SW_QQW(T const& a1, T const& a2, T c
 }
 
 //div: 3-2-1
-template < typename T > inline void div_QTW_PA_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c)
+template < typename T > __always_inline void div_QTW_PA_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c)
 {
     c = (a1+a2+a3)/(b1+b2);
 }
 
 //div: 3-2-2
-template < typename T > inline void div_QTW_PA_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2)
+template < typename T > __always_inline void div_QTW_PA_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_PA_PA_PA(a1,a2+a3,b1,b2,c1,c2);
 }
 
 //div: 3-2-3
-template < typename T > inline void div_QTW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_QTW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2, t3;
     div_PA_PA_PA(a1,a2,b1,b2,c1,c2); //// 6-6
@@ -2011,7 +2011,7 @@ template < typename T > inline void div_QTW_PA_QTW(T const& a1, T const& a2, T c
 }
 
 //div: 3-2-4
-template < typename T > inline void div_QTW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_QTW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_QTW_PA_QTW(a1,a2,a3,b1,b2,c1,c2,c3);//// 51-30
@@ -2021,19 +2021,19 @@ template < typename T > inline void div_QTW_PA_QQW(T const& a1, T const& a2, T c
 }
 
 //div: 3-3-1
-template < typename T > inline void div_QTW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void div_QTW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     c = (a1+a2+a3)/(b1+b2+b3);
 }
 
 //div: 3-3-2
-template < typename T > inline void div_QTW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void div_QTW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_PA_PA_PA(a1,a2+a3,b1,b2+b3,c1,c2);
 }
 
 //div: 3-3-3
-template < typename T > inline void div_QTW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_QTW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2, t3;
     div_PA_PA_PA(a1,a2,b1,b2,c1,c2); //// 6-6
@@ -2043,7 +2043,7 @@ template < typename T > inline void div_QTW_QTW_QTW(T const& a1, T const& a2, T 
 }
 
 //div: 3-3-4
-template < typename T > inline void div_QTW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_QTW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_QTW_QTW_QTW(a1,a2,a3,b1,b2,b3,c1,c2,c3);//// 52-31
@@ -2053,25 +2053,25 @@ template < typename T > inline void div_QTW_QTW_QQW(T const& a1, T const& a2, T 
 }
 
 //div: 3-4-1
-template < typename T > inline void div_QTW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void div_QTW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     c = (a1+a2+a3)/(b1+b2+b3+b4);
 }
 
 //div: 3-4-2
-template < typename T > inline void div_QTW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void div_QTW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_PA_PA_PA(a1,a2+a3,b1,b2+b3+b4,c1,c2);
 }
 
 //div: 3-4-3
-template < typename T > inline void div_QTW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_QTW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     div_QTW_QTW_QTW(a1,a2,a3,b1,b2,b3+b4,c1,c2,c3);
 }
 
 //div: 3-4-4
-template < typename T > inline void div_QTW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_QTW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_QTW_QTW_QTW(a1,a2,a3,b1,b2,b3,c1,c2,c3);//// 53-32
@@ -2081,25 +2081,25 @@ template < typename T > inline void div_QTW_QQW_QQW(T const& a1, T const& a2, T 
 }
 
 //div: 4-1-1
-template < typename T > inline void div_QQW_SW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c)
+template < typename T > __always_inline void div_QQW_SW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c)
 {
     c = (a1+a2+a3+a4)/b;
 }
 
 //div: 4-1-2
-template < typename T > inline void div_QQW_SW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2)
+template < typename T > __always_inline void div_QQW_SW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_PA_SW_PA(a1,a2+a3+a4,b,c1,c2);
 }
 
 //div: 4-1-3
-template < typename T > inline void div_QQW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_QQW_SW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     div_QTW_SW_QTW(a1,a2,a3+a4,b,c1,c2,c3);
 }
 
 //div: 4-1-4
-template < typename T > inline void div_QQW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_QQW_SW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_QTW_SW_QTW(a1,a2,a3,b,c1,c2,c3);////40-22
@@ -2109,25 +2109,25 @@ template < typename T > inline void div_QQW_SW_QQW(T const& a1, T const& a2, T c
 }
 
 //div: 4-2-1
-template < typename T > inline void div_QQW_PA_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c)
+template < typename T > __always_inline void div_QQW_PA_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c)
 {
     c = (a1+a2+a3+a4)/(b1+b2);
 }
 
 //div: 4-2-2
-template < typename T > inline void div_QQW_PA_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2)
+template < typename T > __always_inline void div_QQW_PA_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_PA_PA_PA(a1,a2+a3+a4,b1,b2,c1,c2);
 }
 
 //div: 4-2-3
-template < typename T > inline void div_QQW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_QQW_PA_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     div_QTW_PA_QTW(a1,a2,a3+a4,b1,b2,c1,c2,c3);
 }
 
 //div: 4-2-4
-template < typename T > inline void div_QQW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_QQW_PA_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_QTW_PA_QTW(a1,a2,a3,b1,b2,c1,c2,c3); //// 51-30
@@ -2137,25 +2137,25 @@ template < typename T > inline void div_QQW_PA_QQW(T const& a1, T const& a2, T c
 }
 
 //div: 4-3-1
-template < typename T > inline void div_QQW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c)
+template < typename T > __always_inline void div_QQW_QTW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c)
 {
     c = (a1+a2+a3+a4)/(b1+b2+b3);
 }
 
 //div: 4-3-2
-template < typename T > inline void div_QQW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2)
+template < typename T > __always_inline void div_QQW_QTW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_PA_PA_PA(a1,a2+a3+a4,b1,b2+b3,c1,c2);
 }
 
 //div: 4-3-3
-template < typename T > inline void div_QQW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_QQW_QTW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     div_QTW_QTW_QTW(a1,a2,a3+a4,b1,b2,b3,c1,c2,c3);
 }
 
 //div: 4-3-4
-template < typename T > inline void div_QQW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_QQW_QTW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_QTW_QTW_QTW(a1,a2,a3,b1,b2,b3,c1,c2,c3);//// 52-31
@@ -2165,25 +2165,25 @@ template < typename T > inline void div_QQW_QTW_QQW(T const& a1, T const& a2, T 
 }
 
 //div: 4-4-1
-template < typename T > inline void div_QQW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c)
+template < typename T > __always_inline void div_QQW_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c)
 {
     c = (a1+a2+a3+a4)/(b1+b2+b3+b4);
 }
 
 //div: 4-4-2
-template < typename T > inline void div_QQW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2)
+template < typename T > __always_inline void div_QQW_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2)
 {
     div_PA_PA_PA(a1,a2+a3+a4,b1,b2+b3+b4,c1,c2);
 }
 
 //div: 4-4-3
-template < typename T > inline void div_QQW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void div_QQW_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     div_QTW_QTW_QTW(a1,a2,a3+a4,b1,b2,b3+b4,c1,c2,c3);
 }
 
 //div: 4-4-4
-template < typename T > inline void div_QQW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void div_QQW_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     div_QTW_QTW_QTW(a1,a2,a3,b1,b2,b3,c1,c2,c3);//// 52-31
@@ -2197,20 +2197,20 @@ template < typename T > inline void div_QQW_QQW_QQW(T const& a1, T const& a2, T 
 //--------------------
 
 //sqr:1-2
-template < typename T > inline void sqr_SW_PA(T const& a, T &c1, T &c2)
+template < typename T > __always_inline void sqr_SW_PA(T const& a, T __restrict__ &c1, T __restrict__ &c2)
 {
     TwoProductFMA(a,a,c1,c2);
 }
 
 //sqr:1-3
-template < typename T > inline void sqr_SW_QTW(T const& a, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sqr_SW_QTW(T const& a, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     TwoProductFMA(a,a,c1,c2);
     c3 = fp_const<T>::zero();
 }
 
 //sqr:1-4
-template < typename T > inline void sqr_SW_QQW(T const& a, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sqr_SW_QQW(T const& a, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     TwoProductFMA(a,a,c1,c2);
     c3 = fp_const<T>::zero();
@@ -2218,13 +2218,13 @@ template < typename T > inline void sqr_SW_QQW(T const& a, T &c1, T &c2, T &c3, 
 }
 
 //sqr:2-1
-template < typename T > inline void sqr_PA_SW(T const& a1, T const& a2, T &c)
+template < typename T > __always_inline void sqr_PA_SW(T const& a1, T const& a2, T __restrict__ &c)
 {
     c = (a1+a2)*(a1+a2);
 }
 
 //sqr:2-2
-template < typename T > inline void sqr_PA_PA(T const& a1, T const& a2, T &c1, T &c2)
+template < typename T > __always_inline void sqr_PA_PA(T const& a1, T const& a2, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1,a1,c1,e1);
@@ -2232,7 +2232,7 @@ template < typename T > inline void sqr_PA_PA(T const& a1, T const& a2, T &c1, T
 }
 
 //sqr:2-3
-template < typename T > inline void sqr_PA_QTW(T const& a1, T const& a2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sqr_PA_QTW(T const& a1, T const& a2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e3;
     T t2;
@@ -2243,7 +2243,7 @@ template < typename T > inline void sqr_PA_QTW(T const& a1, T const& a2, T &c1, 
 }
 
 //sqr:2-4
-template < typename T > inline void sqr_PA_QQW(T const& a1, T const& a2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sqr_PA_QQW(T const& a1, T const& a2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e5, e7, e14;
     T t2, t4, t5;
@@ -2257,7 +2257,7 @@ template < typename T > inline void sqr_PA_QQW(T const& a1, T const& a2, T &c1, 
 }
 
 //sqr:3-1
-template < typename T > inline void sqr_QTW_SW(T const& a1, T const& a2, T const& a3, T &c)
+template < typename T > __always_inline void sqr_QTW_SW(T const& a1, T const& a2, T const& a3, T __restrict__ &c)
 {
     T t;
     t = a1+a2+a3;
@@ -2265,7 +2265,7 @@ template < typename T > inline void sqr_QTW_SW(T const& a1, T const& a2, T const
 }
 
 //sqr:3-2
-template < typename T > inline void sqr_QTW_PA(T const& a1, T const& a2, T const& a3, T &c1, T &c2)
+template < typename T > __always_inline void sqr_QTW_PA(T const& a1, T const& a2, T const& a3, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1,a1,c1,e1);
@@ -2273,7 +2273,7 @@ template < typename T > inline void sqr_QTW_PA(T const& a1, T const& a2, T const
 }
 
 //sqr:3-3
-template < typename T > inline void sqr_QTW_QTW(T const& a1, T const& a2, T const& a3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sqr_QTW_QTW(T const& a1, T const& a2, T const& a3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e5;
     T t2;
@@ -2285,7 +2285,7 @@ template < typename T > inline void sqr_QTW_QTW(T const& a1, T const& a2, T cons
 }
 
 //sqr:3-4
-template < typename T > inline void sqr_QTW_QQW(T const& a1, T const& a2, T const& a3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sqr_QTW_QQW(T const& a1, T const& a2, T const& a3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e5;
     T e6, e7, e9, e11, e14;
@@ -2303,7 +2303,7 @@ template < typename T > inline void sqr_QTW_QQW(T const& a1, T const& a2, T cons
 }
 
 //sqr:4-1
-template < typename T > inline void sqr_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T &c)
+template < typename T > __always_inline void sqr_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T __restrict__ &c)
 {
     T t;
     t = a1 + a2  + a3 + a4;
@@ -2311,7 +2311,7 @@ template < typename T > inline void sqr_QQW_SW(T const& a1, T const& a2, T const
 }
 
 //sqr:4-2
-template < typename T > inline void sqr_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T &c1, T &c2)
+template < typename T > __always_inline void sqr_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T __restrict__ &c1, T __restrict__ &c2)
 {
     T e1;
     TwoProductFMA(a1,a1,c1,e1);
@@ -2319,7 +2319,7 @@ template < typename T > inline void sqr_QQW_PA(T const& a1, T const& a2, T const
 }
 
 //sqr:4-3
-template < typename T > inline void sqr_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sqr_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T e1, e2, e5;
     T t2;
@@ -2331,7 +2331,7 @@ template < typename T > inline void sqr_QQW_QTW(T const& a1, T const& a2, T cons
 }
 
 //sqr:4-4
-template < typename T > inline void sqr_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sqr_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T e1, e2, e5, e6, e7, e9, e11, e14;
     T t2, t4, t5;
@@ -2352,14 +2352,14 @@ template < typename T > inline void sqr_QQW_QQW(T const& a1, T const& a2, T cons
 //------------------------------
 
 //sqrt: 1-2
-template < typename T > inline void sqrt_SW_PA(T const& a, T &ch, T &cl)
+template < typename T > __always_inline void sqrt_SW_PA(T const& a, T __restrict__ &ch, T __restrict__ &cl)
 {
     ch = std::sqrt(a);
     cl = std::fma(-ch,ch,a)/(ch+ch);
 }
 
 //sqrt: 1-3
-template < typename T > inline void sqrt_SW_QTW(T const& a, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sqrt_SW_QTW(T const& a, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2 ,t3;
     sqrt_SW_PA(a,c1,c2);
@@ -2369,7 +2369,7 @@ template < typename T > inline void sqrt_SW_QTW(T const& a, T &c1, T &c2, T &c3)
 }
 
 //sqrt: 1-4
-template < typename T > inline void sqrt_SW_QQW(T const& a, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sqrt_SW_QQW(T const& a, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     sqrt_SW_QTW(a,c1,c2,c3);
@@ -2380,20 +2380,20 @@ template < typename T > inline void sqrt_SW_QQW(T const& a, T &c1, T &c2, T &c3,
 
 
 //sqrt: 2-1
-template < typename T > inline void sqrt_PA_SW(T const& ah, T const& al, T &c)
+template < typename T > __always_inline void sqrt_PA_SW(T const& ah, T const& al, T __restrict__ &c)
 {
     c = std::sqrt(ah+al);
 }
 
 //sqrt: 2-2
-template < typename T > inline void sqrt_PA_PA(T const& ah, T const& al, T &ch, T &cl)
+template < typename T > __always_inline void sqrt_PA_PA(T const& ah, T const& al, T __restrict__ &ch, T __restrict__ &cl)
 {
     ch = std::sqrt(ah);
     cl = (std::fma(-ch,ch,ah) + al)/(ch + ch);
 }
 
 //sqrt: 2-3
-template < typename T > inline void sqrt_PA_QTW(T const& a1, T const& a2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sqrt_PA_QTW(T const& a1, T const& a2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2 ,t3;
     sqrt_PA_PA(a1,a2,c1,c2);
@@ -2403,7 +2403,7 @@ template < typename T > inline void sqrt_PA_QTW(T const& a1, T const& a2, T &c1,
 }
 
 //sqrt: 2-4
-template < typename T > inline void sqrt_PA_QQW(T const& a1, T const& a2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sqrt_PA_QQW(T const& a1, T const& a2, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     sqrt_PA_QTW(a1,a2,c1,c2,c3);
@@ -2413,19 +2413,19 @@ template < typename T > inline void sqrt_PA_QQW(T const& a1, T const& a2, T &c1,
 }
 
 //sqrt: 3-1
-template < typename T > inline void sqrt_QTW_SW(T const& a1, T const& a2, T const& a3, T &c)
+template < typename T > __always_inline void sqrt_QTW_SW(T const& a1, T const& a2, T const& a3, T __restrict__ &c)
 {
     c = std::sqrt(a1+a2+a3);
 }
 
 //sqrt: 3-2
-template < typename T > inline void sqrt_QTW_PA(T const& a1, T const& a2, T const& a3, T &c1, T &c2)
+template < typename T > __always_inline void sqrt_QTW_PA(T const& a1, T const& a2, T const& a3, T __restrict__ &c1, T __restrict__ &c2)
 {
     sqrt_PA_PA(a1,a2+a3,c1,c2);
 }
 
 //sqrt: 3-3
-template < typename T > inline void sqrt_QTW_QTW(T const& a1, T const& a2, T const& a3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sqrt_QTW_QTW(T const& a1, T const& a2, T const& a3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     T t1, t2 ,t3;
     sqrt_PA_PA(a1,a2,c1,c2);
@@ -2435,7 +2435,7 @@ template < typename T > inline void sqrt_QTW_QTW(T const& a1, T const& a2, T con
 }
 
 //sqrt: 3-4
-template < typename T > inline void sqrt_QTW_QQW(T const& a1, T const& a2, T const& a3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sqrt_QTW_QQW(T const& a1, T const& a2, T const& a3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     sqrt_QTW_QTW(a1,a2,a3,c1,c2,c3);
@@ -2445,25 +2445,25 @@ template < typename T > inline void sqrt_QTW_QQW(T const& a1, T const& a2, T con
 }
 
 //sqrt: 4-1
-template < typename T > inline void sqrt_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T &c)
+template < typename T > __always_inline void sqrt_QQW_SW(T const& a1, T const& a2, T const& a3, T const& a4, T __restrict__ &c)
 {
     c = std::sqrt(a1+a2+a3+a4);
 }
 
 //sqrt: 4-2
-template < typename T > inline void sqrt_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T &c1, T &c2)
+template < typename T > __always_inline void sqrt_QQW_PA(T const& a1, T const& a2, T const& a3, T const& a4, T __restrict__ &c1, T __restrict__ &c2)
 {
     sqrt_QTW_PA(a1,a2,a3+a4,c1,c2);
 }
 
 //sqrt: 4-3
-template < typename T > inline void sqrt_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void sqrt_QQW_QTW(T const& a1, T const& a2, T const& a3, T const& a4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
 {
     sqrt_QTW_QTW(a1,a2,a3+a4,c1,c2,c3);
 }
 
 //sqrt: 4-4
-template < typename T > inline void sqrt_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void sqrt_QQW_QQW(T const& a1, T const& a2, T const& a3, T const& a4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
 {
     T t1, t2, t3, t4;
     sqrt_QTW_QTW(a1,a2,a3,c1,c2,c3);
@@ -2478,12 +2478,12 @@ template < typename T > inline void sqrt_QQW_QQW(T const& a1, T const& a2, T con
 // Double word Part
 // -------------------------------
 //Double word arithmetic: add
-template < typename T > inline void add_SW_SW_DW(T const& a, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void add_SW_SW_DW(T const& a, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     TwoSum(a, b, ch,cl);
 }
 
-template < typename T > inline void add_SW_DW_SW(T const& a, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void add_SW_DW_SW(T const& a, T const& bh, T const& bl, T __restrict__ &c)
 {
 //    c = a + bh;
     T sh, se, eh; //
@@ -2492,7 +2492,7 @@ template < typename T > inline void add_SW_DW_SW(T const& a, T const& bh, T cons
     c = sh + se; //
 }
 
-template < typename T > inline void add_SW_DW_DW(T const& a, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void add_SW_DW_DW(T const& a, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T sh, sl, eh, el, se, te;
     TwoSum(a, bh, sh, eh);
@@ -2501,7 +2501,7 @@ template < typename T > inline void add_SW_DW_DW(T const& a, T const& bh, T cons
     FastTwoSum(sh, se, ch, cl);
 }
 
-template < typename T > inline void add_DW_SW_SW(T const& ah, T const& al, T const& b, T &c)
+template < typename T > __always_inline void add_DW_SW_SW(T const& ah, T const& al, T const& b, T __restrict__ &c)
 {
     T sh, eh, el, se, te;
     TwoSum(ah, b, sh, eh);
@@ -2510,7 +2510,7 @@ template < typename T > inline void add_DW_SW_SW(T const& ah, T const& al, T con
     c = sh + se;
 }
 
-template < typename T > inline void add_DW_SW_DW(T const& ah, T const& al, T const& bh, T &ch, T &cl)
+template < typename T > __always_inline void add_DW_SW_DW(T const& ah, T const& al, T const& bh, T __restrict__ &ch, T __restrict__ &cl)
 {
     T sh, eh, el, se, te;
     TwoSum(ah, bh, sh, eh);
@@ -2519,7 +2519,7 @@ template < typename T > inline void add_DW_SW_DW(T const& ah, T const& al, T con
     FastTwoSum(sh, se, ch, cl);
 }
 
-template < typename T > inline void add_DW_DW_SW(T const& ah, T const& al, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void add_DW_DW_SW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &c)
 {
     T sh, sl, eh, el, se, te;
     TwoSum(ah, bh, sh, eh);
@@ -2530,7 +2530,7 @@ template < typename T > inline void add_DW_DW_SW(T const& ah, T const& al, T con
     c = sh + te;
 }
 
-template < typename T > inline void add_DW_DW_DW(T const& ah, T const& al, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void add_DW_DW_DW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T sh, sl, eh, el, se, te;
     TwoSum(ah, bh, sh, eh);
@@ -2543,19 +2543,19 @@ template < typename T > inline void add_DW_DW_DW(T const& ah, T const& al, T con
 
 
 //Double word arithmetic: mul
-template < typename T > inline void mul_SW_SW_DW(T const& a, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void mul_SW_SW_DW(T const& a, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     TwoProductFMA(a, b, ch, cl);
 }
 
-template < typename T > inline void mul_SW_DW_SW(T const& a, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void mul_SW_DW_SW(T const& a, T const& bh, T const& bl, T __restrict__ &c)
 {
     T p1, p2;
     TwoProductFMA(a, bh, p1, p2);
     c = p1 + std::fma(a,bl,p2);
 }
 
-template < typename T > inline void mul_SW_DW_DW(T const& ah, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void mul_SW_DW_DW(T const& ah, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T p1, p2;
     TwoProductFMA(ah, bh, p1, p2);
@@ -2563,7 +2563,7 @@ template < typename T > inline void mul_SW_DW_DW(T const& ah, T const& bh, T con
     FastTwoSum(p1, p2, ch, cl);
 }
 
-template < typename T > inline void mul_DW_SW_SW(T const& ah, T const& al, T const& b, T &c)
+template < typename T > __always_inline void mul_DW_SW_SW(T const& ah, T const& al, T const& b, T __restrict__ &c)
 {
     T p1, p2;
     TwoProductFMA(ah, b, p1, p2);
@@ -2571,7 +2571,7 @@ template < typename T > inline void mul_DW_SW_SW(T const& ah, T const& al, T con
     c = p1 + p2;
 }
 
-template < typename T > inline void mul_DW_SW_DW(T const& ah, T const& al, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void mul_DW_SW_DW(T const& ah, T const& al, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     T p1, p2;
     TwoProductFMA(ah, b, p1, p2);
@@ -2579,7 +2579,7 @@ template < typename T > inline void mul_DW_SW_DW(T const& ah, T const& al, T con
     FastTwoSum(p1, p2, ch, cl);
 }
 
-template < typename T > inline void mul_DW_DW_SW(T const& ah, T const& al, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void mul_DW_DW_SW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &c)
 {
     T p1, p2;
     TwoProductFMA(ah, bh, p1, p2);
@@ -2588,7 +2588,7 @@ template < typename T > inline void mul_DW_DW_SW(T const& ah, T const& al, T con
     c = p1 + p2;
 }
 
-template < typename T > inline void mul_DW_DW_DW(T const& ah, T const& al, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void mul_DW_DW_DW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T p1, p2;
     TwoProductFMA(ah, bh, p1, p2);
@@ -2599,7 +2599,7 @@ template < typename T > inline void mul_DW_DW_DW(T const& ah, T const& al, T con
 
 //Double word arithmetic: div
 
-template < typename T > inline void div_SW_SW_DW(T const& a, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void div_SW_SW_DW(T const& a, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     T dh, dl, s1, s2, t;
     ch = a / b;
@@ -2611,7 +2611,7 @@ template < typename T > inline void div_SW_SW_DW(T const& a, T const& b, T &ch, 
 }
 
 ////////////////?????/////////////////
-template < typename T > inline void div_SW_DW_SW(T const& a, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void div_SW_DW_SW(T const& a, T const& bh, T const& bl, T __restrict__ &c)
 {
     T dh, dl, s1, s2;
     c = a / bh;
@@ -2621,7 +2621,7 @@ template < typename T > inline void div_SW_DW_SW(T const& a, T const& bh, T cons
     c = c + (s1 + s2)/bh;
 }
 
-template < typename T > inline void div_SW_DW_DW(T const& a, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void div_SW_DW_DW(T const& a, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T dh, dl, s1, s2, t;
     ch = a / bh;
@@ -2633,7 +2633,7 @@ template < typename T > inline void div_SW_DW_DW(T const& a, T const& bh, T cons
 }
 
 ////???????????????/////////
-template < typename T > inline void div_DW_SW_SW(T const& ah, T const& al, T const& b, T &c)
+template < typename T > __always_inline void div_DW_SW_SW(T const& ah, T const& al, T const& b, T __restrict__ &c)
 {
     T dh, dl, s1, s2;
     c = ah / b;
@@ -2643,7 +2643,7 @@ template < typename T > inline void div_DW_SW_SW(T const& ah, T const& al, T con
     c = c + (s1 + s2)/b;
 }
 
-template < typename T > inline void div_DW_SW_DW(T const& ah, T const& al, T const& b, T &ch, T &cl)
+template < typename T > __always_inline void div_DW_SW_DW(T const& ah, T const& al, T const& b, T __restrict__ &ch, T __restrict__ &cl)
 {
     T dh, dl, s1, s2, t;
     ch = ah / b;
@@ -2655,7 +2655,7 @@ template < typename T > inline void div_DW_SW_DW(T const& ah, T const& al, T con
 }
 
 ///?????////
-template < typename T > inline void div_DW_DW_SW(T const& ah, T const& al, T const& bh, T const& bl, T &c)
+template < typename T > __always_inline void div_DW_DW_SW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &c)
 {
     T dh, dl, s1, s2;
     c = ah / bh;
@@ -2665,7 +2665,7 @@ template < typename T > inline void div_DW_DW_SW(T const& ah, T const& al, T con
     c = c + (s1 + s2)/bh;
 }
 
-template < typename T > inline void div_DW_DW_DW(T const& ah, T const& al, T const& bh, T const& bl, T &ch, T &cl)
+template < typename T > __always_inline void div_DW_DW_DW(T const& ah, T const& al, T const& bh, T const& bl, T __restrict__ &ch, T __restrict__ &cl)
 {
     T dh, dl, s1, s2, t;
     ch = ah / bh;
@@ -2677,7 +2677,7 @@ template < typename T > inline void div_DW_DW_DW(T const& ah, T const& al, T con
 }
 
 //Double word arithmetic: sqrt
-template < typename T > inline void sqrt_SW_DW(T const& a, T &ch, T &cl)
+template < typename T > __always_inline void sqrt_SW_DW(T const& a, T __restrict__ &ch, T __restrict__ &cl)
 {
     T x, ax, r1, r2, s1;
     x = fp_const<T>::one()/std::sqrt(a);
@@ -2687,7 +2687,7 @@ template < typename T > inline void sqrt_SW_DW(T const& a, T &ch, T &cl)
     TwoSum(ax,s1*(x*fp_const<T>::half()),ch,cl);
 }
 
-template < typename T > inline void sqrt_DW_SW(T const& ah, T const& al, T &c)
+template < typename T > __always_inline void sqrt_DW_SW(T const& ah, T const& al, T __restrict__ &c)
 {
     T x, ax, r1, r2, s1;
     x = fp_const<T>::one()/std::sqrt(ah);
@@ -2698,7 +2698,7 @@ template < typename T > inline void sqrt_DW_SW(T const& ah, T const& al, T &c)
 }
 
 
-template < typename T > inline void sqrt_DW_DW(T const& ah, T const& al, T &ch, T &cl)
+template < typename T > __always_inline void sqrt_DW_DW(T const& ah, T const& al, T __restrict__ &ch, T __restrict__ &cl)
 {
     T x, ax, r1, r2, s1;
     x = fp_const<T>::one()/std::sqrt(ah);
