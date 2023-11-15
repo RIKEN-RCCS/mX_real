@@ -388,35 +388,83 @@ namespace mX_real {
   //
   template < typename T, Algorithm A >
   INLINE void Normalize( dX_real::dx_real<T,A> & c ) {
-    quickSum( c.x[0], c.x[1] );
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    auto t = c.x[0] + c.x[1];
+    if ( std::isnan( t ) || std::isinf( t ) ) {
+      c.x[0] = c.x[1] = t;
+    } else
+#endif
+    {
+      quickSum( c.x[0], c.x[1] );
+    }
   }
   template < typename T, Algorithm A >
   INLINE void NormalizeStrict( dX_real::dx_real<T,A> & c ) {
-    twoSum( c.x[0], c.x[1] );
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    auto t = c.x[0] + c.x[1];
+    if ( std::isnan( t ) || std::isinf( t ) ) {
+      c.x[0] = c.x[1] = t;
+    } else
+#endif
+    {
+      twoSum( c.x[0], c.x[1] );
+    }
   }
   //
   template < typename T, Algorithm A >
   INLINE void Normalize( tX_real::tx_real<T,A> & c ) {
-    quickSum( c.x[0], c.x[1] );
-    quickSum( c.x[1], c.x[2] );
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    auto t = c.x[0] + c.x[1] + c.x[2];
+    if ( std::isnan( t ) || std::isinf( t ) ) {
+      c.x[0] = c.x[1] = c.x[2] = t;
+    } else
+#endif
+    {
+      quickSum( c.x[0], c.x[1] );
+      quickSum( c.x[1], c.x[2] );
+    }
   }
   template < typename T, Algorithm A >
   INLINE void NormalizeStrict( tX_real::tx_real<T,A> & c ) {
-    twoSum( c.x[0], c.x[1] );
-    twoSum( c.x[1], c.x[2] );
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    auto t = c.x[0] + c.x[1] + c.x[2];
+    if ( std::isnan( t ) || std::isinf( t ) ) {
+      c.x[0] = c.x[1] = c.x[2] = t;
+    } else
+#endif
+    {
+      twoSum( c.x[0], c.x[1] );
+      twoSum( c.x[1], c.x[2] );
+    }
   }
   //
   template < typename T, Algorithm A >
   INLINE void Normalize( qX_real::qx_real<T,A> & c ) {
-    quickSum( c.x[0], c.x[1] );
-    quickSum( c.x[1], c.x[2] );
-    quickSum( c.x[2], c.x[3] );
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    auto t = c.x[0] + c.x[1] + c.x[2] + c.x[3];
+    if ( std::isnan( t ) || std::isinf( t ) ) {
+      c.x[0] = c.x[1] = c.x[2] = c.x[3] = t;
+    } else
+#endif
+    {
+      quickSum( c.x[0], c.x[1] );
+      quickSum( c.x[1], c.x[2] );
+      quickSum( c.x[2], c.x[3] );
+    }
   }
   template < typename T, Algorithm A >
   INLINE void NormalizeStrict( qX_real::qx_real<T,A> & c ) {
-    twoSum( c.x[0], c.x[1] );
-    twoSum( c.x[1], c.x[2] );
-    twoSum( c.x[2], c.x[3] );
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    auto t = c.x[0] + c.x[1] + c.x[2] + c.x[3];
+    if ( std::isnan( t ) || std::isinf( t ) ) {
+      c.x[0] = c.x[1] = c.x[2] = c.x[3] = t;
+    } else
+#endif
+    {
+      twoSum( c.x[0], c.x[1] );
+      twoSum( c.x[1], c.x[2] );
+      twoSum( c.x[2], c.x[3] );
+    }
   }
 
 

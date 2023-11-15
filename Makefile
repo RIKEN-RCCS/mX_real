@@ -1,4 +1,5 @@
-CXX = g++-10 --std=c++14
+CXX = g++-11 --std=c++14
+#CXX = g++-10 --std=c++14
 #CXX = g++ --std=c++14
 #CXX = g++ --std=c++17
 CCFLAGS := $(CCFLAGS) -O3

@@ -286,7 +286,7 @@ namespace tX_real {
     INLINE TX_REAL<> const element_rotate () const {
       T y[L]; y[0] = x[0]; y[1] = x[1]; y[2] = x[2];
       for(int i=0; i<L-1; i++) {
-        if ( ! is_zero( y[0] ) ) { return TX_REAL<>( y ); }
+        if ( ! fp<T>::is_zero( y[0] ) ) { return TX_REAL<>( y ); }
         T t = y[0]; y[0] = y[1]; y[1] = y[2]; y[2] = t;
       }
       return TX_REAL<>( y );

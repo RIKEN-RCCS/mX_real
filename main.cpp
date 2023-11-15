@@ -357,6 +357,8 @@ main(int argc, char *argv[])
    float y = -x;
    std::cout << "inf=" << x << "\n" << "-inf=" << y << "\n";
    std::cout << (x == y) << " " << (-x == y) << " " << ( x == -y) << "\n";
+   std::cout << x + x << " " << x - x << " " << x + y << "\n";
+   std::cout << y + y << " " << y - y << " " << y + x << "\n";
 }
 {
    float x = +0;

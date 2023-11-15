@@ -113,12 +113,12 @@ main(int argc, char *argv[])
     if ( N <= 0 ) break;
 
 //    benchmark<FLOAT>( N );
-//    benchmark<df_Real_quasi>( N );
+    benchmark<df_Real_quasi>( N );
 //    benchmark<df_Real>      ( N );
 //    benchmark<tf_Real_quasi>( N );
 //    benchmark<tf_Real>( N );
 //    benchmark<qf_Real_quasi>( N );
-    benchmark<qf_Real>      ( N );
+//    benchmark<qf_Real>      ( N );
 
   }
 }
