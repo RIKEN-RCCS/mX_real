@@ -995,7 +995,8 @@ namespace dX_real {
   template < typename T, Algorithm A >
   INLINE auto const rand () -> if_T_double<T,dx_real<T,A>> {
     using TX = dx_real<T,A>;
-    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
+//    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
+    auto constexpr f = fp<T>::one * std::pow( fp<T>::two, -31.0 );
     auto g = f;
     auto r = TX::zero();
     auto bits = TX::L * 53;
@@ -1011,7 +1012,8 @@ namespace dX_real {
   template < typename T, Algorithm A >
   INLINE auto const rand () -> if_T_float<T,dx_real<T,A>> {
     using TX = dx_real<T,A>;
-    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
+//    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
+    auto constexpr f = fp<T>::one * std::pow( fp<T>::two, -31.0f );
     auto g = f;
     auto r = TX::zero();
     auto bits = TX::L * 24;

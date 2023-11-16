@@ -20,6 +20,25 @@ struct FLOAT {
   auto const operator*( FLOAT const& a ) { return x * a.x; }
 };
 
+struct DOUBLE {
+  double x;
+  INLINE DOUBLE() {}
+  INLINE DOUBLE(double const& h) : x(h) {}
+  static
+  INLINE DOUBLE rand() {
+    auto constexpr f = 1.0f / (1<<16) / (1<<15);
+    auto const b_ = std::rand();
+    auto const b = double( b_ );
+    auto const c = b * f;
+    auto const d_ = std::rand();
+    auto const d = double( d_ );
+    auto const e = d * f * f;
+    return c + e;
+  }
+  auto const operator+( DOUBLE const& a ) { return x + a.x; }
+  auto const operator*( DOUBLE const& a ) { return x * a.x; }
+};
+
 template < typename REAL >
 void benchmark( int const& N ) {
 
@@ -113,9 +132,10 @@ main(int argc, char *argv[])
     if ( N <= 0 ) break;
 
 //    benchmark<FLOAT>( N );
-    benchmark<df_Real_quasi>( N );
+//    benchmark<df_Real_quasi>( N );
 //    benchmark<df_Real>      ( N );
 //    benchmark<tf_Real_quasi>( N );
+    benchmark<DOUBLE>( N );
 //    benchmark<tf_Real>( N );
 //    benchmark<qf_Real_quasi>( N );
 //    benchmark<qf_Real>      ( N );
