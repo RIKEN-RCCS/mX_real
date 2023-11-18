@@ -327,15 +327,15 @@ namespace dX_real {
 
     static INLINE DX_REAL<> constexpr rand ();
     //
-    static INLINE DX_REAL<> constexpr reversed_sign    ( DX_REAL<> const& a );
-    static INLINE bool      constexpr signbit          ( DX_REAL<> const& a );
-    static INLINE bool      constexpr isinf            ( DX_REAL<> const& a );
-    static INLINE bool      constexpr isnan            ( DX_REAL<> const& a );
-    static INLINE bool      constexpr is_zero          ( DX_REAL<> const& a );
-    static INLINE bool      constexpr is_positive      ( DX_REAL<> const& a );
-    static INLINE bool      constexpr is_negative      ( DX_REAL<> const& a );
-    static INLINE DX_REAL<> constexpr sqrt             ( DX_REAL<> const& a );
-    static INLINE DX_REAL<> constexpr abs              ( DX_REAL<> const& a );
+    static INLINE DX_REAL<> constexpr reversed_sign ( DX_REAL<> const& a );
+    static INLINE bool      constexpr signbit       ( DX_REAL<> const& a );
+    static INLINE bool      constexpr isinf         ( DX_REAL<> const& a );
+    static INLINE bool      constexpr isnan         ( DX_REAL<> const& a );
+    static INLINE bool      constexpr is_zero       ( DX_REAL<> const& a );
+    static INLINE bool      constexpr is_positive   ( DX_REAL<> const& a );
+    static INLINE bool      constexpr is_negative   ( DX_REAL<> const& a );
+    static INLINE DX_REAL<> constexpr sqrt          ( DX_REAL<> const& a );
+    static INLINE DX_REAL<> constexpr abs           ( DX_REAL<> const& a );
 
 
     // operations to THIS object
@@ -343,24 +343,24 @@ namespace dX_real {
     INLINE void constexpr zerofy ()       { x[0] = x[1] = fp<T>::zero; }
     INLINE void constexpr Normalize ()    { mX_real::Normalize( *this ); }
     //
-    INLINE DX_REAL<A> const reversed_sign () const { return reversed_sign( *this ); }
-    INLINE bool       const signbit ()       const { return signbit( *this ); }
-    INLINE bool       const isinf ()         const { return isinf( *this ); }
-    INLINE bool       const isnan ()         const { return isnan( *this ); }
-    INLINE bool       const is_zero ()       const { return is_zero( *this ); }
-    INLINE bool       const is_positive ()   const { return is_positive( *this ); }
-    INLINE bool       const is_negative ()   const { return is_negative( *this ); }
-    INLINE DX_REAL<A> const sqrt ()          const { return sqrt( *this ); }
-    INLINE DX_REAL<A> const abs ()           const { return abs( *this ); }
-    INLINE T          const quick_Normalized () const { return quick_Normalized( *this ); }
+    INLINE DX_REAL<> const reversed_sign () const { return reversed_sign( *this ); }
+    INLINE bool      const signbit ()       const { return signbit( *this ); }
+    INLINE bool      const isinf ()         const { return isinf( *this ); }
+    INLINE bool      const isnan ()         const { return isnan( *this ); }
+    INLINE bool      const is_zero ()       const { return is_zero( *this ); }
+    INLINE bool      const is_positive ()   const { return is_positive( *this ); }
+    INLINE bool      const is_negative ()   const { return is_negative( *this ); }
+    INLINE DX_REAL<> const sqrt ()          const { return sqrt( *this ); }
+    INLINE DX_REAL<> const abs ()           const { return abs( *this ); }
+    INLINE T         const quick_Normalized () const { return quick_Normalized( *this ); }
     //
-    INLINE DX_REAL<A> const element_rotate () const {
+    INLINE DX_REAL<> const element_rotate () const {
       T y[L]; y[0] = x[0]; y[1] = x[1];
       for(int i=0; i<L-1; i++) {
-        if ( ! fp<T>::is_zero( y[0] ) ) { return DX_REAL<A>( y ); }
+        if ( ! fp<T>::is_zero( y[0] ) ) { return DX_REAL<>( y ); }
         T t = y[0]; y[0] = y[1]; y[1] = t;
       }
-      return DX_REAL<A>( y );
+      return DX_REAL<>( y );
     }
 
   };
@@ -693,7 +693,7 @@ namespace dX_real {
   INLINE auto const operator_div_exception ( T const& b ) {
     using TX = dx_real<T,A>;
     if ( fp<T>::isinf( b ) ) {
-      auto c = fp<T>::copysign( fp<T>::zero, b ); throw TX{ c };
+      auto c = fp<T>::copysign( fp<T>::zero, b ); throw TX{ c,c };
     }
     if ( fp<T>::is_zero( b ) ) {
       auto c = fp<T>::copysign( fp<T>::inf, b ); throw TX{ c,c };
@@ -784,13 +784,13 @@ namespace dX_real {
   template < typename T, Algorithm Aa >
   INLINE auto const operator_abs ( dx_real<T,Aa> const& a ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    operator_abs_exception( a );
+    dX_real::operator_abs_exception( a );
 #endif
-    return operator_abs_body( a );
+    return dX_real::operator_abs_body( a );
   }
   template < typename T, Algorithm Aa >
   INLINE auto const abs ( dx_real<T,Aa> const& a ) {
-    return operator_abs( a );
+    return dX_real::operator_abs( a );
   }
   template < typename T, Algorithm Aa >
   INLINE dx_real<T,Aa> constexpr dx_real<T,Aa>::abs ( dx_real<T,Aa> const& a ) {
@@ -835,9 +835,9 @@ namespace dX_real {
     if ( fp<T>::is_zero( s ) ) { throw TX{ s }; }
     if ( fp<T>::is_negative( s ) ) { throw TX::nan(); }
   }
-  template < typename T, Algorithm Aa, IF_T_fp<T> >
+  template < Algorithm A, typename T, IF_T_fp<T> >
   INLINE auto const operator_sqrt_exception ( T const& a ) {
-    using TX = dx_real<T,Aa>;
+    using TX = dx_real<T,A>;
     if ( fp<T>::isinf( a ) ) { throw TX::inf(); }
     auto s = a;
     if ( fp<T>::is_zero( s ) ) { throw TX{ s }; }
@@ -860,11 +860,11 @@ namespace dX_real {
       return dX_real::operator_sqrt_body( a.element_rotate() );
     }
   }
-  template < typename T, Algorithm Aa, IF_T_fp<T> >
+  template < typename T, Algorithm A, IF_T_fp<T> >
   INLINE auto const operator_sqrt ( T const& a ) {
-    using TX = dx_real<T,Aa>;
+    using TX = dx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    try { dX_real::operator_sqrt_exception<T,Aa>( a ); }
+    try { dX_real::operator_sqrt_exception<A>( a ); }
     catch ( TX const& e ) { return e; }
 #else
     if ( fp<T>::is_zero( a ) ) { return TX{ a }; }
@@ -912,8 +912,8 @@ namespace dX_real {
       if ( is_positive( a ) && is_positive( b ) ) { throw a; }
       throw -TX::inf();
     }
-    if ( isinf( a ) && is_negative( a ) ) { throw a; }
-    if ( isinf( b ) && is_negative( b ) ) { throw b; }
+    if ( isinf( a ) ) { throw is_negative( a ) ? a : b; }
+    if ( isinf( b ) ) { throw is_negative( b ) ? b : a; }
   }
 #endif
   //
@@ -921,12 +921,12 @@ namespace dX_real {
   INLINE auto const operator_fmin ( dx_real<T,Aa> const& a, dx_real<T,Ab> const &b ) {
     using TX = dx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    try { dX_real::operator_fmin_exception>( a, b ); }
+    try { dX_real::operator_fmin_exception( a, b ); }
     catch ( TX const& e ) { return e; }
 #endif
     if ( A == Algorithm::Quasi ) {
       using TT = dx_real<T,Algorithm::Accurate>;
-      return TX{ dX_real::operator_fmin_body( TT{a}, TT{b} ) };
+      return TX{ dX_real::operator_fmin_body( TT{ a }, TT{ b } ) };
     } else {
       return dX_real::operator_fmin_body( a, b );
     }
@@ -963,8 +963,8 @@ namespace dX_real {
       if ( is_negative( a ) && is_negative( b ) ) { throw a; }
       throw TX::inf();
     }
-    if ( isinf( a ) && is_positive( a ) ) { throw a; }
-    if ( isinf( b ) && is_positive( b ) ) { throw b; }
+    if ( isinf( a ) ) { throw is_positive( a ) ? a : b; }
+    if ( isinf( b ) ) { throw is_positive( b ) ? b : a; }
   }
 #endif
   //
@@ -972,12 +972,12 @@ namespace dX_real {
   INLINE auto const operator_fmax ( dx_real<T,Aa> const& a, dx_real<T,Ab> const &b ) {
     using TX = dx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    try { dX_real::operator_fmax_exception>( a, b ); }
+    try { dX_real::operator_fmax_exception( a, b ); }
     catch ( TX const& e ) { return e; }
 #endif
     if ( A == Algorithm::Quasi ) {
       using TT = dx_real<T,Algorithm::Accurate>;
-      return TX{ dX_real::operator_fmax_body( TT{a}, TT{b} ) };
+      return TX{ dX_real::operator_fmax_body( TT{ a }, TT{ b } ) };
     } else {
       return dX_real::operator_fmax_body( a, b );
     }

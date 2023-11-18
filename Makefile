@@ -13,24 +13,24 @@ CCFLAGS := $(CCFLAGS) -fopenmp
 #CCFLAGS := $(CCFLAGS) -fsel-sched-pipelining --param max-inline-insns-single=1024 --param max-inline-insns-size=1024
 
 # QD
-CCFLAGS := $(CCFLAGS) -I../tm_blas/others/qd-2.3.23/include/
-LDFLAGS := $(LDFLAGS) ../tm_blas/others/qd-2.3.23/src/.libs/libqd.a
+QD_CCFLAGS = -I../tm_blas/others/qd-2.3.23/include/
+QD_LDFLAGS = ../tm_blas/others/qd-2.3.23/src/.libs/libqd.a
 
 # MPFR/MPREAL
-CCFLAGS := $(CCFLAGS) -I./mpreal/
-LDFLAGS := $(LDFLAGS) -lmpfr -lgmp
+MPFR_CCFLAGS = -I./mpreal/
+MPFR_LDFLAGS = -lmpfr -lgmp
 
 all: a.out sample.exe
 
 a.out: main.o
-	$(CXX) -g -o a.out main.o $(LDFLAGS)
+	$(CXX) -g -o a.out main.o $(LDFLAGS) $(QD_LDFLAGS) $(MPFR_LDFLAGS)
 main.o: main.cpp mpreal
-	$(CXX) -S main.cpp $(CCFLAGS)
-	$(CXX) -c main.cpp $(CCFLAGS)
+	$(CXX) -S main.cpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
+	$(CXX) -c main.cpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
 
 sample.exe: sample.cpp mpreal
-	$(CXX) -S            sample.cpp $(CCFLAGS)  # $(LDFLAGS)
-	$(CXX) -o sample.exe sample.cpp $(CCFLAGS)  # $(LDFLAGS)
+	$(CXX) -S            sample.cpp $(CCFLAGS)
+	$(CXX) -o sample.exe sample.cpp $(CCFLAGS)
 
 mpreal:
 	mkdir mpreal

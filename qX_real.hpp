@@ -600,81 +600,14 @@ namespace qX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto operator_mul ( qx_real<T,Aa> const& a, qx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-
-      T p0, p1, p2, p3, p4;
-      T q1[3];
-      T q2[6];
-      T q3[7];
-      T q4[4];
-
-    /* O(1) order term */
-      twoProdFMA( a.x[0], b.x[0], p0, q1[0] ); // O(1,e)
-
-    /* O(eps) order terms */
-      twoProdFMA( a.x[0], b.x[1], q1[1], q2[0] ); // O(e,e^2)
-      twoProdFMA( a.x[1], b.x[0], q1[2], q2[1] ); // O(e,e^2)
-
-    /* accumulate O(e) */
-      threeSum( q1[0], q1[1], q1[2] ); // O(e,e^2,e^3)
-      p1 = q1[0]; q2[2] = q1[1]; q3[0] = q1[2];
-
-    /* O(eps^2) order terms */
-      twoProdFMA( a.x[0], b.x[2], q2[3], q3[1] ); // O(e^2,e^3)
-      twoProdFMA( a.x[1], b.x[1], q2[4], q3[2] ); // O(e^2,e^3)
-      twoProdFMA( a.x[2], b.x[0], q2[5], q3[3] ); // O(e^2,e^3)
-
-    /* accumulate O(e^2) */
-      threeSum( q2[0], q2[1], q2[2] ); // O(e^2,e^3,e^4)
-      threeSum( q2[3], q2[4], q2[5] ); // O(e^2,e^3,e^4)
-      twoSum( q2[0], q2[3], p2, q3[4] ); // O(e^2,e^3)
-      q3[5] = q2[1]; q3[6] = q2[4];
-      p4 = q2[2] + q2[5];
-
-    /* O(e^3,e^4) */
-      vecSum<-7>( q3 );
-      p3 = q3[0];
-      p4 = p4 + q3[1] + q3[2] + q3[3] + q3[4] + q3[5] + q3[6];
-
-    /* O(eps^3) order terms */
-      twoProdFMA( a.x[0], b.x[3], q3[0], q4[0] );
-      twoProdFMA( a.x[1], b.x[2], q3[1], q4[1] );
-      twoProdFMA( a.x[2], b.x[1], q3[2], q4[2] );
-      twoProdFMA( a.x[3], b.x[0], q3[3], q4[3] );
-      p4 = p4 + q4[0] + q4[1] + q4[2] + q4[3];
-
-//      vecSum<-4>( q3 );
-      twoSum( q3[2], q3[3] );
-      twoSum( q3[1], q3[2] );
-      twoSum( q3[0], q3[1] );
-
-      p3 = p3 + q3[0];
-      p4 = p4 + q3[1] + q3[2] + q3[3];
-
-    /* O(eps^4) terms */
-      p4 = fp<T>::fma( a.x[1], b.x[3],
-           fp<T>::fma( a.x[2], b.x[2],
-           fp<T>::fma( a.x[3], b.x[1], p4 ) ) );
-
-      T f[5] = { p0, p1, p2, p3, p4 };
-#if 0
-      quickSum( f[3], f[4] );
-      quickSum( f[2], f[3] );
-      quickSum( f[1], f[2] );
-      quickSum( f[0], f[1] );
-//      VSEB_Sloppy<4,5>( f );
-      return TX( f );
-#endif
-      auto c = TX( f );
-      Normalize( c );
-      return c;
-
+      QxW::mul_QW_QW_QW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::mul_QQW_QQW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   //
   template < typename T, Algorithm Aa, Algorithm Ab >
@@ -971,7 +904,7 @@ namespace qX_real {
 
       return r;
     } else {
-      auto r = tX_real::operator_sqrt_( tX_real::tx_real<T,Aa>( a ) );
+      auto r = tX_real::operator_sqrt_body( tX_real::tx_real<T,Aa>( a ) );
       auto t = a - qX_real::operator_mul( r, r );
       auto c = TX( r );
       c.x[3] = (t.x[0] + t.x[1] + t.x[2] + t.x[3]) / (2*(c.x[0] + c.x[1] + c.x[2]));

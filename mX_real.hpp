@@ -10,7 +10,7 @@
 #include <math.h>
 
 #define	INLINE	__always_inline
-
+#define	MX_REAL_USE_INF_NAN_EXCEPTION	0
 
 namespace mX_real {
 
@@ -420,8 +420,8 @@ namespace mX_real {
     } else
 #endif
     {
-      quickSum( c.x[0], c.x[1] );
       quickSum( c.x[1], c.x[2] );
+      quickSum( c.x[0], c.x[1] );
     }
   }
   template < typename T, Algorithm A >
@@ -433,8 +433,9 @@ namespace mX_real {
     } else
 #endif
     {
-      twoSum( c.x[0], c.x[1] );
       twoSum( c.x[1], c.x[2] );
+      twoSum( c.x[0], c.x[1] );
+      quickSum( c.x[1], c.x[2] );
     }
   }
   //
@@ -447,9 +448,9 @@ namespace mX_real {
     } else
 #endif
     {
-      quickSum( c.x[0], c.x[1] );
-      quickSum( c.x[1], c.x[2] );
       quickSum( c.x[2], c.x[3] );
+      quickSum( c.x[1], c.x[2] );
+      quickSum( c.x[0], c.x[1] );
     }
   }
   template < typename T, Algorithm A >
@@ -461,9 +462,12 @@ namespace mX_real {
     } else
 #endif
     {
-      twoSum( c.x[0], c.x[1] );
-      twoSum( c.x[1], c.x[2] );
       twoSum( c.x[2], c.x[3] );
+      twoSum( c.x[1], c.x[2] );
+      twoSum( c.x[0], c.x[1] );
+      quickSum( c.x[2], c.x[3] );
+      quickSum( c.x[1], c.x[2] );
+      quickSum( c.x[2], c.x[3] );
     }
   }
 
