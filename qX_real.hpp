@@ -224,15 +224,15 @@ namespace qX_real {
     static INLINE QX_REAL<> constexpr rand ();
     //
     static INLINE QX_REAL<> constexpr reversed_sign ( QX_REAL<> const& a );
-    static INLINE bool constexpr signbit      ( QX_REAL<> const& a );
-    static INLINE bool constexpr isinf        ( QX_REAL<> const& a );
-    static INLINE bool constexpr isnan        ( QX_REAL<> const& a );
-    static INLINE bool constexpr is_zero      ( QX_REAL<> const& a );
-    static INLINE bool constexpr is_positive  ( QX_REAL<> const& a );
-    static INLINE bool constexpr is_negative  ( QX_REAL<> const& a );
-    static INLINE QX_REAL<> constexpr sqrt ( QX_REAL<> const& a );
-    static INLINE QX_REAL<> constexpr abs  ( QX_REAL<> const& a );
-    static INLINE T constexpr quick_Normalized( QX_REAL<> const& a ) {
+    static INLINE bool      constexpr signbit       ( QX_REAL<> const& a );
+    static INLINE bool      constexpr isinf         ( QX_REAL<> const& a );
+    static INLINE bool      constexpr isnan         ( QX_REAL<> const& a );
+    static INLINE bool      constexpr is_zero       ( QX_REAL<> const& a );
+    static INLINE bool      constexpr is_positive   ( QX_REAL<> const& a );
+    static INLINE bool      constexpr is_negative   ( QX_REAL<> const& a );
+    static INLINE QX_REAL<> constexpr sqrt          ( QX_REAL<> const& a );
+    static INLINE QX_REAL<> constexpr abs           ( QX_REAL<> const& a );
+    static INLINE T         constexpr quick_Normalized( QX_REAL<> const& a ) {
       auto s = a.x[0];
       if ( A == Algorithm::Quasi ) { s += a.x[1] + a.x[2] + a.x[3]; }
       return s;
@@ -244,14 +244,14 @@ namespace qX_real {
     INLINE void constexpr zerofy () { x[0] = x[1] = x[2] = x[3] = fp<T>::zero; }
     //
     INLINE QX_REAL<> reversed_sign () const { return reversed_sign( *this ); }
-    INLINE bool      signbit () const { return signbit( *this ); }
-    INLINE bool      isinf () const { return isinf( *this ); }
-    INLINE bool      isnan () const { return isnan( *this ); }
-    INLINE bool      is_zero () const { return is_zero( *this ); }
-    INLINE bool      is_positive () const { return is_positive( *this ); }
-    INLINE bool      is_negative () const { return is_negative( *this ); }
-    INLINE QX_REAL<> sqrt () const { return sqrt( *this ); }
-    INLINE QX_REAL<> abs () const { return abs( *this ); }
+    INLINE bool      signbit ()       const { return signbit( *this ); }
+    INLINE bool      isinf ()         const { return isinf( *this ); }
+    INLINE bool      isnan ()         const { return isnan( *this ); }
+    INLINE bool      is_zero ()       const { return is_zero( *this ); }
+    INLINE bool      is_positive ()   const { return is_positive( *this ); }
+    INLINE bool      is_negative ()   const { return is_negative( *this ); }
+    INLINE QX_REAL<> sqrt ()          const { return sqrt( *this ); }
+    INLINE QX_REAL<> abs ()           const { return abs( *this ); }
     INLINE T         quick_Normalized () const { return quick_Normalized( *this ); }
     //
     INLINE QX_REAL<> element_rotate () const {

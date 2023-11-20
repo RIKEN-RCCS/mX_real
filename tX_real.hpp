@@ -60,7 +60,7 @@ namespace tX_real {
     INLINE tx_real( int const& h ) {
       { x[0] = T(h); x[1] = x[2] = fp<T>::zero; }
     }
-    INLINE tx_real( T const* __restrict__ d ) {
+    INLINE tx_real( T const* d ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = d[0] + d[1] + d[2];
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -525,7 +525,7 @@ namespace tX_real {
   // Addition
   //
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  INLINE auto const operator_add ( tx_real<T,Aa> const& __restrict__ a, tx_real<T,Ab> const& __restrict__ b ) {
+  INLINE auto const operator_add ( tx_real<T,Aa> const& a, tx_real<T,Ab> const& b ) {
     using TX = tx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
@@ -713,7 +713,7 @@ namespace tX_real {
       twoProdFMA( a, b.x[0], p00, q00 );
       twoProdFMA( a, b.x[1], p01, q01 );
 
-      T f[2];
+      T f[3];
       f[0] = p00;
       twoSum( q00, p01, f[1], p01 );
       f[2] = fp<T>::fma( a, b.x[2], p01 + q01 );

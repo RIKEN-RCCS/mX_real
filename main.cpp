@@ -28,7 +28,8 @@ template < typename T > void printTYPE( void ) {
 template < typename T >
 T nrm2( int const& L, T const* x ) {
  T z = 0;
- #pragma omp simd
+ #pragma gcc ivdep
+ #pragma ivdep
  for(int i=0; i<L; i++) {
    z = z + x[i] * x[i];
  }
@@ -38,7 +39,8 @@ T nrm2( int const& L, T const* x ) {
 template < typename T >
 T asum( int const& L, T const* x ) {
  T z = 0;
- #pragma omp simd
+ #pragma gcc ivdep
+ #pragma ivdep
  for(int i=0; i<L; i++) {
    z = z + abs( x[i] );
  }
@@ -48,7 +50,8 @@ T asum( int const& L, T const* x ) {
 template < typename T >
 T dot( int const& L, T const* x, T const *y ) {
  T z = 0;
- #pragma omp simd
+ #pragma gcc ivdep
+ #pragma ivdep
  for(int i=0; i<L; i++) {
    z = z + x[i] * y[i];
  }
@@ -57,7 +60,8 @@ T dot( int const& L, T const* x, T const *y ) {
 
 template < typename T >
 void axpy( int const& L, T const& alpha, T const* x, T *y ) {
- #pragma omp simd
+ #pragma gcc ivdep
+ #pragma ivdep
  for(int i=0; i<L; i++) {
    y[i] = alpha * x[i] + y[i];
  }
@@ -67,7 +71,8 @@ template < typename T >
 void gemv( int const& L, int const& N, T const& alpha, T const *a, T const* x, T *y ) {
  for(int j=0; j<N; j++) {
    auto s = alpha * x[j];
-   #pragma omp simd
+   #pragma gcc ivdep
+   #pragma ivdep
    for(int i=0; i<L; i++) {
      y[i] = y[i] + a[i+j*L] * s;
    }
@@ -83,6 +88,7 @@ init( int const L, mp_real const& alpha, mp_real * x, mp_real * y, mp_real * z )
   mpfr::random( seed );
 
   #pragma gcc ivdep
+  #pragma ivdep
   for(int i=0; i<L; i++) {
     x[i] = 2*mpfr::random() - 1;
     y[i] = 2*mpfr::random() - 1;
@@ -92,6 +98,7 @@ init( int const L, mp_real const& alpha, mp_real * x, mp_real * y, mp_real * z )
 
   int M = (int)sqrt((double)L);
   #pragma gcc ivdep
+  #pragma ivdep
   for(int i=0; i<M; i++) {
     z[i+8+L] = y[i];
   }
