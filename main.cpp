@@ -254,7 +254,7 @@ main(int argc, char *argv[])
   mp_real::set_default_prec(64*4);
 
   int constexpr L = 1000*1000;
-  int constexpr M = (int)sqrt((double)L);
+  int const     M = (int)sqrt((double)L);
 
   auto * x = new mp_real[L];
   auto * y = new mp_real[L];

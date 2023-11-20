@@ -1040,7 +1040,7 @@ namespace qX_real {
   // PRNG
   //
   template < typename T, Algorithm A >
-  INLINE auto const rand () -> if_T_float<T,qx_real<T,A>> {
+  INLINE auto rand () -> if_T_float<T,qx_real<T,A>> {
     using TX = qx_real<T,A>;
     auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
     auto g = f;
@@ -1056,7 +1056,7 @@ namespace qX_real {
     return r;
   }
   template < typename T, Algorithm A >
-  INLINE auto const rand () -> if_T_double<T,qx_real<T,A>> {
+  INLINE auto rand () -> if_T_double<T,qx_real<T,A>> {
     using TX = qx_real<T,A>;
     auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
     auto g = f;

@@ -73,7 +73,9 @@ void benchmark( int const& N ) {
     int constexpr STEP_j = (sizeof(a[0]) >= 4*sizeof(float) ? 32 : 64);
     int constexpr STEP_k = (sizeof(a[0]) >= 4*sizeof(float) ? 32 : 64);
 
-    #pragma omp parallel for collapse(2)
+    #pragma omp parallel
+    {
+    #pragma omp for collapse(2) schedule(dynamic)
     for(int i_=0; i_<N; i_+=STEP_i) {
     for(int j_=0; j_<N; j_+=STEP_j) {
       auto const Ni_ = std::min( i_+STEP_i, N );
@@ -82,6 +84,7 @@ void benchmark( int const& N ) {
       REAL C[STEP_i][STEP_j];
       for(int i=i_; i<Ni_; i++) {
       #pragma gcc ivdep
+      #pragma ivdep
       for(int j=j_; j<Nj_; j++) {
         C[i-i_][j-j_] = beta * c[j+i*N];
       }
@@ -98,6 +101,7 @@ void benchmark( int const& N ) {
       REAL A[STEP_k][STEP_j];
       for(int k=k_; k<Nk_; k++) {
       #pragma gcc ivdep
+      #pragma ivdep
       for(int j=j_; j<Nj_; j++) {
         A[k-k_][j-j_] = a[j+k*N];
       }
@@ -107,8 +111,22 @@ void benchmark( int const& N ) {
         for(int k=k_; k<Nk__; k++) {
         auto const s = alpha * b[k+i*N];
         #pragma gcc ivdep
+        #pragma ivdep
         for(int j=j_; j<Nj_; j++) {
           C[i-i_][j-j_] = C[i-i_][j-j_] + A[k-k_][j-j_] * s;
+        }
+        }
+      }
+      for(int i=Ni__; i<Ni_; i+=D_i) {
+        for(int k=k_; k<Nk__; k++) {
+        auto const s00 = alpha * b[k+(i+0)*N];
+        auto const s01 = alpha * b[k+(i+1)*N];
+        #pragma gcc ivdep
+        #pragma ivdep
+        for(int j=j_; j<Nj_; j++) {
+          auto a0 = A[k-k_][j-j_];
+          C[i-i_+0][j-j_] = C[i-i_+0][j-j_] + a0 * s00;
+          C[i-i_+1][j-j_] = C[i-i_+1][j-j_] + a0 * s01;
         }
         }
       }
@@ -119,23 +137,12 @@ void benchmark( int const& N ) {
         auto const s20 = alpha * b[(k+2)+i*N];
         auto const s30 = alpha * b[(k+3)+i*N];
         #pragma gcc ivdep
+        #pragma ivdep
         for(int j=j_; j<Nj_; j++) {
           C[i-i_][j-j_] = C[i-i_][j-j_] + A[k-k_+0][j-j_] * s00
                                         + A[k-k_+1][j-j_] * s10
                                         + A[k-k_+2][j-j_] * s20
                                         + A[k-k_+3][j-j_] * s30;
-        }
-        }
-      }
-      for(int i=Ni__; i<Ni_; i+=D_i) {
-        for(int k=k_; k<Nk__; k++) {
-        auto const s00 = alpha * b[k+(i+0)*N];
-        auto const s01 = alpha * b[k+(i+1)*N];
-        #pragma gcc ivdep
-        for(int j=j_; j<Nj_; j++) {
-          auto a0 = A[k-k_][j-j_];
-          C[i-i_+0][j-j_] = C[i-i_+0][j-j_] + a0 * s00;
-          C[i-i_+1][j-j_] = C[i-i_+1][j-j_] + a0 * s01;
         }
         }
       }
@@ -150,6 +157,8 @@ void benchmark( int const& N ) {
         auto const s21 = alpha * b[(k+2)+(i+1)*N];
         auto const s31 = alpha * b[(k+3)+(i+1)*N];
         #pragma gcc ivdep
+        #pragma ivdep
+        #pragma vector
         for(int j=j_; j<Nj_; j++) {
           auto a0 = A[k-k_+0][j-j_];
           auto c0 = C[i-i_+0][j-j_];
@@ -175,11 +184,13 @@ void benchmark( int const& N ) {
 
       for(int i=i_; i<Ni_; i++) {
       #pragma gcc ivdep
+      #pragma ivdep
       for(int j=j_; j<Nj_; j++) {
         c[j+i*N] = C[i-i_][j-j_];
       }
       }
 
+    }
     }
     }
 
