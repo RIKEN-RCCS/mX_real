@@ -3,7 +3,7 @@
 //
 namespace QxW {
 
-template < typename T > __always_inline void add_TW_TW_TW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
+template < typename T > __always_inline void add_TW_TW_TW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
 {
     T e1, e2;
     TwoSum(a1,b1,c1,e1);
@@ -15,7 +15,7 @@ template < typename T > __always_inline void add_TW_TW_TW(T const& a1, T const& 
     FastTwoSum(c1,c2,c1,c2);
 }
 
-template < typename T > __always_inline void add_QW_QW_QW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
+template < typename T > __always_inline void add_QW_QW_QW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
 {
       T e2,e3,e4,e5,e6;
       TwoSum(a1,b1,c1,e2); // 1   e
@@ -32,7 +32,7 @@ template < typename T > __always_inline void add_QW_QW_QW(T const& a1, T const& 
       FastTwoSum(c1,c2,c1,c2);
 }
 
-template < typename T > __always_inline void mul_TW_TW_TW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3)
+template < typename T > __always_inline void mul_TW_TW_TW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
 {
       T p00, q00;
       T p01, q01;
@@ -54,7 +54,7 @@ template < typename T > __always_inline void mul_TW_TW_TW(T const& a1, T const& 
     FastTwoSum(c1,c2,c1,c2);
 }
 
-template < typename T > __always_inline void mul_QW_QW_QW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T __restrict__ &c1, T __restrict__ &c2, T __restrict__ &c3, T __restrict__ &c4)
+template < typename T > __always_inline void mul_QW_QW_QW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
 {
       T c5;
       T q10,q11,q12;

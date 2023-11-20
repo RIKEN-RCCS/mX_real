@@ -243,18 +243,18 @@ namespace qX_real {
     INLINE void constexpr reverse_sign () { x[0] = -x[0]; x[1] = -x[1]; x[2] = -x[2]; x[3] = -x[3]; }
     INLINE void constexpr zerofy () { x[0] = x[1] = x[2] = x[3] = fp<T>::zero; }
     //
-    INLINE QX_REAL<> const reversed_sign () const { return reversed_sign( *this ); }
-    INLINE bool signbit () const { return signbit( *this ); }
-    INLINE bool isinf () const { return isinf( *this ); }
-    INLINE bool isnan () const { return isnan( *this ); }
-    INLINE bool is_zero () const { return is_zero( *this ); }
-    INLINE bool is_positive () const { return is_positive( *this ); }
-    INLINE bool is_negative () const { return is_negative( *this ); }
-    INLINE QX_REAL<> const sqrt () const { return sqrt( *this ); }
-    INLINE QX_REAL<> const abs () const { return abs( *this ); }
-    INLINE T const quick_Normalized () const { return quick_Normalized( *this ); }
+    INLINE QX_REAL<> reversed_sign () const { return reversed_sign( *this ); }
+    INLINE bool      signbit () const { return signbit( *this ); }
+    INLINE bool      isinf () const { return isinf( *this ); }
+    INLINE bool      isnan () const { return isnan( *this ); }
+    INLINE bool      is_zero () const { return is_zero( *this ); }
+    INLINE bool      is_positive () const { return is_positive( *this ); }
+    INLINE bool      is_negative () const { return is_negative( *this ); }
+    INLINE QX_REAL<> sqrt () const { return sqrt( *this ); }
+    INLINE QX_REAL<> abs () const { return abs( *this ); }
+    INLINE T         quick_Normalized () const { return quick_Normalized( *this ); }
     //
-    INLINE QX_REAL<> const element_rotate () const {
+    INLINE QX_REAL<> element_rotate () const {
       T y[L]; y[0] = x[0]; y[1] = x[1]; y[2] = x[2]; y[3] = x[3];
       for(int i=0; i<L-1; i++) {
         if ( ! fp<T>::is_zero( y[0] ) ) { return QX_REAL<>( y ); }
@@ -1002,7 +1002,7 @@ namespace qX_real {
       using T_ = qx_real<T,Algorithm::Accurate>;
       return TX( qX_real::fmin( T_(a), T_(b) ) );
     } else {
-      int i=0; for(i;i<4-1;i++) {
+      int i; for(i=0;i<4-1;i++) {
         if ( a.x[i] != b.x[i] ) break;
       }
       if ( a.x[i] <= b.x[i] ) {
@@ -1024,7 +1024,7 @@ namespace qX_real {
       using T_ = qx_real<T,Algorithm::Accurate>;
       return TX( fmax( T_(a), T_(b) ) );
     } else {
-      int i=0; for(i;i<4-1;i++) {
+      int i; for(i=0;i<4-1;i++) {
         if ( a.x[i] != b.x[i] ) break;
       }
       if ( a.x[i] >= b.x[i] ) {

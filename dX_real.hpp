@@ -343,18 +343,18 @@ namespace dX_real {
     INLINE void constexpr zerofy ()       { x[0] = x[1] = fp<T>::zero; }
     INLINE void constexpr Normalize ()    { mX_real::Normalize( *this ); }
     //
-    INLINE DX_REAL<> const reversed_sign () const { return reversed_sign( *this ); }
-    INLINE bool      const signbit ()       const { return signbit( *this ); }
-    INLINE bool      const isinf ()         const { return isinf( *this ); }
-    INLINE bool      const isnan ()         const { return isnan( *this ); }
-    INLINE bool      const is_zero ()       const { return is_zero( *this ); }
-    INLINE bool      const is_positive ()   const { return is_positive( *this ); }
-    INLINE bool      const is_negative ()   const { return is_negative( *this ); }
-    INLINE DX_REAL<> const sqrt ()          const { return sqrt( *this ); }
-    INLINE DX_REAL<> const abs ()           const { return abs( *this ); }
-    INLINE T         const quick_Normalized () const { return quick_Normalized( *this ); }
+    INLINE DX_REAL<> reversed_sign () const { return reversed_sign( *this ); }
+    INLINE bool      signbit ()       const { return signbit( *this ); }
+    INLINE bool      isinf ()         const { return isinf( *this ); }
+    INLINE bool      isnan ()         const { return isnan( *this ); }
+    INLINE bool      is_zero ()       const { return is_zero( *this ); }
+    INLINE bool      is_positive ()   const { return is_positive( *this ); }
+    INLINE bool      is_negative ()   const { return is_negative( *this ); }
+    INLINE DX_REAL<> sqrt ()          const { return sqrt( *this ); }
+    INLINE DX_REAL<> abs ()           const { return abs( *this ); }
+    INLINE T         quick_Normalized () const { return quick_Normalized( *this ); }
     //
-    INLINE DX_REAL<> const element_rotate () const {
+    INLINE DX_REAL<> element_rotate () const {
       T y[L]; y[0] = x[0]; y[1] = x[1];
       for(int i=0; i<L-1; i++) {
         if ( ! fp<T>::is_zero( y[0] ) ) { return DX_REAL<>( y ); }
@@ -893,7 +893,7 @@ namespace dX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm, IF_A_noQuasi<A> >
   INLINE auto const operator_fmin_body ( dx_real<T,Aa> const& a, dx_real<T,Ab> const &b ) {
     using TX = dx_real<T,A>;
-    int i=0; for(i;i<TX::L-1;i++) {
+    int i; for(i=0;i<TX::L-1;i++) {
       if ( a.x[i] != b.x[i] ) break;
     }
     if ( a.x[i] <= b.x[i] ) {
@@ -944,7 +944,7 @@ namespace dX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm, IF_A_noQuasi<A> >
   INLINE auto const operator_fmax_body ( dx_real<T,Aa> const& a, dx_real<T,Ab> const &b ) {
     using TX = dx_real<T,A>;
-    int i=0; for(i;i<TX::L-1;i++) {
+    int i; for(i=0;i<TX::L-1;i++) {
       if ( a.x[i] != b.x[i] ) break;
     }
     if ( a.x[i] >= b.x[i] ) {
@@ -993,10 +993,9 @@ namespace dX_real {
   // PRNG
   //
   template < typename T, Algorithm A >
-  INLINE auto const rand () -> if_T_double<T,dx_real<T,A>> {
+  INLINE auto rand () -> if_T_double<T,dx_real<T,A>> {
     using TX = dx_real<T,A>;
-//    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
-    auto constexpr f = fp<T>::one * std::pow( fp<T>::two, -31.0 );
+    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
     auto g = f;
     auto r = TX::zero();
     auto bits = TX::L * 53;
@@ -1010,10 +1009,9 @@ namespace dX_real {
     return r;
   }
   template < typename T, Algorithm A >
-  INLINE auto const rand () -> if_T_float<T,dx_real<T,A>> {
+  INLINE auto rand () -> if_T_float<T,dx_real<T,A>> {
     using TX = dx_real<T,A>;
-//    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
-    auto constexpr f = fp<T>::one * std::pow( fp<T>::two, -31.0f );
+    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
     auto g = f;
     auto r = TX::zero();
     auto bits = TX::L * 24;

@@ -99,7 +99,7 @@ BEGIN{
 	if( $0~/ TwoProductFMA/ ) {
 		gsub( /T const&/, "T const" );
 	}
-	gsub( /T[ ]*&/, "T __restrict__ \\&" );
+#	gsub( /T[ ]*&/, "T __restrict__ \\&" );
 }
 { print }
 END {
