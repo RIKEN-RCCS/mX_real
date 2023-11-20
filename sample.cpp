@@ -81,7 +81,9 @@ void benchmark( int const& N ) {
       auto const Ni_ = std::min( i_+STEP_i, N );
       auto const Nj_ = std::min( j_+STEP_j, N );
 
+      REAL A[STEP_k][STEP_j];
       REAL C[STEP_i][STEP_j];
+
       for(int i=i_; i<Ni_; i++) {
       #pragma gcc ivdep
       #pragma ivdep
@@ -98,7 +100,6 @@ void benchmark( int const& N ) {
       int constexpr D_k = 4;
       auto const Nk__ = k_+(Nk_-k_)%D_k;
 
-      REAL A[STEP_k][STEP_j];
       for(int k=k_; k<Nk_; k++) {
       #pragma gcc ivdep
       #pragma ivdep
@@ -158,7 +159,6 @@ void benchmark( int const& N ) {
         auto const s31 = alpha * b[(k+3)+(i+1)*N];
         #pragma gcc ivdep
         #pragma ivdep
-        #pragma vector
         for(int j=j_; j<Nj_; j++) {
           auto a0 = A[k-k_+0][j-j_];
           auto c0 = C[i-i_+0][j-j_];
