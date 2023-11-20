@@ -4,5 +4,6 @@ a.out
 log*
 Log*
 sample.exe
+sample.exe-*
 mpreal
 sample.s-*

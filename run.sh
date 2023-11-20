@@ -4,18 +4,19 @@ OMP_NUM_THREADS=4
 HOST=`hostname`-${OMP_NUM_THREADS}th
 G=`expr $OMP_NUM_THREADS - 1`
 
-for cxx in g++ icpx; do
-make clean; CXX=$cxx make
+#for cxx in g++ icpx; do
+for cxx in icpx; do
+make clean; CXX=$cxx make sample.exe
+cp sample.exe sample.exe-$cxx
+done
 
+#for cxx in g++ icpx; do
+for cxx in icpx; do
 OPT=$cxx
-
-numactl --physcpubind=0-$G ./sample.exe 0 < IN | tee log-SW-$OPT-$HOST
-numactl --physcpubind=0-$G ./sample.exe 1 < IN | tee log-PA-$OPT-$HOST
-numactl --physcpubind=0-$G ./sample.exe 2 < IN | tee log-DW-$OPT-$HOST
-numactl --physcpubind=0-$G ./sample.exe 3 < IN | tee log-QTW-$OPT-$HOST
-numactl --physcpubind=0-$G ./sample.exe 4 < IN | tee log-TW-$OPT-$HOST
-numactl --physcpubind=0-$G ./sample.exe 5 < IN | tee log-QQW-$OPT-$HOST
-numactl --physcpubind=0-$G ./sample.exe 6 < IN | tee log-QW-$OPT-$HOST
-
+i=0
+for MX in SW PA DW QTW TW QQW QW; do
+numactl --physcpubind=0-$G ./sample.exe-$cxx $i < IN | tee log-$MX-$OPT-$HOST
+i=`expr $i + 1`
+done
 done
 
