@@ -4,14 +4,12 @@ OMP_NUM_THREADS=4
 HOST=`hostname`-${OMP_NUM_THREADS}th
 G=`expr $OMP_NUM_THREADS - 1`
 
-#for cxx in g++ icpx; do
-for cxx in icpx; do
+for cxx in g++ icpx; do
 make clean; CXX=$cxx make sample.exe
 cp sample.exe sample.exe-$cxx
 done
 
-#for cxx in g++ icpx; do
-for cxx in icpx; do
+for cxx in g++ icpx; do
 OPT=$cxx
 i=0
 for MX in SW PA DW QTW TW QQW QW; do

@@ -16,8 +16,8 @@ struct FLOAT {
     auto const c = b * f;
     return c;
   }
-  auto const operator+( FLOAT const& a ) { return x + a.x; }
-  auto const operator*( FLOAT const& a ) { return x * a.x; }
+  INLINE auto const operator+( FLOAT const& a ) { return x + a.x; }
+  INLINE auto const operator*( FLOAT const& a ) { return x * a.x; }
 };
 
 struct DOUBLE {
@@ -35,8 +35,8 @@ struct DOUBLE {
     auto const e = d * f * f;
     return c + e;
   }
-  auto const operator+( DOUBLE const& a ) { return x + a.x; }
-  auto const operator*( DOUBLE const& a ) { return x * a.x; }
+  INLINE auto const operator+( DOUBLE const& a ) { return x + a.x; }
+  INLINE auto const operator*( DOUBLE const& a ) { return x * a.x; }
 };
 
 template < typename REAL >
@@ -140,10 +140,12 @@ void benchmark( int const& N ) {
         #pragma gcc ivdep
         #pragma ivdep
         for(int j=j_; j<Nj_; j++) {
-          C[i-i_][j-j_] = C[i-i_][j-j_] + A[k-k_+0][j-j_] * s00
-                                        + A[k-k_+1][j-j_] * s10
-                                        + A[k-k_+2][j-j_] * s20
-                                        + A[k-k_+3][j-j_] * s30;
+          auto c0 = C[i-i_+0][j-j_];
+          c0 = c0 + A[k-k_+0][j-j_] * s00
+                  + A[k-k_+1][j-j_] * s10
+                  + A[k-k_+2][j-j_] * s20
+                  + A[k-k_+3][j-j_] * s30;
+          C[i-i_+0][j-j_] = c0;
         }
         }
       }

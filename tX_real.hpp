@@ -102,9 +102,8 @@ namespace tX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
-        twoSum( h.x[0], h.x[1], x[0], x[1] );
-        twoSum( x[0], h.x[2], x[0], x[2] );
-        twoSum( x[1], x[2] );
+        twoSum( h.x[1], h.x[2], x[1], x[2] );
+        twoSum( h.x[0], x[1], x[0], x[1] );
         quickSum( x[0], x[1] );
         quickSum( x[1], x[2] );
       }
@@ -120,15 +119,13 @@ namespace tX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
-        twoSum( h.x[2], h.x[3], x[2], x[3] );
-        twoSum( h.x[1], x[2], x[1], x[2] );
-        twoSum( h.x[0], x[1], x[0], x[1] );
-        twoSum( x[2], x[3], x[2], x[3] );
-        twoSum( x[1], x[2], x[1], x[2] );
-        twoSum( x[2], x[3], x[2], x[3] );
-        quickSum( x[0], x[1] );
-        quickSum( x[1], x[2] );
-        quickSum( x[2], x[3] );
+        T f[4];
+        twoSum( h.x[2], h.x[3], f[2], f[3] );
+        twoSum( h.x[1], f[2], f[1], f[2] );
+        twoSum( h.x[0], f[1], f[0], f[1] );
+        quickSum( f[0], f[1], x[0], f[1] );
+        quickSum( f[1], f[2], x[1], f[2] );
+        quickSum( f[2], f[3], x[2], f[3] );
       }
     }
 
@@ -171,9 +168,8 @@ namespace tX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
-        twoSum( h.x[0], h.x[1], x[0], x[1] );
-        twoSum( x[0], h.x[2], x[0], x[2] );
-        twoSum( x[1], x[2] );
+        twoSum( h.x[1], h.x[2], x[1], x[2] );
+        twoSum( h.x[0], x[1], x[0], x[1] );
         quickSum( x[0], x[1] );
         quickSum( x[1], x[2] );
       }
@@ -196,7 +192,7 @@ namespace tX_real {
         twoSum( h.x[0], f[1], f[0], f[1] );
         quickSum( f[0], f[1], x[0], f[1] );
         quickSum( f[1], f[2], x[1], f[2] );
-        quickSum( f[2], f[3], x[2], x[3] );
+        quickSum( f[2], f[3], x[2], f[3] );
       }
       return *this;
     }
@@ -221,9 +217,9 @@ namespace tX_real {
       } else
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
-        T f[3] = { x[0], x[1], x[2] };
-        twoSum( f[0], f[1] );
-        twoSum( f[0], f[2] );
+        T f[3];
+        twoSum( x[0], x[1], f[0], f[1] );
+        twoSum( f[0], x[2], f[0], f[2] );
 	f[1] = f[1] + f[2];
         quickSum( f[0], f[1] );
 	return DX_REAL<_A_>( f );
@@ -242,9 +238,9 @@ namespace tX_real {
       } else
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
-        T f[3] = { x[0], x[1], x[2] };
-        twoSum( f[0], f[1] );
-        twoSum( f[0], f[2] );
+        T f[3];
+        twoSum( x[0], x[1], f[0], f[1] );
+        twoSum( f[0], x[2], f[0], f[2] );
         twoSum( f[1], f[2] );
         quickSum( f[0], f[1] );
         quickSum( f[1], f[2] );
@@ -264,9 +260,9 @@ namespace tX_real {
       } else
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
-        T f[3] = { x[0], x[1], x[2] };
-        twoSum( f[0], f[1] );
-        twoSum( f[0], f[2] );
+        T f[3];
+        twoSum( x[0], x[1], f[0], f[1] );
+        twoSum( f[0], x[2], x[0], f[2] );
         twoSum( f[1], f[2] );
         quickSum( f[0], f[1] );
         quickSum( f[1], f[2] );
@@ -275,6 +271,11 @@ namespace tX_real {
         return QX_REAL<_A_>( x[0], x[1], x[2], fp<T>::zero );
       }
     }
+
+    INLINE TX_REAL<> const &operator[] ( int const count ) {
+      return *(TX_REAL<>*)( ((T*)&(this->x))+(count*L) );
+    }
+
 
     //
     // unneccessary operators are invalidaded
@@ -673,7 +674,7 @@ namespace tX_real {
       QxW::mul_QTW_QTW_QTW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
     }
-      return c;
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_mul ( dX_real::dx_real<T,Aa> const& a, tx_real<T,Ab> const& b ) {
@@ -815,12 +816,10 @@ namespace tX_real {
       //
       return (a * b_inv) * (TX::two() - (b * b_inv));
     } else {
-      auto c = dX_real::dx_real<T,A>( a ) / dX_real::dx_real<T,A>( b );
-      auto t = a - c * b;
-      auto r = TX( c );
-      r.x[2] = (t.x[0] + t.x[1] + t.x[2]) / (b.x[0] + b.x[1]);
-      if ( A != Algorithm::Quasi ) { Normalize( r ); }
-      return r;
+      TX c;
+      QxW::div_QTW_QTW_QTW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
+      if ( A != Algorithm::Quasi ) { Normalize( c ); }
+      return c;
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >

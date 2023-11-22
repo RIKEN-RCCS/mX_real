@@ -10,7 +10,7 @@ ifeq ($(CXX),g++)
 	CXX = g++-11 --std=c++14
 endif
 ifeq ($(CXX),icpx)
-	CXX = icpx --std=c++14 -fp-model strict -vec
+	CXX = icpx --std=c++14 -fp-model strict #-fast #-qopt-report-stdout -ipo
 endif
 
 CCFLAGS := $(CCFLAGS) -O3
