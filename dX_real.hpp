@@ -136,16 +136,16 @@ namespace dX_real {
     // auto one = df_Real( 1 ); // a constructor
     // one = df_Real_sloppy( one ); // LHS is a copy-assignment operator
     //
-    INLINE DX_REAL<> const &operator=( int const& h ) {
+    INLINE DX_REAL<> &operator=( int const& h )& {
       x[0] = T(h); x[1] = fp<T>::zero;
       return *this;
     }
-    INLINE DX_REAL<> const &operator=( T const& h ) {
+    INLINE DX_REAL<> &operator=( T const& h )& {
       x[0] = h; x[1] = fp<T>::zero;
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE DX_REAL<> const &operator=( DX_REAL<_A_> const& h ) {
+    INLINE DX_REAL<> &operator=( DX_REAL<_A_> const& h )& {
       if ( A == _A_ && this == (DX_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
@@ -162,7 +162,7 @@ namespace dX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE DX_REAL<> const &operator=( TX_REAL<_A_> const& h ) {
+    INLINE DX_REAL<> &operator=( TX_REAL<_A_> const& h )& {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -181,7 +181,7 @@ namespace dX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE DX_REAL<> const &operator=( QX_REAL<_A_> const& h ) {
+    INLINE DX_REAL<> &operator=( QX_REAL<_A_> const& h )& {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -206,7 +206,8 @@ namespace dX_real {
     // auto one = df_Real( 1 ); // constructor with an argument
     // auto one_ = (sf_Real_quasi)one; // RHS is datacast while LHS is a copy constructor
     //
-    INLINE operator T() const {
+    explicit
+    INLINE operator T() const noexcept {
       if ( A == Algorithm::Quasi ) {
         return this->quick_Normalized();
       } else {
@@ -214,7 +215,8 @@ namespace dX_real {
       }
     }
     template < Algorithm _A_ >
-    INLINE operator DX_REAL<_A_>() const {
+    explicit
+    INLINE operator DX_REAL<_A_>() const noexcept {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = this->quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -233,7 +235,8 @@ namespace dX_real {
       }
     }
     template < Algorithm _A_ >
-    INLINE operator TX_REAL<_A_>() const {
+    explicit
+    INLINE operator TX_REAL<_A_>() const noexcept {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = this->quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -253,7 +256,8 @@ namespace dX_real {
       }
     }
     template < Algorithm _A_ >
-    INLINE operator QX_REAL<_A_>() const {
+    explicit
+    INLINE operator QX_REAL<_A_>() const noexcept {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = this->quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -271,10 +275,6 @@ namespace dX_real {
         T c = std::isinf(x[0]) ? x[0] : fp<T>::zero;
         return QX_REAL<_A_>{ x[0], x[1], c, c };
       }
-    }
-
-    INLINE DX_REAL<> const &operator[] ( int const count ) {
-      return *(DX_REAL<>*)( ((T*)&(this->x))+(count*L) );
     }
 
 

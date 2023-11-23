@@ -131,16 +131,16 @@ namespace tX_real {
 
     //
     //
-    INLINE TX_REAL<> &operator=( int const& h ) {
+    INLINE TX_REAL<> &operator=( int const& h )& {
       x[0] = T(h); x[1] = x[2] = fp<T>::zero;
       return *this;
     }
-    INLINE TX_REAL<> &operator=( T const& h ) {
+    INLINE TX_REAL<> &operator=( T const& h )& {
       x[0] = h; x[1] = x[2] = fp<T>::zero;
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE TX_REAL<> &operator=( DX_REAL<_A_> const& h ) {
+    INLINE TX_REAL<> &operator=( DX_REAL<_A_> const& h )& {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -157,7 +157,7 @@ namespace tX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE TX_REAL<> &operator=( TX_REAL<_A_> const& h ) {
+    INLINE TX_REAL<> &operator=( TX_REAL<_A_> const& h )& {
       if ( A == _A_ && this == (TX_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
@@ -176,7 +176,7 @@ namespace tX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE TX_REAL<> &operator=( QX_REAL<_A_> const& h ) {
+    INLINE TX_REAL<> &operator=( QX_REAL<_A_> const& h )& {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -199,7 +199,8 @@ namespace tX_real {
 
     //
     //
-    INLINE operator T() const {
+    explicit
+    INLINE operator T() const noexcept {
       if ( A == Algorithm::Quasi ) {
         return this->quick_Normalized();
       } else {
@@ -207,7 +208,8 @@ namespace tX_real {
       }
     }
     template < Algorithm _A_ >
-    INLINE operator DX_REAL<_A_>() const {
+    explicit
+    INLINE operator DX_REAL<_A_>() const noexcept {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = this->quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -228,7 +230,8 @@ namespace tX_real {
       }
     }
     template < Algorithm _A_ >
-    INLINE operator TX_REAL<_A_>() const {
+    explicit
+    INLINE operator TX_REAL<_A_>() const noexcept {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = this->quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -250,7 +253,8 @@ namespace tX_real {
       }
     }
     template < Algorithm _A_ >
-    INLINE operator QX_REAL<_A_>() const {
+    explicit
+    INLINE operator QX_REAL<_A_>() const noexcept {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = this->quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -270,10 +274,6 @@ namespace tX_real {
       } else {
         return QX_REAL<_A_>( x[0], x[1], x[2], fp<T>::zero );
       }
-    }
-
-    INLINE TX_REAL<> const &operator[] ( int const count ) {
-      return *(TX_REAL<>*)( ((T*)&(this->x))+(count*L) );
     }
 
 

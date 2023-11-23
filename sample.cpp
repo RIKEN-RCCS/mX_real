@@ -42,6 +42,8 @@ struct DOUBLE {
 template < typename REAL >
 void benchmark( int const& N ) {
 
+  std::cout << "SIZEOF(T)=" << sizeof(REAL) << "\n";
+
   auto * a = new REAL[N*N];
   auto * b = new REAL[N*N];
   auto * c = new REAL[N*N];

@@ -60,7 +60,7 @@ namespace mX_real {
     using _T  = typename T::base_T; T t;
     for(int i=0; i<T::L; i++) {
       auto s = (_T)((double)X);
-      if ( i<T::L-1 && s != zero<T>() ) {
+      if ( i<T::L-1 && s != zero<_T>() ) {
 
         auto e  = fp<_T>::exponent( s );
         auto ex = fp<_T>::exponenti( s );
