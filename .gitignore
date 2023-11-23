@@ -7,3 +7,4 @@ sample.exe
 sample.exe-*
 mpreal
 sample.s-*
+*.tmp

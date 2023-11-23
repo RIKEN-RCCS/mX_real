@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OMP_NUM_THREADS=4
+OMP_NUM_THREADS=`lscpu | awk '/^Core\(s/{Cores=$4}/^Socket\(s/{Socket=$2}END{print Cores*Socket}'`
 HOST=`hostname`-${OMP_NUM_THREADS}th
 G=`expr $OMP_NUM_THREADS - 1`
 
