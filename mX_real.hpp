@@ -259,6 +259,7 @@ namespace mX_real {
     twoSum( a, b, a, b );
   }
 
+#if 0
   template < typename T >
   INLINE void threeSum ( T & _a_, T & _b_, T & _c_ ) {
     auto       a = _a_; 
@@ -275,6 +276,7 @@ namespace mX_real {
   INLINE void threeSum ( T * a ) {
     threeSum( a[0], a[1], a[2] );
   }
+#endif
 
   template < typename T >
   INLINE void quickSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
@@ -290,6 +292,7 @@ namespace mX_real {
     QxW::TwoProductFMA( a, b, s, e );
   }
 
+#if 1
   template < int n, int m = n, typename T >
   INLINE void vecMerge( T * f, T const * a, T const * b ) {
     int ia, ib, j; T fa, fb;
@@ -378,6 +381,7 @@ namespace mX_real {
     if ( j < L ) { quickSum( e, f[i+1], f[j], f[j+1] ); j=(j+1)+1; }
     if ( j < n ) { for(int i=j; i<n; i++) { f[i] = fp<T>::zero; } }
   }
+#endif
 
   // for cross-reference
   namespace dX_real { template < typename T, Algorithm A > struct dx_real; }
