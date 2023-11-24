@@ -619,10 +619,18 @@ namespace qX_real {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
       T f[6];
-      vecMerge<3,3>( f, a.x, b.x );
-      vecSum_Sloppy<-6>( f );
-      VSEB_Sloppy<4,6>( f );
-      return TX( f );
+      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1  e
+      twoSum( a.x[1], b.x[1], f[2], f[3] ); // e  e2
+      twoSum( a.x[2], b.x[2], f[4], f[5] ); // e2 e3
+
+      twoSum( f[1], f[2] ); // e  e2
+      twoSum( f[2], f[3] ); // e2 e3
+      twoSum( f[2], f[4] ); // e2 e3
+      f[3] = f[3] + f[4] + f[5];
+
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::add_QTW_QTW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -635,10 +643,18 @@ namespace qX_real {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
       T f[5];
-      vecMerge<2,3>( f, a.x, b.x );
-      vecSum_Sloppy<-5>( f );
-      VSEB_Sloppy<4,5>( f );
-      return TX( f );
+      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1  e
+      twoSum( a.x[1], b.x[1], f[2], f[3] ); // e  e2
+      f[4] = b.x[2];
+
+      twoSum( f[1], f[2] ); // e  e2
+      twoSum( f[2], f[3] ); // e2 e3
+      twoSum( f[2], f[4] ); // e2 e3
+      f[3] = f[3] + f[4];
+
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::add_PA_QTW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -651,10 +667,16 @@ namespace qX_real {
     using TX = qx_real<T,Ab>;
     if ( Ab == Algorithm::Accurate ) {
       T f[4];
-      vecMerge<1,3>( f, a.x, b.x );
-      vecSum_Sloppy<-4>( f );
-      VSEB_Sloppy<4,4>( f );
-      return TX( f );
+      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1  e
+      f[2] = b.x[1]; // e
+      f[3] = b.x[2]; // e2
+
+      twoSum( f[1], f[2] ); // e  e2
+      twoSum( f[2], f[3] ); // e2 e3
+
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::add_SW_QTW_QQW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -667,10 +689,15 @@ namespace qX_real {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
       T f[4];
-      vecMerge<2,2>( f, a.x, b.x );
-      vecSum_Sloppy<-4>( f );
-      VSEB_Sloppy<4,4>( f );
-      return TX( f );
+      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1  e
+      twoSum( a.x[1], b.x[1], f[2], f[3] ); // e  e2
+
+      twoSum( f[1], f[2] ); // e  e2
+      twoSum( f[2], f[3] ); // e2 e3
+
+      auto c = TX( f );
+      Normalize( c );
+      return c;
     } else {
       TX c;
       QxW::add_PA_PA_QQW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1014,12 +1041,33 @@ namespace qX_real {
   // Absolute value
   //
   template < typename T, Algorithm Aa >
-  INLINE auto const abs ( qx_real<T,Aa> const& a ) {
+  INLINE auto const operator_abs_body ( qx_real<T,Aa> const& a ) {
     if ( is_negative( a ) ) {
       return -a;
     } else {
       return  a;
     }
+  }
+  //
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+  template < typename T, Algorithm Aa >
+  INLINE auto const operator_abs_exception ( qx_real<T,Aa> const& a ) {
+    using TX = qx_real<T,Aa>;
+    if ( isnan( a ) ) { throw TX::nan(); }
+    if ( isinf( a ) ) { throw TX::inf(); }
+  }
+#endif
+  //
+  template < typename T, Algorithm Aa >
+  INLINE auto const operator_abs ( qx_real<T,Aa> const& a ) {
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    qX_real::operator_abs_exception( a );
+#endif
+    return qX_real::operator_abs_body( a );
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const abs ( qx_real<T,Aa> const& a ) {
+    return qX_real::operator_abs( a );
   }
   //
   template < typename T, Algorithm Aa >
@@ -1032,7 +1080,7 @@ namespace qX_real {
   // Square root
   //
   template < typename T, Algorithm Aa >
-  INLINE auto const operator_sqrt_ ( qx_real<T,Aa> const& a ) {
+  INLINE auto const operator_sqrt_body ( qx_real<T,Aa> const& a ) {
     using TX = qx_real<T,Aa>;
     if ( Aa == Algorithm::Accurate ) {
       // scaling
@@ -1061,19 +1109,17 @@ namespace qX_real {
 
       return r;
     } else {
-      auto r = tX_real::operator_sqrt_body( tX_real::tx_real<T,Aa>( a ) );
-      auto t = a - qX_real::operator_mul( r, r );
-      auto c = TX( r );
-      c.x[3] = (t.x[0] + t.x[1] + t.x[2] + t.x[3]) / (2*(c.x[0] + c.x[1] + c.x[2]));
+      TX c;
+      QxW::sqrt_QQW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
       return c;
     }
   }
   template < typename T, Algorithm Aa >
-  INLINE auto const operator_sqrt_ ( tX_real::tx_real<T,Aa> const& a ) {
+  INLINE auto const operator_sqrt_body ( tX_real::tx_real<T,Aa> const& a ) {
     using TX = qx_real<T,Aa>;
     if ( Aa == Algorithm::Accurate ) {
-      return qX_real::operator_sqrt_( qx_real<T,Aa>( a ) );
+      return qX_real::operator_sqrt_body( qx_real<T,Aa>( a ) );
     } else {
       TX c;
       QxW::sqrt_QTW_QQW( a.x[0], a.x[1], a.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1082,10 +1128,10 @@ namespace qX_real {
     }
   }
   template < typename T, Algorithm Aa >
-  INLINE auto const operator_sqrt_ ( dX_real::dx_real<T,Aa> const& a ) {
+  INLINE auto const operator_sqrt_body ( dX_real::dx_real<T,Aa> const& a ) {
     using TX = qx_real<T,Aa>;
     if ( Aa == Algorithm::Accurate ) {
-      return qX_real::operator_sqrt_( qx_real<T,Aa>( a ) );
+      return qX_real::operator_sqrt_body( qx_real<T,Aa>( a ) );
     } else {
       TX c;
       QxW::sqrt_PA_QQW( a.x[0], a.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1093,54 +1139,126 @@ namespace qX_real {
       return c;
     }
   }
-  template < typename T, Algorithm Aa=Algorithm::Accurate >
-  INLINE auto const operator_sqrt_ ( T const& a ) {
-    using TX = qx_real<T,Aa>;
-    if ( Aa == Algorithm::Accurate ) {
-      return qX_real::operator_sqrt_( qx_real<T,Aa>( a ) );
+  template < typename T, Algorithm A=Algorithm::Accurate >
+  INLINE auto const operator_sqrt_body ( T const& a ) {
+    using TX = qx_real<T,A>;
+    if ( A == Algorithm::Accurate ) {
+      return qX_real::operator_sqrt_body( qx_real<T,A>( a ) );
     } else {
       TX c;
       QxW::sqrt_SW_QQW( a, c.x[0], c.x[1], c.x[2], c.x[3] );
-      if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
+      if ( A != Algorithm::Quasi ) { Normalize( c ); }
       return c;
     }
   }
   //
+#if MX_REAL_USE_INF_NAN_EXCEPTION
   template < typename T, Algorithm Aa >
-  INLINE auto const sqrt ( qx_real<T,Aa> const& a ) {
+  INLINE auto const operator_sqrt_exception ( qx_real<T,Aa> const& a ) {
     using TX = qx_real<T,Aa>;
+    if ( fp<T>::isinf( a.x[0] ) ) { throw TX::inf(); }
     auto s = a.quick_Normalized();
-    if ( fp<T>::is_zero( s ) ) { return TX( s ); }
-    if ( fp<T>::is_negative( s ) ) { return TX::nan(); }
-
-    return qX_real::operator_sqrt_( a );
+    if ( fp<T>::is_zero( s ) ) { throw TX{ s }; }
+    if ( fp<T>::is_negative( s ) ) { throw TX::nan(); }
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const operator_sqrt_exception ( tx_real<T,Aa> const& a ) {
+    using TX = qx_real<T,Aa>;
+    if ( fp<T>::isinf( a.x[0] ) ) { throw TX::inf(); }
+    auto s = a.quick_Normalized();
+    if ( fp<T>::is_zero( s ) ) { throw TX{ s }; }
+    if ( fp<T>::is_negative( s ) ) { throw TX::nan(); }
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const operator_sqrt_exception ( dx_real<T,Aa> const& a ) {
+    using TX = qx_real<T,Aa>;
+    if ( fp<T>::isinf( a.x[0] ) ) { throw TX::inf(); }
+    auto s = a.quick_Normalized();
+    if ( fp<T>::is_zero( s ) ) { throw TX{ s }; }
+    if ( fp<T>::is_negative( s ) ) { throw TX::nan(); }
+  }
+  template < Algorithm A, typename T, IF_T_fp<T> >
+  INLINE auto const operator_sqrt_exception ( T const& a ) {
+    using TX = qx_real<T,A>;
+    if ( fp<T>::isinf( a ) ) { throw TX::inf(); }
+    auto s = a;
+    if ( fp<T>::is_zero( s ) ) { throw TX{ s }; }
+    if ( fp<T>::is_negative( s ) ) { throw TX::nan(); }
+  }
+#endif
+  //
+  template < typename T, Algorithm Aa >
+  INLINE auto const operator_sqrt ( qx_real<T,Aa> const& a ) {
+    using TX = qx_real<T,Aa>;
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    try { qX_real::operator_sqrt_exception( a ); }
+    catch ( TX const& e ) { return e; }
+#else
+    if ( qX_real::is_zero( a ) ) { return a; }
+#endif
+    if ( Aa != Algorithm::Quasi ) {
+      return qX_real::operator_sqrt_body( a );
+    } else {
+      return qX_real::operator_sqrt_body( a.element_rotate() );
+    }
   }
   template < typename T, Algorithm Aa >
   INLINE auto const operator_sqrt ( tX_real::tx_real<T,Aa> const& a ) {
     using TX = qx_real<T,Aa>;
-    auto s = a.quick_Normalized();
-    if ( fp<T>::is_zero( s ) ) { return TX( s ); }
-    if ( fp<T>::is_negative( s ) ) { return TX::nan(); }
-
-    return qX_real::operator_sqrt_( a );
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    try { qX_real::operator_sqrt_exception( a ); }
+    catch ( TX const& e ) { return e; }
+#else
+    if ( tX_real::is_zero( a ) ) { return TX{ a }; }
+#endif
+    if ( Aa != Algorithm::Quasi ) {
+      return qX_real::operator_sqrt_body( a );
+    } else {
+      return qX_real::operator_sqrt_body( a.element_rotate() );
+    }
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const operator_sqrt ( dX_real::dx_real<T,Aa> const& a ) {
+    using TX = qx_real<T,Aa>;
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    try { qX_real::operator_sqrt_exception( a ); }
+    catch ( TX const& e ) { return e; }
+#else
+    if ( dX_real::is_zero( a ) ) { return TX{ a }; }
+#endif
+    if ( Aa != Algorithm::Quasi ) {
+      return qX_real::operator_sqrt_body( a );
+    } else {
+      return qX_real::operator_sqrt_body( a.element_rotate() );
+    }
+  }
+  template < typename T, Algorithm A=Algorithm::Accurate, IF_T_fp<T> >
+  INLINE auto const operator_sqrt ( T const& a ) {
+    using TX = qx_real<T,A>;
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    try { qX_real::operator_sqrt_exception<A>( a ); }
+    catch ( TX const& e ) { return e; }
+#else
+    if ( fp<T>::is_zero( a ) ) { return TX{ a }; }
+#endif
+    return qX_real::operator_sqrt_body<T,A>( a );
+  }
+  //
+  template < typename T, Algorithm Aa >
+  INLINE auto const sqrt ( qx_real<T,Aa> const& a ) {
+    return qX_real::operator_sqrt( a );
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const sqrt ( tX_real::tx_real<T,Aa> const& a ) {
+    return qX_real::operator_sqrt( a );
   }
   template < typename T, Algorithm Aa >
   INLINE auto const sqrt ( dX_real::dx_real<T,Aa> const& a ) {
-    using TX = qx_real<T,Aa>;
-    auto s = a.quick_Normalized();
-    if ( fp<T>::is_zero( s ) ) { return TX( s ); }
-    if ( fp<T>::is_negative( s ) ) { return TX::nan(); }
-
-    return qX_real::operator_sqrt_( a );
+    return qX_real::operator_sqrt( a );
   }
-  template < typename T, Algorithm Aa=Algorithm::Accurate >
+  template < typename T, Algorithm A=Algorithm::Accurate, IF_T_fp<T> >
   INLINE auto const sqrt ( T const& a ) {
-    using TX = qx_real<T,Aa>;
-    auto s = a;
-    if ( fp<T>::is_zero( s ) ) { return TX( s ); }
-    if ( fp<T>::is_negative( s ) ) { return TX::nan(); }
-
-    return qX_real::operator_sqrt_( a );
+    return qX_real::operator_sqrt<T,A>( a );
   }
   //
   template < typename T, Algorithm Aa >

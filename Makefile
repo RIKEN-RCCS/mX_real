@@ -41,6 +41,8 @@ sample.exe: sample.cpp mpreal
 	$(CXX) -S            sample.cpp $(CCFLAGS)
 	$(CXX) -o sample.exe sample.cpp $(CCFLAGS)
 
+qd_real:
+
 mpreal:
 	mkdir mpreal
 	git clone https://github.com/advanpix/mpreal.git

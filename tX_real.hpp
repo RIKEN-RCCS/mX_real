@@ -1278,7 +1278,7 @@ namespace tX_real {
 #else
     if ( fp<T>::is_zero( a ) ) { return TX{ a }; }
 #endif
-    return tX_real::operator_sqrt_body( a );
+    return tX_real::operator_sqrt_body<T,A>( a );
   }
   //
   template < typename T, Algorithm Aa >

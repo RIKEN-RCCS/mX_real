@@ -875,16 +875,16 @@ namespace dX_real {
 #else
     if ( fp<T>::is_zero( a ) ) { return TX{ a }; }
 #endif
-    return dX_real::operator_sqrt_body( a );
+    return dX_real::operator_sqrt_body<T,A>( a );
   }
   //
   template < typename T, Algorithm Aa >
   INLINE auto const sqrt ( dx_real<T,Aa> const& a ) {
     return dX_real::operator_sqrt( a );
   }
-  template < typename T, Algorithm Aa=Algorithm::Accurate, IF_T_fp<T> >
+  template < typename T, Algorithm A=Algorithm::Accurate, IF_T_fp<T> >
   INLINE auto const sqrt ( T const& a ) {
-    return dX_real::operator_sqrt<T,Aa>( a );
+    return dX_real::operator_sqrt<T,A>( a );
   }
   //
   template < typename T, Algorithm Aa >
