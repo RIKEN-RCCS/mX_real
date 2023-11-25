@@ -824,7 +824,7 @@ namespace tX_real {
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  INLINE auto const operator_div_ ( dX_real::dx_real<T,Aa> const& a, tx_real<T,Ab> const& b ) {
+  INLINE auto const operator_div_body ( dX_real::dx_real<T,Aa> const& a, tx_real<T,Ab> const& b ) {
     using TX = tx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
       return operator_div_( TX(a), b );
@@ -836,7 +836,7 @@ namespace tX_real {
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  INLINE auto const operator_div_ ( tx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
+  INLINE auto const operator_div_body ( tx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = tx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
       return operator_div_( a, TX( b ) );
@@ -848,7 +848,7 @@ namespace tX_real {
     }
   }
   template < typename T, Algorithm Ab >
-  INLINE auto const operator_div_ ( T const& a, tx_real<T,Ab> const& b ) {
+  INLINE auto const operator_div_body ( T const& a, tx_real<T,Ab> const& b ) {
     using TX = tx_real<T,Ab>;
     if ( Ab == Algorithm::Accurate ) {
       return operator_div_( TX(a), b );
@@ -860,7 +860,7 @@ namespace tX_real {
     }
   }
   template < typename T, Algorithm Aa >
-  INLINE auto const operator_div_ ( tx_real<T,Aa> const& a, T const& b ) {
+  INLINE auto const operator_div_body ( tx_real<T,Aa> const& a, T const& b ) {
     using TX = tx_real<T,Aa>;
     if ( Aa == Algorithm::Accurate ) {
       return operator_div_( a, TX(b) );
@@ -872,7 +872,7 @@ namespace tX_real {
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  INLINE auto const operator_div_ ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
+  INLINE auto const operator_div_body ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = tx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
       return oprator_div_( TX(a), TX(b) );
@@ -884,7 +884,7 @@ namespace tX_real {
     }
   }
   template < typename T, Algorithm Ab >
-  INLINE auto const operator_div_ ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
+  INLINE auto const operator_div_body ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = tx_real<T,Ab>;
     if ( Ab == Algorithm::Accurate ) {
       return operator_div_( TX(a), TX(b) );
@@ -896,7 +896,7 @@ namespace tX_real {
     }
   }
   template < typename T, Algorithm Aa >
-  INLINE auto const operator_div_ ( dX_real::dx_real<T,Aa> const& a, T const& b ) {
+  INLINE auto const operator_div_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) {
     using TX = tx_real<T,Aa>;
     if ( Aa == Algorithm::Accurate ) {
       return operator_div_( TX(a), TX(b) );
@@ -908,7 +908,7 @@ namespace tX_real {
     }
   }
   template < typename T, Algorithm A, IF_T_fp<T> >
-  INLINE auto const operator_div_ ( T const& a, T const& b ) {
+  INLINE auto const operator_div_body ( T const& a, T const& b ) {
     using TX = tx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
       return operator_div_( TX(a), TX(b) );

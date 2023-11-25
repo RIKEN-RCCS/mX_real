@@ -42,8 +42,6 @@ struct DOUBLE {
 template < typename REAL >
 void benchmark( int const& N ) {
 
-  std::cout << "SIZEOF(T)=" << sizeof(REAL) << "\n";
-
   auto * a = new REAL[N*N];
   auto * b = new REAL[N*N];
   auto * c = new REAL[N*N];
@@ -83,78 +81,86 @@ void benchmark( int const& N ) {
       auto const Ni_ = std::min( i_+STEP_i, N );
       auto const Nj_ = std::min( j_+STEP_j, N );
 
-      REAL t[STEP_k];
-      REAL A[STEP_k][STEP_j];
-      REAL C[STEP_i][STEP_j];
+      int constexpr D_i = 2;
+      int constexpr D_k = 4;
 
+      REAL C[STEP_i][STEP_j];
       for(int i=i_; i<Ni_; i++) {
       #pragma gcc ivdep
       #pragma ivdep
       for(int j=j_; j<Nj_; j++) {
-        C[i-i_][j-j_] = beta * c[j+i*N];
+        C[i-i_][j-j_] = c[j+i*N];
+      }
+      }
+      for(int i=i_; i<Ni_; i++) {
+      #pragma vector
+      for(int j=j_; j<Nj_; j++) {
+        C[i-i_][j-j_] = beta * C[i-i_][j-j_];
       }
       }
 
     for(int k_=0; k_<N; k_+=STEP_k) {
       auto const Nk_ = std::min( k_+STEP_k, N );
 
-      int constexpr D_i = 2;
       auto const Ni__ = i_+(Ni_-i_)%D_i;
-      int constexpr D_k = 4;
       auto const Nk__ = k_+(Nk_-k_)%D_k;
 
+      REAL A[STEP_k][STEP_j];
       for(int k=k_; k<Nk_; k++) {
-t[k-k_] = A[k-k_][0];
       #pragma gcc ivdep
       #pragma ivdep
       for(int j=j_; j<Nj_; j++) {
         A[k-k_][j-j_] = a[j+k*N];
-      }
-      }
+      }}
 
       for(int i=i_; i<Ni__; i++) {
-        for(int k=k_; k<Nk__; k++) {
-        auto const s = alpha * b[k+i*N];
-        #pragma gcc ivdep
-        #pragma ivdep
+      for(int k=k_; k<Nk__; k++) {
+        auto const s00 = alpha * b[k+i*N];
         for(int j=j_; j<Nj_; j++) {
-          C[i-i_][j-j_] = C[i-i_][j-j_] + A[k-k_][j-j_] * s;
+          auto c0 = C[i-i_+0][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
+          c0 = c0 + a0 * s00;
+          C[i-i_+0][j-j_] = c0;
         }
-        }
-      }
+      }}
+
       for(int i=Ni__; i<Ni_; i+=D_i) {
-        for(int k=k_; k<Nk__; k++) {
+      for(int k=k_; k<Nk__; k++) {
         auto const s00 = alpha * b[k+(i+0)*N];
         auto const s01 = alpha * b[k+(i+1)*N];
-        #pragma gcc ivdep
-        #pragma ivdep
         for(int j=j_; j<Nj_; j++) {
-          auto a0 = A[k-k_][j-j_];
-          C[i-i_+0][j-j_] = C[i-i_+0][j-j_] + a0 * s00;
-          C[i-i_+1][j-j_] = C[i-i_+1][j-j_] + a0 * s01;
+          auto c0 = C[i-i_+0][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
+          c0 = c0 + a0 * s00;
+          auto c1 = C[i-i_+1][j-j_];
+          c1 = c1 + a0 * s01;
+          C[i-i_+0][j-j_] = c0;
+          C[i-i_+1][j-j_] = c1;
         }
-        }
-      }
+      }}
+
       for(int i=i_; i<Ni__; i++) {
-        for(int k=Nk__; k<Nk_; k+=D_k) {
+      for(int k=Nk__; k<Nk_; k+=D_k) {
         auto const s00 = alpha * b[(k+0)+i*N];
         auto const s10 = alpha * b[(k+1)+i*N];
         auto const s20 = alpha * b[(k+2)+i*N];
         auto const s30 = alpha * b[(k+3)+i*N];
-        #pragma gcc ivdep
-        #pragma ivdep
         for(int j=j_; j<Nj_; j++) {
           auto c0 = C[i-i_+0][j-j_];
-          c0 = c0 + A[k-k_+0][j-j_] * s00
-                  + A[k-k_+1][j-j_] * s10
-                  + A[k-k_+2][j-j_] * s20
-                  + A[k-k_+3][j-j_] * s30;
+          auto a0 = A[k-k_+0][j-j_];
+          auto a1 = A[k-k_+1][j-j_];
+          auto a2 = A[k-k_+2][j-j_];
+          c0 = c0 + a0 * s00;
+          auto a3 = A[k-k_+3][j-j_];
+          c0 = c0 + a1 * s10;
+          c0 = c0 + a2 * s20;
+          c0 = c0 + a3 * s30;
           C[i-i_+0][j-j_] = c0;
         }
-        }
-      }
+      }}
+
       for(int i=Ni__; i<Ni_; i+=D_i) {
-        for(int k=Nk__; k<Nk_; k+=D_k) {
+      for(int k=Nk__; k<Nk_; k+=D_k) {
         auto const s00 = alpha * b[(k+0)+(i+0)*N];
         auto const s10 = alpha * b[(k+1)+(i+0)*N];
         auto const s20 = alpha * b[(k+2)+(i+0)*N];
@@ -163,19 +169,17 @@ t[k-k_] = A[k-k_][0];
         auto const s11 = alpha * b[(k+1)+(i+1)*N];
         auto const s21 = alpha * b[(k+2)+(i+1)*N];
         auto const s31 = alpha * b[(k+3)+(i+1)*N];
-        #pragma gcc ivdep
-        #pragma ivdep
         for(int j=j_; j<Nj_; j++) {
-          auto a0 = A[k-k_+0][j-j_];
           auto c0 = C[i-i_+0][j-j_];
           auto c1 = C[i-i_+1][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
           auto a1 = A[k-k_+1][j-j_];
           c0 = c0 + a0 * s00;
-          auto a2 = A[k-k_+2][j-j_];
           c1 = c1 + a0 * s01;
+          auto a2 = A[k-k_+2][j-j_];
           c0 = c0 + a1 * s10;
-          auto a3 = A[k-k_+3][j-j_];
           c1 = c1 + a1 * s11;
+          auto a3 = A[k-k_+3][j-j_];
           c0 = c0 + a2 * s20;
           c1 = c1 + a2 * s21;
           c0 = c0 + a3 * s30;
@@ -183,8 +187,7 @@ t[k-k_] = A[k-k_][0];
           C[i-i_+0][j-j_] = c0;
           C[i-i_+1][j-j_] = c1;
         }
-        }
-      }
+      }}
 
     }
 

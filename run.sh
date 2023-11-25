@@ -5,7 +5,8 @@ HOST=`hostname`-${OMP_NUM_THREADS}th
 G=`expr $OMP_NUM_THREADS - 1`
 
 for cxx in g++ icpx; do
-make clean; CXX=$cxx make sample.exe
+\rm sample.exe
+CXX=$cxx make sample.exe
 cp sample.exe sample.exe-$cxx
 done
 

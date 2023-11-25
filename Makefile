@@ -49,5 +49,5 @@ mpreal:
 
 
 clean:
-	\rm *.o a.out *.s sample.exe
+	\rm *.o a.out *.s sample.exe sample.exe-*
 

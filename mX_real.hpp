@@ -70,13 +70,13 @@ namespace mX_real {
     STATIC_VAR float constexpr two     = float(2);
     STATIC_VAR float constexpr half    = one/two;
 
-    STATIC_VAR float constexpr epsilon = std::numeric_limits<float>::epsilon();
-    STATIC_VAR float constexpr epsiloni = one/std::numeric_limits<float>::epsilon();
-    STATIC_VAR float constexpr nan     = std::numeric_limits<float>::quiet_NaN();
-    STATIC_VAR float constexpr inf     = std::numeric_limits<float>::infinity();
+    STATIC_VAR float constexpr epsilon    = std::numeric_limits<float>::epsilon();
+    STATIC_VAR float constexpr epsiloni   = one/std::numeric_limits<float>::epsilon();
+    STATIC_VAR float constexpr nan        = std::numeric_limits<float>::quiet_NaN();
+    STATIC_VAR float constexpr inf        = std::numeric_limits<float>::infinity();
     STATIC_VAR float constexpr denorm_min = std::numeric_limits<float>::denorm_min();
-    STATIC_VAR float constexpr min     = std::numeric_limits<float>::min();
-    STATIC_VAR float constexpr max     = std::numeric_limits<float>::max();
+    STATIC_VAR float constexpr min        = std::numeric_limits<float>::min();
+    STATIC_VAR float constexpr max        = std::numeric_limits<float>::max();
 
     static INLINE auto constexpr isinf       ( float  const a ) {
       return std::isinf( a );

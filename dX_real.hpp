@@ -1,6 +1,8 @@
 #ifndef	DX_REAL_H
 #define	DX_REAL_H
 
+#include <x86intrin.h>
+
 #include "mX_real.hpp"
 
 
@@ -32,6 +34,8 @@ namespace dX_real {
   public:
     static int constexpr L = 2;
     T x[L];
+    //using _T_ = typename std::conditional< std::is_same<T,float>::value, __m128, __m256d >::type;
+    //_T_ x;
 
     //
     // A special member function utilized in constructors
