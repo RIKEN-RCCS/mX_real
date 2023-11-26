@@ -560,7 +560,7 @@ namespace qX_real {
       twoSum( f[2], f[4], f[2], f[4] ); // e^2 e^3
       f[3] = f[3] + f[4] + f[5];
 
-      auto c = TX( f );
+      auto c = TX{ f };
       Normalize( c );
       return c;
     } else {
@@ -584,7 +584,7 @@ namespace qX_real {
       twoSum( f[2], f[3], f[2], f[3] ); // e^2 e^3
       f[3] = f[3] + f[4];
 
-      auto c = TX( f );
+      auto c = TX{ f };
       Normalize( c );
       return c;
     } else {
@@ -604,7 +604,7 @@ namespace qX_real {
       twoSum( f[1], b.x[1], f[1], f[2] ); // e e^2
       twoSum( f[2], b.x[2], f[2], f[3] ); // e^2 e^3
 
-      auto c = TX( f );
+      auto c = TX{ f };
       Normalize( c );
       return c;
     } else {
@@ -628,7 +628,7 @@ namespace qX_real {
       twoSum( f[2], f[4] ); // e2 e3
       f[3] = f[3] + f[4] + f[5];
 
-      auto c = TX( f );
+      auto c = TX{ f };
       Normalize( c );
       return c;
     } else {
@@ -652,7 +652,7 @@ namespace qX_real {
       twoSum( f[2], f[4] ); // e2 e3
       f[3] = f[3] + f[4];
 
-      auto c = TX( f );
+      auto c = TX{ f };
       Normalize( c );
       return c;
     } else {
@@ -674,7 +674,7 @@ namespace qX_real {
       twoSum( f[1], f[2] ); // e  e2
       twoSum( f[2], f[3] ); // e2 e3
 
-      auto c = TX( f );
+      auto c = TX{ f };
       Normalize( c );
       return c;
     } else {
@@ -695,7 +695,7 @@ namespace qX_real {
       twoSum( f[1], f[2] ); // e  e2
       twoSum( f[2], f[3] ); // e2 e3
 
-      auto c = TX( f );
+      auto c = TX{ f };
       Normalize( c );
       return c;
     } else {
@@ -805,7 +805,7 @@ namespace qX_real {
     using TX = qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{a}*TX{b};
+      c = TX{ a }*TX{ b };
     } else {
       QxW::mul_QTW_QQW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -817,7 +817,7 @@ namespace qX_real {
     using TX = qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{a}*TX{b};
+      c = TX{ a }*TX{ b };
     } else {
       QxW::mul_PA_QQW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -829,7 +829,7 @@ namespace qX_real {
     using TX = qx_real<T,Ab>;
     TX c;
     if ( Ab == Algorithm::Accurate ) {
-      c = TX{a}*TX{b};
+      c = TX{ a }*TX{ b };
     } else {
       QxW::mul_SW_QQW_QQW( a, b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
@@ -841,7 +841,7 @@ namespace qX_real {
     using TX = qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{a}*TX{b};
+      c = TX{ a }*TX{ b };
     } else {
       QxW::mul_QTW_QTW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -853,7 +853,7 @@ namespace qX_real {
     using TX = qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{a}*TX{b};
+      c = TX{ a }*TX{ b };
     } else {
       QxW::mul_PA_QTW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -865,7 +865,7 @@ namespace qX_real {
     using TX = qx_real<T,Ab>;
     TX c;
     if ( Ab == Algorithm::Accurate ) {
-      c = TX{a}*TX{b};
+      c = TX{ a }*TX{ b };
     } else {
       QxW::mul_SW_QTW_QQW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
@@ -877,7 +877,7 @@ namespace qX_real {
     using TX = qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{a}*TX{b};
+      c = TX{ a }*TX{ b };
     } else {
       QxW::mul_PA_PA_QQW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -889,7 +889,7 @@ namespace qX_real {
     using TX = qx_real<T,Ab>;
     TX c;
     if ( Ab == Algorithm::Accurate ) {
-      c = TX{a}*TX{b};
+      c = TX{ a }*TX{ b };
     } else {
       QxW::mul_SW_PA_QQW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
@@ -901,7 +901,7 @@ namespace qX_real {
     using TX = qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{a}*TX{b};
+      c = TX{ a }*TX{ b };
     } else {
       QxW::mul_SW_SW_QQW( a, b, c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -968,7 +968,7 @@ namespace qX_real {
       if ( A == Algorithm::Accurate ) {
         q3 = q3 + r.x[0] / b.x[0];
       }
-      return TX( q0, q1, q2, q3 );
+      return TX{ q0, q1, q2, q3 };
 
     } else {
       TX c;
@@ -980,7 +980,7 @@ namespace qX_real {
   inline auto const operator_div_body ( tX_real::tx_real<T,Aa> const& a, qx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      return (TX{a} / b);
+      return (TX{ a } / b);
     } else {
       TX c;
       QxW::div_QTW_QQW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -992,7 +992,7 @@ namespace qX_real {
   inline auto const operator_div_body ( qx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      return (a / TX{b});
+      return (a / TX{ b });
     } else {
       TX c;
       QxW::div_QQW_QTW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1004,7 +1004,7 @@ namespace qX_real {
   inline auto const operator_div_body ( dX_real::dx_real<T,Aa> const& a, qx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      return (TX{a} / b);
+      return (TX{ a } / b);
     } else {
       TX c;
       QxW::div_PA_QQW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1016,7 +1016,7 @@ namespace qX_real {
   inline auto const operator_div_body ( qx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      return (a / TX{b});
+      return (a / TX{ b });
     } else {
       TX c;
       QxW::div_QQW_PA_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1028,7 +1028,7 @@ namespace qX_real {
   inline auto const operator_div_body ( T const& a, qx_real<T,Ab> const& b ) {
     using TX = qx_real<T,Ab>;
     if ( Ab == Algorithm::Accurate ) {
-      return (TX{a} / b);
+      return (TX{ a } / b);
     } else {
       TX c;
       QxW::div_SW_QQW_QQW( a, b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1040,7 +1040,7 @@ namespace qX_real {
   inline auto const operator_div_body ( qx_real<T,Aa> const& a, T const& b ) {
     using TX = qx_real<T,Aa>;
     if ( Aa == Algorithm::Accurate ) {
-      return (a / TX{b});
+      return (a / TX{ b });
     } else {
       TX c;
       QxW::div_QQW_SW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b, c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1052,7 +1052,7 @@ namespace qX_real {
   inline auto const operator_div_body ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      return (TX{a} / TX{b});
+      return (TX{ a } / TX{ b });
     } else {
       TX c;
       QxW::div_QTW_QTW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1064,7 +1064,7 @@ namespace qX_real {
   inline auto const operator_div_body ( dX_real::dx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      return (TX{a} / TX{b});
+      return (TX{ a } / TX{ b });
     } else {
       TX c;
       QxW::div_PA_QTW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1076,7 +1076,7 @@ namespace qX_real {
   inline auto const operator_div_body ( tX_real::tx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      return (TX{a} / TX{b});
+      return (TX{ a } / TX{ b });
     } else {
       TX c;
       QxW::div_QTW_PA_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1088,7 +1088,7 @@ namespace qX_real {
   inline auto const operator_div_body ( T const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qx_real<T,Ab>;
     if ( Ab == Algorithm::Accurate ) {
-      return (TX{a} / TX{b});
+      return (TX{ a } / TX{ b });
     } else {
       TX c;
       QxW::div_SW_QTW_QQW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1100,7 +1100,7 @@ namespace qX_real {
   inline auto const operator_div_body ( tX_real::tx_real<T,Aa> const& a, T const& b ) {
     using TX = qx_real<T,Aa>;
     if ( Aa == Algorithm::Accurate ) {
-      return (TX{a} / TX{b});
+      return (TX{ a } / TX{ b });
     } else {
       TX c;
       QxW::div_QTW_SW_QQW( a.x[0], a.x[1], a.x[2], b, c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1112,7 +1112,7 @@ namespace qX_real {
   inline auto const operator_div_body ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      return (TX{a} / TX{b});
+      return (TX{ a } / TX{ b });
     } else {
       TX c;
       QxW::div_PA_PA_QQW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1124,7 +1124,7 @@ namespace qX_real {
   inline auto const operator_div_body ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = qx_real<T,Ab>;
     if ( Ab == Algorithm::Accurate ) {
-      return (TX{a} / TX{b});
+      return (TX{ a } / TX{ b });
     } else {
       TX c;
       QxW::div_SW_PA_QQW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1136,7 +1136,7 @@ namespace qX_real {
   inline auto const operator_div_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) {
     using TX = qx_real<T,Aa>;
     if ( Aa == Algorithm::Accurate ) {
-      return (TX{a} / TX{b});
+      return (TX{ a } / TX{ b });
     } else {
       TX c;
       QxW::div_PA_SW_QQW( a.x[0], a.x[1], b, c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1148,7 +1148,7 @@ namespace qX_real {
   inline auto const operator_div_body ( T const& a, T const& b ) {
     using TX = qx_real<T,A>;
     if ( A == Algorithm::Accurate ) {
-      return (TX{a} / TX{b});
+      return (TX{ a } / TX{ b });
     } else {
       TX c;
       QxW::div_SW_SW_QQW( a, b, c.x[0], c.x[1], c.x[2], c.x[3] );
@@ -1490,12 +1490,12 @@ namespace qX_real {
       auto ex = fp<T>::exponenti( as );
       auto ex2 = ex * fp<T>::half;
 
-      auto ax = TX( (a.x[0]*ex)*ex2,
+      auto ax = TX{ (a.x[0]*ex)*ex2,
                     (a.x[1]*ex)*ex2,
                     (a.x[2]*ex)*ex2,
-                    (a.x[3]*ex)*ex2 );
+                    (a.x[3]*ex)*ex2 };
 
-      auto r  = TX( e / as );
+      auto r  = TX{ e / as };
       r = (3*TX::half() - ax * (r * r)) * r;
       r = (3*TX::half() - ax * (r * r)) * r;
       r = (3*TX::half() - ax * (r * r)) * r;
@@ -1678,9 +1678,9 @@ namespace qX_real {
       if ( a.x[i] != b.x[i] ) break;
     }
     if ( a.x[i] <= b.x[i] ) {
-      return TX( a );
+      return TX{ a };
     } else {
-      return TX( b );
+      return TX{ b };
     }
   }
   //
@@ -1729,9 +1729,9 @@ namespace qX_real {
       if ( a.x[i] != b.x[i] ) break;
     }
     if ( a.x[i] >= b.x[i] ) {
-      return TX( a );
+      return TX{ a };
     } else {
-      return TX( b );
+      return TX{ b };
     }
   }
   //
@@ -1784,7 +1784,7 @@ namespace qX_real {
       auto b_ = fp<T>::rand();
       auto b = T (b_ );
       auto c = b * g;
-           r = r + TX( c );
+           r = r + TX{ c };
            g = g * f;
     }
     return r;
@@ -1800,10 +1800,10 @@ namespace qX_real {
       auto b_ = fp<T>::rand();
       auto b = T( b_ & 0x7fff0000 );
       auto c = b * g;
-           r = r + TX( c );
+           r = r + TX{ c };
            b = T( b_ & 0x0000ffff );
            c = b * g;
-           r = r + TX( c );
+           r = r + TX{ c };
            g = g * f;
     }
     return r;

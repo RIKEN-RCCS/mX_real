@@ -55,8 +55,7 @@ void benchmark( int const& N ) {
     }
   }
   alpha = REAL::rand();
-  beta = REAL::rand();
-  auto one = REAL(1);
+  beta  = REAL::rand();
 
 
   int constexpr ITR = 10;
@@ -69,9 +68,13 @@ void benchmark( int const& N ) {
     //
     // optimized GEMV-n kernel
     //
-    int constexpr STEP_i = (sizeof(a[0]) >= 3*sizeof(float) ? 16 : 32);
-    int constexpr STEP_j = (sizeof(a[0]) >= 4*sizeof(float) ? 32 : 64);
-    int constexpr STEP_k = (sizeof(a[0]) >= 4*sizeof(float) ? 32 : 64);
+    int constexpr STEP_i = (sizeof(a[0]) >= 3*sizeof(float) ? 36 : 72);
+    int constexpr STEP_j = (sizeof(a[0]) >= 4*sizeof(float) ? 36 : 72);
+    int constexpr STEP_k = (sizeof(a[0]) >= 4*sizeof(float) ? 36 : 72);
+
+    int constexpr D_i = 2;
+    int constexpr D_k = 3;
+
 
     #pragma omp parallel
     {
@@ -81,31 +84,27 @@ void benchmark( int const& N ) {
       auto const Ni_ = std::min( i_+STEP_i, N );
       auto const Nj_ = std::min( j_+STEP_j, N );
 
-      int constexpr D_i = 2;
-      int constexpr D_k = 4;
-
-      REAL C[STEP_i][STEP_j];
+      REAL C[STEP_i][STEP_j]; // 36*36*4*4=20.25KB
       for(int i=i_; i<Ni_; i++) {
       #pragma gcc ivdep
       #pragma ivdep
       for(int j=j_; j<Nj_; j++) {
         C[i-i_][j-j_] = c[j+i*N];
-      }
-      }
+      }}
+#if 0
       for(int i=i_; i<Ni_; i++) {
       #pragma vector
       for(int j=j_; j<Nj_; j++) {
         C[i-i_][j-j_] = beta * C[i-i_][j-j_];
-      }
-      }
-
+      }}
+#endif
     for(int k_=0; k_<N; k_+=STEP_k) {
       auto const Nk_ = std::min( k_+STEP_k, N );
 
-      auto const Ni__ = i_+(Ni_-i_)%D_i;
-      auto const Nk__ = k_+(Nk_-k_)%D_k;
+      auto const Ni__ = Ni_-(Ni_-i_)%D_i;
+      auto const Nk__ = Nk_-(Nk_-k_)%D_k;
 
-      REAL A[STEP_k][STEP_j];
+      REAL A[STEP_k][STEP_j]; // 36*36*4*4=20.25KB
       for(int k=k_; k<Nk_; k++) {
       #pragma gcc ivdep
       #pragma ivdep
@@ -113,54 +112,15 @@ void benchmark( int const& N ) {
         A[k-k_][j-j_] = a[j+k*N];
       }}
 
-      for(int i=i_; i<Ni__; i++) {
-      for(int k=k_; k<Nk__; k++) {
-        auto const s00 = alpha * b[k+i*N];
-        for(int j=j_; j<Nj_; j++) {
-          auto c0 = C[i-i_+0][j-j_];
-          auto a0 = A[k-k_+0][j-j_];
-          c0 = c0 + a0 * s00;
-          C[i-i_+0][j-j_] = c0;
-        }
-      }}
+if ( D_k==4 ) {
 
-      for(int i=Ni__; i<Ni_; i+=D_i) {
-      for(int k=k_; k<Nk__; k++) {
-        auto const s00 = alpha * b[k+(i+0)*N];
-        auto const s01 = alpha * b[k+(i+1)*N];
+      for(int k=k_; k<Nk__; k+=D_k) {
+      for(int i=i_; i<Ni__; i+=D_i) {
+        if ( k_==0 ) {
         for(int j=j_; j<Nj_; j++) {
-          auto c0 = C[i-i_+0][j-j_];
-          auto a0 = A[k-k_+0][j-j_];
-          c0 = c0 + a0 * s00;
-          auto c1 = C[i-i_+1][j-j_];
-          c1 = c1 + a0 * s01;
-          C[i-i_+0][j-j_] = c0;
-          C[i-i_+1][j-j_] = c1;
-        }
-      }}
-
-      for(int i=i_; i<Ni__; i++) {
-      for(int k=Nk__; k<Nk_; k+=D_k) {
-        auto const s00 = alpha * b[(k+0)+i*N];
-        auto const s10 = alpha * b[(k+1)+i*N];
-        auto const s20 = alpha * b[(k+2)+i*N];
-        auto const s30 = alpha * b[(k+3)+i*N];
-        for(int j=j_; j<Nj_; j++) {
-          auto c0 = C[i-i_+0][j-j_];
-          auto a0 = A[k-k_+0][j-j_];
-          auto a1 = A[k-k_+1][j-j_];
-          auto a2 = A[k-k_+2][j-j_];
-          c0 = c0 + a0 * s00;
-          auto a3 = A[k-k_+3][j-j_];
-          c0 = c0 + a1 * s10;
-          c0 = c0 + a2 * s20;
-          c0 = c0 + a3 * s30;
-          C[i-i_+0][j-j_] = c0;
-        }
-      }}
-
-      for(int i=Ni__; i<Ni_; i+=D_i) {
-      for(int k=Nk__; k<Nk_; k+=D_k) {
+          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+          C[i-i_+1][j-j_] = beta * C[i-i_+1][j-j_];
+	}}
         auto const s00 = alpha * b[(k+0)+(i+0)*N];
         auto const s10 = alpha * b[(k+1)+(i+0)*N];
         auto const s20 = alpha * b[(k+2)+(i+0)*N];
@@ -188,6 +148,208 @@ void benchmark( int const& N ) {
           C[i-i_+1][j-j_] = c1;
         }
       }}
+
+      for(int k=k_; k<Nk__; k+=D_k) {
+      for(int i=Ni__; i<Ni_; i++) {
+        if ( k_==0 ) {
+        for(int j=j_; j<Nj_; j++) {
+          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+	}}
+        auto const s00 = alpha * b[(k+0)+(i+0)*N];
+        auto const s10 = alpha * b[(k+1)+(i+0)*N];
+        auto const s20 = alpha * b[(k+2)+(i+0)*N];
+        auto const s30 = alpha * b[(k+3)+(i+0)*N];
+        for(int j=j_; j<Nj_; j++) {
+          auto c0 = C[i-i_+0][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
+          auto a1 = A[k-k_+1][j-j_];
+          auto a2 = A[k-k_+2][j-j_];
+          c0 = c0 + a0 * s00;
+          auto a3 = A[k-k_+3][j-j_];
+          c0 = c0 + a1 * s10;
+          c0 = c0 + a2 * s20;
+          c0 = c0 + a3 * s30;
+          C[i-i_+0][j-j_] = c0;
+        }
+      }}
+
+}
+if ( D_k==3 ) {
+
+      for(int k=k_; k<Nk__; k+=D_k) {
+      for(int i=i_; i<Ni__; i+=D_i) {
+        if ( k_==0 ) {
+        for(int j=j_; j<Nj_; j++) {
+          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+          C[i-i_+1][j-j_] = beta * C[i-i_+1][j-j_];
+	}}
+        auto const s00 = alpha * b[(k+0)+(i+0)*N];
+        auto const s10 = alpha * b[(k+1)+(i+0)*N];
+        auto const s20 = alpha * b[(k+2)+(i+0)*N];
+        auto const s01 = alpha * b[(k+0)+(i+1)*N];
+        auto const s11 = alpha * b[(k+1)+(i+1)*N];
+        auto const s21 = alpha * b[(k+2)+(i+1)*N];
+        for(int j=j_; j<Nj_; j++) {
+          auto c0 = C[i-i_+0][j-j_];
+          auto c1 = C[i-i_+1][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
+          auto a1 = A[k-k_+1][j-j_];
+          c0 = c0 + a0 * s00;
+          c1 = c1 + a0 * s01;
+          auto a2 = A[k-k_+2][j-j_];
+          c0 = c0 + a1 * s10;
+          c1 = c1 + a1 * s11;
+          c0 = c0 + a1 * s20;
+          c1 = c1 + a1 * s21;
+          C[i-i_+0][j-j_] = c0;
+          C[i-i_+1][j-j_] = c1;
+        }
+      }}
+
+      for(int k=k_; k<Nk__; k+=D_k) {
+      for(int i=Ni__; i<Ni_; i++) {
+        if ( k_==0 ) {
+        for(int j=j_; j<Nj_; j++) {
+          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+	}}
+        auto const s00 = alpha * b[(k+0)+i*N];
+        auto const s10 = alpha * b[(k+1)+i*N];
+        auto const s20 = alpha * b[(k+2)+i*N];
+        for(int j=j_; j<Nj_; j++) {
+          auto c0 = C[i-i_+0][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
+          auto a1 = A[k-k_+1][j-j_];
+          c0 = c0 + a0 * s00;
+          auto a2 = A[k-k_+2][j-j_];
+          c0 = c0 + a1 * s10;
+          c0 = c0 + a2 * s20;
+          C[i-i_+0][j-j_] = c0;
+        }
+      }}
+
+}
+if ( D_k==2 ) {
+
+      for(int k=k_; k<Nk__; k+=D_k) {
+      for(int i=i_; i<Ni__; i+=D_i) {
+        if ( k_==0 ) {
+        for(int j=j_; j<Nj_; j++) {
+          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+          C[i-i_+1][j-j_] = beta * C[i-i_+1][j-j_];
+	}}
+        auto const s00 = alpha * b[(k+0)+(i+0)*N];
+        auto const s10 = alpha * b[(k+1)+(i+0)*N];
+        auto const s01 = alpha * b[(k+0)+(i+1)*N];
+        auto const s11 = alpha * b[(k+1)+(i+1)*N];
+        for(int j=j_; j<Nj_; j++) {
+          auto c0 = C[i-i_+0][j-j_];
+          auto c1 = C[i-i_+1][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
+          auto a1 = A[k-k_+1][j-j_];
+          c0 = c0 + a0 * s00;
+          c1 = c1 + a0 * s01;
+          c0 = c0 + a1 * s10;
+          c1 = c1 + a1 * s11;
+          C[i-i_+0][j-j_] = c0;
+          C[i-i_+1][j-j_] = c1;
+        }
+      }}
+
+      for(int k=k_; k<Nk__; k+=D_k) {
+      for(int i=Ni__; i<Ni_; i++) {
+        if ( k_==0 ) {
+        for(int j=j_; j<Nj_; j++) {
+          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+	}}
+        auto const s00 = alpha * b[(k+0)+i*N];
+        auto const s10 = alpha * b[(k+1)+i*N];
+        for(int j=j_; j<Nj_; j++) {
+          auto c0 = C[i-i_+0][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
+          auto a1 = A[k-k_+1][j-j_];
+          c0 = c0 + a0 * s00;
+          c0 = c0 + a1 * s10;
+          C[i-i_+0][j-j_] = c0;
+        }
+      }}
+
+}
+if ( D_k==1 ) {
+
+      for(int k=k_; k<Nk__; k+=D_k) {
+      for(int i=i_; i<Ni__; i+=D_i) {
+        if ( k_==0 ) {
+        for(int j=j_; j<Nj_; j++) {
+          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+          C[i-i_+1][j-j_] = beta * C[i-i_+1][j-j_];
+	}}
+        auto const s00 = alpha * b[(k+0)+(i+0)*N];
+        auto const s01 = alpha * b[(k+0)+(i+1)*N];
+        for(int j=j_; j<Nj_; j++) {
+          auto c0 = C[i-i_+0][j-j_];
+          auto c1 = C[i-i_+1][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
+          c0 = c0 + a0 * s00;
+          c1 = c1 + a0 * s01;
+          C[i-i_+0][j-j_] = c0;
+          C[i-i_+1][j-j_] = c1;
+        }
+      }}
+
+      for(int k=k_; k<Nk__; k+=D_k) {
+      for(int i=Ni__; i<Ni_; i++) {
+        if ( k_==0 ) {
+        for(int j=j_; j<Nj_; j++) {
+          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+	}}
+        auto const s00 = alpha * b[(k+0)+i*N];
+        for(int j=j_; j<Nj_; j++) {
+          auto c0 = C[i-i_+0][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
+          c0 = c0 + a0 * s00;
+          C[i-i_+0][j-j_] = c0;
+        }
+      }}
+
+}
+if ( D_k!=1 ) {
+
+      for(int k=Nk__; k<Nk_; k++) {
+      for(int i=i_; i<Ni__; i+=D_i) {
+        if ( k_==0 ) {
+        for(int j=j_; j<Nj_; j++) {
+          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+          C[i-i_+1][j-j_] = beta * C[i-i_+1][j-j_];
+	}}
+        auto const s00 = alpha * b[(k+0)+(i+0)*N];
+        auto const s01 = alpha * b[(k+0)+(i+1)*N];
+        for(int j=j_; j<Nj_; j++) {
+          auto c0 = C[i-i_+0][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
+          c0 = c0 + a0 * s00;
+          auto c1 = C[i-i_+1][j-j_];
+          c1 = c1 + a0 * s01;
+          C[i-i_+0][j-j_] = c0;
+          C[i-i_+1][j-j_] = c1;
+        }
+      }}
+
+      for(int k=Nk__; k<Nk_; k++) {
+      for(int i=Ni__; i<Ni_; i++) {
+        if ( k_==0 ) {
+        for(int j=j_; j<Nj_; j++) {
+          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+	}}
+        auto const s00 = alpha * b[(k+0)+(i+0)*N];
+        for(int j=j_; j<Nj_; j++) {
+          auto c0 = C[i-i_+0][j-j_];
+          auto a0 = A[k-k_+0][j-j_];
+          c0 = c0 + a0 * s00;
+          C[i-i_+0][j-j_] = c0;
+        }
+      }}
+
+}
 
     }
 
