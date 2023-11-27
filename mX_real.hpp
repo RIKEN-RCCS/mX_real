@@ -259,25 +259,7 @@ namespace mX_real {
     twoSum( a, b, a, b );
   }
 
-#if 0
-  template < typename T >
-  INLINE void threeSum ( T & _a_, T & _b_, T & _c_ ) {
-    auto       a = _a_; 
-    auto       b = _b_; 
-    auto       c = _c_; 
-    twoSum( a, b, a, b );
-    twoSum( c, a, a, c );
-    twoSum( b, c, b, c );
-    _a_ = a;
-    _b_ = b;
-    _c_ = c;
-  }
-  template < typename T >
-  INLINE void threeSum ( T * a ) {
-    threeSum( a[0], a[1], a[2] );
-  }
-#endif
-
+  //
   template < typename T >
   INLINE void quickSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
     QxW::FastTwoSum( a, b, s, e );
@@ -287,101 +269,12 @@ namespace mX_real {
     quickSum( a, b, a, b );
   }
 
+  //
   template < typename T >
   INLINE void twoProdFMA ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
     QxW::TwoProductFMA( a, b, s, e );
   }
 
-#if 1
-  template < int n, int m = n, typename T >
-  INLINE void vecMerge( T * f, T const * a, T const * b ) {
-    int ia, ib, j; T fa, fb;
-    for(ia=ib=j=0,fa=fp<T>::fabs(a[ia]),fb=fp<T>::fabs(b[ib]); ia<n && ib<m; j++ ) {
-      if ( fa >= fb ) {
-        f[j] = a[ia++]; fa = fp<T>::fabs(a[ia]);
-      } else {
-        f[j] = b[ib++]; fb = fp<T>::fabs(b[ib]);
-      }
-    }
-    if (j<n+m) {
-      if ( ia < n ) for(;ia<n;ia++) { f[j++] = a[ia]; }
-      if ( ib < m ) for(;ib<m;ib++) { f[j++] = b[ib]; }
-    }
-  }
-
-  template < int n, typename T >
-  INLINE void vecSum( T * f ) {
-    if ( n < 0 ) { // f[0] 
-      for(int i=(-n)-2; i>=0; i--) {
-        twoSum( f[i], f[i+1] );
-      }
-    } else { // f[n-1]
-      for(int i=1; i<n; i++) {
-        twoSum( f[i], f[i-1] );
-      }
-    }
-  }
-
-  template < int n, typename T >
-  INLINE void vecSum_Sloppy( T * f ) {
-    if ( n < 0 ) { // f[0]
-      for(int i=(-n)-2; i>=0; i--) {
-        quickSum( f[i], f[i+1] );
-      }
-    } else { // f[n-1]
-      for(int i=1; i<n; i++) {
-        quickSum( f[i], f[i-1] );
-      }
-    }
-  }
-
-  template < int L, int n=L, typename T >
-  INLINE void VSEB( T * f ) {
-  //
-  //  N. Fabiano, J-M Muller, and J. Picot
-  //  this function is not the same as F-M-P's, it only returns N elements
-  //  F-M-P suggest to be able to use twoSum or quickSum so that
-  //  it acclerates performance while it can switch twoSum and quickcwSum.
-  //
-    static_assert( n >= L, "The v-length of f[] >= the v-length of return." );
-    T e = f[0];
-    int i, j; for(i=j=0; i<=n-3 && j<L; i++ ) {
-      T r, t;
-      twoSum( e, f[i+1], r, t );
-      if ( t != fp<T>::zero ) {
-        f[j++] = r;
-        e = t;
-      } else {
-        e = r;
-      }
-    }
-    if ( j < L ) { twoSum( e, f[i+1], f[j], f[j+1] ); j=(j+1)+1; }
-    if ( j < n ) { for(int i=j; i<n; i++) { f[i] = fp<T>::zero; } }
-  }
-  template < int L, int n=L, typename T >
-  INLINE void VSEB_Sloppy( T * f ) {
-  //
-  //  N. Fabiano, J-M Muller, and J. Picot
-  //  this function is not the same as F-M-P's, it only returns N elements
-  //  F-M-P suggest to be able to use twoSum or quickSum so that
-  //  it acclerates performance while it can switch twoSum and quickcwSum.
-  //
-    static_assert( n >= L, "The v-length of f[] >= the v-length of return." );
-    T e = f[0];
-    int i, j; for(i=j=0; i<=n-3 && j<L; i++ ) {
-      T r, t;
-      quickSum( e, f[i+1], r, t );
-      if ( t != fp<T>::zero ) {
-        f[j++] = r;
-        e = t;
-      } else {
-        e = r;
-      }
-    }
-    if ( j < L ) { quickSum( e, f[i+1], f[j], f[j+1] ); j=(j+1)+1; }
-    if ( j < n ) { for(int i=j; i<n; i++) { f[i] = fp<T>::zero; } }
-  }
-#endif
 
   // for cross-reference
   namespace dX_real { template < typename T, Algorithm A > struct dx_real; }
