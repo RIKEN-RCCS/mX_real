@@ -31,47 +31,30 @@ BEGIN{
 	next;
 	}
 
-       	gsub(/float\*,/,"float \\&,");
-       	gsub(/float\*)/,"float \\&)");
+       	gsub(/float[ ]*\*[ ]*,/,"float \\&,");
+       	gsub(/float[ ]*\*[ ]*)/,"float \\&)");
 
-       	gsub(/float \*/,"float \\&");
-       	gsub(/float [a-zA-Z]/,"@&");
+       	gsub(/float[ ]*\*/,"float \\&");
+       	gsub(/float[ ]+[a-zA-Z]/,"@&");
        	gsub(/@float /,"float const\\& ");
 
-       	gsub(/float,/,"float const\\&,");
+       	gsub(/float[ ]*,/,"float const\\&,");
 
 	gsub(/^[ \t]*float const&/, "&@");
 	gsub(/float const&@/,"float");
 
-	gsub(/\*[a-z]+[0-9]* /,"@&");
-	gsub(/\*[a-z]+[0-9]*[-=]/,"@&");
-	gsub(/@\*/,"");
-	gsub(/,\*[a-z]+[0-9]*)/,"@&");
-	gsub(/,\*[a-z]+[0-9]*,/,"@&");
-	gsub(/@,\*/,",");
+	gsub(/[\(+-/ \t]\*[a-z]+[0-9]*/,"@[&]@");
+        gsub(/@\[[\(-/]/,"@&]$$@[");
+        gsub(/\]\$\$/,"");
+        gsub(/@@\[/,"");
+	gsub(/@\[ /,"\@[");
+	gsub(/@\[\*/," ");
+	gsub(/\]@/,"");
 
-	gsub(/\(\*[a-z]+[0-9]*/,"@&");
-	gsub(/@\(\*/,"(");
 
-	gsub(/&e[123456789]/,"@&");
-	gsub(/&r[12345678]/,"@&");
-	gsub(/&s[12345678]/,"@&");
-	gsub(/&t[12345678]/,"@&");
-	gsub(/&p[12345678]/,"@&");
-
-	gsub(/&d[hl]/,"@&");
-	gsub(/&s[hel]/,"@&");
-	gsub(/&e[hl]/,"@&");
-	gsub(/@&/,"");
-
-	gsub(/ \*c2)/," c2)");
-	gsub(/ \*c3)/," c3)");
-	gsub(/,\*c3,/,",c3,");
-	gsub(/-\*ch/,"-ch");
-	gsub(/+\*ch/,"+ch");
-	gsub(/-\*x/,"-x");
-	gsub(/- \*ch/,"- ch");
-	gsub(/+ \*ch/,"+ ch");
+	gsub(/&[erstp][0-9]/,"[@]&");
+	gsub(/&[dse][hel]/,"[@]&");
+	gsub(/\[@]&/,"");
 	gsub(/,&t);/,",t);");
 
 	gsub(/fma/,"std::fma");
@@ -87,6 +70,37 @@ BEGIN{
 	gsub(/^void /,"template < typename T > __always_inline &");
 	}
 	gsub(/float/,"T");
+
+	gsub(/\( /,"(");
+	gsub(/ \)/,")");
+	gsub(/\+ /,"+");
+	gsub(/ \+/,"+");
+	gsub(/- /,"-");
+	gsub(/ -/,"-");
+	gsub(/\* /,"*");
+	gsub(/ \*/,"*");
+	gsub(/\/ /,"/");
+	gsub(/ \//,"/");
+
+	gsub(/[0-9a-z\)][\+\-\*\/,][0-9a-z\(]/,"@[&]@");
+	gsub(/@[\+\-\*\/,][0-9a-z\(]/,"@[&]@");
+	gsub(/[0-9a-z\)][\+\-\*\/,]@/,"@[&]@");
+	gsub(/@\[[0-9a-z\)@]/,"& ");
+	gsub(/[0-9a-z\(@]\]@/," &");
+	gsub(/@\[/,"");
+	gsub(/\]@/,"");
+
+	gsub(/=[ ]*/,"=");
+	gsub(/[a-z0-9]=/,"&@");
+	gsub(/=@/," =");
+	gsub(/=[a-z0-9\(]/,"@&");
+	gsub(/@=/,"= ");
+
+	gsub(/,\-/,", -");
+	gsub(/ ,/,",");
+	gsub(/\( /,"(");
+	gsub(/ \)/,")");
+
 }
 /^template/{
 
@@ -106,3 +120,4 @@ END {
        	print "\n}"
 	print "\n#endif"
 }
+
