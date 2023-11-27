@@ -14,6 +14,12 @@ BEGIN{
 	print "// by Toshiyuki Imamura (RIKEN, R-CCS)"
 	print ""
 }
+/^\/\//{
+	gsub(/^\/\/[A-Za-z\-]/,"@&");
+	gsub(/@\/\//,"// ");
+       	print;
+       	next;
+}
 {
 	if ( $0~/^void sqr_PA_QTW.*;/ )  {
 	print "namespace QxW {\n\n"
@@ -93,13 +99,17 @@ BEGIN{
 	gsub(/=[ ]*/,"=");
 	gsub(/[a-z0-9]=/,"&@");
 	gsub(/=@/," =");
-	gsub(/=[a-z0-9\(]/,"@&");
+	gsub(/=[a-z0-9\-\+\(]/,"@&");
 	gsub(/@=/,"= ");
 
 	gsub(/,\-/,", -");
 	gsub(/ ,/,",");
 	gsub(/\( /,"(");
 	gsub(/ \)/,")");
+	gsub(/\+\(/,"+ (");
+	gsub(/\-\(/,"- (");
+	gsub(/\)\+/,") +");
+	gsub(/\)\-/,") -");
 
 }
 /^template/{
