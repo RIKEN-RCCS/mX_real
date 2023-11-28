@@ -61,18 +61,14 @@ template < typename T > __always_inline void const mul_QW_QW_QW(T const& a1, T c
       T q2[6];
       T q30,q31,q32,q33,q34;
 
-    /* O(1) order term */
       TwoProductFMA( a1, b1, c1, q10 ); // O(1,e)
 
-    /* O(eps) order terms */
       TwoProductFMA( a1, b2, q11, q2[0] ); // O(e,e^2)
       TwoProductFMA( a2, b1, q12, q2[1] ); // O(e,e^2)
 
-    /* accumulate O(e) */
       TwoSum( q10, q11, q10, q11 ); // O(e,e^2)
       TwoSum( q10, q12, c2, q12 ); // O(e,e^2)
 
-    /* O(eps^2) order terms */
       TwoProductFMA( a1, b3, q2[2], q30 ); // O(e^2,e^3)
       TwoProductFMA( a2, b2, q2[3], q31 ); // O(e^2,e^3)
       TwoProductFMA( a3, b1, q2[4], q32 ); // O(e^2,e^3)
@@ -80,7 +76,6 @@ template < typename T > __always_inline void const mul_QW_QW_QW(T const& a1, T c
       TwoSum( q11, q12, q2[5], c4 ); // O(e^2,e^3)
       c4 = c4 + q30 + q31 + q32;
 
-    /* accumulate O(e^2) */
       TwoSum( q2[0], q2[1], q2[0], q30 ); // O(e^2,e^3)
       TwoSum( q2[3], q2[4], q2[3], q31 ); // O(e^2,e^3)
       TwoSum( q2[0], q2[2], q2[0], q32 ); // O(e^2,e^3)
@@ -88,7 +83,6 @@ template < typename T > __always_inline void const mul_QW_QW_QW(T const& a1, T c
       TwoSum( q2[0], q2[3], c3, q34 ); // O(e^2,e^3)
       c4 = c4 + q30 + q31 + q32 + q33 + q34; // O(e^3)
 
-    /* O(eps^3) order terms */
       c4 = std::fma( a1, b4,
            std::fma( a2, b3, 
            std::fma( a3, b2, 

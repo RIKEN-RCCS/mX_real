@@ -46,7 +46,7 @@ namespace mX_real {
       mpfr::mpreal S = (double)s;
       if ( std::is_same<T,float>::value ) {
         if ( (s > 0 && S > x) || (s < 0 && S < x) ) { // to avoid double rounding
-          s = s - fp<T>::ufp( s );
+          s = s - fp<T>::ulp( s );
         }
       }
     }
@@ -73,11 +73,11 @@ namespace mX_real {
         mpfr::mpreal S = (double)s;
 
         //
-	// check whether rounding up already,
-	// if so rounding back to avoid double-rounding
+	// check whether rounding up already done or not,
+	// if done, we must do rounding back to avoid a double-rounding
 	//
         if ( (s > 0 && S > X) || (s < 0 && S < X) ) {
-          s = s - fp<_T>::ufp( s );
+          s = s - fp<_T>::ulp( s );
         }
 
 	//
@@ -98,12 +98,13 @@ namespace mX_real {
     mpfr::mpreal X = x;
 
     dd_real t;
-    for(int i=0; i<2; i++) {
+    int constexpr NX = sizeof(t)/sizeof(double);
+    for(int i=0; i<NX; i++) {
       auto s = (double)X;
       mpfr::mpreal S = s;
-      if ( i<2-1 ) {
+      if ( i<NX-1 ) {
         if ( (X > 0 && S > X) || (X < 0 && S < X) ) {
-           s = s - fp<double>::ufp( s );
+           s = s - fp<double>::ulp( s );
         }
         X = X - (double)s;
       }
@@ -117,12 +118,13 @@ namespace mX_real {
     mpfr::mpreal X = x;
 
     qd_real t;
-    for(int i=0; i<4; i++) {
+    int constexpr NX = sizeof(t)/sizeof(double);
+    for(int i=0; i<NX; i++) {
       auto s = (double)X;
       mpfr::mpreal S = s;
-      if ( i<4-1 ) {
+      if ( i<NX-1 ) {
         if ( (X > 0 && S > X) || (X < 0 && S < X) ) {
-           s = s - fp<double>::ufp( s );
+           s = s - fp<double>::ulp( s );
         }
         X = X - (double)s;
       }

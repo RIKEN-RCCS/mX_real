@@ -113,7 +113,7 @@ namespace mX_real {
     }
 
     using uint_t = uint32_t;
-    static INLINE float ufp( float const a ) {
+    static INLINE float ulp( float const a ) {
       if ( a == zero ) return a;
       uint32_t e = *(uint32_t *)&a;
       uint32_t s = e & 0x80000000;
@@ -193,7 +193,7 @@ namespace mX_real {
     }
 
     using uint_t = uint64_t;
-    static INLINE double ufp( double const a ) {
+    static INLINE double ulp( double const a ) {
       if ( a == zero ) return a;
       uint64_t e = *(uint64_t *)&a;
       uint64_t s = e & 0x8000000000000000;
@@ -305,6 +305,7 @@ namespace mX_real {
 #endif
     {
       twoSum( c.x[0], c.x[1] );
+      quickSum( c.x[0], c.x[1] );
     }
   }
   //
@@ -330,9 +331,10 @@ namespace mX_real {
     } else
 #endif
     {
-      twoSum( c.x[1], c.x[2] );
       twoSum( c.x[0], c.x[1] );
+      twoSum( c.x[1], c.x[2] );
       quickSum( c.x[1], c.x[2] );
+      quickSum( c.x[0], c.x[1] );
     }
   }
   //
@@ -359,12 +361,12 @@ namespace mX_real {
     } else
 #endif
     {
-      twoSum( c.x[2], c.x[3] );
-      twoSum( c.x[1], c.x[2] );
       twoSum( c.x[0], c.x[1] );
+      twoSum( c.x[1], c.x[2] );
+      twoSum( c.x[2], c.x[3] );
       quickSum( c.x[2], c.x[3] );
       quickSum( c.x[1], c.x[2] );
-      quickSum( c.x[2], c.x[3] );
+      quickSum( c.x[0], c.x[1] );
     }
   }
 
