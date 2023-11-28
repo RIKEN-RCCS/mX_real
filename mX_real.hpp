@@ -10,7 +10,7 @@
 #include <math.h>
 
 #define	INLINE	__always_inline
-#define	MX_REAL_USE_INF_NAN_EXCEPTION	0
+#define	MX_REAL_USE_INF_NAN_EXCEPTION	1
 
 namespace mX_real {
 

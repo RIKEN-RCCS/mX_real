@@ -1170,7 +1170,7 @@ namespace qX_real {
     }
   }
   template < Algorithm A, typename T, Algorithm Ab >
-  INLINE auto const operator_div_exception ( tx_real<T,Ab> const& b ) {
+  INLINE auto const operator_div_exception ( tX_real::tx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
     if ( fp<T>::isinf( b.x[0] ) ) {
       auto c = fp<T>::copysign( fp<T>::zero, b.x[0] ); throw TX{ c,c,c,c };
@@ -1272,7 +1272,7 @@ namespace qX_real {
   INLINE auto const operator_div ( T const& a, qX_real::qx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,Ab>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    try { qX_real::operator_div_exception<A>( b ); }
+    try { qX_real::operator_div_exception<Ab>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
     if ( Ab != Algorithm::Quasi ) {
@@ -1285,7 +1285,7 @@ namespace qX_real {
   INLINE auto const operator_div ( qX_real::qx_real<T,Aa> const& a, T const& b ) {
     using TX = qX_real::qx_real<T,Aa>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    try { qX_real::operator_div_exception<A>( b ); }
+    try { qX_real::operator_div_exception<Aa>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
     if ( Aa != Algorithm::Quasi ) {
@@ -1337,7 +1337,7 @@ namespace qX_real {
   INLINE auto const operator_div ( T const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,Ab>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    try { qX_real::operator_div_exception<A>( b ); }
+    try { qX_real::operator_div_exception<Ab>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
     if ( Ab != Algorithm::Quasi ) {
@@ -1350,7 +1350,7 @@ namespace qX_real {
   INLINE auto const operator_div ( tX_real::tx_real<T,Aa> const& a, T const& b ) {
     using TX = qX_real::qx_real<T,Aa>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    try { qX_real::operator_div_exception<A>( b ); }
+    try { qX_real::operator_div_exception<Aa>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
     if ( Aa != Algorithm::Quasi ) {
@@ -1376,7 +1376,7 @@ namespace qX_real {
   INLINE auto const operator_div ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,Ab>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    try { qX_real::operator_div_exception<A>( b ); }
+    try { qX_real::operator_div_exception<Ab>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
     if ( Ab != Algorithm::Quasi ) {
@@ -1389,7 +1389,7 @@ namespace qX_real {
   INLINE auto const operator_div ( dX_real::dx_real<T,Aa> const& a, T const& b ) {
     using TX = qX_real::qx_real<T,Aa>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    try { qX_real::operator_div_exception<A>( b ); }
+    try { qX_real::operator_div_exception<Aa>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
     if ( Aa != Algorithm::Quasi ) {
@@ -1571,7 +1571,7 @@ namespace qX_real {
     if ( fp<T>::is_negative( s ) ) { throw TX::nan(); }
   }
   template < typename T, Algorithm Aa >
-  INLINE auto const operator_sqrt_exception ( qX_real::dx_real<T,Aa> const& a ) {
+  INLINE auto const operator_sqrt_exception ( dX_real::dx_real<T,Aa> const& a ) {
     using TX = qX_real::qx_real<T,Aa>;
     if ( fp<T>::isinf( a.x[0] ) ) { throw TX::inf(); }
     auto s = a.quick_Normalized();
