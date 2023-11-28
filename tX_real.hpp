@@ -220,10 +220,10 @@ namespace tX_real {
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         T f[3];
-        twoSum( x[0], x[1], f[0], f[1] );
-        twoSum( f[0], x[2], f[0], f[2] );
-	f[1] = f[1] + f[2];
+        twoSum( x[1], x[2], f[1], f[2] );
+        twoSum( x[0], f[1], f[0], f[1] );
         quickSum( f[0], f[1] );
+	f[1] = f[1] + f[2];
 	return DX_REAL<_A_>( f );
       } else {
         return DX_REAL<_A_>( x );
@@ -242,9 +242,8 @@ namespace tX_real {
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         T f[3];
-        twoSum( x[0], x[1], f[0], f[1] );
-        twoSum( f[0], x[2], f[0], f[2] );
-        twoSum( f[1], f[2] );
+        twoSum( x[1], x[2], f[1], f[2] );
+        twoSum( x[0], f[1], f[0], f[1] );
         quickSum( f[0], f[1] );
         quickSum( f[1], f[2] );
         return TX_REAL<_A_>( f );
@@ -265,9 +264,8 @@ namespace tX_real {
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         T f[3];
-        twoSum( x[0], x[1], f[0], f[1] );
-        twoSum( f[0], x[2], x[0], f[2] );
-        twoSum( f[1], f[2] );
+        twoSum( x[1], x[2], f[1], f[2] );
+        twoSum( x[0], f[1], f[0], f[1] );
         quickSum( f[0], f[1] );
         quickSum( f[1], f[2] );
         return QX_REAL<_A_>( f[0], f[1], f[2], fp<T>::zero );

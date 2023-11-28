@@ -110,7 +110,7 @@ namespace dX_real {
         twoSum( h.x[1], h.x[2], f[1], f[2] );
         twoSum( h.x[0], f[1], f[0], f[1] );
 	quickSum( f[0], f[1], x[0], x[1] );
-	quickSum( f[1], f[2], x[1], f[2] );
+	quickSum( x[1], f[2] );
       }
     }
     template < Algorithm _A_ >
@@ -128,7 +128,8 @@ namespace dX_real {
         twoSum( h.x[2], h.x[3], f[2], f[3] );
         twoSum( h.x[1], f[2], f[1], f[2] );
         twoSum( h.x[0], f[1], f[0], f[1] );
-	quickSum( f[0], f[1], x[0], x[1] );
+	quickSum( f[0], f[1], x[0], f[1] );
+	f[2] = f[2] + f[3];
 	quickSum( f[1], f[2], x[1], f[2] );
       }
     }
@@ -198,6 +199,7 @@ namespace dX_real {
         twoSum( h.x[1], f[2], f[1], f[2] );
         twoSum( h.x[0], f[1], f[0], f[1] );
 	quickSum( f[0], f[1], x[0], f[1] );
+	f[2] = f[2] + f[3];
 	quickSum( f[1], f[2], x[1], f[2] );
       }
       return *this;
