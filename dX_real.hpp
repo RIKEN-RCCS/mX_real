@@ -447,8 +447,8 @@ namespace dX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator== ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     if ( A == Algorithm::Quasi ) {
-      using TT=dX_real::dx_real<T,Algorithm::Accurate>;
-      return dX_real::operator_eq( TT{a}, TT{b} );
+      using TT = dX_real::dx_real<T,Algorithm::Accurate>;
+      return dX_real::operator_eq( TT{ a }, TT{ b } );
     } else {
       return dX_real::operator_eq( a, b );
     }
@@ -468,8 +468,8 @@ namespace dX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator< ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     if ( A == Algorithm::Quasi ) {
-      using TT=dX_real::dx_real<T,Algorithm::Accurate>;
-      return dX_real::operator_lt( TT{a}, TT{b} );
+      using TT = dX_real::dx_real<T,Algorithm::Accurate>;
+      return dX_real::operator_lt( TT{ a }, TT{ b } );
     } else {
       return dX_real::operator_lt( a, b );
     }
@@ -485,8 +485,8 @@ namespace dX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator> ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     if ( A == Algorithm::Quasi ) {
-      using TT=dX_real::dx_real<T,Algorithm::Accurate>;
-      return dX_real::operator_gt( TT{a}, TT{b} );
+      using TT = dX_real::dx_real<T,Algorithm::Accurate>;
+      return dX_real::operator_gt( TT{ a }, TT{ b } );
     } else {
       return dX_real::operator_gt( a, b );
     }
@@ -1005,11 +1005,12 @@ namespace dX_real {
   template < typename T, Algorithm A >
   INLINE auto rand () -> if_T_double<T,dX_real::dx_real<T,A>> {
     using TX = dX_real::dx_real<T,A>;
-    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
+    auto constexpr f = fp<T>::half / (1 << 30);
     auto g = f;
     auto r = TX::zero();
-    auto bits = TX::L * 53;
-    for(int i=0; i<bits; i+=31 ) {
+    auto constexpr bits = std::numeric_limits<dX_real::dx_real<T,A>>::digits;
+    auto constexpr rand_bits = std::numeric_limits<int>::digits - 1;
+    for(int i=0; i<bits; i+=rand_bits ) {
       auto b_ = fp<T>::rand();
       auto b = T(b_);
       auto c = b * g;
@@ -1021,13 +1022,14 @@ namespace dX_real {
   template < typename T, Algorithm A >
   INLINE auto rand () -> if_T_float<T,dX_real::dx_real<T,A>> {
     using TX = dX_real::dx_real<T,A>;
-    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
+    auto constexpr f = fp<T>::half / (1 << 30);
     auto g = f;
     auto r = TX::zero();
-    auto bits = TX::L * 24;
-    for(int i=0; i<bits; i+=31 ) {
+    auto constexpr bits = std::numeric_limits<dX_real::dx_real<T,A>>::digits;
+    auto constexpr rand_bits = std::numeric_limits<int>::digits - 1;
+    for(int i=0; i<bits; i+=rand_bits ) {
       auto b_ = fp<T>::rand();
-      auto b = T( b_ & 0x7fff0000 );
+      auto b = T( ( b_ & 0x7fff0000 ) >> 16 ) * (1 << 16);
       auto c = b * g;
            r = r + TX{ c };
            b = T( b_ & 0x0000ffff );

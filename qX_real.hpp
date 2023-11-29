@@ -445,8 +445,8 @@ namespace qX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator== ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) {
     if ( Aa == Algorithm::Quasi ) {
-      using TT=qx_real<T,Algorithm::Accurate>;
-      return qX_real::operator_eq( TT{a}, TT{b} );
+      using TT = qx_real<T,Algorithm::Accurate>;
+      return qX_real::operator_eq( TT{ a }, TT{ b } );
     } else {
       return qX_real::operator_eq( a, b );
     }
@@ -470,8 +470,8 @@ namespace qX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator< ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) {
     if ( A == Algorithm::Quasi ) {
-      using TT=qX_real::qx_real<T,Algorithm::Accurate>;
-      return qX_real::operator_lt( TT{a}, TT{b} );
+      using TT = qX_real::qx_real<T,Algorithm::Accurate>;
+      return qX_real::operator_lt( TT{ a }, TT{ b } );
     } else {
       return qX_real::operator_lt( a, b );
     }
@@ -491,8 +491,8 @@ namespace qX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator> ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) {
     if ( A == Algorithm::Quasi ) {
-      using TT=qX_real::qx_real<T,Algorithm::Accurate>;
-      return qX_real::operator_gt( TT{a}, TT{b} );
+      using TT = qX_real::qx_real<T,Algorithm::Accurate>;
+      return qX_real::operator_gt( TT{ a }, TT{ b } );
     } else {
       return qX_real::operator_gt( a, b );
     }
@@ -805,7 +805,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a }*TX{ b };
+      c = TX{ a } * TX{ b };
     } else {
       QxW::mul_QTW_QQW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -817,7 +817,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a }*TX{ b };
+      c = TX{ a } * TX{ b };
     } else {
       QxW::mul_PA_QQW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -829,7 +829,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,Ab>;
     TX c;
     if ( Ab == Algorithm::Accurate ) {
-      c = TX{ a }*TX{ b };
+      c = TX{ a } * TX{ b };
     } else {
       QxW::mul_SW_QQW_QQW( a, b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
@@ -841,7 +841,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a }*TX{ b };
+      c = TX{ a } * TX{ b };
     } else {
       QxW::mul_QTW_QTW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -853,7 +853,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a }*TX{ b };
+      c = TX{ a } * TX{ b };
     } else {
       QxW::mul_PA_QTW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -865,7 +865,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,Ab>;
     TX c;
     if ( Ab == Algorithm::Accurate ) {
-      c = TX{ a }*TX{ b };
+      c = TX{ a } * TX{ b };
     } else {
       QxW::mul_SW_QTW_QQW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
@@ -877,7 +877,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a }*TX{ b };
+      c = TX{ a } * TX{ b };
     } else {
       QxW::mul_PA_PA_QQW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -889,7 +889,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,Ab>;
     TX c;
     if ( Ab == Algorithm::Accurate ) {
-      c = TX{ a }*TX{ b };
+      c = TX{ a } * TX{ b };
     } else {
       QxW::mul_SW_PA_QQW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
@@ -901,7 +901,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a }*TX{ b };
+      c = TX{ a } * TX{ b };
     } else {
       QxW::mul_SW_SW_QQW( a, b, c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -1774,13 +1774,14 @@ namespace qX_real {
   // PRNG
   //
   template < typename T, Algorithm A >
-  INLINE auto rand () -> if_T_float<T,qX_real::qx_real<T,A>> {
+  INLINE auto rand () -> if_T_double<T,qX_real::qx_real<T,A>> {
     using TX = qX_real::qx_real<T,A>;
-    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
+    auto constexpr f = fp<T>::half / (1 << 30);
     auto g = f;
     auto r = TX::zero();
-    auto bits = TX::L * 53;
-    for(int i=0; i<bits; i+=31 ) {
+    auto constexpr bits = std::numeric_limits<qX_real::qx_real<T,A>>::digits;
+    auto constexpr rand_bits = std::numeric_limits<int>::digits - 1;
+    for(int i=0; i<bits; i+=rand_bits ) {
       auto b_ = fp<T>::rand();
       auto b = T (b_ );
       auto c = b * g;
@@ -1790,15 +1791,16 @@ namespace qX_real {
     return r;
   }
   template < typename T, Algorithm A >
-  INLINE auto rand () -> if_T_double<T,qX_real::qx_real<T,A>> {
+  INLINE auto rand () -> if_T_float<T,qX_real::qx_real<T,A>> {
     using TX = qX_real::qx_real<T,A>;
-    auto constexpr f = fp<T>::one / (1<<16) / (1<<15);
+    auto constexpr f = fp<T>::half / (1 << 30);
     auto g = f;
     auto r = TX::zero();
-    auto bits = TX::L * 24;
-    for(int i=0; i<bits; i+=31 ) {
+    auto constexpr bits = std::numeric_limits<qX_real::qx_real<T,A>>::digits;
+    auto constexpr rand_bits = std::numeric_limits<int>::digits - 1;
+    for(int i=0; i<bits; i+=rand_bits ) {
       auto b_ = fp<T>::rand();
-      auto b = T( b_ & 0x7fff0000 );
+      auto b = T( ( b_ & 0x7fff0000 ) >> 16 ) * (1 << 16);
       auto c = b * g;
            r = r + TX{ c };
            b = T( b_ & 0x0000ffff );

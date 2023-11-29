@@ -273,12 +273,12 @@ main(int argc, char *argv[])
    print( "Acc cx = Acc(cp) + Acc(cn)", cx );
 }
 {
-   print( "rand", df_Real::rand() );
-   print( "rand", tf_Real::rand() );
-   print( "rand", qf_Real::rand() );
-   print( "rand", dd_Real::rand() );
-   print( "rand", td_Real::rand() );
-   print( "rand", qd_Real::rand() );
+   std::srand(1); print( "rand", df_Real::rand() );
+   std::srand(1); print( "rand", tf_Real::rand() );
+   std::srand(1); print( "rand", qf_Real::rand() );
+   std::srand(1); print( "rand", dd_Real::rand() );
+   std::srand(1); print( "rand", td_Real::rand() );
+   std::srand(1); print( "rand", qd_Real::rand() );
 }
 {
    print( "eps", std::numeric_limits<double>::epsilon() );
