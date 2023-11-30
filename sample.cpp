@@ -18,6 +18,7 @@ struct FLOAT {
   }
   INLINE auto const operator+( FLOAT const& a ) { return x + a.x; }
   INLINE auto const operator*( FLOAT const& a ) { return x * a.x; }
+  INLINE auto const& operator+=( FLOAT const& a ) { return (x += a.x); }
 };
 
 struct DOUBLE {
@@ -37,6 +38,7 @@ struct DOUBLE {
   }
   INLINE auto const operator+( DOUBLE const& a ) { return x + a.x; }
   INLINE auto const operator*( DOUBLE const& a ) { return x * a.x; }
+  INLINE auto const& operator+=( DOUBLE const& a ) { return (x += a.x); }
 };
 
 template < typename REAL >
@@ -134,16 +136,16 @@ if ( D_k==4 ) {
           auto c1 = C[i-i_+1][j-j_];
           auto a0 = A[k-k_+0][j-j_];
           auto a1 = A[k-k_+1][j-j_];
-          c0 = c0 + a0 * s00;
-          c1 = c1 + a0 * s01;
+          c0 += a0 * s00;
+          c1 += a0 * s01;
           auto a2 = A[k-k_+2][j-j_];
-          c0 = c0 + a1 * s10;
-          c1 = c1 + a1 * s11;
+          c0 += a1 * s10;
+          c1 += a1 * s11;
           auto a3 = A[k-k_+3][j-j_];
-          c0 = c0 + a2 * s20;
-          c1 = c1 + a2 * s21;
-          c0 = c0 + a3 * s30;
-          c1 = c1 + a3 * s31;
+          c0 += a2 * s20;
+          c1 += a2 * s21;
+          c0 += a3 * s30;
+          c1 += a3 * s31;
           C[i-i_+0][j-j_] = c0;
           C[i-i_+1][j-j_] = c1;
         }
@@ -164,11 +166,11 @@ if ( D_k==4 ) {
           auto a0 = A[k-k_+0][j-j_];
           auto a1 = A[k-k_+1][j-j_];
           auto a2 = A[k-k_+2][j-j_];
-          c0 = c0 + a0 * s00;
+          c0 += a0 * s00;
           auto a3 = A[k-k_+3][j-j_];
-          c0 = c0 + a1 * s10;
-          c0 = c0 + a2 * s20;
-          c0 = c0 + a3 * s30;
+          c0 += a1 * s10;
+          c0 += a2 * s20;
+          c0 += a3 * s30;
           C[i-i_+0][j-j_] = c0;
         }
       }}
@@ -194,13 +196,13 @@ if ( D_k==3 ) {
           auto c1 = C[i-i_+1][j-j_];
           auto a0 = A[k-k_+0][j-j_];
           auto a1 = A[k-k_+1][j-j_];
-          c0 = c0 + a0 * s00;
-          c1 = c1 + a0 * s01;
+          c0 += a0 * s00;
+          c1 += a0 * s01;
           auto a2 = A[k-k_+2][j-j_];
-          c0 = c0 + a1 * s10;
-          c1 = c1 + a1 * s11;
-          c0 = c0 + a1 * s20;
-          c1 = c1 + a1 * s21;
+          c0 += a1 * s10;
+          c1 += a1 * s11;
+          c0 += a1 * s20;
+          c1 += a1 * s21;
           C[i-i_+0][j-j_] = c0;
           C[i-i_+1][j-j_] = c1;
         }
@@ -219,10 +221,10 @@ if ( D_k==3 ) {
           auto c0 = C[i-i_+0][j-j_];
           auto a0 = A[k-k_+0][j-j_];
           auto a1 = A[k-k_+1][j-j_];
-          c0 = c0 + a0 * s00;
+          c0 += a0 * s00;
           auto a2 = A[k-k_+2][j-j_];
-          c0 = c0 + a1 * s10;
-          c0 = c0 + a2 * s20;
+          c0 += a1 * s10;
+          c0 += a2 * s20;
           C[i-i_+0][j-j_] = c0;
         }
       }}
@@ -246,10 +248,10 @@ if ( D_k==2 ) {
           auto c1 = C[i-i_+1][j-j_];
           auto a0 = A[k-k_+0][j-j_];
           auto a1 = A[k-k_+1][j-j_];
-          c0 = c0 + a0 * s00;
-          c1 = c1 + a0 * s01;
-          c0 = c0 + a1 * s10;
-          c1 = c1 + a1 * s11;
+          c0 += a0 * s00;
+          c1 += a0 * s01;
+          c0 += a1 * s10;
+          c1 += a1 * s11;
           C[i-i_+0][j-j_] = c0;
           C[i-i_+1][j-j_] = c1;
         }
@@ -267,8 +269,8 @@ if ( D_k==2 ) {
           auto c0 = C[i-i_+0][j-j_];
           auto a0 = A[k-k_+0][j-j_];
           auto a1 = A[k-k_+1][j-j_];
-          c0 = c0 + a0 * s00;
-          c0 = c0 + a1 * s10;
+          c0 += a0 * s00;
+          c0 += a1 * s10;
           C[i-i_+0][j-j_] = c0;
         }
       }}
@@ -289,8 +291,8 @@ if ( D_k==1 ) {
           auto c0 = C[i-i_+0][j-j_];
           auto c1 = C[i-i_+1][j-j_];
           auto a0 = A[k-k_+0][j-j_];
-          c0 = c0 + a0 * s00;
-          c1 = c1 + a0 * s01;
+          c0 += a0 * s00;
+          c1 += a0 * s01;
           C[i-i_+0][j-j_] = c0;
           C[i-i_+1][j-j_] = c1;
         }
@@ -326,9 +328,9 @@ if ( D_k!=1 ) {
         for(int j=j_; j<Nj_; j++) {
           auto c0 = C[i-i_+0][j-j_];
           auto a0 = A[k-k_+0][j-j_];
-          c0 = c0 + a0 * s00;
+          c0 += a0 * s00;
           auto c1 = C[i-i_+1][j-j_];
-          c1 = c1 + a0 * s01;
+          c1 += a0 * s01;
           C[i-i_+0][j-j_] = c0;
           C[i-i_+1][j-j_] = c1;
         }
@@ -344,7 +346,7 @@ if ( D_k!=1 ) {
         for(int j=j_; j<Nj_; j++) {
           auto c0 = C[i-i_+0][j-j_];
           auto a0 = A[k-k_+0][j-j_];
-          c0 = c0 + a0 * s00;
+          c0 += a0 * s00;
           C[i-i_+0][j-j_] = c0;
         }
       }}

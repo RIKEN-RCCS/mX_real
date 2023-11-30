@@ -8,3 +8,4 @@ sample.exe-*
 mpreal
 sample.s-*
 *.tmp
+*.swp

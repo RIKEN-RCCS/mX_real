@@ -31,7 +31,7 @@ T nrm2( int const& L, T const* x ) {
  #pragma gcc ivdep
  #pragma ivdep
  for(int i=0; i<L; i++) {
-   z = z + x[i] * x[i];
+   z += x[i] * x[i];
  }
  return sqrt(z);
 }
@@ -42,7 +42,7 @@ T asum( int const& L, T const* x ) {
  #pragma gcc ivdep
  #pragma ivdep
  for(int i=0; i<L; i++) {
-   z = z + abs( x[i] );
+   z += abs( x[i] );
  }
  return z;
 }
@@ -53,7 +53,7 @@ T dot( int const& L, T const* x, T const *y ) {
  #pragma gcc ivdep
  #pragma ivdep
  for(int i=0; i<L; i++) {
-   z = z + x[i] * y[i];
+   z += x[i] * y[i];
  }
  return z;
 }
@@ -63,7 +63,7 @@ void axpy( int const& L, T const& alpha, T const* x, T *y ) {
  #pragma gcc ivdep
  #pragma ivdep
  for(int i=0; i<L; i++) {
-   y[i] = alpha * x[i] + y[i];
+   y[i] += alpha * x[i];
  }
 }
 
@@ -74,7 +74,7 @@ void gemv( int const& L, int const& N, T const& alpha, T const *a, T const* x, T
    #pragma gcc ivdep
    #pragma ivdep
    for(int i=0; i<L; i++) {
-     y[i] = y[i] + a[i+j*L] * s;
+     y[i] += a[i+j*L] * s;
    }
  }
 }

@@ -595,6 +595,14 @@ namespace dX_real {
     }
     return *this;
   }
+  template < typename T, Algorithm Aa, Algorithm Ab,
+    // ::Accurate += ::Sloppy or ::Quasi are not allowed
+    typename dummy=std::enable_if_t<Aa!=Ab && Aa!=Algorithm::Accurate, void> >
+  INLINE auto const& operator+= ( dX_real::dx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
+    QxW::add_PA_PA_PA( a.x[0], a.x[1], b.x[0], b.x[1], a.x[0], a.x[1] );
+    if ( Aa != Algorithm::Quasi ) Normalize( a );
+    return a;
+  }
 
 
   //
