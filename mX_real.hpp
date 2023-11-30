@@ -53,10 +53,14 @@ namespace mX_real {
   //
   // generic terms (const, func, and bit ops)
   //
-#if __cplusplus < 201703L
-#define	STATIC_VAR	static
+#ifdef __INTEL_COMPILER
+#  define	STATIC_VAR	static inline
 #else
-#define	STATIC_VAR	static INLINE
+#if __cplusplus < 201703L
+#  define	STATIC_VAR	static
+#else
+#  define	STATIC_VAR	static inline
+#endif
 #endif
   template < typename T >
   struct fp { static bool constexpr value = false; };
@@ -222,6 +226,7 @@ namespace mX_real {
   };
 #undef STATIC_VAR
   //
+#ifndef __INTEL_COMPILER
 #if __cplusplus < 201703L
   float  constexpr fp<float>::zero;
   float  constexpr fp<float>::one;
@@ -244,6 +249,7 @@ namespace mX_real {
   double constexpr fp<double>::denorm_min;
   double constexpr fp<double>::min;
   double constexpr fp<double>::max;
+#endif
 #endif
 
 

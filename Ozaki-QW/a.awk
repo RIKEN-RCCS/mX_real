@@ -41,8 +41,8 @@ BEGIN{
        	gsub(/float[ ]*\*[ ]*)/,"float \\&)");
 
        	gsub(/float[ ]*\*/,"float \\&");
-       	gsub(/float[ ]+[a-zA-Z]/,"@&");
-       	gsub(/@float /,"float const\\& ");
+       	#gsub(/float[ ]+[a-zA-Z]/,"@&");
+       	#gsub(/@float /,"float const\\& ");
 
        	gsub(/float[ ]*,/,"float const\\&,");
 
@@ -53,7 +53,7 @@ BEGIN{
         gsub(/@\[[\(-/]/,"@&]$$@[");
         gsub(/\]\$\$/,"");
         gsub(/@@\[/,"");
-	gsub(/@\[ /,"\@[");
+	gsub(/@\[ /,"@[");
 	gsub(/@\[\*/," ");
 	gsub(/\]@/,"");
 
@@ -123,7 +123,10 @@ BEGIN{
 	if( $0~/ TwoProductFMA/ ) {
 		gsub( /T const&/, "T const" );
 	}
-#	gsub( /T[ ]*&/, "T __restrict__ \\&" );
+#	gsub( /T[ ]*&/, "T const \\&" );
+
+	gsub(/T [a-zA-Z0-9]+[,\)]/,"@&");
+	gsub(/@T/,"T const");
 }
 { print }
 END {

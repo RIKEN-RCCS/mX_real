@@ -292,12 +292,18 @@ namespace qX_real {
     template < typename _T_ > auto const operator<<= ( _T_ a ) = delete;
     template < typename _T_ > auto const operator>>= ( _T_ a ) = delete;
     template < typename _T_ > auto const operator,   ( _T_ a ) = delete;
-    template < typename _T_ > auto const operator+=  ( _T_ a ) = delete;
+    auto const operator() (...) = delete;
+    template < typename _T_ > auto const operator[]  ( _T_ a ) = delete;
+
+    //
+    INLINE auto const& operator+=  ( QX_REAL<> const& a );
+    INLINE auto const& operator+=  ( TX_REAL<> const& a );
+    INLINE auto const& operator+=  ( DX_REAL<> const& a );
+    INLINE auto const& operator+=  ( T const& a );
+
     template < typename _T_ > auto const operator-=  ( _T_ a ) = delete;
     template < typename _T_ > auto const operator*=  ( _T_ a ) = delete;
     template < typename _T_ > auto const operator/=  ( _T_ a ) = delete;
-    auto const operator() (...) = delete;
-    template < typename _T_ > auto const operator[]  ( _T_ a ) = delete;
 
 
     //
@@ -749,6 +755,47 @@ namespace qX_real {
   template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
   INLINE auto const operator+ ( qX_real::qx_real<T,Aa> const& a, Ts const& b ) {
     return b + a;
+  }
+  //
+  template < typename T, Algorithm Aa >
+  INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( qX_real::qx_real<T,Aa> const& a ) {
+    if ( Aa == Algorithm::Accurate ) {
+      QxW::add_QW_QW_QW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], a.x[2], a.x[3], this->x[0], this->x[1], this->x[2], this->x[3] );
+    } else {
+      QxW::add_QQW_QQW_QQW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], a.x[2], a.x[3], this->x[0], this->x[1], this->x[2], this->x[3] );
+      if ( Aa != Algorithm::Quasi ) this->Normalize();
+    }
+    return *this;
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( tX_real::tx_real<T,Aa> const& a ) {
+    if ( Aa == Algorithm::Accurate ) {
+      QxW::add_QW_TW_QW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], a.x[2], this->x[0], this->x[1], this->x[2], this->x[3] );
+    } else {
+      QxW::add_QQW_QTW_QQW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], a.x[2], this->x[0], this->x[1], this->x[2], this->x[3] );
+      if ( Aa != Algorithm::Quasi ) this->Normalize();
+    }
+    return *this;
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( dX_real::dx_real<T,Aa> const& a ) {
+    if ( Aa == Algorithm::Accurate ) {
+      QxW::add_QW_DW_QW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], this->x[0], this->x[1], this->x[2], this->x[3] );
+    } else {
+      QxW::add_QQW_PA_QQW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], this->x[0], this->x[1], this->x[2], this->x[3] );
+      if ( Aa != Algorithm::Quasi ) this->Normalize();
+    }
+    return *this;
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( T const& a ) {
+    if ( Aa == Algorithm::Accurate ) {
+      QxW::add_QW_SW_QW( this->x[0], this->x[1], this->x[2], this->x[3], a, this->x[0], this->x[1], this->x[2], this->x[3] );
+    } else {
+      QxW::add_QQW_SW_QQW( this->x[0], this->x[1], this->x[2], this->x[3], a, this->x[0], this->x[1], this->x[2], this->x[3] );
+      if ( Aa != Algorithm::Quasi ) this->Normalize();
+    }
+    return *this;
   }
 
 

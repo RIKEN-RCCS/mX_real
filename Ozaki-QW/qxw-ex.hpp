@@ -3,7 +3,29 @@
 //
 namespace QxW {
 
-template < typename T > __always_inline void const add_TW_TW_TW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void const add_TW_SW_TW(T const a1, T const a2, T const a3, T const b1, T &c1, T &c2, T &c3)
+{
+    T e1;
+    TwoSum(a1,b1,c1,e1);
+    TwoSum(a2,e1,c2,e1);
+    TwoSum(c2,e1,c2,e1);
+    c3 = a3 + e1;
+
+    FastTwoSum(c2,c3,c2,c3);
+    FastTwoSum(c1,c2,c1,c2);
+}
+template < typename T > __always_inline void const add_TW_DW_TW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2, T &c3)
+{
+    T e1, e2;
+    TwoSum(a1,b1,c1,e1);
+    TwoSum(a2,b2,c2,e2);
+    TwoSum(c2,e1,c2,e1);
+    c3 = a3 + e2 + e1;
+
+    FastTwoSum(c2,c3,c2,c3);
+    FastTwoSum(c1,c2,c1,c2);
+}
+template < typename T > __always_inline void const add_TW_TW_TW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
 {
     T e1, e2;
     TwoSum(a1,b1,c1,e1);
@@ -15,24 +37,68 @@ template < typename T > __always_inline void const add_TW_TW_TW(T const& a1, T c
     FastTwoSum(c1,c2,c1,c2);
 }
 
-template < typename T > __always_inline void const add_QW_QW_QW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+
+template < typename T > __always_inline void const add_QW_SW_QW(T const a1, T const a2, T const a3, T const a4, T const b1, T &c1, T &c2, T &c3, T &c4)
+{
+      T e2,e4,e6;
+      TwoSum(a1,b1,c1,e2); // 1   e
+      TwoSum(a2,e2,c2,e4); // e   e^2
+      TwoSum(a3,e4,c3,e6); // e^2 e^3
+      c4 = e6 + a4; // e^3
+
+      FastTwoSum(c3,c4,c3,c4);
+      FastTwoSum(c2,c3,c2,c3);
+      FastTwoSum(c1,c2,c1,c2);
+}
+template < typename T > __always_inline void const add_QW_DW_QW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+{
+      T e2,e3,e4,e5,e6;
+      TwoSum(a1,b1,c1,e2); // 1   e
+      TwoSum(a2,b2,e3,e4); // e   e^2
+      TwoSum(a3,e4,e5,e6); // e^2 e^3
+
+      TwoSum(e2,e3,c2,e3); // e   e^2
+      TwoSum(e3,e5,c3,e5); // e^2 e^3
+      c4 = e5 + e6 + a4; // e^3
+
+      FastTwoSum(c3,c4,c3,c4);
+      FastTwoSum(c2,c3,c2,c3);
+      FastTwoSum(c1,c2,c1,c2);
+}
+template < typename T > __always_inline void const add_QW_TW_QW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
 {
       T e2,e3,e4,e5,e6;
       TwoSum(a1,b1,c1,e2); // 1   e
       TwoSum(a2,b2,e3,e4); // e   e^2
       TwoSum(a3,b3,e5,e6); // e^2 e^3
-      e6 = e6 + a4 + b4; // e^3
+
       TwoSum(e2,e3,c2,e3); // e   e^2
       TwoSum(e3,e4,e3,e4); // e^2 e^3
       TwoSum(e3,e5,c3,e5); // e^2 e^3
-      c4 = e4 + e5 + e6; // e^3
+      c4 = e4 + e5 + e6 + a4; // e^3
+
+      FastTwoSum(c3,c4,c3,c4);
+      FastTwoSum(c2,c3,c2,c3);
+      FastTwoSum(c1,c2,c1,c2);
+}
+template < typename T > __always_inline void const add_QW_QW_QW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+{
+      T e2,e3,e4,e5,e6;
+      TwoSum(a1,b1,c1,e2); // 1   e
+      TwoSum(a2,b2,e3,e4); // e   e^2
+      TwoSum(a3,b3,e5,e6); // e^2 e^3
+
+      TwoSum(e2,e3,c2,e3); // e   e^2
+      TwoSum(e3,e4,e3,e4); // e^2 e^3
+      TwoSum(e3,e5,c3,e5); // e^2 e^3
+      c4 = e4 + e5 + e6 + a4 + b4; // e^3
 
       FastTwoSum(c3,c4,c3,c4);
       FastTwoSum(c2,c3,c2,c3);
       FastTwoSum(c1,c2,c1,c2);
 }
 
-template < typename T > __always_inline void const mul_TW_TW_TW(T const& a1, T const& a2, T const& a3, T const& b1, T const& b2, T const& b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void const mul_TW_TW_TW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
 {
       T p00, q00;
       T p01, q01;
@@ -54,7 +120,7 @@ template < typename T > __always_inline void const mul_TW_TW_TW(T const& a1, T c
     FastTwoSum(c1,c2,c1,c2);
 }
 
-template < typename T > __always_inline void const mul_QW_QW_QW(T const& a1, T const& a2, T const& a3, T const& a4, T const& b1, T const& b2, T const& b3, T const& b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void const mul_QW_QW_QW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
 {
       T c5;
       T q10,q11,q12;
