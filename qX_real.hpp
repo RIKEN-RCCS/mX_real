@@ -758,78 +758,83 @@ namespace qX_real {
   }
   //
   template < typename T, Algorithm Aa >
-  INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( qX_real::qx_real<T,Aa> const& a ) {
+  INLINE auto const& operator_add_ow (  qX_real::qx_real<T,Aa>& a, qX_real::qx_real<T,Aa> const& b ) {
     if ( Aa == Algorithm::Accurate ) {
-      QxW::add_QW_QW_QW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], a.x[2], a.x[3], this->x[0], this->x[1], this->x[2], this->x[3] );
+      QxW::add_QW_QW_QW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], b.x[3], a.x[0], a.x[1], a.x[2], a.x[3] );
     } else {
-      QxW::add_QQW_QQW_QQW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], a.x[2], a.x[3], this->x[0], this->x[1], this->x[2], this->x[3] );
-      if ( Aa != Algorithm::Quasi ) this->Normalize();
+      QxW::add_QQW_QQW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], b.x[3], a.x[0], a.x[1], a.x[2], a.x[3] );
+      if ( Aa != Algorithm::Quasi ) Normalize( a );
     }
-    return *this;
+    return a;
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const& operator_add_ow (  qX_real::qx_real<T,Aa>& a, tX_real::tx_real<T,Aa> const& b ) {
+    if ( Aa == Algorithm::Accurate ) {
+      QxW::add_QW_TW_QW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], a.x[0], a.x[1], a.x[2], a.x[3] );
+    } else {
+      QxW::add_QQW_QTW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], a.x[0], a.x[1], a.x[2], a.x[3] );
+      if ( Aa != Algorithm::Quasi ) Normalize( a );
+    }
+    return a;
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const& operator_add_ow (  qX_real::qx_real<T,Aa>& a, dX_real::dx_real<T,Aa> const& b ) {
+    if ( Aa == Algorithm::Accurate ) {
+      QxW::add_QW_DW_QW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], a.x[0], a.x[1], a.x[2], a.x[3] );
+    } else {
+      QxW::add_QQW_PA_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], a.x[0], a.x[1], a.x[2], a.x[3] );
+      if ( Aa != Algorithm::Quasi ) Normalize( a );
+    }
+    return a;
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const& operator_add_ow (  qX_real::qx_real<T,Aa>& a, T const& b ) {
+    if ( Aa == Algorithm::Accurate ) {
+      QxW::add_QW_SW_QW( a.x[0], a.x[1], a.x[2], a.x[3], b, a.x[0], a.x[1], a.x[2], a.x[3] );
+    } else {
+      QxW::add_QQW_SW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b, a.x[0], a.x[1], a.x[2], a.x[3] );
+      if ( Aa != Algorithm::Quasi ) Normalize( a );
+    }
+    return a;
+  }
+  //
+  template < typename T, Algorithm Aa >
+  INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( qX_real::qx_real<T,Aa> const& a ) {
+    return qX_real::operator_add_ow ( *this, a );
   }
   template < typename T, Algorithm Aa >
   INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( tX_real::tx_real<T,Aa> const& a ) {
-    if ( Aa == Algorithm::Accurate ) {
-      QxW::add_QW_TW_QW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], a.x[2], this->x[0], this->x[1], this->x[2], this->x[3] );
-    } else {
-      QxW::add_QQW_QTW_QQW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], a.x[2], this->x[0], this->x[1], this->x[2], this->x[3] );
-      if ( Aa != Algorithm::Quasi ) this->Normalize();
-    }
-    return *this;
+    return qX_real::operator_add_ow ( *this, a );
   }
   template < typename T, Algorithm Aa >
   INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( dX_real::dx_real<T,Aa> const& a ) {
-    if ( Aa == Algorithm::Accurate ) {
-      QxW::add_QW_DW_QW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], this->x[0], this->x[1], this->x[2], this->x[3] );
-    } else {
-      QxW::add_QQW_PA_QQW( this->x[0], this->x[1], this->x[2], this->x[3], a.x[0], a.x[1], this->x[0], this->x[1], this->x[2], this->x[3] );
-      if ( Aa != Algorithm::Quasi ) this->Normalize();
-    }
-    return *this;
+    return qX_real::operator_add_ow ( *this, a );
   }
   template < typename T, Algorithm Aa >
   INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( T const& a ) {
-    if ( Aa == Algorithm::Accurate ) {
-      QxW::add_QW_SW_QW( this->x[0], this->x[1], this->x[2], this->x[3], a, this->x[0], this->x[1], this->x[2], this->x[3] );
-    } else {
-      QxW::add_QQW_SW_QQW( this->x[0], this->x[1], this->x[2], this->x[3], a, this->x[0], this->x[1], this->x[2], this->x[3] );
-      if ( Aa != Algorithm::Quasi ) this->Normalize();
-    }
-    return *this;
+    return qX_real::operator_add_ow ( *this, a );
   }
-  template < typename T, Algorithm Aa, Algorithm Ab,
+  template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
     // ::Accurate += ::Sloppy or ::Quasi are not allowed
     // if neccessary, weite as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
-    typename dummy=std::enable_if_t<Aa!=Ab && Aa!=Algorithm::Accurate, void> >
   INLINE auto const& operator+= ( qX_real::qx_real<T,Aa>& a, qX_real::qx_real<T,Ab> const& b ) {
-    QxW::add_QQW_QQW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], a.x[0], a.x[1], a.x[2] );
-    if ( Aa != Algorithm::Quasi ) Normalize( a );
-    return a;
+    return qX_real::operator_add_ow ( a, b );
   }
-  template < typename T, Algorithm Aa, Algorithm Ab,
+  template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
     // ::Accurate += ::Sloppy or ::Quasi are not allowed
     // if neccessary, weite as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
-    typename dummy=std::enable_if_t<Aa!=Ab && Aa!=Algorithm::Accurate, void> >
   INLINE auto const& operator+= ( qX_real::qx_real<T,Aa>& a, tX_real::tx_real<T,Ab> const& b ) {
-    QxW::add_QQW_QTW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], a.x[0], a.x[1], a.x[2] );
-    if ( Aa != Algorithm::Quasi ) Normalize( a );
-    return a;
+    return qX_real::operator_add_ow ( a, b );
   }
-  template < typename T, Algorithm Aa, Algorithm Ab,
+  template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
     // ::Accurate += ::Sloppy or ::Quasi are not allowed
     // if neccessary, weite as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
-    typename dummy=std::enable_if_t<Aa!=Ab && Aa!=Algorithm::Accurate, void> >
   INLINE auto const& operator+= ( qX_real::qx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
-    QxW::add_QQW_PA_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], a.x[0], a.x[1], a.x[2] );
-    if ( Aa != Algorithm::Quasi ) Normalize( a );
-    return a;
+    return qX_real::operator_add_ow ( a, b );
   }
-  template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts>,
-             typename dummy=std::enable_if_t<std::is_same<T,Ts>::value, void> >
+  template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
   INLINE auto const& operator+= ( qX_real::qx_real<T,Aa>& a, Ts const& b ) {
-    QxW::add_QQW_SW_QQW( a.x[0], a.x[1], a.x[2], T(b), a.x[0], a.x[1], a.x[2] );
-    if ( Aa != Algorithm::Quasi ) Normalize( a );
-    return a;
+    return qX_real::operator_add_ow ( a, T(b) );
   }
 
 

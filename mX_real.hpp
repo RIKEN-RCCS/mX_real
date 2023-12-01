@@ -443,6 +443,9 @@ namespace mX_real {
   // Definition of shortcut structs
   template < Algorithm A >
   using if_A_noQuasi = typename std::enable_if_t<A!=Algorithm::Quasi>;
+  template < Algorithm Aa, Algorithm Ab >
+  using if_A_owAble = typename std::enable_if_t<Aa!=Ab && Aa!=Algorithm::Accurate>;
+  //
   template < typename Ts >
   using if_T_fp = typename std::enable_if_t<fp<Ts>::value>;
   template < typename Ts >
@@ -452,11 +455,13 @@ namespace mX_real {
   template < typename Ts, typename T >
   using if_T_double = typename std::enable_if_t<std::is_same<Ts,double>::value, T>;
 
+
 }
 
 
 // very short MACRON which mush be ib the template parameter definition
 #define IF_A_noQuasi	typename __dummy_A__=if_A_noQuasi
+#define IF_A_owAble	typename __dummy_A__=if_A_owAble
 #define IF_T_fp		typename __dummy_T__=if_T_fp
 #define IF_T_scalar	typename __dummy_T__=if_T_scalar
 
