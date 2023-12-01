@@ -75,7 +75,7 @@ void benchmark( int const& N ) {
     int constexpr STEP_k = (sizeof(a[0]) >= 4*sizeof(float) ? 36 : 72);
 
     int constexpr D_i = 2;
-    int constexpr D_k = 3;
+    int constexpr D_k = 4;
 
 
     #pragma omp parallel

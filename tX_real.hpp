@@ -296,7 +296,7 @@ namespace tX_real {
     INLINE auto const& operator+=  ( TX_REAL<> const& a );
     INLINE auto const& operator+=  ( DX_REAL<> const& a );
     INLINE auto const& operator+=  ( T const& a );
-
+    //
     template < typename _T_ > auto const operator-=  ( _T_ a ) = delete;
     template < typename _T_ > auto const operator*=  ( _T_ a ) = delete;
     template < typename _T_ > auto const operator/=  ( _T_ a ) = delete;
@@ -668,6 +668,31 @@ namespace tX_real {
     }
     return *this;
   }
+  template < typename T, Algorithm Aa, Algorithm Ab,
+    // ::Accurate += ::Sloppy or ::Quasi are not allowed
+    // if neccessary, weite as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
+    typename dummy=std::enable_if_t<Aa!=Ab && Aa!=Algorithm::Accurate, void> >
+  INLINE auto const& operator+= ( tX_real::tx_real<T,Aa>& a, tX_real::tx_real<T,Ab> const& b ) {
+    QxW::add_QTW_QTW_QTW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], a.x[0], a.x[1], a.x[2] );
+    if ( Aa != Algorithm::Quasi ) Normalize( a );
+    return a;
+  }
+  template < typename T, Algorithm Aa, Algorithm Ab,
+    // ::Accurate += ::Sloppy or ::Quasi are not allowed
+    // if neccessary, weite as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
+    typename dummy=std::enable_if_t<Aa!=Ab && Aa!=Algorithm::Accurate, void> >
+  INLINE auto const& operator+= ( tX_real::tx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
+    QxW::add_QTW_PA_QTW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], a.x[0], a.x[1], a.x[2] );
+    if ( Aa != Algorithm::Quasi ) Normalize( a );
+    return a;
+  }
+  template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts>,
+             typename dummy=std::enable_if_t<std::is_same<T,Ts>::value, void> >
+  INLINE auto const& operator+= ( tX_real::tx_real<T,Aa>& a, Ts const& b ) {
+    QxW::add_QTW_SW_QTW( a.x[0], a.x[1], a.x[2], T(b), a.x[0], a.x[1], a.x[2] );
+    if ( Aa != Algorithm::Quasi ) Normalize( a );
+    return a;
+  }
 
 
   //
@@ -692,6 +717,19 @@ namespace tX_real {
   template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
   INLINE auto const operator- ( tX_real::tx_real<T,Aa> const& a, Ts const& b ) {
     return a + (-b);
+  }
+  //
+  template < typename T, Algorithm Aa, Algorithm Ab >
+  INLINE auto const& operator-= ( tX_real::tx_real<T,Aa>& a, tX_real::tx_real<T,Ab> const& b ) {
+    return a += (-b);
+  }
+  template < typename T, Algorithm Aa, Algorithm Ab >
+  INLINE auto const& operator-= ( tX_real::tx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
+    return a += (-b);
+  }
+  template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
+  INLINE auto const& operator-= ( tX_real::tx_real<T,Aa>& a, Ts const& b ) {
+    return a += (-b);
   }
 
 

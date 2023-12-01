@@ -302,8 +302,8 @@ namespace dX_real {
     //
     INLINE auto const& operator+=  ( DX_REAL<> const& a );
     INLINE auto const& operator+=  ( T const& a );
-
-    //template < typename _T_ > auto const operator-=  ( _T_ a ) = delete;
+    //
+    template < typename _T_ > auto const operator-=  ( _T_ a ) = delete;
     template < typename _T_ > auto const operator*=  ( _T_ a ) = delete;
     template < typename _T_ > auto const operator/=  ( _T_ a ) = delete;
 
@@ -597,7 +597,7 @@ namespace dX_real {
   }
   template < typename T, Algorithm Aa, Algorithm Ab,
     // ::Accurate += ::Sloppy or ::Quasi are not allowed
-    // if neccessary, cast b to ::Accurate once and then do '+='.
+    // if neccessary, weite as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
     typename dummy=std::enable_if_t<Aa!=Ab && Aa!=Algorithm::Accurate, void> >
   INLINE auto const& operator+= ( dX_real::dx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
     QxW::add_PA_PA_PA( a.x[0], a.x[1], b.x[0], b.x[1], a.x[0], a.x[1] );
@@ -607,7 +607,9 @@ namespace dX_real {
   template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts>,
              typename dummy=std::enable_if_t<std::is_same<T,Ts>::value, void> >
   INLINE auto const& operator+= ( dX_real::dx_real<T,Aa>& a, Ts const& b ) {
-    return a.operator+= ( T(b) );
+    QxW::add_PA_SW_PA( a.x[0], a.x[1], T(b), a.x[0], a.x[1] );
+    if ( Aa != Algorithm::Quasi ) Normalize( a );
+    return a;
   }
 
 
@@ -626,6 +628,7 @@ namespace dX_real {
   INLINE auto const operator- ( dX_real::dx_real<T,Aa> const& a, Ts const& b ) {
     return a + (-b);
   }
+  //
   template < typename T, Algorithm Aa, Algorithm Ab >
   INLINE auto const& operator-= ( dX_real::dx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
     return a += (-b);
@@ -634,6 +637,7 @@ namespace dX_real {
   INLINE auto const& operator-= ( dX_real::dx_real<T,Aa>& a, Ts const& b ) {
     return a += (-b);
   }
+   
 
   //
   // Multiplication
