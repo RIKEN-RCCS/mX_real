@@ -296,12 +296,6 @@ namespace qX_real {
     template < typename _T_ > auto const operator[]  ( _T_ a ) = delete;
 
     //
-    INLINE auto const& operator+=  ( QX_REAL<> const& a );
-    INLINE auto const& operator+=  ( TX_REAL<> const& a );
-    INLINE auto const& operator+=  ( DX_REAL<> const& a );
-    INLINE auto const& operator+=  ( T const& a );
-    //
-    template < typename _T_ > auto const operator-=  ( _T_ a ) = delete;
     template < typename _T_ > auto const operator*=  ( _T_ a ) = delete;
     template < typename _T_ > auto const operator/=  ( _T_ a ) = delete;
 
@@ -798,37 +792,21 @@ namespace qX_real {
     return a;
   }
   //
-  template < typename T, Algorithm Aa >
-  INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( qX_real::qx_real<T,Aa> const& a ) {
-    return qX_real::operator_add_ow ( *this, a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( tX_real::tx_real<T,Aa> const& a ) {
-    return qX_real::operator_add_ow ( *this, a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( dX_real::dx_real<T,Aa> const& a ) {
-    return qX_real::operator_add_ow ( *this, a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE auto const& qX_real::qx_real<T,Aa>::operator+= ( T const& a ) {
-    return qX_real::operator_add_ow ( *this, a );
-  }
   template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
     // ::Accurate += ::Sloppy or ::Quasi are not allowed
-    // if neccessary, weite as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
+    // if neccessary, write as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
   INLINE auto const& operator+= ( qX_real::qx_real<T,Aa>& a, qX_real::qx_real<T,Ab> const& b ) {
     return qX_real::operator_add_ow ( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
     // ::Accurate += ::Sloppy or ::Quasi are not allowed
-    // if neccessary, weite as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
+    // if neccessary, write as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
   INLINE auto const& operator+= ( qX_real::qx_real<T,Aa>& a, tX_real::tx_real<T,Ab> const& b ) {
     return qX_real::operator_add_ow ( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
     // ::Accurate += ::Sloppy or ::Quasi are not allowed
-    // if neccessary, weite as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
+    // if neccessary, write as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
   INLINE auto const& operator+= ( qX_real::qx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
     return qX_real::operator_add_ow ( a, b );
   }
@@ -868,6 +846,23 @@ namespace qX_real {
   template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
   INLINE auto const operator- ( qX_real::qx_real<T,Aa> const& a, Ts const& b ) {
     return a + (-b);
+  }
+  //
+  template < typename T, Algorithm Aa, Algorithm Ab >
+  INLINE auto const& operator-= ( qX_real::qx_real<T,Aa>& a, qX_real::qx_real<T,Ab> const& b ) {
+    return a += (-b);
+  }
+  template < typename T, Algorithm Aa, Algorithm Ab >
+  INLINE auto const& operator-= ( qX_real::qx_real<T,Aa>& a, tX_real::tx_real<T,Ab> const& b ) {
+    return a += (-b);
+  }
+  template < typename T, Algorithm Aa, Algorithm Ab >
+  INLINE auto const& operator-= ( qX_real::qx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
+    return a += (-b);
+  }
+  template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
+  INLINE auto const& operator-= ( qX_real::qx_real<T,Aa>& a, Ts const& b ) {
+    return a += (-b);
   }
 
 
@@ -1023,23 +1018,7 @@ namespace qX_real {
   INLINE auto const operator* ( qX_real::qx_real<T,Aa> const& a, Ts const& b ) {
     return b * a;
   }
-  //
-  template < typename T, Algorithm Aa, Algorithm Ab >
-  INLINE auto const& operator-= ( qX_real::qx_real<T,Aa>& a, qX_real::qx_real<T,Ab> const& b ) {
-    return a += (-b);
-  }
-  template < typename T, Algorithm Aa, Algorithm Ab >
-  INLINE auto const& operator-= ( qX_real::qx_real<T,Aa>& a, tX_real::tx_real<T,Ab> const& b ) {
-    return a += (-b);
-  }
-  template < typename T, Algorithm Aa, Algorithm Ab >
-  INLINE auto const& operator-= ( qX_real::qx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
-    return a += (-b);
-  }
-  template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
-  INLINE auto const& operator-= ( qX_real::qx_real<T,Aa>& a, Ts const& b ) {
-    return a += (-b);
-  }
+
 
   //
   // Division

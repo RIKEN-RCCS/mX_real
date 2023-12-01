@@ -444,7 +444,8 @@ namespace mX_real {
   template < Algorithm A >
   using if_A_noQuasi = typename std::enable_if_t<A!=Algorithm::Quasi>;
   template < Algorithm Aa, Algorithm Ab >
-  using if_A_owAble = typename std::enable_if_t<Aa!=Ab && Aa!=Algorithm::Accurate>;
+  using if_A_owAble = typename std::enable_if_t<Aa==Ab || Aa!=Algorithm::Accurate>;
+//  using if_A_owAble = typename std::enable_if_t<Aa!=Ab && Aa!=Algorithm::Accurate>;
   //
   template < typename Ts >
   using if_T_fp = typename std::enable_if_t<fp<Ts>::value>;

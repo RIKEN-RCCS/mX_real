@@ -19,6 +19,13 @@ struct FLOAT {
   INLINE auto const operator+( FLOAT const& a ) { return x + a.x; }
   INLINE auto const operator*( FLOAT const& a ) { return x * a.x; }
   INLINE auto const& operator+=( FLOAT const& a ) { return (x += a.x); }
+  INLINE auto const& operator+=( float const& a ) { return (x += a); }
+  INLINE auto const& operator+=( double const& a ) { return (x += a); }
+  INLINE auto const& operator+=( int const& a ) { return (x += a); }
+  INLINE auto const& operator-=( FLOAT const& a ) { return (x -= a.x); }
+  INLINE auto const& operator-=( float const& a ) { return (x -= a); }
+  INLINE auto const& operator-=( double const& a ) { return (x -= a); }
+  INLINE auto const& operator-=( int const& a ) { return (x -= a); }
 };
 
 struct DOUBLE {
@@ -39,6 +46,13 @@ struct DOUBLE {
   INLINE auto const operator+( DOUBLE const& a ) { return x + a.x; }
   INLINE auto const operator*( DOUBLE const& a ) { return x * a.x; }
   INLINE auto const& operator+=( DOUBLE const& a ) { return (x += a.x); }
+  INLINE auto const& operator+=( float const& a ) { return (x += a); }
+  INLINE auto const& operator+=( double const& a ) { return (x += a); }
+  INLINE auto const& operator+=( int const& a ) { return (x += a); }
+  INLINE auto const& operator-=( DOUBLE const& a ) { return (x -= a.x); }
+  INLINE auto const& operator-=( float const& a ) { return (x -= a); }
+  INLINE auto const& operator-=( double const& a ) { return (x -= a); }
+  INLINE auto const& operator-=( int const& a ) { return (x -= a); }
 };
 
 template < typename REAL >
@@ -92,6 +106,8 @@ void benchmark( int const& N ) {
       #pragma ivdep
       for(int j=j_; j<Nj_; j++) {
         C[i-i_][j-j_] = c[j+i*N];
+        C[i-i_][j-j_] += 0;
+        C[i-i_][j-j_] -= 0.;
       }}
 #if 0
       for(int i=i_; i<Ni_; i++) {
