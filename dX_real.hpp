@@ -300,7 +300,6 @@ namespace dX_real {
     template < typename _T_ > auto const operator[]  ( _T_ a ) = delete;
 
     //
-    template < typename _T_ > auto const operator*=  ( _T_ a ) = delete;
     template < typename _T_ > auto const operator/=  ( _T_ a ) = delete;
 
 
@@ -677,6 +676,38 @@ namespace dX_real {
   template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
   INLINE auto const operator* ( dX_real::dx_real<T,Aa> const& a, Ts const& b ) {
     return b * a;
+  }
+  //
+  template < typename T, Algorithm Aa, Algorithm Ab >
+  INLINE auto const& operator_mul_ow ( dX_real::dx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
+    if ( Aa == Algorithm::Accurate ) {
+      QxW::mul_DW_DW_DW( a.x[0], a.x[1], b.x[0], b.x[1], a.x[0], a.x[1] );
+    } else {
+      QxW::mul_PA_PA_PA( a.x[0], a.x[1], b.x[0], b.x[1], a.x[0], a.x[1] );
+      if ( Aa != Algorithm::Quasi ) Normalize( a );
+    }
+    return a;
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const& operator_mul_ow ( dX_real::dx_real<T,Aa>& a, T const& b ) {
+    if ( Aa == Algorithm::Accurate ) {
+      QxW::mul_DW_SW_DW( a.x[0], a.x[1], b, a.x[0], a.x[1] );
+    } else {
+      QxW::mul_PA_SW_PA( a.x[0], a.x[1], b, a.x[0], a.x[1] );
+      if ( Aa != Algorithm::Quasi ) Normalize( a );
+    }
+    return a;
+  }
+  //
+  template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
+    // ::Accurate += ::Sloppy or ::Quasi are not allowed
+    // if neccessary, write as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
+  INLINE auto const& operator*= ( dX_real::dx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
+    return dX_real::operator_mul_ow ( a, b );;
+  }
+  template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
+  INLINE auto const& operator*= ( dX_real::dx_real<T,Aa>& a, Ts const& b ) {
+    return dX_real::operator_mul_ow ( a, T(b) );;
   }
 
 

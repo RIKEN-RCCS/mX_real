@@ -17,15 +17,17 @@ struct FLOAT {
     return c;
   }
   INLINE auto const operator+( FLOAT const& a ) { return x + a.x; }
+  INLINE auto const operator-( FLOAT const& a ) { return x - a.x; }
   INLINE auto const operator*( FLOAT const& a ) { return x * a.x; }
   INLINE auto const& operator+=( FLOAT const& a ) { return (x += a.x); }
-  INLINE auto const& operator+=( float const& a ) { return (x += a); }
-  INLINE auto const& operator+=( double const& a ) { return (x += a); }
-  INLINE auto const& operator+=( int const& a ) { return (x += a); }
   INLINE auto const& operator-=( FLOAT const& a ) { return (x -= a.x); }
-  INLINE auto const& operator-=( float const& a ) { return (x -= a); }
-  INLINE auto const& operator-=( double const& a ) { return (x -= a); }
-  INLINE auto const& operator-=( int const& a ) { return (x -= a); }
+  INLINE auto const& operator*=( FLOAT const& a ) { return (x *= a.x); }
+  template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
+  INLINE auto const& operator+=( T const& a ) { return (x += a); }
+  template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
+  INLINE auto const& operator-=( T const& a ) { return (x -= a); }
+  template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
+  INLINE auto const& operator*=( T const& a ) { return (x *= a); }
 };
 
 struct DOUBLE {
@@ -44,15 +46,17 @@ struct DOUBLE {
     return c + e;
   }
   INLINE auto const operator+( DOUBLE const& a ) { return x + a.x; }
+  INLINE auto const operator-( DOUBLE const& a ) { return x - a.x; }
   INLINE auto const operator*( DOUBLE const& a ) { return x * a.x; }
   INLINE auto const& operator+=( DOUBLE const& a ) { return (x += a.x); }
-  INLINE auto const& operator+=( float const& a ) { return (x += a); }
-  INLINE auto const& operator+=( double const& a ) { return (x += a); }
-  INLINE auto const& operator+=( int const& a ) { return (x += a); }
   INLINE auto const& operator-=( DOUBLE const& a ) { return (x -= a.x); }
-  INLINE auto const& operator-=( float const& a ) { return (x -= a); }
-  INLINE auto const& operator-=( double const& a ) { return (x -= a); }
-  INLINE auto const& operator-=( int const& a ) { return (x -= a); }
+  INLINE auto const& operator*=( DOUBLE const& a ) { return (x *= a.x); }
+  template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
+  INLINE auto const& operator+=( T const& a ) { return (x += a); }
+  template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
+  INLINE auto const& operator-=( T const& a ) { return (x -= a); }
+  template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
+  INLINE auto const& operator*=( T const& a ) { return (x *= a); }
 };
 
 template < typename REAL >
@@ -106,14 +110,12 @@ void benchmark( int const& N ) {
       #pragma ivdep
       for(int j=j_; j<Nj_; j++) {
         C[i-i_][j-j_] = c[j+i*N];
-        C[i-i_][j-j_] += 0;
-        C[i-i_][j-j_] -= 0.;
       }}
 #if 0
       for(int i=i_; i<Ni_; i++) {
       #pragma vector
       for(int j=j_; j<Nj_; j++) {
-        C[i-i_][j-j_] = beta * C[i-i_][j-j_];
+        C[i-i_][j-j_] *= beta;
       }}
 #endif
     for(int k_=0; k_<N; k_+=STEP_k) {
@@ -136,8 +138,8 @@ if ( D_k==4 ) {
       for(int i=i_; i<Ni__; i+=D_i) {
         if ( k_==0 ) {
         for(int j=j_; j<Nj_; j++) {
-          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
-          C[i-i_+1][j-j_] = beta * C[i-i_+1][j-j_];
+          C[i-i_+0][j-j_] *= beta;
+          C[i-i_+1][j-j_] *= beta;
 	}}
         auto const s00 = alpha * b[(k+0)+(i+0)*N];
         auto const s10 = alpha * b[(k+1)+(i+0)*N];
@@ -198,8 +200,8 @@ if ( D_k==3 ) {
       for(int i=i_; i<Ni__; i+=D_i) {
         if ( k_==0 ) {
         for(int j=j_; j<Nj_; j++) {
-          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
-          C[i-i_+1][j-j_] = beta * C[i-i_+1][j-j_];
+          C[i-i_+0][j-j_] *= beta;
+          C[i-i_+1][j-j_] *= beta;
 	}}
         auto const s00 = alpha * b[(k+0)+(i+0)*N];
         auto const s10 = alpha * b[(k+1)+(i+0)*N];
@@ -228,7 +230,7 @@ if ( D_k==3 ) {
       for(int i=Ni__; i<Ni_; i++) {
         if ( k_==0 ) {
         for(int j=j_; j<Nj_; j++) {
-          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+          C[i-i_+0][j-j_] *= beta;
 	}}
         auto const s00 = alpha * b[(k+0)+i*N];
         auto const s10 = alpha * b[(k+1)+i*N];
@@ -252,8 +254,8 @@ if ( D_k==2 ) {
       for(int i=i_; i<Ni__; i+=D_i) {
         if ( k_==0 ) {
         for(int j=j_; j<Nj_; j++) {
-          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
-          C[i-i_+1][j-j_] = beta * C[i-i_+1][j-j_];
+          C[i-i_+0][j-j_] *= beta;
+          C[i-i_+1][j-j_] *= beta;
 	}}
         auto const s00 = alpha * b[(k+0)+(i+0)*N];
         auto const s10 = alpha * b[(k+1)+(i+0)*N];
@@ -277,7 +279,7 @@ if ( D_k==2 ) {
       for(int i=Ni__; i<Ni_; i++) {
         if ( k_==0 ) {
         for(int j=j_; j<Nj_; j++) {
-          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+          C[i-i_+0][j-j_] *= beta;
 	}}
         auto const s00 = alpha * b[(k+0)+i*N];
         auto const s10 = alpha * b[(k+1)+i*N];
@@ -298,8 +300,8 @@ if ( D_k==1 ) {
       for(int i=i_; i<Ni__; i+=D_i) {
         if ( k_==0 ) {
         for(int j=j_; j<Nj_; j++) {
-          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
-          C[i-i_+1][j-j_] = beta * C[i-i_+1][j-j_];
+          C[i-i_+0][j-j_] *= beta;
+          C[i-i_+1][j-j_] *= beta;
 	}}
         auto const s00 = alpha * b[(k+0)+(i+0)*N];
         auto const s01 = alpha * b[(k+0)+(i+1)*N];
@@ -318,7 +320,7 @@ if ( D_k==1 ) {
       for(int i=Ni__; i<Ni_; i++) {
         if ( k_==0 ) {
         for(int j=j_; j<Nj_; j++) {
-          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+          C[i-i_+0][j-j_] *= beta;
 	}}
         auto const s00 = alpha * b[(k+0)+i*N];
         for(int j=j_; j<Nj_; j++) {
@@ -336,8 +338,8 @@ if ( D_k!=1 ) {
       for(int i=i_; i<Ni__; i+=D_i) {
         if ( k_==0 ) {
         for(int j=j_; j<Nj_; j++) {
-          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
-          C[i-i_+1][j-j_] = beta * C[i-i_+1][j-j_];
+          C[i-i_+0][j-j_] *= beta;
+          C[i-i_+1][j-j_] *= beta;
 	}}
         auto const s00 = alpha * b[(k+0)+(i+0)*N];
         auto const s01 = alpha * b[(k+0)+(i+1)*N];
@@ -356,7 +358,7 @@ if ( D_k!=1 ) {
       for(int i=Ni__; i<Ni_; i++) {
         if ( k_==0 ) {
         for(int j=j_; j<Nj_; j++) {
-          C[i-i_+0][j-j_] = beta * C[i-i_+0][j-j_];
+          C[i-i_+0][j-j_] *= beta;
 	}}
         auto const s00 = alpha * b[(k+0)+(i+0)*N];
         for(int j=j_; j<Nj_; j++) {
