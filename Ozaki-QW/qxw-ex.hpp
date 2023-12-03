@@ -27,12 +27,21 @@ template < typename T > __always_inline void const add_TW_DW_TW(T const a1, T co
 }
 template < typename T > __always_inline void const add_TW_TW_TW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
 {
-    T e1, e2;
+    T e1, e2, e3, e4;
     TwoSum(a1,b1,c1,e1);
     TwoSum(a2,b2,c2,e2);
     TwoSum(c2,e1,c2,e1);
-    c3 = a3 + b3 + e2 + e1;
+    FastTwoSum(c1,c2,c1,c2);
 
+    TwoSum(a3,b3,c3,e3);
+    TwoSum(c3,e1,c3,e1);
+    TwoSum(c3,e2,c3,e2);
+    TwoSum(c3,e3,c3,e3);
+    FastTwoSum(c2,c3,c2,c3);
+    FastTwoSum(c1,c2,c1,c2);
+
+    e4 = e1 + e2 + e3;
+    c3 = c3 + e4;
     FastTwoSum(c2,c3,c2,c3);
     FastTwoSum(c1,c2,c1,c2);
 }
@@ -100,24 +109,65 @@ template < typename T > __always_inline void const add_QW_QW_QW(T const a1, T co
 
 template < typename T > __always_inline void const mul_TW_TW_TW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
 {
-      T p00, q00;
-      T p01, q01;
-      T p10, q10;
-      TwoProductFMA( a1, b1, p00, q00 ); // 1. e
-      TwoProductFMA( a1, b2, p01, q01 ); // e, e^2
-      TwoProductFMA( a2, b1, p10, q10 ); // e, e^2
+#if 0
+    T e1, e2, e3, e4, e5;
+    T t2, t3;
 
-      c1 = p00;
-      TwoSum( q00, p01, q00, p01 );
-      TwoSum( q00, p10, c2, p10 );
+      TwoProductFMA( a1, b1, c1, e1 ); // 1. e
+      TwoProductFMA( a1, b2, t2, e2 ); // e, e^2
+      TwoProductFMA( a2, b1, t3, e3 ); // e, e^2
 
-      c3 = p01
-           + std::fma( a2, b2, p10 ) // e^2+e^2 -> e^2
-           + std::fma( a1, b3, q01 ) // e^2+e^2 -> e^2
-           + std::fma( a3, b1, q10 ); // e^2+e^2 -> e^2
+      TwoSum( t2, t3, c2, e4 ); // e, e^2
+      TwoSum( c2, e1, c2, e5 ); // e, e^2
+
+      c3 =
+             std::fma( a3, b1, e2 ) // e^2+e^2 -> e^2
+           + std::fma( a2, b2, e3 ) // e^2+e^2 -> e^2
+           + std::fma( a1, b3, e4 ) // e^2+e^2 -> e^2
+	   + e5;
 
     FastTwoSum(c2,c3,c2,c3);
     FastTwoSum(c1,c2,c1,c2);
+#else
+    T z1, z2, z3;
+    T f1, f2, f3;
+    T e1, e2, e3;
+    T t1, t2, t3;
+
+      TwoProductFMA( a3, b1, z1, f1 );	// e^2. e^3 | {z1}, {f1}
+      TwoProductFMA( a2, b2, z2, f2 );	// e^2, e^3 | {z1,z2}, {f1,f2}
+      TwoProductFMA( a1, b3, z3, f3 );	// e^2, e^3 | {z1,z2,z3}, {f1,f2,f3}
+
+      TwoProductFMA( a1, b2, t1, e1 );	// e^1, e^2 | {t1}, {z1,z2,z3, e1}, {f1,f2,f3}
+      TwoProductFMA( a2, b1, t2, e2 );	// e^1, e^2 | {t1,t2}, {z1,z2,z3, e1,e2}, {f1,f2,f3}
+
+      TwoProductFMA( a1, b1, c1, t3 );	// e^0, e^1 | c1 | {}, {t1,t2,t3}, {z1,z2,z3, e1,e2}, {f1,f2,f3}
+
+      TwoSum( z2, z1, z2, z1 );		// e^2, e^3 | c1 | {}, {t1,t2,t3}, {z2,z3, e1,e2}, {f1,f2,f3, z1}
+      TwoSum( z3, z2, c3, z2 );		// e^2, e^3 | c1, c3 | {}, {t1,t2,t3}, {e1,e2}, {f1,f2,f3, z1,z2}
+      TwoSum( e1, e2, e1, e2 );		// e^2, e^3 | c1, c3 | {}, {t1,t2,t3}, {e1}, {f1,f2,f3, z1,z2, e2}
+      TwoSum( c3, e1, c3, e1 );		// e^2, e^3 | c1, c3 | {}, {t1,t2,t3}, {}, {f1,f2,f3, z1,z2, e1,e2}
+
+      TwoSum( t2, t1, t2, t1 );		// e^1, e^2 | c1, c3 | {}, {t2,t3}, {t1}, {f1,f2,f3, z1,z2, e1,e2}
+      TwoSum( t3, t2, c2, t2 );		// e^1, e^2 | c1, c2, c3 | {}, {}, {t1, t2}, {f1,f2,f3, z1,z2, e1,e2}
+
+    FastTwoSum(c1,c2,c1,c2);
+
+      TwoSum( t2, t1, t2, t1 );		// e^2, e^3 | c1, c2, c3 | {}, {}, {t2}, {f1,f2,f3, z1,z2, e1,e2, t1}
+      TwoSum( c3, t2, c3, t2 );		// e^2, e^3 | c1, c2, c3 | {}, {}, {}, {f1,f2,f3, z1,z2, e1,e2, t1,t2}
+
+    FastTwoSum(c2,c3,c2,c3);
+    FastTwoSum(c1,c2,c1,c2);
+
+      e1 = std::fma( a3, b3, z1 + z2 + e1 + e2 + t1 + t2 );
+      f1 = std::fma( a3, b2, f1 ) + std::fma( a2, b3, f2 ) + f3;
+      c3 += e1 + f1;
+
+    FastTwoSum(c2,c3,c2,c3);
+    FastTwoSum(c1,c2,c1,c2);
+
+#endif
+
 }
 
 template < typename T > __always_inline void const mul_QW_QW_QW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
