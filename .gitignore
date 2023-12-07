@@ -9,3 +9,4 @@ mpreal
 sample.s-*
 *.tmp
 *.swp
+*.awk

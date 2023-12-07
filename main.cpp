@@ -272,13 +272,13 @@ main(int argc, char *argv[])
    auto cx = df_Real( cp ) + df_Real( cn );
    print( "Acc cx = Acc(cp) + Acc(cn)", cx );
 }
-{
-   std::srand(1); print( "rand", df_Real::rand() );
-   std::srand(1); print( "rand", tf_Real::rand() );
-   std::srand(1); print( "rand", qf_Real::rand() );
-   std::srand(1); print( "rand", dd_Real::rand() );
-   std::srand(1); print( "rand", td_Real::rand() );
-   std::srand(1); print( "rand", qd_Real::rand() );
+for(int i=1;i<3;i++){
+   std::srand(i); print( "rand", df_Real::rand() );
+   std::srand(i); print( "rand", tf_Real::rand() );
+   std::srand(i); print( "rand", qf_Real::rand() );
+   std::srand(i); print( "rand", dd_Real::rand() );
+   std::srand(i); print( "rand", td_Real::rand() );
+   std::srand(i); print( "rand", qd_Real::rand() );
 }
 {
    print( "eps", std::numeric_limits<double>::epsilon() );
