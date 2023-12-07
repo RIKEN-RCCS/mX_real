@@ -10,3 +10,4 @@ sample.s-*
 *.tmp
 *.swp
 *.awk
+mm.cpp
