@@ -10,4 +10,5 @@ sample.s-*
 *.tmp
 *.swp
 *.awk
+*.py
 mm.cpp

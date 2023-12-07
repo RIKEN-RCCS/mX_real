@@ -220,7 +220,7 @@ mul_PA_PA_PA ( T const a1, T const a2, T const b1, T const b2, T & c1, T & c2 )
   TwoSum( c2, t4, c2, t4 ); // t4 as well
   FastTwoSum( c1, c2, c1, c2 ); // c2 is symmetric wrt a and b ?
 
-  c2 = c2 + (t3 + t5); // large delta
+  c2 = c2 + (t3 + t5); // larger delta
   FastTwoSum( c1, c2, c1, c2 );
 
   c2 = c2 + (t1 + t4); // small delta
