@@ -900,7 +900,8 @@ namespace dX_real {
     using TX = dX_real::dx_real<T,Aa>;
     TX c;
     if ( Aa == Algorithm::Accurate ) {
-      QxW::sqrt_SW_DW( a, c.x[0], c.x[1] );
+      T z = fp<T>::zero;
+      QxW::sqrt_DW_DW( a, z, c.x[0], c.x[1] );
     } else {
       QxW::sqrt_SW_PA( a, c.x[0], c.x[1] );
       if ( Aa != Algorithm::Quasi ) { Normalize( c ); }

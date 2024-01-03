@@ -1,2713 +1,7555 @@
 #ifndef QXW_H
 #define QXW_H
 
-// This prototype code was written 
-// by Katsuhisa Ozaki (Shibaura Institute of Technology)
-// Debug is not sufficiently done, so please use it carefully and 
-// not spread it. 
 
-// C++-fied version 2023.11.2 (converted from Ozaki's code)
+//
+// C++-fied version 2023.12.26 (refered to Ozaki's code)
+//
+// This C++ code was automatically generated
+// referering to the idea by Katsuhisa Ozaki (Shibaura Institute of Technology)
+// Debug is not sufficiently done, so please use it carefully and
+//
 // by Toshiyuki Imamura (RIKEN, R-CCS)
+//
 
 
 #include <stdio.h>
 #include <math.h>
 
+
 namespace QxW {
 
+// ------------------------
+// Constants
+// ------------------------
 
 template < typename T > struct fp_const {};
 template <> struct fp_const<float> {
   static inline auto constexpr zero() { return 0.0f; }
   static inline auto constexpr one()  { return 1.0f; }
+  static inline auto constexpr two()  { return 2.0f; }
   static inline auto constexpr half() { return 0.5f; }
+
+  static uint32_t constexpr MASK = 0x7f800000;
+  static uint32_t constexpr RINF = 0x7f000000;
+
+  template < bool inverse = false >
+  static inline auto exponent( float const a ) {
+    if ( a == zero() ) return one();
+    uint32_t e = *(uint32_t *)&a;
+    e &= MASK;
+    if ( e == MASK ) return one();
+    if ( inverse ) e = RINF - e;
+    return *(float *)&e;
+  }
+  static inline auto exponenti( float const a ) {
+    return exponent<true>( a );
+  }
 };
 template <> struct fp_const<double> {
   static inline auto constexpr zero() { return 0.0; }
   static inline auto constexpr one()  { return 1.0; }
+  static inline auto constexpr two()  { return 2.0; }
   static inline auto constexpr half() { return 0.5; }
-};
 
+  static uint64_t constexpr MASK = 0x7ff0000000000000;
+  static uint64_t constexpr RINF = 0x7fe0000000000000;
+
+  template < bool inverse = false >
+  static inline auto exponent( double const a ) {
+    if ( a == zero() ) return one();
+    uint64_t e = *(uint64_t *)&a;
+    e &= MASK;
+    if ( e == MASK ) return one();
+    if ( inverse ) e = RINF - e;
+    return *(double *)&e;
+  }
+  static inline auto exponenti( double const a ) {
+    return exponent<true>( a );
+  }
+};
 
 
 // ------------------------
 // Basic Part
 // ------------------------
 
-template < typename T > __always_inline void TwoSum(T const a, T const b, T &x, T &y)
+template < typename T > __always_inline void
+TwoSum ( T const a, T const b, T &x, T &y )
 {
-    T z;
-    x = a + b;
-    z = x - a;
-    y = (a - (x - z)) + (b - z);
+  T z;
+  x = a + b;
+  z = x - a;
+  y = (a - (x - z)) + (b - z);
 }
 
-template < typename T > __always_inline void FastTwoSum(T const a, T const b, T &x, T &y)
+template < typename T > __always_inline void
+FastTwoSum ( T const a, T const b, T &x, T &y )
 {
-    x = a + b;
-    y = (a - x) + b;
+  x = a + b;
+  y = (a - x) + b;
 }
 
-template < typename T > __always_inline void TwoProductFMA(T const a, T const b, T &x, T &y)
+template < typename T > __always_inline void
+TwoProductFMA ( T const a, T const b, T &x, T &y )
 {
-    x = a * b;
-    y = std::fma(a, b, -x);
+  x = a * b;
+  y = std::fma(a, b, -x);
 }
 
-// ------------------------------
-// Addition
-// ------------------------------
+// add: 1-1-1
+template < typename T > __always_inline void
+add_SW_SW_SW ( T const a0, T const b0, T & c0 )
+{
+  c0 = a0 + b0;
+}
 
 // add: 1-1-2
-template < typename T > __always_inline void add_SW_SW_PA(T const a, T const b, T &ch, T &cl)
+template < typename T > __always_inline void
+add_SW_SW_PA ( T const a0, T const b0, T & c0, T & c1 )
 {
-    TwoSum(a, b, ch, cl);
+  TwoSum( a0, b0, c0, c1 );
 }
 
 // add: 1-1-3
-template < typename T > __always_inline void add_SW_SW_QTW(T const a, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_SW_SW_QTW ( T const a0, T const b0, T & c0, T & c1, T & c2 )
 {
-    TwoSum(a, b, c1, c2);
-    c3 = fp_const<T>::zero();
+  TwoSum( a0, b0, c0, c1 );
+  c2 = fp_const<T>::zero();
 }
 
 // add: 1-1-4
-template < typename T > __always_inline void add_SW_SW_QQW(T const a, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_SW_SW_QQW ( T const a0, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    TwoSum(a, b, c1, c2);
-    c3 = fp_const<T>::zero();
-    c4 = fp_const<T>::zero();
+  TwoSum( a0, b0, c0, c1 );
+  c2 = fp_const<T>::zero();
+  c3 = fp_const<T>::zero();
 }
 
 // add: 1-2-1
-template < typename T > __always_inline void add_SW_PA_SW(T const ah, T const bh, T const bl, T &c)
+template < typename T > __always_inline void
+add_SW_PA_SW ( T const a0, T const b0, T const b1, T & c0 )
 {
-    c = ah + bh + bl;
+  T t0;
+  t0 = a0 + b0;
+  c0 = t0 + b1;
 }
 
 // add: 1-2-2
-template < typename T > __always_inline void add_SW_PA_PA(T const a, T const bh, T const bl, T &ch, T &cl)
+template < typename T > __always_inline void
+add_SW_PA_PA ( T const a0, T const b0, T const b1, T & c0, T & c1 )
 {
-    T t;
-    TwoSum(a, bh, ch, t);
-    cl = bl + t;
+  TwoSum( a0, b0, c0, c1 );
+  c1 = c1 + b1;
 }
 
 // add: 1-2-3
-template < typename T > __always_inline void add_SW_PA_QTW(T const a, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_SW_PA_QTW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    T e1;
-    TwoSum(a, b1, c1, e1);
-    TwoSum(b2, e1, c2, c3);
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, c2 );
 }
 
 // add: 1-2-4
-template < typename T > __always_inline void add_SW_PA_QQW(T const a, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_SW_PA_QQW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1;
-    TwoSum(a, b1, c1, e1);
-//    TwoSum(a,b2,c2,c3);
-    TwoSum(b2, e1, c2, c3);//
-    c4 = fp_const<T>::zero();
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, c2 );
+  c3 = fp_const<T>::zero();
 }
 
 // add: 1-3-1
-template < typename T > __always_inline void add_SW_QTW_SW(T const a, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+add_SW_QTW_SW ( T const a0, T const b0, T const b1, T const b2, T & c0 )
 {
-    c = a + b1 + b2 + b3;
+  T t0, t1;
+  t0 = a0 + b0;
+  t1 = b2 + b1;
+  c0 = t0 + t1;
 }
 
 // add: 1-3-2
-template < typename T > __always_inline void add_SW_QTW_PA(T const a, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+add_SW_QTW_PA ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a, b1, c1, e1);
-    c2 = b2 + e1 + b3;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = b1 + b2;
+  c1 = c1 + t0;
 }
 
 // add: 1-3-3
-template < typename T > __always_inline void add_SW_QTW_QTW(T const a, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_SW_QTW_QTW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    T e1, e3;
-    TwoSum(a, b1, c1, e1);
-    TwoSum(b2, e1, c2, e3);
-    c3 = b3 + e3;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, c2 );
+  c2 = c2 + b2;
 }
 
 // add: 1-3-4
-template < typename T > __always_inline void add_SW_QTW_QQW(T const a, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_SW_QTW_QQW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2;
-    TwoSum(a, b1, c1, e1);
-    TwoSum(b2, e1, c2, e2);
-    TwoSum(b3, e2, c3, c4);
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, c3 );
+  TwoSum( b2, c3, c2, c3 );
 }
+
 // add: 1-4-1
-template < typename T > __always_inline void add_SW_QQW_SW(T const a1, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+add_SW_QQW_SW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    c = a1 + b1 + b2 + b3 + b4;
+  T t0, t1, t2;
+  t0 = a0 + b0;
+  t1 = b3 + b2;
+  t2 = t1 + b1;
+  c0 = t0 + t2;
 }
+
 // add: 1-4-2
-template < typename T > __always_inline void add_SW_QQW_PA(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+add_SW_QQW_PA ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a, b1, c1, e1);
-    c2 = b2 + e1 + b3 + b4;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = b1 + b2 + b3;
+  c1 = c1 + t0;
 }
+
 // add: 1-4-3
-template < typename T > __always_inline void add_SW_QQW_QTW(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_SW_QQW_QTW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    T e1, e2;
-    TwoSum(a, b1, c1, e1);
-    TwoSum(e1, b2, c2, e2);
-    c3 = b3 + e2 + b4;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, c2 );
+  c2 = c2 + b3 + b2;
 }
 
 // add: 1-4-4
-template < typename T > __always_inline void add_SW_QQW_QQW(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_SW_QQW_QQW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3;
-    TwoSum(a, b1, c1, e1);
-    TwoSum(e1, b2, c2, e2);
-    TwoSum(e2, b3, c3, e3);
-    c4 = b4 + e3;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, t0 );
+  TwoSum( b2, t0, c2, t0 );
+  c3 = b3 + t0;
 }
 
 // add: 2-1-1
-template < typename T > __always_inline void add_PA_SW_SW(T const ah, T const al, T const b, T &c)
+template < typename T > __always_inline void
+add_PA_SW_SW ( T const a0, T const a1, T const b0, T & c0 )
 {
-    c = ah + b + al;
+  T t0;
+  t0 = a0 + b0;
+  c0 = t0 + a1;
 }
 
 // add: 2-1-2
-template < typename T > __always_inline void add_PA_SW_PA(T const ah, T const al, T const b, T &ch, T &cl)
+template < typename T > __always_inline void
+add_PA_SW_PA ( T const a0, T const a1, T const b0, T & c0, T & c1 )
 {
-    T t;
-    TwoSum(ah, b, ch, t);
-    cl = al + t;
+  TwoSum( a0, b0, c0, c1 );
+  c1 = c1 + a1;
 }
 
 // add: 2-1-3
-template < typename T > __always_inline void add_PA_SW_QTW(T const a1, T const a2, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_PA_SW_QTW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2 )
 {
-    T e1;
-    TwoSum(a1, b, c1, e1);
-    TwoSum(a2, e1, c2, c3);
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, c2 );
 }
 
 // add: 2-1-4
-template < typename T > __always_inline void add_PA_SW_QQW(T const a1, T const a2, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_PA_SW_QQW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1;
-    TwoSum(a1, b, c1, e1);
-    TwoSum(a2, e1, c2, c3);
-    c4 = fp_const<T>::zero();
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, c2 );
+  c3 = fp_const<T>::zero();
 }
 
 // add: 2-2-1
-template < typename T > __always_inline void add_PA_PA_SW(T const ah, T const al, T const bh, T const bl, T &c)
+template < typename T > __always_inline void
+add_PA_PA_SW ( T const a0, T const a1, T const b0, T const b1, T & c0 )
 {
-    c = ah + bh + al + bl;
+  T t0, t1;
+  t0 = a0 + b0;
+  t1 = a1 + b1;
+  c0 = t0 + t1;
 }
 
 // add: 2-2-2
-template < typename T > __always_inline void add_PA_PA_PA(T const ah, T const al, T const bh, T const bl, T &ch, T &cl)
+template < typename T > __always_inline void
+add_PA_PA_PA ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1 )
 {
-    T t;
-    TwoSum(ah, bh, ch, t);
-    cl = al + bl + t;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = a1 + b1;
+  c1 = c1 + t0;
 }
 
 // add: 2-2-3
-template < typename T > __always_inline void add_PA_PA_QTW(T const a1, T const a2, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_PA_PA_QTW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    c3 = e2 + e3;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  c2 = c2 + t0;
 }
 
 // add: 2-2-4
-template < typename T > __always_inline void add_PA_PA_QQW(T const a1, T const a2, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_PA_PA_QQW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    TwoSum(e2, e3, c3, c4);
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, c3, c2 );
+  TwoSum( c1, c3, c1, c3 );
+  TwoSum( c2, c3, c2, c3 );
 }
 
 // add: 2-3-1
-template < typename T > __always_inline void add_PA_QTW_SW(T const a1, T const a2, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+add_PA_QTW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0 )
 {
-    c = a1 + b1 + a2 + b2 + b3;
+  T t0, t1, t2;
+  t0 = a0 + b0;
+  t1 = a1 + b1;
+  t2 = b2 + t1;
+  c0 = t0 + t2;
 }
 
 // add: 2-3-2
-template < typename T > __always_inline void add_PA_QTW_PA(T const a1, T const a2, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+add_PA_QTW_PA ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a1, b1, c1, e1);
-    c2 = a2 + b2 + e1 + b3;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = a1 + b1;
+  t0 = t0 + b2;
+  c1 = c1 + t0;
 }
 
 // add: 2-3-3
-template < typename T > __always_inline void add_PA_QTW_QTW(T const a1, T const a2, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_PA_QTW_QTW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    c3 = b3 + e2 + e3;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  t0 = t0 + b2;
+  c2 = c2 + t0;
 }
 
 // add: 2-3-4
-template < typename T > __always_inline void add_PA_QTW_QQW(T const a1, T const a2, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_PA_QTW_QQW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e5, e6;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    TwoSum(b3, e2, c3, e5);
-    TwoSum(c3, e3, c3, e6);
-    c4 = e5 + e6;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  TwoSum( c2, b2, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  c3 = t1 + t0;
 }
 
 // add: 2-4-1
-template < typename T > __always_inline void add_PA_QQW_SW(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+add_PA_QQW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    c = a1 + b1 + a2 + b2 + b3 + b4;
+  T t0, t1, t2, t3;
+  t0 = a0 + b0;
+  t1 = a1 + b1;
+  t2 = b3 + b2;
+  t3 = t2 + t1;
+  c0 = t0 + t3;
 }
 
 // add: 2-4-2
-template < typename T > __always_inline void add_PA_QQW_PA(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+add_PA_QQW_PA ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a1, b1, c1, e1);
-    c2 = a2 + b2 + e1 + b3 + b4;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = a1 + b1;
+  t0 = t0 + b2 + b3;
+  c1 = c1 + t0;
 }
 
 // add: 2-4-3
-template < typename T > __always_inline void add_PA_QQW_QTW(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_PA_QQW_QTW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    c3 = b3 + e2 + e3 + b4;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  t0 = t0 + b3 + b2;
+  c2 = c2 + t0;
 }
 
 // add: 2-4-4
-template < typename T > __always_inline void add_PA_QQW_QQW(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_PA_QQW_QQW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e5, e6;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    TwoSum(b3, e2, c3, e5);
-    TwoSum(c3, e3, c3, e6);
-    c4 = b4 + e5 + e6;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  TwoSum( c2, b2, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  c3 = b3 + t1;
+  c3 = c3 + t0;
 }
 
 // add: 3-1-1
-template < typename T > __always_inline void add_QTW_SW_SW(T const a1, T const a2, T const a3, T const b, T &c)
+template < typename T > __always_inline void
+add_QTW_SW_SW ( T const a0, T const a1, T const a2, T const b0, T & c0 )
 {
-    c = a1 + b + a2 + a3;
+  T t0, t1;
+  t0 = a0 + b0;
+  t1 = a2 + a1;
+  c0 = t0 + t1;
 }
 
 // add: 3-1-2
-template < typename T > __always_inline void add_QTW_SW_PA(T const a1, T const a2, T const a3, T const b, T &c1, T &c2)
+template < typename T > __always_inline void
+add_QTW_SW_PA ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a1, b, c1, e1);
-    c2 = a2 + e1 + a3;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = a1 + a2;
+  c1 = c1 + t0;
 }
 
 // add: 3-1-3
-template < typename T > __always_inline void add_QTW_SW_QTW(T const a1, T const a2, T const a3, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_QTW_SW_QTW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2 )
 {
-    T e1, e3;
-    TwoSum(a1, b, c1, e1);
-    TwoSum(a2, e1, c2, e3);
-    c3 = a3 + e3;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, c2 );
+  c2 = c2 + a2;
 }
 
 // add: 3-1-4
-template < typename T > __always_inline void add_QTW_SW_QQW(T const a1, T const a2, T const a3, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_QTW_SW_QQW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2;
-    TwoSum(a1, b, c1, e1);
-    TwoSum(a2, e1, c2, e2);
-    TwoSum(a3, e2, c3, c4);
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, c3 );
+  TwoSum( a2, c3, c2, c3 );
 }
 
 // add: 3-2-1
-template < typename T > __always_inline void add_QTW_PA_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c)
+template < typename T > __always_inline void
+add_QTW_PA_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0 )
 {
-    c = a1 + b1 + a2 + b2 + a3;
+  T t0, t1, t2;
+  t0 = a0 + b0;
+  t1 = a1 + b1;
+  t2 = a2 + t1;
+  c0 = t0 + t2;
 }
 
 // add: 3-2-2
-template < typename T > __always_inline void add_QTW_PA_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2)
+template < typename T > __always_inline void
+add_QTW_PA_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a1, b1, c1, e1);
-    c2 = a2 + b2 + e1 + a3;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = a1 + b1;
+  t0 = t0 + a2;
+  c1 = c1 + t0;
 }
 
 // add: 3-2-3
-template < typename T > __always_inline void add_QTW_PA_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_QTW_PA_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    c3 = a3 + e2 + e3;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  t0 = t0 + a2;
+  c2 = c2 + t0;
 }
 
 // add: 3-2-4
-template < typename T > __always_inline void add_QTW_PA_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_QTW_PA_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e5, e6;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    TwoSum(a3, e2, c3, e5);
-    TwoSum(c3, e3, c3, e6);
-    c4 = e5 + e6;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  TwoSum( c2, a2, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  c3 = t1 + t0;
 }
 
 // add: 3-3-1
-template < typename T > __always_inline void add_QTW_QTW_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+add_QTW_QTW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0 )
 {
-    c = a1 + b1 + a2 + b2 + a3 + b3;
+  T t0, t1, t2, t3;
+  t0 = a0 + b0;
+  t1 = a1 + b1;
+  t2 = a2 + b2;
+  t3 = t2 + t1;
+  c0 = t0 + t3;
 }
 
 // add: 3-3-2
-template < typename T > __always_inline void add_QTW_QTW_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+add_QTW_QTW_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a1, b1, c1, e1);
-    c2 = a2 + b2 + e1;//追加してもよい
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = a1 + b1;
+  t1 = a2 + b2;
+  t0 = t0 + t1;
+  c1 = c1 + t0;
 }
 
 // add: 3-3-3
-template < typename T > __always_inline void add_QTW_QTW_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_QTW_QTW_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    c3 = a3 + b3 + e2 + e3;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  t1 = a2 + b2;
+  t0 = t0 + t1;
+  c2 = c2 + t0;
 }
 
 // add: 3-3-4
-template < typename T > __always_inline void add_QTW_QTW_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_QTW_QTW_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5, e6;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    TwoSum(a3, b3, c3, e4);
-    TwoSum(c3, e2, c3, e5);
-    TwoSum(c3, e3, c3, e6);
-    c4 = e4 + e5 + e6;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( a2, b2, t1, c3 );
+  TwoSum( c1, t0, c1, t0 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  c3 = c3 + t1;
+  c3 = c3 + t0;
 }
 
 // add: 3-4-1
-template < typename T > __always_inline void add_QTW_QQW_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+add_QTW_QQW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    c = a1 + b1 + a2 + b2 + a3 + b3 + b4;
+  T t0, t1, t2, t3, t4;
+  t0 = a0 + b0;
+  t1 = a1 + b1;
+  t2 = a2 + b2;
+  t3 = b3 + t2;
+  t4 = t3 + t1;
+  c0 = t0 + t4;
 }
 
 // add: 3-4-2
-template < typename T > __always_inline void add_QTW_QQW_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+add_QTW_QQW_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a1, b1, c1, e1);
-    c2 = a2 + b2 + e1 + a3 + b3 + b4;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = a1 + b1;
+  t1 = a2 + b2;
+  t0 = t0 + t1 + b3;
+  c1 = c1 + t0;
 }
 
 // add: 3-4-3
-template < typename T > __always_inline void add_QTW_QQW_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_QTW_QQW_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    c3 = a3 + b3 + e2 + e3 + b4;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  t1 = a2 + b2;
+  t0 = t0 + b3 + t1;
+  c2 = c2 + t0;
 }
 
 // add: 3-4-4
-template < typename T > __always_inline void add_QTW_QQW_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_QTW_QQW_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5, e6;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    TwoSum(a3, b3, c3, e4);
-    TwoSum(c3, e2, c3, e5);
-    TwoSum(c3, e3, c3, e6);
-    c4 = b4 + e4 + e5 + e6;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( a2, b2, t1, c3 );
+  TwoSum( c1, t0, c1, t0 );
+  TwoSum( c2, t1, c2, t1 );
+  c3 = c3 + b3;
+  TwoSum( c2, t0, c2, t0 );
+  c3 = c3 + t1;
+  c3 = c3 + t0;
 }
 
 // add: 4-1-1
-template < typename T > __always_inline void add_QQW_SW_SW(T const a1, T const a2, T const a3, T const a4, T const b, T &c)
+template < typename T > __always_inline void
+add_QQW_SW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0 )
 {
-    c = a1 + b + a2 + a3 + a4;
+  T t0, t1, t2;
+  t0 = a0 + b0;
+  t1 = a3 + a2;
+  t2 = t1 + a1;
+  c0 = t0 + t2;
 }
 
 // add: 4-1-2
-template < typename T > __always_inline void add_QQW_SW_PA(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2)
+template < typename T > __always_inline void
+add_QQW_SW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a1, b, c1, e1);
-    c2 = a2 + e1 + a3 + a4;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = a1 + a2 + a3;
+  c1 = c1 + t0;
 }
 
 // add: 4-1-3
-template < typename T > __always_inline void add_QQW_SW_QTW(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_QQW_SW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2 )
 {
-    T e1, e2;
-    TwoSum(a1, b, c1, e1);
-    TwoSum(a2, e1, c2, e2);
-    c3 = a3 + e2 + a4;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, c2 );
+  c2 = c2 + a3 + a2;
 }
 
 // add: 4-1-4
-template < typename T > __always_inline void add_QQW_SW_QQW(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_QQW_SW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3;
-    TwoSum(a1, b, c1, e1);
-    TwoSum(a2, e1, c2, e2);
-    TwoSum(a3, e2, c3, e3);
-    c4 = a4 + e3;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, t0 );
+  TwoSum( a2, t0, c2, t0 );
+  c3 = a3 + t0;
 }
 
 // add: 4-2-1
-template < typename T > __always_inline void add_QQW_PA_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c)
+template < typename T > __always_inline void
+add_QQW_PA_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0 )
 {
-    c = a1 + b1 + a2 + b2 + a3 + a4;
+  T t0, t1, t2, t3;
+  t0 = a0 + b0;
+  t1 = a1 + b1;
+  t2 = a3 + a2;
+  t3 = t2 + t1;
+  c0 = t0 + t3;
 }
 
 // add: 4-2-2
-template < typename T > __always_inline void add_QQW_PA_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2)
+template < typename T > __always_inline void
+add_QQW_PA_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a1, b1, c1, e1);
-    c2 = a2 + b2 + e1 + a3 + a4;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = a1 + b1;
+  t0 = t0 + a2 + a3;
+  c1 = c1 + t0;
 }
 
 // add: 4-2-3
-template < typename T > __always_inline void add_QQW_PA_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_QQW_PA_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    c3 = a3 + e2 + e3 + a4;
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  t0 = t0 + a3 + a2;
+  c2 = c2 + t0;
 }
 
 // add: 4-2-4
-template < typename T > __always_inline void add_QQW_PA_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_QQW_PA_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e5, e6;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    TwoSum(a3, e2, c3, e5);
-    TwoSum(c3, e3, c3, e6);
-    c4 = a4 + e5 + e6;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  TwoSum( c2, a2, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  c3 = a3 + t1;
+  c3 = c3 + t0;
 }
 
 // add: 4-3-1
-template < typename T > __always_inline void add_QQW_QTW_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+add_QQW_QTW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0 )
 {
-    c = a1 + b1 + a2 + b2 + a3 + b3 + a4;
+  T t0, t1, t2, t3, t4;
+  t0 = a0 + b0;
+  t1 = a1 + b1;
+  t2 = a2 + b2;
+  t3 = a3 + t2;
+  t4 = t3 + t1;
+  c0 = t0 + t4;
 }
 
 // add: 4-3-2
-template < typename T > __always_inline void add_QQW_QTW_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+add_QQW_QTW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a1, b1, c1, e1);
-    c2 = a2 + b2 + e1 + a3 + b3 + a4;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = a1 + b1;
+  t1 = a2 + b2;
+  t0 = t0 + t1 + a3;
+  c1 = c1 + t0;
 }
 
 // add: 4-3-3
-template < typename T > __always_inline void add_QQW_QTW_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_QQW_QTW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    c3 = a3 + b3 + e2 + e3 + a4;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  t1 = a2 + b2;
+  t0 = t0 + a3 + t1;
+  c2 = c2 + t0;
 }
 
 // add: 4-3-4
-template < typename T > __always_inline void add_QQW_QTW_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_QQW_QTW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5, e6;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    TwoSum(a3, b3, c3, e4);
-    TwoSum(c3, e2, c3, e5);
-    TwoSum(c3, e3, c3, e6);
-    c4 = a4 + e4 + e5 + e6;
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( a2, b2, t1, c3 );
+  TwoSum( c1, t0, c1, t0 );
+  TwoSum( c2, t1, c2, t1 );
+  c3 = c3 + a3;
+  TwoSum( c2, t0, c2, t0 );
+  c3 = c3 + t1;
+  c3 = c3 + t0;
 }
 
 // add: 4-4-1
-template < typename T > __always_inline void add_QQW_QQW_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+add_QQW_QQW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    c = a1 + b1 + a2 + b2 + a3 + b3 + a4 + b4;
+  T t0, t1, t2, t3, t4, t5;
+  t0 = a0 + b0;
+  t1 = a1 + b1;
+  t2 = a2 + b2;
+  t3 = a3 + b3;
+  t4 = t3 + t2;
+  t5 = t4 + t1;
+  c0 = t0 + t5;
 }
 
 // add: 4-4-2
-template < typename T > __always_inline void add_QQW_QQW_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+add_QQW_QQW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    T e1;
-    TwoSum(a1, b1, c1, e1);
-    c2 = a2 + b2 + e1 + a3 + b3 + a4 + b4;
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, c1 );
+  t0 = a1 + b1;
+  t1 = a2 + b2;
+  t2 = a3 + b3;
+  t0 = t0 + t1 + t2;
+  c1 = c1 + t0;
 }
 
 // add: 4-4-3
-template < typename T > __always_inline void add_QQW_QQW_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+add_QQW_QQW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    c3 = a3 + b3 + e2 + e3 + a4 + b4;
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  t1 = a2 + b2;
+  t2 = a3 + b3;
+  t0 = t0 + t2 + t1;
+  c2 = c2 + t0;
 }
 
 // add: 4-4-4
-template < typename T > __always_inline void add_QQW_QQW_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+add_QQW_QQW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5, e6;
-    TwoSum(a1, b1, c1, e1);
-    TwoSum(a2, b2, c2, e2);
-    TwoSum(c2, e1, c2, e3);
-    TwoSum(a3, b3, c3, e4);
-    TwoSum(c3, e2, c3, e5);
-    TwoSum(c3, e3, c3, e6);
-    c4 = a4 + b4 + e4 + e5 + e6;
+  T t0, t1, t2, t3;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( a2, b2, t1, c3 );
+  t2 = a3 + b3;
+  TwoSum( c1, t0, c1, t0 );
+  TwoSum( c2, t1, c2, t1 );
+  c3 = c3 + t2;
+  TwoSum( c2, t0, c2, t0 );
+  c3 = c3 + t1;
+  c3 = c3 + t0;
 }
 
-// ------------------------------
-// subtraction
-// ------------------------------
+// sub: 1-1-1
+template < typename T > __always_inline void
+sub_SW_SW_SW ( T const a0, T const b0, T & c0 )
+{
+  add_SW_SW_SW ( a0, -b0, c0 );
+}
 
 // sub: 1-1-2
-template < typename T > __always_inline void sub_SW_SW_PA(T const a, T const b, T &ch, T &cl)
+template < typename T > __always_inline void
+sub_SW_SW_PA ( T const a0, T const b0, T & c0, T & c1 )
 {
-    TwoSum(a, -b, ch, cl);
+  add_SW_SW_PA ( a0, -b0, c0, c1 );
 }
 
 // sub: 1-1-3
-template < typename T > __always_inline void sub_SW_SW_QTW(T const a, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_SW_SW_QTW ( T const a0, T const b0, T & c0, T & c1, T & c2 )
 {
-    add_SW_SW_QTW(a, -b, c1, c2, c3);
+  add_SW_SW_QTW ( a0, -b0, c0, c1, c2 );
 }
 
 // sub: 1-1-4
-template < typename T > __always_inline void sub_SW_SW_QQW(T const a, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_SW_SW_QQW ( T const a0, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_SW_SW_QQW(a, -b, c1, c2, c3, c4);
+  add_SW_SW_QQW ( a0, -b0, c0, c1, c2, c3 );
 }
 
 // sub: 1-2-1
-template < typename T > __always_inline void sub_SW_PA_SW(T const ah, T const bh, T const bl, T &c)
+template < typename T > __always_inline void
+sub_SW_PA_SW ( T const a0, T const b0, T const b1, T & c0 )
 {
-    c = ah - bh - bl;
+  add_SW_PA_SW ( a0, -b0, -b1, c0 );
 }
 
 // sub: 1-2-2
-template < typename T > __always_inline void sub_SW_PA_PA(T const a, T const bh, T const bl, T &ch, T &cl)
+template < typename T > __always_inline void
+sub_SW_PA_PA ( T const a0, T const b0, T const b1, T & c0, T & c1 )
 {
-    add_SW_PA_PA(a, -bh, -bl, ch, cl);
+  add_SW_PA_PA ( a0, -b0, -b1, c0, c1 );
 }
 
 // sub: 1-2-3
-template < typename T > __always_inline void sub_SW_PA_QTW(T const a, T const bh, T const bl, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_SW_PA_QTW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    add_SW_PA_QTW(a, -bh, -bl, c1, c2, c3);
+  add_SW_PA_QTW ( a0, -b0, -b1, c0, c1, c2 );
 }
 
 // sub: 1-2-4
-template < typename T > __always_inline void sub_SW_PA_QQW(T const a, T const bh, T const bl, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_SW_PA_QQW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_SW_PA_QQW(a, -bh, -bl, c1, c2, c3, c4);
+  add_SW_PA_QQW ( a0, -b0, -b1, c0, c1, c2, c3 );
 }
 
 // sub: 1-3-1
-template < typename T > __always_inline void sub_SW_QTW_SW(T const a, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+sub_SW_QTW_SW ( T const a0, T const b0, T const b1, T const b2, T & c0 )
 {
-    add_SW_QTW_SW(a, -b1, -b2, -b3, c);
+  add_SW_QTW_SW ( a0, -b0, -b1, -b2, c0 );
 }
 
 // sub: 1-3-2
-template < typename T > __always_inline void sub_SW_QTW_PA(T const a, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_SW_QTW_PA ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    add_SW_QTW_PA(a, -b1, -b2, -b3, c1, c2);
+  add_SW_QTW_PA ( a0, -b0, -b1, -b2, c0, c1 );
 }
 
 // sub: 1-3-3
-template < typename T > __always_inline void sub_SW_QTW_QTW(T const a, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_SW_QTW_QTW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    add_SW_QTW_QTW(a, -b1, -b2, -b3, c1, c2, c3);
+  add_SW_QTW_QTW ( a0, -b0, -b1, -b2, c0, c1, c2 );
 }
 
 // sub: 1-3-4
-template < typename T > __always_inline void sub_SW_QTW_QQW(T const a, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_SW_QTW_QQW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_SW_QTW_QQW(a, -b1, -b2, -b3, c1, c2, c3, c4);
+  add_SW_QTW_QQW ( a0, -b0, -b1, -b2, c0, c1, c2, c3 );
 }
 
 // sub: 1-4-1
-template < typename T > __always_inline void sub_SW_QQW_SW(T const a, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+sub_SW_QQW_SW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    add_SW_QQW_SW(a, -b1, -b2, -b3, -b4, c);
+  add_SW_QQW_SW ( a0, -b0, -b1, -b2, -b3, c0 );
 }
 
 // sub: 1-4-2
-template < typename T > __always_inline void sub_SW_QQW_PA(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_SW_QQW_PA ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    add_SW_QQW_PA(a, -b1, -b2, -b3, -b4, c1, c2);
+  add_SW_QQW_PA ( a0, -b0, -b1, -b2, -b3, c0, c1 );
 }
 
 // sub: 1-4-3
-template < typename T > __always_inline void sub_SW_QQW_QTW(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_SW_QQW_QTW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    add_SW_QQW_QTW(a, -b1, -b2, -b3, -b4, c1, c2, c3);
+  add_SW_QQW_QTW ( a0, -b0, -b1, -b2, -b3, c0, c1, c2 );
 }
 
 // sub: 1-4-4
-template < typename T > __always_inline void sub_SW_QQW_QQW(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_SW_QQW_QQW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_SW_QQW_QQW(a, -b1, -b2, -b3, -b4, c1, c2, c3, c4);
+  add_SW_QQW_QQW ( a0, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
 }
 
 // sub: 2-1-1
-template < typename T > __always_inline void sub_PA_SW_SW(T const ah, T const al, T const b, T &c)
+template < typename T > __always_inline void
+sub_PA_SW_SW ( T const a0, T const a1, T const b0, T & c0 )
 {
-    c = ah - b + al;
+  add_PA_SW_SW ( a0, a1, -b0, c0 );
 }
 
 // sub: 2-1-2
-template < typename T > __always_inline void sub_PA_SW_PA(T const ah, T const al, T const b, T &ch, T &cl)
+template < typename T > __always_inline void
+sub_PA_SW_PA ( T const a0, T const a1, T const b0, T & c0, T & c1 )
 {
-    add_PA_SW_PA(ah, al, -b, ch, cl);
+  add_PA_SW_PA ( a0, a1, -b0, c0, c1 );
 }
 
 // sub: 2-1-3
-template < typename T > __always_inline void sub_PA_SW_QTW(T const ah, T const al, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_PA_SW_QTW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2 )
 {
-    add_PA_SW_QTW(ah, al, -b, c1, c2, c3);
+  add_PA_SW_QTW ( a0, a1, -b0, c0, c1, c2 );
 }
 
 // sub: 2-1-4
-template < typename T > __always_inline void sub_PA_SW_QQW(T const ah, T const al, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_PA_SW_QQW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_PA_SW_QQW(ah, al, -b, c1, c2, c3, c4);
+  add_PA_SW_QQW ( a0, a1, -b0, c0, c1, c2, c3 );
 }
 
 // sub: 2-2-1
-template < typename T > __always_inline void sub_PA_PA_SW(T const ah, T const al, T const bh, T const bl, T &c)
+template < typename T > __always_inline void
+sub_PA_PA_SW ( T const a0, T const a1, T const b0, T const b1, T & c0 )
 {
-    T t;
-    TwoSum(ah, -bh, c, t);
-    c = c + al - bl + t;
+  add_PA_PA_SW ( a0, a1, -b0, -b1, c0 );
 }
 
 // sub: 2-2-2
-template < typename T > __always_inline void sub_PA_PA_PA(T const ah, T const al, T const bh, T const bl, T &ch, T &cl)
+template < typename T > __always_inline void
+sub_PA_PA_PA ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1 )
 {
-    add_PA_PA_PA(ah, al, -bh, -bl, ch, cl);
+  add_PA_PA_PA ( a0, a1, -b0, -b1, c0, c1 );
 }
 
 // sub: 2-2-3
-template < typename T > __always_inline void sub_PA_PA_QTW(T const ah, T const al, T const bh, T const bl, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_PA_PA_QTW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    add_PA_PA_QTW(ah, al, -bh, -bl, c1, c2, c3);
+  add_PA_PA_QTW ( a0, a1, -b0, -b1, c0, c1, c2 );
 }
 
 // sub: 2-2-4
-template < typename T > __always_inline void sub_PA_PA_QQW(T const ah, T const al, T const bh, T const bl, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_PA_PA_QQW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_PA_PA_QQW(ah, al, -bh, -bl, c1, c2, c3, c4);
+  add_PA_PA_QQW ( a0, a1, -b0, -b1, c0, c1, c2, c3 );
 }
 
 // sub: 2-3-1
-template < typename T > __always_inline void sub_PA_QTW_SW(T const ah, T const al, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+sub_PA_QTW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0 )
 {
-    add_PA_QTW_SW(ah, al, -b1, -b2, -b3, c);
+  add_PA_QTW_SW ( a0, a1, -b0, -b1, -b2, c0 );
 }
 
 // sub: 2-3-2
-template < typename T > __always_inline void sub_PA_QTW_PA(T const ah, T const al, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_PA_QTW_PA ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    add_PA_QTW_PA(ah, al, -b1, -b2, -b3, c1, c2);
+  add_PA_QTW_PA ( a0, a1, -b0, -b1, -b2, c0, c1 );
 }
 
 // sub: 2-3-3
-template < typename T > __always_inline void sub_PA_QTW_QTW(T const ah, T const al, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_PA_QTW_QTW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    add_PA_QTW_QTW(ah, al, -b1, -b2, -b3, c1, c2, c3);
+  add_PA_QTW_QTW ( a0, a1, -b0, -b1, -b2, c0, c1, c2 );
 }
 
 // sub: 2-3-4
-template < typename T > __always_inline void sub_PA_QTW_QQW(T const ah, T const al, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_PA_QTW_QQW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_PA_QTW_QQW(ah, al, -b1, -b2, -b3, c1, c2, c3, c4);
+  add_PA_QTW_QQW ( a0, a1, -b0, -b1, -b2, c0, c1, c2, c3 );
 }
 
 // sub: 2-4-1
-template < typename T > __always_inline void sub_PA_QQW_SW(T const ah, T const al, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+sub_PA_QQW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    add_PA_QQW_SW(ah, al, -b1, -b2, -b3, -b4, c);
+  add_PA_QQW_SW ( a0, a1, -b0, -b1, -b2, -b3, c0 );
 }
 
 // sub: 2-4-2
-template < typename T > __always_inline void sub_PA_QQW_PA(T const ah, T const al, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_PA_QQW_PA ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    add_PA_QQW_PA(ah, al, -b1, -b2, -b3, -b4, c1, c2);
+  add_PA_QQW_PA ( a0, a1, -b0, -b1, -b2, -b3, c0, c1 );
 }
 
 // sub: 2-4-3
-template < typename T > __always_inline void sub_PA_QQW_QTW(T const ah, T const al, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_PA_QQW_QTW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    add_PA_QQW_QTW(ah, al, -b1, -b2, -b3, -b4, c1, c2, c3);
+  add_PA_QQW_QTW ( a0, a1, -b0, -b1, -b2, -b3, c0, c1, c2 );
 }
 
 // sub: 2-4-4
-template < typename T > __always_inline void sub_PA_QQW_QQW(T const ah, T const al, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_PA_QQW_QQW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_PA_QQW_QQW(ah, al, -b1, -b2, -b3, -b4, c1, c2, c3, c4);
+  add_PA_QQW_QQW ( a0, a1, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
 }
 
 // sub: 3-1-1
-template < typename T > __always_inline void sub_QTW_SW_SW(T const a1, T const a2, T const a3, T const b, T &c)
+template < typename T > __always_inline void
+sub_QTW_SW_SW ( T const a0, T const a1, T const a2, T const b0, T & c0 )
 {
-    add_QTW_SW_SW(a1, a2, a3, -b, c);
+  add_QTW_SW_SW ( a0, a1, a2, -b0, c0 );
 }
 
 // sub: 3-1-2
-template < typename T > __always_inline void sub_QTW_SW_PA(T const a1, T const a2, T const a3, T const b, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_QTW_SW_PA ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1 )
 {
-    add_QTW_SW_PA(a1, a2, a3, -b, c1, c2);
+  add_QTW_SW_PA ( a0, a1, a2, -b0, c0, c1 );
 }
 
 // sub: 3-1-3
-template < typename T > __always_inline void sub_QTW_SW_QTW(T const a1, T const a2, T const a3, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_QTW_SW_QTW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2 )
 {
-    add_QTW_SW_QTW(a1, a2, a3, -b, c1, c2, c3);
+  add_QTW_SW_QTW ( a0, a1, a2, -b0, c0, c1, c2 );
 }
 
 // sub: 3-1-4
-template < typename T > __always_inline void sub_QTW_SW_QQW(T const a1, T const a2, T const a3, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_QTW_SW_QQW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_QTW_SW_QQW(a1, a2, a3, -b, c1, c2, c3, c4);
+  add_QTW_SW_QQW ( a0, a1, a2, -b0, c0, c1, c2, c3 );
 }
 
 // sub: 3-2-1
-template < typename T > __always_inline void sub_QTW_PA_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c)
+template < typename T > __always_inline void
+sub_QTW_PA_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0 )
 {
-    add_QTW_PA_SW(a1, a2, a3, -b1, -b2, c);
+  add_QTW_PA_SW ( a0, a1, a2, -b0, -b1, c0 );
 }
 
 // sub: 3-2-2
-template < typename T > __always_inline void sub_QTW_PA_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_QTW_PA_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1 )
 {
-    add_QTW_PA_PA(a1, a2, a3, -b1, -b2, c1, c2);
+  add_QTW_PA_PA ( a0, a1, a2, -b0, -b1, c0, c1 );
 }
 
 // sub: 3-2-3
-template < typename T > __always_inline void sub_QTW_PA_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_QTW_PA_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    add_QTW_PA_QTW(a1, a2, a3, -b1, -b2, c1, c2, c3);
+  add_QTW_PA_QTW ( a0, a1, a2, -b0, -b1, c0, c1, c2 );
 }
 
 // sub: 3-2-4
-template < typename T > __always_inline void sub_QTW_PA_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_QTW_PA_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_QTW_PA_QQW(a1, a2, a3, -b1, -b2, c1, c2, c3, c4);
+  add_QTW_PA_QQW ( a0, a1, a2, -b0, -b1, c0, c1, c2, c3 );
 }
 
 // sub: 3-3-1
-template < typename T > __always_inline void sub_QTW_QTW_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+sub_QTW_QTW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0 )
 {
-    add_QTW_QTW_SW(a1, a2, a3, -b1, -b2, -b3, c);
+  add_QTW_QTW_SW ( a0, a1, a2, -b0, -b1, -b2, c0 );
 }
 
 // sub: 3-3-2
-template < typename T > __always_inline void sub_QTW_QTW_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_QTW_QTW_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    add_QTW_QTW_PA(a1, a2, a3, -b1, -b2, -b3, c1, c2);
+  add_QTW_QTW_PA ( a0, a1, a2, -b0, -b1, -b2, c0, c1 );
 }
 
 // sub: 3-3-3
-template < typename T > __always_inline void sub_QTW_QTW_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_QTW_QTW_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    add_QTW_QTW_QTW(a1, a2, a3, -b1, -b2, -b3, c1, c2, c3);
+  add_QTW_QTW_QTW ( a0, a1, a2, -b0, -b1, -b2, c0, c1, c2 );
 }
 
 // sub: 3-3-4
-template < typename T > __always_inline void sub_QTW_QTW_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_QTW_QTW_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_QTW_QTW_QQW(a1, a2, a3, -b1, -b2, -b3, c1, c2, c3, c4);
+  add_QTW_QTW_QQW ( a0, a1, a2, -b0, -b1, -b2, c0, c1, c2, c3 );
 }
 
-
 // sub: 3-4-1
-template < typename T > __always_inline void sub_QTW_QQW_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+sub_QTW_QQW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    add_QTW_QQW_SW(a1, a2, a3, -b1, -b2, -b3, -b4, c);
+  add_QTW_QQW_SW ( a0, a1, a2, -b0, -b1, -b2, -b3, c0 );
 }
 
 // sub: 3-4-2
-template < typename T > __always_inline void sub_QTW_QQW_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_QTW_QQW_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    add_QTW_QQW_PA(a1, a2, a3, -b1, -b2, -b3, -b4, c1, c2);
+  add_QTW_QQW_PA ( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1 );
 }
 
 // sub: 3-4-3
-template < typename T > __always_inline void sub_QTW_QQW_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_QTW_QQW_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    add_QTW_QQW_QTW(a1, a2, a3, -b1, -b2, -b3, -b4, c1, c2, c3);
+  add_QTW_QQW_QTW ( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1, c2 );
 }
 
 // sub: 3-4-4
-template < typename T > __always_inline void sub_QTW_QQW_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_QTW_QQW_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_QTW_QQW_QQW(a1, a2, a3, -b1, -b2, -b3, -b4, c1, c2, c3, c4);
+  add_QTW_QQW_QQW ( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
 }
 
 // sub: 4-1-1
-template < typename T > __always_inline void sub_QQW_SW_SW(T const a1, T const a2, T const a3, T const a4, T const b, T &c)
+template < typename T > __always_inline void
+sub_QQW_SW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0 )
 {
-    add_QQW_SW_SW(a1, a2, a3, a4, -b, c);
+  add_QQW_SW_SW ( a0, a1, a2, a3, -b0, c0 );
 }
 
 // sub: 4-1-2
-template < typename T > __always_inline void sub_QQW_SW_PA(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_QQW_SW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1 )
 {
-    add_QQW_SW_PA(a1, a2, a3, a4, -b, c1, c2);
+  add_QQW_SW_PA ( a0, a1, a2, a3, -b0, c0, c1 );
 }
 
 // sub: 4-1-3
-template < typename T > __always_inline void sub_QQW_SW_QTW(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_QQW_SW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2 )
 {
-    add_QQW_SW_QTW(a1, a2, a3, a4, -b, c1, c2, c3);
+  add_QQW_SW_QTW ( a0, a1, a2, a3, -b0, c0, c1, c2 );
 }
 
 // sub: 4-1-4
-template < typename T > __always_inline void sub_QQW_SW_QQW(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_QQW_SW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_QQW_SW_QQW(a1, a2, a3, a4, -b, c1, c2, c3, c4);
+  add_QQW_SW_QQW ( a0, a1, a2, a3, -b0, c0, c1, c2, c3 );
 }
 
-
 // sub: 4-2-1
-template < typename T > __always_inline void sub_QQW_PA_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c)
+template < typename T > __always_inline void
+sub_QQW_PA_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0 )
 {
-    add_QQW_PA_SW(a1, a2, a3, a4, -b1, -b2, c);
+  add_QQW_PA_SW ( a0, a1, a2, a3, -b0, -b1, c0 );
 }
 
 // sub: 4-2-2
-template < typename T > __always_inline void sub_QQW_PA_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_QQW_PA_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1 )
 {
-    add_QQW_PA_PA(a1, a2, a3, a4, -b1, -b2, c1, c2);
+  add_QQW_PA_PA ( a0, a1, a2, a3, -b0, -b1, c0, c1 );
 }
 
 // sub: 4-2-3
-template < typename T > __always_inline void sub_QQW_PA_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_QQW_PA_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    add_QQW_PA_QTW(a1, a2, a3, a4, -b1, -b2, c1, c2, c3);
+  add_QQW_PA_QTW ( a0, a1, a2, a3, -b0, -b1, c0, c1, c2 );
 }
 
 // sub: 4-2-4
-template < typename T > __always_inline void sub_QQW_PA_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_QQW_PA_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_QQW_PA_QQW(a1, a2, a3, a4, -b1, -b2, c1, c2, c3, c4);
+  add_QQW_PA_QQW ( a0, a1, a2, a3, -b0, -b1, c0, c1, c2, c3 );
 }
 
 // sub: 4-3-1
-template < typename T > __always_inline void sub_QQW_QTW_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+sub_QQW_QTW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0 )
 {
-    add_QQW_QTW_SW(a1, a2, a3, a4, -b1, -b2, -b3, c);
+  add_QQW_QTW_SW ( a0, a1, a2, a3, -b0, -b1, -b2, c0 );
 }
 
 // sub: 4-3-2
-template < typename T > __always_inline void sub_QQW_QTW_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_QQW_QTW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    add_QQW_QTW_PA(a1, a2, a3, a4, -b1, -b2, -b3, c1, c2);
+  add_QQW_QTW_PA ( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1 );
 }
 
 // sub: 4-3-3
-template < typename T > __always_inline void sub_QQW_QTW_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_QQW_QTW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    add_QQW_QTW_QTW(a1, a2, a3, a4, -b1, -b2, -b3, c1, c2, c3);
+  add_QQW_QTW_QTW ( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1, c2 );
 }
 
 // sub: 4-3-4
-template < typename T > __always_inline void sub_QQW_QTW_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_QQW_QTW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_QQW_QTW_QQW(a1, a2, a3, a4, -b1, -b2, -b3, c1, c2, c3, c4);
+  add_QQW_QTW_QQW ( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1, c2, c3 );
 }
 
 // sub: 4-4-1
-template < typename T > __always_inline void sub_QQW_QQW_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+sub_QQW_QQW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    add_QQW_QQW_SW(a1, a2, a3, a4, -b1, -b2, -b3, -b4, c);
+  add_QQW_QQW_SW ( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0 );
 }
 
 // sub: 4-4-2
-template < typename T > __always_inline void sub_QQW_QQW_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+sub_QQW_QQW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    add_QQW_QQW_PA(a1, a2, a3, a4, -b1, -b2, -b3, -b4, c1, c2);
+  add_QQW_QQW_PA ( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1 );
 }
 
 // sub: 4-4-3
-template < typename T > __always_inline void sub_QQW_QQW_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+sub_QQW_QQW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    add_QQW_QQW_QTW(a1, a2, a3, a4, -b1, -b2, -b3, -b4, c1, c2, c3);
+  add_QQW_QQW_QTW ( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1, c2 );
 }
 
 // sub: 4-4-4
-template < typename T > __always_inline void sub_QQW_QQW_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+sub_QQW_QQW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    add_QQW_QQW_QQW(a1, a2, a3, a4, -b1, -b2, -b3, -b4, c1, c2, c3, c4);
+  add_QQW_QQW_QQW ( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
 }
 
-// ------------------------------
-// multiplication
-// ------------------------------
+// mul: 1-1-1
+template < typename T > __always_inline void
+mul_SW_SW_SW ( T const a0, T const b0, T & c0 )
+{
+  c0 = a0 * b0;
+}
 
 // mul: 1-1-2
-template < typename T > __always_inline void mul_SW_SW_PA(T const a, T const b, T &ch, T &cl)
+template < typename T > __always_inline void
+mul_SW_SW_PA ( T const a0, T const b0, T & c0, T & c1 )
 {
-    TwoProductFMA(a, b, ch, cl);
+  TwoProductFMA( a0, b0, c0, c1 );
 }
 
 // mul: 1-1-3
-template < typename T > __always_inline void mul_SW_SW_QTW(T const a, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_SW_SW_QTW ( T const a0, T const b0, T & c0, T & c1, T & c2 )
 {
-    TwoProductFMA(a, b, c1, c2);
-    c3 = fp_const<T>::zero();
+  TwoProductFMA( a0, b0, c0, c1 );
+  c2 = fp_const<T>::zero();
 }
 
 // mul: 1-1-4
-template < typename T > __always_inline void mul_SW_SW_QQW(T const a, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_SW_SW_QQW ( T const a0, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    TwoProductFMA(a, b, c1, c2);
-    c3 = fp_const<T>::zero();
-    c4 = fp_const<T>::zero();
+  TwoProductFMA( a0, b0, c0, c1 );
+  c2 = fp_const<T>::zero();
+  c3 = fp_const<T>::zero();
 }
 
 // mul: 1-2-1
-template < typename T > __always_inline void mul_SW_PA_SW(T const a, T const bh, T const bl, T &c)
+template < typename T > __always_inline void
+mul_SW_PA_SW ( T const a0, T const b0, T const b1, T & c0 )
 {
-    c = a * (bh + bl);
+  T t0;
+  t0 = b1 + b0;
+  c0 = a0 * t0;
 }
 
 // mul: 1-2-2
-template < typename T > __always_inline void mul_SW_PA_PA(T const a, T const bh, T const bl, T &ch, T &cl)
+template < typename T > __always_inline void
+mul_SW_PA_PA ( T const a0, T const b0, T const b1, T & c0, T & c1 )
 {
-    T t;
-    TwoProductFMA(a, bh, ch, t);
-    cl = std::fma(a, bl, t);
+  TwoProductFMA( a0, b0, c0, c1 );
+  c1 = std::fma ( a0, b1, c1 );
 }
 
 // mul: 1-2-3
-template < typename T > __always_inline void mul_SW_PA_QTW(T const a, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_SW_PA_QTW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    T e1, e3, e5, t3;
-    TwoProductFMA(a, b1, c1, e1);
-    TwoProductFMA(a, b2, t3, e3);
-    TwoSum(t3, e1, c2, e5);
-    c3 = e3 + e5;
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoSum( c1, c2, c1, c2 );
+  c2 = c2 + t0;
 }
 
 // mul: 1-2-4
-template < typename T > __always_inline void mul_SW_PA_QQW(T const a, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_SW_PA_QQW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, e1, e2, e3;
-    TwoProductFMA(a, b1, c1, e1);
-    TwoProductFMA(a, b2, t1, e2);
-    TwoSum(e1, t1, c2, e3);
-    c3 = e2 + e3;
-    c4 = fp_const<T>::zero();
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, c3, c2, c3 );
 }
 
 // mul: 1-3-1
-template < typename T > __always_inline void mul_SW_QTW_SW(T const a, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+mul_SW_QTW_SW ( T const a0, T const b0, T const b1, T const b2, T & c0 )
 {
-    c = a * (b3 + b2 + b1);
+  T t0;
+  t0 = b2 + b1 + b0;
+  c0 = a0 * t0;
 }
 
 // mul: 1-3-2
-template < typename T > __always_inline void mul_SW_QTW_PA(T const a, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_SW_QTW_PA ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a, b1, c1, e1);
-    c2 = std::fma(a, b2 + b3, e1);
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = b2 + b1;
+  c1 = std::fma ( a0, t0, c1 );
 }
 
 // mul: 1-3-3
-template < typename T > __always_inline void mul_SW_QTW_QTW(T const a, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_SW_QTW_QTW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e4, e5, t2;
-    TwoProductFMA(a, b1, c1, e1);
-    TwoProductFMA(a, b2, t2, e2);
-    TwoSum(t2, e1, c2, e5);
-    c3 = e2 + std::fma(a, b3, e5);
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoSum( c1, c2, c1, c2 );
+  c2 = c2 + t0;
+  c2 = std::fma ( a0, b2, c2 );
 }
 
 // mul: 1-3-4
-template < typename T > __always_inline void mul_SW_QTW_QQW(T const a, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_SW_QTW_QQW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3;
-    T e1, e2, e3, e4, e5, e6;
-    TwoProductFMA(a, b1, c1, e1);
-    TwoProductFMA(a, b2, t1, e2);
-    TwoSum(e1, t1, c2, e3);
-    TwoSum(e2, e3, t2, e4);
-    TwoProductFMA(a, b3, t3, e5);
-    TwoSum(t2, t3, c3, e6);
-    c4 = e4 + e5 + e6;
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t0, t1 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t0, c2, t0 );
+  c3 = c3 + t0 + t1;
 }
 
 // mul: 1-4-1
-template < typename T > __always_inline void mul_SW_QQW_SW(T const a1, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+mul_SW_QQW_SW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-//    *c = a1 + b1 + b2 + b3 + b4;
-    c = a1 * (b4 + b3 + b2 + b1);//
+  T t0;
+  t0 = b3 + b2 + b1 + b0;
+  c0 = a0 * t0;
 }
 
 // mul: 1-4-2
-template < typename T > __always_inline void mul_SW_QQW_PA(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_SW_QQW_PA ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a, b1, c1, e1);
-    c2 = std::fma(a, b2, e1);
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = b3 + b2 + b1;
+  c1 = std::fma ( a0, t0, c1 );
 }
 
 // mul: 1-4-3
-template < typename T > __always_inline void mul_SW_QQW_QTW(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_SW_QQW_QTW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e5, e6;
-    T t2, t4;
-
-    TwoProductFMA(a, b1, c1, e1);
-    TwoProductFMA(a, b2, t2, e2);
-    TwoSum(t2, e1, c2, e5);
-    TwoProductFMA(a, b3, t4, e6);
-    c3 = t4 + e2 + e5;
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoSum( c1, c2, c1, c2 );
+  c2 = c2 + t0;
+  t1 = b3 + b2;
+  c2 = std::fma ( a0, t1, c2 );
 }
 
 // mul: 1-4-4
-template < typename T > __always_inline void mul_SW_QQW_QQW(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_SW_QQW_QQW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e5, e6, e11, e14;
-    T t2, t4;
-
-    TwoProductFMA(a, b1, c1, e1);
-    TwoProductFMA(a, b2, t2, e2);
-    TwoSum(t2, e1, c2, e5);
-    TwoProductFMA(a, b3, t4, e6);
-    TwoSum(t4, e2, c3, e11);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(a, b4, e6) + e11 + e14;
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t0, t1 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t0, c2, t0 );
+  c3 = c3 + t0 + t1;
+  c3 = std::fma ( a0, b3, c3 );
 }
 
 // mul: 2-1-1
-template < typename T > __always_inline void mul_PA_SW_SW(T const ah, T const al, T const b, T &c)
+template < typename T > __always_inline void
+mul_PA_SW_SW ( T const a0, T const a1, T const b0, T & c0 )
 {
-    c = (ah + al) * b;
+  T t0;
+  t0 = a1 + a0;
+  c0 = t0 * b0;
 }
 
 // mul: 2-1-2
-template < typename T > __always_inline void mul_PA_SW_PA(T const ah, T const al, T const b, T &ch, T &cl)
+template < typename T > __always_inline void
+mul_PA_SW_PA ( T const a0, T const a1, T const b0, T & c0, T & c1 )
 {
-    T t;
-    TwoProductFMA(ah, b, ch, t);
-    cl = std::fma(b, al, t);
+  TwoProductFMA( a0, b0, c0, c1 );
+  c1 = std::fma ( b0, a1, c1 );
 }
 
 // mul: 2-1-3
-template < typename T > __always_inline void mul_PA_SW_QTW(T const a1, T const a2, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_PA_SW_QTW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2 )
 {
-    T e1, e3, e4, t3;
-    TwoProductFMA(a1, b, c1, e1);
-    TwoProductFMA(a2, b, t3, e3);
-    TwoSum(e1, t3, c2, e4);
-    c3 = e3 + e4;
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  c2 = t0 + t1;
 }
 
 // mul: 2-1-4
-template < typename T > __always_inline void mul_PA_SW_QQW(T const a1, T const a2, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_PA_SW_QQW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e3, e5;
-    T t3;
-    
-    TwoProductFMA(a1, b, c1, e1);
-    TwoProductFMA(a2, b, t3, e3);
-    TwoSum(t3, e1, c2, e5);
-    TwoSum(e3, e5, c3, c4);
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, c3 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( t0, c3, c2, c3 );
 }
 
 // mul: 2-2-1
-template < typename T > __always_inline void mul_PA_PA_SW(T const ah, T const al, T const bh, T const bl, T &c)
+template < typename T > __always_inline void
+mul_PA_PA_SW ( T const a0, T const a1, T const b0, T const b1, T & c0 )
 {
-    c = std::fma(al, bh, std::fma(ah, bh, ah * bl)); 
+  T t0, t1;
+  t0 = a1 + a0;
+  t1 = b1 + b0;
+  c0 = t0 * t1;
 }
 
 // mul: 2-2-2
-template < typename T > __always_inline void mul_PA_PA_PA(T const ah, T const al, T const bh, T const bl, T &ch, T &cl)
+template < typename T > __always_inline void
+mul_PA_PA_PA ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1 )
 {
-    T t;
-    TwoProductFMA(ah, bh, ch, t);
-    cl = std::fma(ah, bl, std::fma(bh, al, t));
+  TwoProductFMA( a0, b0, c0, c1 );
+  c1 = std::fma ( a0, b1, c1 );
+  c1 = std::fma ( b0, a1, c1 );
 }
 
 // mul: 2-2-3
-template < typename T > __always_inline void mul_PA_PA_QTW(T const a1, T const a2, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_PA_PA_QTW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3, e4, e5, t2, t3;
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    c3 = e2 + std::fma(a2, b2, e3) + e4 + e5;
+  T t0, t1, t2;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = c2 + t1 + t0 + t2;
+  c2 = std::fma ( a1, b1, c2 );
 }
 
 // mul: 2-2-4
-template < typename T > __always_inline void mul_PA_PA_QQW(T const a1, T const a2, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_PA_PA_QQW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5;
-    T e7, e11, e12, e13, e14;
-    T t2, t3, t5;
-    
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    TwoProductFMA(a2, b2, t5, e7);
-    TwoSum(t5, e2, c3, e11);
-    TwoSum(c3, e3, c3, e12);
-    TwoSum(c3, e4, c3, e13);
-    TwoSum(c3, e5, c3, e14);
-    c4 = e7 + e11 + e12 + e13 + e14;
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a1, b1, t2, t3 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  c3 = c3 + t0 + t1 + t2 + t3;
 }
 
 // mul: 2-3-1
-template < typename T > __always_inline void mul_PA_QTW_SW(T const a1, T const a2, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+mul_PA_QTW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0 )
 {
-    c = (a1 + a2) * (b3 + b2 + b1);
+  T t0, t1;
+  t0 = a1 + a0;
+  t1 = b2 + b1 + b0;
+  c0 = t0 * t1;
 }
 
 // mul: 2-3-2
-template < typename T > __always_inline void mul_PA_QTW_PA(T const a1, T const a2, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_PA_QTW_PA ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a1, b1, c1, e1);
-    c2 = std::fma(a2, b1, std::fma(a1, b2, e1));
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = b2 + b1;
+  c1 = std::fma ( a0, t0, c1 );
+  c1 = std::fma ( b0, a1, c1 );
 }
 
 // mul: 2-3-3
-template < typename T > __always_inline void mul_PA_QTW_QTW(T const a1, T const a2, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_PA_QTW_QTW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3, e4, e5, t2, t3;
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    c3 = e2 + std::fma(a2, b2, e3) + std::fma(a1, b3, e4) + e5;
+  T t0, t1, t2;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = c2 + t1 + t0 + t2;
+  c2 = std::fma ( a0, b2, c2 );
+  c2 = std::fma ( a1, b1, c2 );
 }
 
 // mul: 2-3-4
-template < typename T > __always_inline void mul_PA_QTW_QQW(T const a1, T const a2, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_PA_QTW_QQW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5;
-    T e6, e7, e9, e11, e12, e13, e14;
-    T t2, t3, t4, t5;
-    
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    TwoProductFMA(a1, b3, t4, e6);
-    TwoProductFMA(a2, b2, t5, e7);
-    TwoSum(t4, t5, c3, e9);
-    TwoSum(c3, e2, c3, e11);
-    TwoSum(c3, e3, c3, e12);
-    TwoSum(c3, e4, c3, e13);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(a2, b3, e6) + e7 + e9 + e11 + e12 + e13 + e14;
+  T t0, t1, t2, t3, t4, t5;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
+  c3 = std::fma ( a1, b2, c3 );
 }
 
 // mul: 2-4-1
-template < typename T > __always_inline void mul_PA_QQW_SW(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+mul_PA_QQW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-//    *c = a1 + b1 + a2 + b2 + b3 + b4;
-    c = (a1 + a2) * (b1 + b2 + b3 + b4);//
+  T t0, t1;
+  t0 = a1 + a0;
+  t1 = b3 + b2 + b1 + b0;
+  c0 = t0 * t1;
 }
 
 // mul: 2-4-2
-template < typename T > __always_inline void mul_PA_QQW_PA(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_PA_QQW_PA ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a1, b1, c1, e1);
-    c2 = std::fma(a1, b2, std::fma(a2, b1, e1));
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = b3 + b2 + b1;
+  c1 = std::fma ( a0, t0, c1 );
+  c1 = std::fma ( b0, a1, c1 );
 }
 
 // mul: 2-4-3
-template < typename T > __always_inline void mul_PA_QQW_QTW(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_PA_QQW_QTW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3, e4, e5;
-    T t2, t3;
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    c3 = std::fma(a1, b3, std::fma(a2, b2, e2)) + e3 + e4 + e5;
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = c2 + t1 + t0 + t2;
+  t3 = b3 + b2;
+  c2 = std::fma ( a0, t3, c2 );
+  c2 = std::fma ( a1, b1, c2 );
 }
 
 // mul: 2-4-4
-template < typename T > __always_inline void mul_PA_QQW_QQW(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_PA_QQW_QQW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5;
-    T e6, e7, e9;
-    T e11, e12, e13, e14;
-    T t2, t3, t4, t5;
-
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    TwoProductFMA(a1, b3, t4, e6);
-    TwoProductFMA(a2, b2, t5, e7);
-    TwoSum(t4, t5, c3, e9);
-    TwoSum(c3, e2, c3, e11);
-    TwoSum(c3, e3, c3, e12);
-    TwoSum(c3, e4, c3, e13);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(a2, b3, a1 * b4) + e6 + e7 + e9 + e11 + e12 + e13 + e14;
+  T t0, t1, t2, t3, t4, t5;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
+  c3 = std::fma ( a0, b3, c3 );
+  c3 = std::fma ( a1, b2, c3 );
 }
 
 // mul: 3-1-1
-template < typename T > __always_inline void mul_QTW_SW_SW(T const a1, T const a2, T const a3, T const b, T &c)
+template < typename T > __always_inline void
+mul_QTW_SW_SW ( T const a0, T const a1, T const a2, T const b0, T & c0 )
 {
-    c = (a3 + a2 + a1) * b;
+  T t0;
+  t0 = a2 + a1 + a0;
+  c0 = t0 * b0;
 }
 
 // mul: 3-1-2
-template < typename T > __always_inline void mul_QTW_SW_PA(T const a1, T const a2, T const a3, T const b, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_QTW_SW_PA ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a1, b, c1, e1);
-    c2 = std::fma(a2, b, e1);
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = a2 + a1;
+  c1 = std::fma ( b0, t0, c1 );
 }
 
 // mul: 3-1-3
-template < typename T > __always_inline void mul_QTW_SW_QTW(T const a1, T const a2, T const a3, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_QTW_SW_QTW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2 )
 {
-    T e1, e3, e5;
-    T t3;
-    TwoProductFMA(a1, b, c1, e1);
-    TwoProductFMA(a2, b, t3, e3);
-    TwoSum(t3, e1, c2, e5);
-    c3 = std::fma(a3, b, e3) + e5;
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  c2 = t0 + t1;
+  c2 = std::fma ( a2, b0, c2 );
 }
 
 // mul: 3-1-4
-template < typename T > __always_inline void mul_QTW_SW_QQW(T const a1, T const a2, T const a3, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_QTW_SW_QQW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e3, e5, e8, e12, e14;
-    T t3, t4, t5, t6;
-    
-    TwoProductFMA(a1, b, c1, e1);
-    TwoProductFMA(a2, b, t3, e3);
-    TwoSum(t3, e1, c2, e5);
-    TwoProductFMA(a3, b, t6, e8);
-    TwoSum(t6, e3, c3, e12);
-    TwoSum(c3, e5, c3, e14);
-    c4 = e8 + e12 + e14;
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a2, b0, t2, t3 );
+  TwoSum( t0, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  c3 = t1 + t2 + t3;
 }
 
 // mul: 3-2-1
-template < typename T > __always_inline void mul_QTW_PA_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c)
+template < typename T > __always_inline void
+mul_QTW_PA_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0 )
 {
-    c = (a3 + a2 + a1) * (b1 + b2);
+  T t0, t1;
+  t0 = a2 + a1 + a0;
+  t1 = b1 + b0;
+  c0 = t0 * t1;
 }
 
 // mul: 3-2-2
-template < typename T > __always_inline void mul_QTW_PA_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_QTW_PA_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a1, b1, c1, e1);
-    c2 = std::fma(a2 + a3, b1, std::fma(a1, b2, e1));
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = a2 + a1;
+  c1 = std::fma ( a0, b1, c1 );
+  c1 = std::fma ( b0, t0, c1 );
 }
 
 // mul: 3-2-3
-template < typename T > __always_inline void mul_QTW_PA_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_QTW_PA_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3, e4, e5, t2, t3;
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    c3 = std::fma(a3, b1, e2) + std::fma(a2, b2, e3) + e4 + e5;
+  T t0, t1, t2;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = c2 + t1 + t0 + t2;
+  c2 = std::fma ( a1, b1, c2 );
+  c2 = std::fma ( a2, b0, c2 );
 }
 
 // mul: 3-2-4
-template < typename T > __always_inline void mul_QTW_PA_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_QTW_PA_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5;
-    T e7, e8, e10;
-    T e11, e12, e13, e14;
-    T t2, t3, t5, t6;
-    
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    TwoProductFMA(a2, b2, t5, e7);
-    TwoProductFMA(a3, b1, t6, e8);
-    TwoSum(t5, t6, c3, e10);
-    TwoSum(c3, e2, c3, e11);
-    TwoSum(c3, e3, c3, e12);
-    TwoSum(c3, e4, c3, e13);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(a3, b2, e7) + e8 + e10 + e11 + e12 + e13 + e14;
+  T t0, t1, t2, t3, t4, t5;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a1, b1, t2, t3 );
+  TwoProductFMA( a2, b0, t4, t5 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
+  c3 = std::fma ( a2, b1, c3 );
 }
 
 // mul: 3-3-1
-template < typename T > __always_inline void mul_QTW_QTW_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+mul_QTW_QTW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0 )
 {
-    c = (a1 + a2 + a3) * (b1 + b2 + b3);//減らしてもよい
+  T t0, t1;
+  t0 = a2 + a1 + a0;
+  t1 = b2 + b1 + b0;
+  c0 = t0 * t1;
 }
 
 // mul: 3-3-2
-template < typename T > __always_inline void mul_QTW_QTW_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_QTW_QTW_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a1, b1, c1, e1);
-    c2 = std::fma(a2, b1, std::fma(a1, b2, e1));
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = a2 + a1;
+  t1 = b2 + b1;
+  c1 = std::fma ( a0, t1, c1 );
+  c1 = std::fma ( b0, t0, c1 );
 }
 
 // mul: 3-3-3
-template < typename T > __always_inline void mul_QTW_QTW_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_QTW_QTW_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3, e4, e5;
-    T t2, t3;
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    c3 = std::fma(a3, b1, e2) + std::fma(a2, b2, e3) + std::fma(a1, b3, e4) + e5;
+  T t0, t1, t2;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = c2 + t1 + t0 + t2;
+  c2 = std::fma ( a0, b2, c2 );
+  c2 = std::fma ( a1, b1, c2 );
+  c2 = std::fma ( a2, b0, c2 );
 }
 
 // mul: 3-3-4
-template < typename T > __always_inline void mul_QTW_QTW_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_QTW_QTW_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5;
-    T e6, e7, e8, e9, e10;
-    T e11, e12, e13, e14;
-    T t2, t3, t4, t5, t6;
-    
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    TwoProductFMA(a1, b3, t4, e6);
-    TwoProductFMA(a2, b2, t5, e7);
-    TwoProductFMA(a3, b1, t6, e8);
-    TwoSum(t4, t5, c3, e9);
-    TwoSum(c3, t6, c3, e10);
-    TwoSum(c3, e2, c3, e11);
-    TwoSum(c3, e3, c3, e12);
-    TwoSum(c3, e4, c3, e13);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(a3, b2, std::fma(a2, b3, e6)) + e7 + e8 + e9 + e10 + e11 + e12 + e13 + e14;
+  T t0, t1, t2, t3, t4, t5, t6, t7;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoProductFMA( a2, b0, t6, t7 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  TwoSum( c2, t6, c2, t6 );
+  c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
+  c3 = std::fma ( a1, b2, c3 );
+  c3 = std::fma ( a2, b1, c3 );
 }
 
 // mul: 3-4-1
-template < typename T > __always_inline void mul_QTW_QQW_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+mul_QTW_QQW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-//    *c = a1 + b1 + a2 + b2 + a3 + b3 + b4;
-    c = (a3 + a2 + a1) * (b4 + b3 + b2 + b1);//
+  T t0, t1;
+  t0 = a2 + a1 + a0;
+  t1 = b3 + b2 + b1 + b0;
+  c0 = t0 * t1;
 }
 
 // mul: 3-4-2
-template < typename T > __always_inline void mul_QTW_QQW_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_QTW_QQW_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a1, b1, c1, e1);
-    c2 = std::fma(a1, b2, std::fma(a2, b1, e1));
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = a2 + a1;
+  t1 = b3 + b2 + b1;
+  c1 = std::fma ( a0, t1, c1 );
+  c1 = std::fma ( b0, t0, c1 );
 }
 
 // mul: 3-4-3
-template < typename T > __always_inline void mul_QTW_QQW_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_QTW_QQW_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3, e4, e5;
-    T t2, t3;
-
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    c3 = std::fma(a3, b1, std::fma(a1, b3, a2 * b2)) + e2 + e3 + e4 + e5;
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = c2 + t1 + t0 + t2;
+  t3 = b3 + b2;
+  c2 = std::fma ( a0, t3, c2 );
+  c2 = std::fma ( a1, b1, c2 );
+  c2 = std::fma ( a2, b0, c2 );
 }
 
 // mul: 3-4-4
-template < typename T > __always_inline void mul_QTW_QQW_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_QTW_QQW_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5;
-    T e6, e7, e8, e9, e10;
-    T e11, e12, e13, e14;
-    T t2, t3, t4, t5, t6;
-
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    TwoProductFMA(a1, b3, t4, e6);
-    TwoProductFMA(a2, b2, t5, e7);
-    TwoProductFMA(a3, b1, t6, e8);
-    TwoSum(t4, t5, c3, e9);
-    TwoSum(c3, t6, c3, e10);
-    TwoSum(c3, e2, c3, e11);
-    TwoSum(c3, e3, c3, e12);
-    TwoSum(c3, e4, c3, e13);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(a3, b2, std::fma(a2, b3, a1 * b4)) + e6 + e7 + e8 + e9 + e10 + e11 + e12 + e13 + e14;
+  T t0, t1, t2, t3, t4, t5, t6, t7;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoProductFMA( a2, b0, t6, t7 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  TwoSum( c2, t6, c2, t6 );
+  c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
+  c3 = std::fma ( a0, b3, c3 );
+  c3 = std::fma ( a1, b2, c3 );
+  c3 = std::fma ( a2, b1, c3 );
 }
 
 // mul: 4-1-1
-template < typename T > __always_inline void mul_QQW_SW_SW(T const a1, T const a2, T const a3, T const a4, T const b, T &c)
+template < typename T > __always_inline void
+mul_QQW_SW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0 )
 {
-//    *c = a1 + b + a2  + a3 + a4;
-    c = (a4 + a3 +a2 + a1) * b;//
+  T t0;
+  t0 = a3 + a2 + a1 + a0;
+  c0 = t0 * b0;
 }
 
 // mul: 4-1-2
-template < typename T > __always_inline void mul_QQW_SW_PA(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_QQW_SW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a1, b, c1, e1);
-    c2 = std::fma(a2, b, e1);
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = a3 + a2 + a1;
+  c1 = std::fma ( b0, t0, c1 );
 }
 
 // mul: 4-1-3
-template < typename T > __always_inline void mul_QQW_SW_QTW(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_QQW_SW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2 )
 {
-    T t3;
-    T e1, e3, e5;
-    TwoProductFMA(a1, b, c1, e1);
-    TwoProductFMA(a2, b, t3, e3);
-    TwoSum(t3, e1, c2, e5);
-    c3 = std::fma(a3, b, e3) + e5;
+  T t0, t1, t2;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  c2 = t0 + t1;
+  t2 = a3 + a2;
+  c2 = std::fma ( t2, b0, c2 );
 }
 
 // mul: 4-1-4
-template < typename T > __always_inline void mul_QQW_SW_QQW(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_QQW_SW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e3, e5;
-    T e8, e12, e14;
-    T t2, t3, t4, t5, t6;
-    
-    TwoProductFMA(a1, b, c1, e1);
-    TwoProductFMA(a2, b, t3, e3);
-    TwoSum(c2, e1, c2, e5);
-    TwoProductFMA(a3, b, t6, e8);
-    TwoSum(t6, e3, c3, e12);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(a4, b, e8) + e12 + e14;
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a2, b0, t2, t3 );
+  TwoSum( t0, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  c3 = t1 + t2 + t3;
+  c3 = std::fma ( a3, b0, c3 );
 }
 
 // mul: 4-2-1
-template < typename T > __always_inline void mul_QQW_PA_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c)
+template < typename T > __always_inline void
+mul_QQW_PA_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0 )
 {
-//    *c = a1 + b1 + a2 + b2 + a3 + a4;
-    c = (a4 + a3 + a2 + a1) * (b1 + b2);
+  T t0, t1;
+  t0 = a3 + a2 + a1 + a0;
+  t1 = b1 + b0;
+  c0 = t0 * t1;
 }
 
 // mul: 4-2-2
-template < typename T > __always_inline void mul_QQW_PA_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_QQW_PA_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a1, b1, c1, e1);
-    c2 = std::fma(a1, b2, std::fma(a2, b1, e1));
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = a3 + a2 + a1;
+  c1 = std::fma ( a0, b1, c1 );
+  c1 = std::fma ( b0, t0, c1 );
 }
 
 // mul: 4-2-3
-template < typename T > __always_inline void mul_QQW_PA_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_QQW_PA_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3, e4, e5;
-    T t2, t3;
-    
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    c3 = std::fma(a2, b2, e2) + std::fma(a3, b1, e3) + e4 + e5;
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = c2 + t1 + t0 + t2;
+  t3 = a3 + a2;
+  c2 = std::fma ( a1, b1, c2 );
+  c2 = std::fma ( t3, b0, c2 );
 }
 
 // mul: 4-2-4
-template < typename T > __always_inline void mul_QQW_PA_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_QQW_PA_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5;
-    T e7, e8, e10;
-    T e11, e12, e13, e14;
-    T t2, t3, t5, t6;
-    
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    TwoProductFMA(a2, b2, t5, e7);
-    TwoProductFMA(a3, b1, t6, e8);
-    TwoSum(t5, t6, c3, e10);
-    TwoSum(c3, e2, c3, e11);
-    TwoSum(c3, e3, c3, e12);
-    TwoSum(c3, e4, c3, e13);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(a4, b1, std::fma(a3, b2, e7)) + e8 + e10 + e11 + e12 + e13 + e14;
+  T t0, t1, t2, t3, t4, t5;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a1, b1, t2, t3 );
+  TwoProductFMA( a2, b0, t4, t5 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
+  c3 = std::fma ( a2, b1, c3 );
+  c3 = std::fma ( a3, b0, c3 );
 }
 
 // mul: 4-3-1
-template < typename T > __always_inline void mul_QQW_QTW_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+mul_QQW_QTW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0 )
 {
-//    *c = a1 + b1 + a2 + b2 + a3 + b3 + a4;
-    c = (a4 + a3 + a2 + a1) * (b3 + b2 + b1);
+  T t0, t1;
+  t0 = a3 + a2 + a1 + a0;
+  t1 = b2 + b1 + b0;
+  c0 = t0 * t1;
 }
 
 // mul: 4-3-2
-template < typename T > __always_inline void mul_QQW_QTW_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_QQW_QTW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a1, b1, c1, e1);
-    c2 = std::fma(a1, b2, std::fma(a2, b1, e1));
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = a3 + a2 + a1;
+  t1 = b2 + b1;
+  c1 = std::fma ( a0, t1, c1 );
+  c1 = std::fma ( b0, t0, c1 );
 }
 
 // mul: 4-3-3
-template < typename T > __always_inline void mul_QQW_QTW_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_QQW_QTW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3, e4, e5;
-    T t2, t3;
-    
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    c3 = std::fma(a1, b3, e2) + std::fma(a2, b2, e3) + std::fma(a3, b1, e4) + e5;
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = c2 + t1 + t0 + t2;
+  t3 = a3 + a2;
+  c2 = std::fma ( a0, b2, c2 );
+  c2 = std::fma ( a1, b1, c2 );
+  c2 = std::fma ( t3, b0, c2 );
 }
 
 // mul: 4-3-4
-template < typename T > __always_inline void mul_QQW_QTW_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_QQW_QTW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5;
-    T e6, e7, e8, e9, e10;
-    T e11, e12, e13, e14;
-    T t2, t3, t4, t5, t6;
-    
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    TwoProductFMA(a1, b3, t4, e6);
-    TwoProductFMA(a2, b2, t5, e7);
-    TwoProductFMA(a3, b1, t6, e8);
-    TwoSum(t4, t5, c3, e9);
-    TwoSum(c3, t6, c3, e10);
-    TwoSum(c3, e2, c3, e11);
-    TwoSum(c3, e3, c3, e12);
-    TwoSum(c3, e4, c3, e13);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(a4, b1, std::fma(a3, b2, std::fma(a2, b3, e6))) + e7 + e8 + e9 + e10 + e11 + e12 + e13 + e14;
+  T t0, t1, t2, t3, t4, t5, t6, t7;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoProductFMA( a2, b0, t6, t7 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  TwoSum( c2, t6, c2, t6 );
+  c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
+  c3 = std::fma ( a1, b2, c3 );
+  c3 = std::fma ( a2, b1, c3 );
+  c3 = std::fma ( a3, b0, c3 );
 }
 
 // mul: 4-4-1
-template < typename T > __always_inline void mul_QQW_QQW_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+mul_QQW_QQW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-//    *c = a1 + b1 + a2 + b2 + a3 + b3 + a4 + b4;
-    c = (a4 + a3 + a2 + a1) * (b4 + b3 + b2 + b1);
+  T t0, t1;
+  t0 = a3 + a2 + a1 + a0;
+  t1 = b3 + b2 + b1 + b0;
+  c0 = t0 * t1;
 }
 
 // mul: 4-4-2
-template < typename T > __always_inline void mul_QQW_QQW_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+mul_QQW_QQW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    T e1;
-    TwoProductFMA(a1, b1, c1, e1);
-    c2 = std::fma(a1, b2, std::fma(a2, b1, e1));
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  t0 = a3 + a2 + a1;
+  t1 = b3 + b2 + b1;
+  c1 = std::fma ( a0, t1, c1 );
+  c1 = std::fma ( b0, t0, c1 );
 }
 
 // mul: 4-4-3
-template < typename T > __always_inline void mul_QQW_QQW_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+mul_QQW_QQW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e3, e4, e5;
-    T t2, t3;
-    
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    c3 = std::fma(a1, b3, e2) + std::fma(a2, b2, e3) + std::fma(a3, b1, e4) + e5;
+  T t0, t1, t2, t3, t4;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = c2 + t1 + t0 + t2;
+  t3 = a3 + a2;
+  t4 = b3 + b2;
+  c2 = std::fma ( a0, t4, c2 );
+  c2 = std::fma ( a1, b1, c2 );
+  c2 = std::fma ( t3, b0, c2 );
 }
 
 // mul: 4-4-4
-template < typename T > __always_inline void mul_QQW_QQW_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+mul_QQW_QQW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T e1, e2, e3, e4, e5;
-    T e6, e7, e8, e9, e10;
-    T e11, e12, e13, e14;
-    T t2, t3, t4, t5, t6;
-    
-    TwoProductFMA(a1, b1, c1, e1);
-    TwoProductFMA(a1, b2, t2, e2);
-    TwoProductFMA(a2, b1, t3, e3);
-    TwoSum(t2, t3, c2, e4);
-    TwoSum(c2, e1, c2, e5);
-    TwoProductFMA(a1, b3, t4, e6);
-    TwoProductFMA(a2, b2, t5, e7);
-    TwoProductFMA(a3, b1, t6, e8);
-    TwoSum(t4, t5, c3, e9);
-    TwoSum(c3, t6, c3, e10);
-    TwoSum(c3, e2, c3, e11);
-    TwoSum(c3, e3, c3, e12);
-    TwoSum(c3, e4, c3, e13);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(a4, b1, std::fma(a3, b2, std::fma(a2, b3, a1 * b4))) + e6 + e7 + e8 + e9 + e10 + e11 + e12 + e13 + e14;
+  T t0, t1, t2, t3, t4, t5, t6, t7;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoProductFMA( a2, b0, t6, t7 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  TwoSum( c2, t6, c2, t6 );
+  c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
+  c3 = std::fma ( a0, b3, c3 );
+  c3 = std::fma ( a1, b2, c3 );
+  c3 = std::fma ( a2, b1, c3 );
+  c3 = std::fma ( a3, b0, c3 );
 }
 
-// ------------------------------
-// Division
-// ------------------------------
+// div: 1-1-1
+template < typename T > __always_inline void
+div_SW_SW_SW ( T const a0, T const b0, T & c0 )
+{
+  c0 = a0 / b0;
+}
 
 // div: 1-1-2
-template < typename T > __always_inline void div_SW_SW_PA(T const a, T const b, T &ch, T &cl)
+template < typename T > __always_inline void
+div_SW_SW_PA ( T const a0, T const b0, T & c0, T & c1 )
 {
-    ch = a / b;
-    cl = std::fma(-b, ch, a) / b;
+  T r = a0;
+  c0 = r / b0;
+  r = std::fma( -b0, c0, r );
+  c1 = r / b0;
 }
 
 // div: 1-1-3
-template < typename T > __always_inline void div_SW_SW_QTW(T const a, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_SW_SW_QTW ( T const a0, T const b0, T & c0, T & c1, T & c2 )
 {
-    T t1, t2, t3;
-    div_SW_SW_PA(a, b, c1, c2);////3 - 3
-    mul_PA_SW_QTW(c1, c2, b, t1, t2, t3); ////11 - 7
-    add_SW_QTW_QTW(a, -t1, -t2, -t3, t1, t2, t3);////13 - 5
-    c3 = (t1 + t2 + t3) / b;
+  T r = a0;
+  c0 = r / b0;
+  r = std::fma( -b0, c0, r );
+  c1 = r / b0;
+  r = std::fma( -b0, c1, r );
+  c2 = r / b0;
 }
 
 // div: 1-1-4
-template < typename T > __always_inline void div_SW_SW_QQW(T const a, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_SW_SW_QQW ( T const a0, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_SW_SW_QTW(a, b, c1, c2, c3);////30 - 17
-    mul_QTW_SW_QQW(c1, c2, c3, b, t1, t2, t3, t4);////12 - 8
-    add_SW_QQW_QQW(a, -t1, -t2, -t3, -t4, t1, t2, t3, t4);//// 19 - 7
-    c4 = (t1 + t2 + t3 + t4) / b;
+  T r = a0;
+  c0 = r / b0;
+  r = std::fma( -b0, c0, r );
+  c1 = r / b0;
+  r = std::fma( -b0, c1, r );
+  c2 = r / b0;
+  r = std::fma( -b0, c2, r );
+  c3 = r / b0;
 }
 
 // div: 1-2-1
-template < typename T > __always_inline void div_SW_PA_SA(T const a, T const bh, T const bl, T &c)
+template < typename T > __always_inline void
+div_SW_PA_SW ( T const a0, T const b0, T const b1, T & c0 )
 {
-    c = a / (bh + bl);
+  T e40, e41;
+  e40 = a0;
+  e41 = b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 1-2-2
-template < typename T > __always_inline void div_SW_PA_PA(T const a, T const bh, T const bl, T &ch, T &cl)
+template < typename T > __always_inline void
+div_SW_PA_PA ( T const a0, T const b0, T const b1, T & c0, T & c1 )
 {
-    T t;
-    ch = a / bh;
-    t = std::fma(-bh, ch, a);
-    cl = std::fma(ch, -bl, t) / (bh + bl);
+  T t0, t1;
+  T e40;
+  e40 = b1 + b0;
+  div_SW_SW_SW ( a0, e40, c0 );
+  mul_SW_SW_PA ( c0, e40, t0, t1 );
+  sub_SW_PA_PA ( a0, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = e40;
+  c1 = tn / td;
 }
 
 // div: 1-2-3
-template < typename T > __always_inline void div_SW_PA_QTW(T const a, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_SW_PA_QTW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    T t1, t2, t3;
-    div_SW_PA_PA(a, b1, b2, c1, c2);////5 - 5
-    mul_PA_PA_QTW(c1, c2, b1, b2, t1, t2, t3); ////20 - 13
-    add_SW_QTW_QTW(a, -t1, -t2, -t3, t1, t2, t3);////13 - 5
-    c3 = (t1 + t2 + t3) / (b1 + b2);
+  T t0, t1, t2;
+  div_SW_PA_PA ( a0, b0, b1, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, b1, t0, t1, t2 );
+  sub_SW_QTW_QTW ( a0, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + b1;
+  c2 = tn / td;
 }
 
 // div: 1-2-4
-template < typename T > __always_inline void div_SW_PA_QQW(T const a, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_SW_PA_QQW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_SW_PA_QTW(a, b1, b2, c1, c2, c3);////42 - 26
-    mul_QTW_PA_QQW(c1, c2, c3, b1, b2, t1, t2, t3, t4);////59 - 28
-    add_SW_QQW_QQW(a, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////19 - 7
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2);
+  T t0, t1, t2, t3;
+  div_SW_PA_QTW ( a0, b0, b1, c0, c1, c2 );
+  mul_QTW_PA_QQW ( c0, c1, c2, b0, b1, t0, t1, t2, t3 );
+  sub_SW_QQW_QQW ( a0, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1;
+  c3 = tn / td;
 }
 
 // div: 1-3-1
-template < typename T > __always_inline void div_SW_QTW_SW(T const a, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+div_SW_QTW_SW ( T const a0, T const b0, T const b1, T const b2, T & c0 )
 {
-    c = a / (b1 + b2 + b3);
+  T e40, e41;
+  e40 = a0;
+  e41 = b2 + b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 1-3-2
-template < typename T > __always_inline void div_SW_QTW_PA(T const a, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+div_SW_QTW_PA ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    div_SW_PA_PA(a, b1, b2 + b3, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = b2 + b1 + b0;
+  div_SW_SW_SW ( a0, e40, c0 );
+  mul_SW_SW_PA ( c0, e40, t0, t1 );
+  sub_SW_PA_PA ( a0, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = e40;
+  c1 = tn / td;
 }
 
 // div: 1-3-3
-template < typename T > __always_inline void div_SW_QTW_QTW(T const a, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_SW_QTW_QTW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    T t1, t2, t3;
-    div_SW_PA_PA(a, b1, b2, c1, c2);////5 - 5
-    mul_PA_QTW_QTW(c1, c2, b1, b2, b3, t1, t2, t3);////21 - 14
-    add_SW_QTW_QTW(a, -t1, -t2, -t3, t1, t2, t3);////13 - 5
-    c3 = (t1 + t2 + t3) / (b1 + b2);
+  T t0, t1, t2;
+  T e40;
+  e40 = b2 + b1;
+  div_SW_PA_PA ( a0, b0, e40, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, e40, t0, t1, t2 );
+  sub_SW_QTW_QTW ( a0, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + e40;
+  c2 = tn / td;
 }
 
 // div: 1-3-4
-template < typename T > __always_inline void div_SW_QTW_QQW(T const a, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_SW_QTW_QQW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_SW_QTW_QTW(a, b1, b2, b3, c1, c2, c3);////43 - 27
-    mul_QTW_QTW_QQW(c1, c2, c3, b1, b2, b3, t1, t2, t3, t4);////70 - 34 
-    add_SW_QQW_QQW(a, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////19 - 7
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2 + b3);
+  T t0, t1, t2, t3;
+  div_SW_QTW_QTW ( a0, b0, b1, b2, c0, c1, c2 );
+  mul_QTW_QTW_QQW ( c0, c1, c2, b0, b1, b2, t0, t1, t2, t3 );
+  sub_SW_QQW_QQW ( a0, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1 + b2;
+  c3 = tn / td;
 }
 
 // div: 1-4-1
-template < typename T > __always_inline void div_SW_QQW_SW(T const a, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+div_SW_QQW_SW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    c = a / (b1 + b2 + b3 + b4);
+  T e40, e41;
+  e40 = a0;
+  e41 = b3 + b2 + b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 1-4-2
-template < typename T > __always_inline void div_SW_QQW_PA(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+div_SW_QQW_PA ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    div_SW_PA_PA(a, b1, b2 + b3 + b4, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = b3 + b2 + b1 + b0;
+  div_SW_SW_SW ( a0, e40, c0 );
+  mul_SW_SW_PA ( c0, e40, t0, t1 );
+  sub_SW_PA_PA ( a0, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = e40;
+  c1 = tn / td;
 }
 
 // div: 1-4-3
-template < typename T > __always_inline void div_SW_QQW_QTW(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_SW_QQW_QTW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    div_SW_QTW_QTW(a, b1, b2, b3 + b4, c1, c2, c3);
+  T t0, t1, t2;
+  T e40;
+  e40 = b3 + b2 + b1;
+  div_SW_PA_PA ( a0, b0, e40, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, e40, t0, t1, t2 );
+  sub_SW_QTW_QTW ( a0, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + e40;
+  c2 = tn / td;
 }
 
-
 // div: 1-4-4
-template < typename T > __always_inline void div_SW_QQW_QQW(T const a, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_SW_QQW_QQW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_SW_QTW_QTW(a, b1, b2, b3, c1, c2, c3);////43 - 27
-    mul_QTW_QQW_QQW(c1, c2, c3, b1, b2, b3, b4, t1, t2, t3, t4);////72 - 36
-    add_SW_QQW_QQW(a, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////19 - 7
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2 + b3);
+  T t0, t1, t2, t3;
+  T e40;
+  e40 = b3 + b2;
+  div_SW_QTW_QTW ( a0, b0, b1, e40, c0, c1, c2 );
+  mul_QTW_QTW_QQW ( c0, c1, c2, b0, b1, e40, t0, t1, t2, t3 );
+  sub_SW_QQW_QQW ( a0, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1 + e40;
+  c3 = tn / td;
 }
 
 // div: 2-1-1
-template < typename T > __always_inline void div_PA_SW_SW(T const ah, T const al, T const b, T &c)
+template < typename T > __always_inline void
+div_PA_SW_SW ( T const a0, T const a1, T const b0, T & c0 )
 {
-    c = (ah + al) / b;
+  T e40, e41;
+  e40 = a1 + a0;
+  e41 = b0;
+  c0 = e40 / e41;
 }
 
 // div: 2-1-2
-template < typename T > __always_inline void div_PA_SW_PA(T const ah, T const al, T const b, T &ch, T &cl)
+template < typename T > __always_inline void
+div_PA_SW_PA ( T const a0, T const a1, T const b0, T & c0, T & c1 )
 {
-    ch = ah / b;
-    cl = (std::fma(-b, ch, ah) + al) / b;
+  T t0, t1;
+  T e40;
+  e40 = a1 + a0;
+  div_SW_SW_SW ( e40, b0, c0 );
+  mul_SW_SW_PA ( c0, b0, t0, t1 );
+  sub_SW_PA_PA ( e40, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = b0;
+  c1 = tn / td;
 }
 
 // div: 2-1-3
-template < typename T > __always_inline void div_PA_SW_QTW(T const a1, T const a2, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_PA_SW_QTW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2 )
 {
-    T t1, t2, t3;
-    div_PA_SW_PA(a1, a2, b, c1, c2);////4 - 4
-    mul_PA_SW_QTW(c1, c2, b, t1, t2, t3);////11 - 7
-    add_PA_QTW_QTW(a1, a2, -t1, -t2, -t3, t1, t2, t3);////20 - 7
-    c3 = (t1 + t2 + t3) / b;
+  T t0, t1, t2;
+  div_PA_SW_PA ( a0, a1, b0, c0, c1 );
+  mul_PA_SW_QTW ( c0, c1, b0, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, a1, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0;
+  c2 = tn / td;
 }
 
 // div: 2-1-4
-template < typename T > __always_inline void div_PA_SW_QQW(T const a1, T const a2, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_PA_SW_QQW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_PA_SW_QTW(a1, a2, b, c1, c2, c3);////38 - 20
-    mul_QTW_SW_QQW(c1, c2, c3, b, t1, t2, t3, t4);////26 - 13
-    add_PA_QQW_QQW(a1, a2, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////32 - 11
-    c4 = (t1 + t2 + t3 + t4) / b;
+  T t0, t1, t2, t3;
+  div_PA_SW_QTW ( a0, a1, b0, c0, c1, c2 );
+  mul_QTW_SW_QQW ( c0, c1, c2, b0, t0, t1, t2, t3 );
+  sub_PA_QQW_QQW ( a0, a1, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0;
+  c3 = tn / td;
 }
 
 // div: 2-2-1
-template < typename T > __always_inline void div_PA_PA_SW(T const ah, T const al, T const bh, T const bl, T &c)
+template < typename T > __always_inline void
+div_PA_PA_SW ( T const a0, T const a1, T const b0, T const b1, T & c0 )
 {
-    c = (ah + al) / (bh + bl);
+  T e40, e41;
+  e40 = a1 + a0;
+  e41 = b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 2-2-2
-template < typename T > __always_inline void div_PA_PA_PA(T const ah, T const al, T const bh, T const bl, T &ch, T &cl)
+template < typename T > __always_inline void
+div_PA_PA_PA ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1 )
 {
-    T t, p;
-    ch = ah / bh;
-    t = std::fma(-bh, ch, ah);
-    p = t + al;
-    cl = std::fma(ch, -bl, p) / (bh + bl);
+  c0 = a0 / b0;
+  c1 = std::fma( -b0, c0, a0 ) + a1;
+  c1 = std::fma( -b1, c0, c1 ) / (b0 + b1);
 }
 
 // div: 2-2-3
-template < typename T > __always_inline void div_PA_PA_QTW(T const a1, T const a2, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_PA_PA_QTW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    T t1, t2, t3;
-    div_PA_PA_PA(a1, a2, b1, b2, c1, c2);////6 - 6
-    mul_PA_PA_QTW(c1, c2, b1, b2, t1, t2, t3);////20 - 13
-    add_PA_QTW_QTW(a1, a2, -t1, -t2, -t3, t1, t2, t3);////20 - 7
-    c3 = (t1 + t2 + t3) / (b1 + b2);
+  T t0, t1, t2;
+  div_PA_PA_PA ( a0, a1, b0, b1, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, b1, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, a1, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + b1;
+  c2 = tn / td;
 }
 
 // div: 2-2-4
-template < typename T > __always_inline void div_PA_PA_QQW(T const a1, T const a2, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_PA_PA_QQW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_PA_PA_QTW(a1, a2, b1, b2, c1, c2, c3);////50 - 29
-    mul_QTW_PA_QQW(c1, c2, c3, b1, b2, t1, t2, t3, t4);////59 - 28
-    add_PA_QQW_QQW(a1, a2, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////32 - 11
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2);
+  T t0, t1, t2, t3;
+  div_PA_PA_QTW ( a0, a1, b0, b1, c0, c1, c2 );
+  mul_QTW_PA_QQW ( c0, c1, c2, b0, b1, t0, t1, t2, t3 );
+  sub_PA_QQW_QQW ( a0, a1, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1;
+  c3 = tn / td;
 }
 
 // div: 2-3-1
-template < typename T > __always_inline void div_PA_QTW_SW(T const a1, T const a2, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+div_PA_QTW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0 )
 {
-    c = (a1 + a2) / (b1 + b2 + b3);
+  T e40, e41;
+  e40 = a1 + a0;
+  e41 = b2 + b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 2-3-2
-template < typename T > __always_inline void div_PA_QTW_PA(T const a1, T const a2, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+div_PA_QTW_PA ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    div_PA_PA_PA(a1, a2, b1, b2 + b3, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = a1 + a0;
+  T e41;
+  e41 = b2 + b1 + b0;
+  div_SW_SW_SW ( e40, e41, c0 );
+  mul_SW_SW_PA ( c0, e41, t0, t1 );
+  sub_SW_PA_PA ( e40, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = e41;
+  c1 = tn / td;
 }
 
 // div: 2-3-3
-template < typename T > __always_inline void div_PA_QTW_QTW(T const a1, T const a2, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_PA_QTW_QTW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    T t1, t2, t3;
-    div_PA_PA_PA(a1, a2, b1, b2, c1, c2);////6 - 6
-    mul_PA_QTW_QTW(c1, c2, b1, b2, b3, t1, t2, t3);////21 - 14
-    add_PA_QTW_QTW(a1, a2, -t1, -t2, -t3, t1, t2, t3);////20 - 7
-    c3 = (t1 + t2 + t3) / (b1 + b2);
+  T t0, t1, t2;
+  T e40;
+  e40 = b2 + b1;
+  div_PA_PA_PA ( a0, a1, b0, e40, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, e40, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, a1, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + e40;
+  c2 = tn / td;
 }
 
 // div: 2-3-4
-template < typename T > __always_inline void div_PA_QTW_QQW(T const a1, T const a2, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_PA_QTW_QQW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_PA_QTW_QTW(a1, a2, b1, b2, b3, c1, c2, c3);////51 - 30
-    mul_QTW_QTW_QQW(c1, c2, c3, b1, b2, b3, t1, t2, t3, t4);////70 - 34
-    add_PA_QQW_QQW(a1, a2, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////32 - 11
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2 + b3);
+  T t0, t1, t2, t3;
+  div_PA_QTW_QTW ( a0, a1, b0, b1, b2, c0, c1, c2 );
+  mul_QTW_QTW_QQW ( c0, c1, c2, b0, b1, b2, t0, t1, t2, t3 );
+  sub_PA_QQW_QQW ( a0, a1, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1 + b2;
+  c3 = tn / td;
 }
 
 // div: 2-4-1
-template < typename T > __always_inline void div_PA_QQW_SW(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+div_PA_QQW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    c = (a1 + a2) / (b1 + b2 + b3 + b4);
+  T e40, e41;
+  e40 = a1 + a0;
+  e41 = b3 + b2 + b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 2-4-2
-template < typename T > __always_inline void div_PA_QQW_PA(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+div_PA_QQW_PA ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    div_PA_PA_PA(a1, a2, b1, b2 + b3 + b4, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = a1 + a0;
+  T e41;
+  e41 = b3 + b2 + b1 + b0;
+  div_SW_SW_SW ( e40, e41, c0 );
+  mul_SW_SW_PA ( c0, e41, t0, t1 );
+  sub_SW_PA_PA ( e40, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = e41;
+  c1 = tn / td;
 }
 
 // div: 2-4-3
-template < typename T > __always_inline void div_PA_QQW_QTW(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_PA_QQW_QTW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    div_PA_QTW_QTW(a1, a2, b1, b2, b3 + b4, c1, c2, c3);
+  T t0, t1, t2;
+  T e40;
+  e40 = b3 + b2 + b1;
+  div_PA_PA_PA ( a0, a1, b0, e40, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, e40, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, a1, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + e40;
+  c2 = tn / td;
 }
 
 // div: 2-4-4
-template < typename T > __always_inline void div_PA_QQW_QQW(T const a1, T const a2, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_PA_QQW_QQW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_PA_QTW_QTW(a1, a2, b1, b2, b3, c1, c2, c3);////51 - 30
-    mul_QTW_QQW_QQW(c1, c2, c3, b1, b2, b3, b4, t1, t2, t3, t4);////72 - 36
-    add_PA_QQW_QQW(a1, a2, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////32 - 11
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2 + b3);
+  T t0, t1, t2, t3;
+  T e40;
+  e40 = b3 + b2;
+  div_PA_QTW_QTW ( a0, a1, b0, b1, e40, c0, c1, c2 );
+  mul_QTW_QTW_QQW ( c0, c1, c2, b0, b1, e40, t0, t1, t2, t3 );
+  sub_PA_QQW_QQW ( a0, a1, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1 + e40;
+  c3 = tn / td;
 }
 
 // div: 3-1-1
-template < typename T > __always_inline void div_QTW_SW_SW(T const a1, T const a2, T const a3, T const b, T &c)
+template < typename T > __always_inline void
+div_QTW_SW_SW ( T const a0, T const a1, T const a2, T const b0, T & c0 )
 {
-    c = (a1 + a2 + a3) / b;
+  T e40, e41;
+  e40 = a2 + a1 + a0;
+  e41 = b0;
+  c0 = e40 / e41;
 }
 
 // div: 3-1-2
-template < typename T > __always_inline void div_QTW_SW_PA(T const a1, T const a2, T const a3, T const b, T &c1, T &c2)
+template < typename T > __always_inline void
+div_QTW_SW_PA ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1 )
 {
-    div_PA_SW_PA(a1, a2 + a3, b, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = a2 + a1 + a0;
+  div_SW_SW_SW ( e40, b0, c0 );
+  mul_SW_SW_PA ( c0, b0, t0, t1 );
+  sub_SW_PA_PA ( e40, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = b0;
+  c1 = tn / td;
 }
 
 // div: 3-1-3
-template < typename T > __always_inline void div_QTW_SW_QTW(T const a1, T const a2, T const a3, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_QTW_SW_QTW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2 )
 {
-    T t1, t2, t3;
-    div_PA_SW_PA(a1, a2, b, c1, c2);////4 - 4
-    mul_PA_SW_QTW(c1, c2, b, t1, t2, t3);////11 - 7
-    add_QTW_QTW_QTW(a1, a2, a3, -t1, -t2, -t3, t1, t2, t3);////21 - 8
-    c3 = (t1 + t2 + t3) / b;
+  T t0, t1, t2;
+  T e40;
+  e40 = a2 + a1;
+  div_PA_SW_PA ( a0, e40, b0, c0, c1 );
+  mul_PA_SW_QTW ( c0, c1, b0, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, e40, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0;
+  c2 = tn / td;
 }
 
 // div: 3-1-4
-template < typename T > __always_inline void div_QTW_SW_QQW(T const a1, T const a2, T const a3, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_QTW_SW_QQW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_QTW_SW_QTW(a1, a2, a3, b, c1, c2, c3);////39 - 21
-    mul_QTW_SW_QQW(c1, c2, c3, b, t1, t2, t3, t4);////12 - 8
-    add_QTW_QQW_QQW(a1, a2, a3, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////39 - 14 
-    c4 = (t1 + t2 + t3 + t4) / b;
+  T t0, t1, t2, t3;
+  div_QTW_SW_QTW ( a0, a1, a2, b0, c0, c1, c2 );
+  mul_QTW_SW_QQW ( c0, c1, c2, b0, t0, t1, t2, t3 );
+  sub_QTW_QQW_QQW ( a0, a1, a2, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0;
+  c3 = tn / td;
 }
 
 // div: 3-2-1
-template < typename T > __always_inline void div_QTW_PA_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c)
+template < typename T > __always_inline void
+div_QTW_PA_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0 )
 {
-    c = (a1 + a2 + a3) / (b1 + b2);
+  T e40, e41;
+  e40 = a2 + a1 + a0;
+  e41 = b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 3-2-2
-template < typename T > __always_inline void div_QTW_PA_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2)
+template < typename T > __always_inline void
+div_QTW_PA_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1 )
 {
-    div_PA_PA_PA(a1, a2 + a3, b1, b2, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = a2 + a1 + a0;
+  T e41;
+  e41 = b1 + b0;
+  div_SW_SW_SW ( e40, e41, c0 );
+  mul_SW_SW_PA ( c0, e41, t0, t1 );
+  sub_SW_PA_PA ( e40, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = e41;
+  c1 = tn / td;
 }
 
 // div: 3-2-3
-template < typename T > __always_inline void div_QTW_PA_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_QTW_PA_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    T t1, t2, t3;
-    div_PA_PA_PA(a1, a2, b1, b2, c1, c2);////6 - 6
-    mul_PA_PA_QTW(c1, c2, b1, b2, t1, t2, t3);////20 - 13
-    add_QTW_QTW_QTW(a1, a2, a3, -t1, -t2, -t3, t1, t2, t3);////21 - 8
-    c3 = (t1 + t2 + t3) / (b1 + b2);
+  T t0, t1, t2;
+  T e40;
+  e40 = a2 + a1;
+  div_PA_PA_PA ( a0, e40, b0, b1, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, b1, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, e40, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + b1;
+  c2 = tn / td;
 }
 
 // div: 3-2-4
-template < typename T > __always_inline void div_QTW_PA_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_QTW_PA_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_QTW_PA_QTW(a1, a2, a3, b1, b2, c1, c2, c3);////51 - 30
-    mul_QTW_PA_QQW(c1, c2, c3, b1, b2, t1, t2, t3, t4);////59 - 28
-    add_QTW_QQW_QQW(a1, a2, a3, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////39 - 14
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2);
+  T t0, t1, t2, t3;
+  div_QTW_PA_QTW ( a0, a1, a2, b0, b1, c0, c1, c2 );
+  mul_QTW_PA_QQW ( c0, c1, c2, b0, b1, t0, t1, t2, t3 );
+  sub_QTW_QQW_QQW ( a0, a1, a2, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1;
+  c3 = tn / td;
 }
 
 // div: 3-3-1
-template < typename T > __always_inline void div_QTW_QTW_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+div_QTW_QTW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0 )
 {
-    c = (a1 + a2 + a3) / (b1 + b2 + b3);
+  T e40, e41;
+  e40 = a2 + a1 + a0;
+  e41 = b2 + b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 3-3-2
-template < typename T > __always_inline void div_QTW_QTW_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+div_QTW_QTW_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    div_PA_PA_PA(a1, a2 + a3, b1, b2 + b3, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = a2 + a1 + a0;
+  T e41;
+  e41 = b2 + b1 + b0;
+  div_SW_SW_SW ( e40, e41, c0 );
+  mul_SW_SW_PA ( c0, e41, t0, t1 );
+  sub_SW_PA_PA ( e40, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = e41;
+  c1 = tn / td;
 }
 
 // div: 3-3-3
-template < typename T > __always_inline void div_QTW_QTW_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_QTW_QTW_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    T t1, t2, t3;
-    div_PA_PA_PA(a1, a2, b1, b2, c1, c2);////6 - 6
-    mul_PA_QTW_QTW(c1, c2, b1, b2, b3, t1, t2, t3);////21 - 14
-    add_QTW_QTW_QTW(a1, a2, a3, -t1, -t2, -t3, t1, t2, t3);////21 - 8
-    c3 = (t1 + t2 + t3) / (b1 + b2);
+  T t0, t1, t2;
+  T e40;
+  e40 = a2 + a1;
+  T e41;
+  e41 = b2 + b1;
+  div_PA_PA_PA ( a0, e40, b0, e41, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, e41, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, e40, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + e41;
+  c2 = tn / td;
 }
 
 // div: 3-3-4
-template < typename T > __always_inline void div_QTW_QTW_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_QTW_QTW_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_QTW_QTW_QTW(a1, a2, a3, b1, b2, b3, c1, c2, c3);////52 - 31
-    mul_QTW_QTW_QQW(c1, c2, c3, b1, b2, b3, t1, t2, t3, t4);////70 - 34
-    add_QTW_QQW_QQW(a1, a2, a3, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////39 - 14
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2 + b3);
+  T t0, t1, t2, t3;
+  div_QTW_QTW_QTW ( a0, a1, a2, b0, b1, b2, c0, c1, c2 );
+  mul_QTW_QTW_QQW ( c0, c1, c2, b0, b1, b2, t0, t1, t2, t3 );
+  sub_QTW_QQW_QQW ( a0, a1, a2, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1 + b2;
+  c3 = tn / td;
 }
 
 // div: 3-4-1
-template < typename T > __always_inline void div_QTW_QQW_SW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+div_QTW_QQW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    c = (a1 + a2 + a3) / (b1 + b2 + b3 + b4);
+  T e40, e41;
+  e40 = a2 + a1 + a0;
+  e41 = b3 + b2 + b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 3-4-2
-template < typename T > __always_inline void div_QTW_QQW_PA(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+div_QTW_QQW_PA ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    div_PA_PA_PA(a1, a2 + a3, b1, b2 + b3 + b4, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = a2 + a1 + a0;
+  T e41;
+  e41 = b3 + b2 + b1 + b0;
+  div_SW_SW_SW ( e40, e41, c0 );
+  mul_SW_SW_PA ( c0, e41, t0, t1 );
+  sub_SW_PA_PA ( e40, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = e41;
+  c1 = tn / td;
 }
 
 // div: 3-4-3
-template < typename T > __always_inline void div_QTW_QQW_QTW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_QTW_QQW_QTW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    div_QTW_QTW_QTW(a1, a2, a3, b1, b2, b3 + b4, c1, c2, c3);
+  T t0, t1, t2;
+  T e40;
+  e40 = a2 + a1;
+  T e41;
+  e41 = b3 + b2 + b1;
+  div_PA_PA_PA ( a0, e40, b0, e41, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, e41, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, e40, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + e41;
+  c2 = tn / td;
 }
 
 // div: 3-4-4
-template < typename T > __always_inline void div_QTW_QQW_QQW(T const a1, T const a2, T const a3, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_QTW_QQW_QQW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_QTW_QTW_QTW(a1, a2, a3, b1, b2, b3, c1, c2, c3);////53 - 32
-    mul_QTW_QQW_QQW(c1, c2, c3, b1, b2, b3, b4, t1, t2, t3, t4);////72 - 36
-    add_QTW_QQW_QQW(a1, a2, a3, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////39 - 14
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2 + b3);
+  T t0, t1, t2, t3;
+  T e40;
+  e40 = b3 + b2;
+  div_QTW_QTW_QTW ( a0, a1, a2, b0, b1, e40, c0, c1, c2 );
+  mul_QTW_QTW_QQW ( c0, c1, c2, b0, b1, e40, t0, t1, t2, t3 );
+  sub_QTW_QQW_QQW ( a0, a1, a2, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1 + e40;
+  c3 = tn / td;
 }
 
 // div: 4-1-1
-template < typename T > __always_inline void div_QQW_SW_SW(T const a1, T const a2, T const a3, T const a4, T const b, T &c)
+template < typename T > __always_inline void
+div_QQW_SW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0 )
 {
-    c = (a1 + a2 + a3 + a4) / b;
+  T e40, e41;
+  e40 = a3 + a2 + a1 + a0;
+  e41 = b0;
+  c0 = e40 / e41;
 }
 
 // div: 4-1-2
-template < typename T > __always_inline void div_QQW_SW_PA(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2)
+template < typename T > __always_inline void
+div_QQW_SW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1 )
 {
-    div_PA_SW_PA(a1, a2 + a3 + a4, b, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = a3 + a2 + a1 + a0;
+  div_SW_SW_SW ( e40, b0, c0 );
+  mul_SW_SW_PA ( c0, b0, t0, t1 );
+  sub_SW_PA_PA ( e40, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = b0;
+  c1 = tn / td;
 }
 
 // div: 4-1-3
-template < typename T > __always_inline void div_QQW_SW_QTW(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_QQW_SW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2 )
 {
-    div_QTW_SW_QTW(a1, a2, a3 + a4, b, c1, c2, c3);
+  T t0, t1, t2;
+  T e40;
+  e40 = a3 + a2 + a1;
+  div_PA_SW_PA ( a0, e40, b0, c0, c1 );
+  mul_PA_SW_QTW ( c0, c1, b0, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, e40, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0;
+  c2 = tn / td;
 }
 
 // div: 4-1-4
-template < typename T > __always_inline void div_QQW_SW_QQW(T const a1, T const a2, T const a3, T const a4, T const b, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_QQW_SW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_QTW_SW_QTW(a1, a2, a3, b, c1, c2, c3);////40 - 22
-    mul_QTW_SW_QQW(c1, c2, c3, b, t1, t2, t3, t4);////26 - 13
-    add_QQW_QQW_QQW(a1, a2, a3, a4, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////40 - 14
-    c4 = (t1 + t2 + t3 + t4) / b;
+  T t0, t1, t2, t3;
+  T e40;
+  e40 = a3 + a2;
+  div_QTW_SW_QTW ( a0, a1, e40, b0, c0, c1, c2 );
+  mul_QTW_SW_QQW ( c0, c1, c2, b0, t0, t1, t2, t3 );
+  sub_QTW_QQW_QQW ( a0, a1, e40, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0;
+  c3 = tn / td;
 }
 
 // div: 4-2-1
-template < typename T > __always_inline void div_QQW_PA_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c)
+template < typename T > __always_inline void
+div_QQW_PA_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0 )
 {
-    c = (a1 + a2 + a3 + a4) / (b1 + b2);
+  T e40, e41;
+  e40 = a3 + a2 + a1 + a0;
+  e41 = b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 4-2-2
-template < typename T > __always_inline void div_QQW_PA_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2)
+template < typename T > __always_inline void
+div_QQW_PA_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1 )
 {
-    div_PA_PA_PA(a1, a2 + a3 + a4, b1, b2, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = a3 + a2 + a1 + a0;
+  T e41;
+  e41 = b1 + b0;
+  div_SW_SW_SW ( e40, e41, c0 );
+  mul_SW_SW_PA ( c0, e41, t0, t1 );
+  sub_SW_PA_PA ( e40, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = e41;
+  c1 = tn / td;
 }
 
 // div: 4-2-3
-template < typename T > __always_inline void div_QQW_PA_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_QQW_PA_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2 )
 {
-    div_QTW_PA_QTW(a1, a2, a3 + a4, b1, b2, c1, c2, c3);
+  T t0, t1, t2;
+  T e40;
+  e40 = a3 + a2 + a1;
+  div_PA_PA_PA ( a0, e40, b0, b1, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, b1, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, e40, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + b1;
+  c2 = tn / td;
 }
 
 // div: 4-2-4
-template < typename T > __always_inline void div_QQW_PA_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_QQW_PA_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_QTW_PA_QTW(a1, a2, a3, b1, b2, c1, c2, c3);////51 - 30
-    mul_QTW_PA_QQW(c1, c2, c3, b1, b2, t1, t2, t3, t4);////59 - 28
-    add_QQW_QQW_QQW(a1, a2, a3, a4, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////40 - 14 
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2);
+  T t0, t1, t2, t3;
+  T e40;
+  e40 = a3 + a2;
+  div_QTW_PA_QTW ( a0, a1, e40, b0, b1, c0, c1, c2 );
+  mul_QTW_PA_QQW ( c0, c1, c2, b0, b1, t0, t1, t2, t3 );
+  sub_QTW_QQW_QQW ( a0, a1, e40, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1;
+  c3 = tn / td;
 }
 
 // div: 4-3-1
-template < typename T > __always_inline void div_QQW_QTW_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c)
+template < typename T > __always_inline void
+div_QQW_QTW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0 )
 {
-    c = (a1 + a2 + a3 + a4) / (b1 + b2 + b3);
+  T e40, e41;
+  e40 = a3 + a2 + a1 + a0;
+  e41 = b2 + b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 4-3-2
-template < typename T > __always_inline void div_QQW_QTW_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2)
+template < typename T > __always_inline void
+div_QQW_QTW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1 )
 {
-    div_PA_PA_PA(a1, a2 + a3 + a4, b1, b2 + b3, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = a3 + a2 + a1 + a0;
+  T e41;
+  e41 = b2 + b1 + b0;
+  div_SW_SW_SW ( e40, e41, c0 );
+  mul_SW_SW_PA ( c0, e41, t0, t1 );
+  sub_SW_PA_PA ( e40, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = e41;
+  c1 = tn / td;
 }
 
 // div: 4-3-3
-template < typename T > __always_inline void div_QQW_QTW_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_QQW_QTW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
 {
-    div_QTW_QTW_QTW(a1, a2, a3 + a4, b1, b2, b3, c1, c2, c3);
+  T t0, t1, t2;
+  T e40;
+  e40 = a3 + a2 + a1;
+  T e41;
+  e41 = b2 + b1;
+  div_PA_PA_PA ( a0, e40, b0, e41, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, e41, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, e40, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + e41;
+  c2 = tn / td;
 }
 
 // div: 4-3-4
-template < typename T > __always_inline void div_QQW_QTW_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_QQW_QTW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_QTW_QTW_QTW(a1, a2, a3, b1, b2, b3, c1, c2, c3);////52 - 31
-    mul_QTW_QTW_QQW(c1, c2, c3, b1, b2, b3, t1, t2, t3, t4);////24 - 15
-    add_QQW_QQW_QQW(a1, a2, a3, a4, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////40 - 14
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2 + b3);
+  T t0, t1, t2, t3;
+  T e40;
+  e40 = a3 + a2;
+  div_QTW_QTW_QTW ( a0, a1, e40, b0, b1, b2, c0, c1, c2 );
+  mul_QTW_QTW_QQW ( c0, c1, c2, b0, b1, b2, t0, t1, t2, t3 );
+  sub_QTW_QQW_QQW ( a0, a1, e40, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1 + b2;
+  c3 = tn / td;
 }
 
 // div: 4-4-1
-template < typename T > __always_inline void div_QQW_QQW_SW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c)
+template < typename T > __always_inline void
+div_QQW_QQW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0 )
 {
-    c = (a1 + a2 + a3 + a4) / (b1 + b2 + b3 + b4);
+  T e40, e41;
+  e40 = a3 + a2 + a1 + a0;
+  e41 = b3 + b2 + b1 + b0;
+  c0 = e40 / e41;
 }
 
 // div: 4-4-2
-template < typename T > __always_inline void div_QQW_QQW_PA(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2)
+template < typename T > __always_inline void
+div_QQW_QQW_PA ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
 {
-    div_PA_PA_PA(a1, a2 + a3 + a4, b1, b2 + b3 + b4, c1, c2);
+  T t0, t1;
+  T e40;
+  e40 = a3 + a2 + a1 + a0;
+  T e41;
+  e41 = b3 + b2 + b1 + b0;
+  div_SW_SW_SW ( e40, e41, c0 );
+  mul_SW_SW_PA ( c0, e41, t0, t1 );
+  sub_SW_PA_PA ( e40, t0, t1, t0, t1 );
+  T tn, td;
+  tn = t0 + t1;
+  td = e41;
+  c1 = tn / td;
 }
 
 // div: 4-4-3
-template < typename T > __always_inline void div_QQW_QQW_QTW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3)
+template < typename T > __always_inline void
+div_QQW_QQW_QTW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
 {
-    div_QTW_QTW_QTW(a1, a2, a3 + a4, b1, b2, b3 + b4, c1, c2, c3);
+  T t0, t1, t2;
+  T e40;
+  e40 = a3 + a2 + a1;
+  T e41;
+  e41 = b3 + b2 + b1;
+  div_PA_PA_PA ( a0, e40, b0, e41, c0, c1 );
+  mul_PA_PA_QTW ( c0, c1, b0, e41, t0, t1, t2 );
+  sub_PA_QTW_QTW ( a0, e40, t0, t1, t2, t0, t1, t2 );
+  T tn, td;
+  tn = t0 + t1 + t2;
+  td = b0 + e41;
+  c2 = tn / td;
 }
 
 // div: 4-4-4
-template < typename T > __always_inline void div_QQW_QQW_QQW(T const a1, T const a2, T const a3, T const a4, T const b1, T const b2, T const b3, T const b4, T &c1, T &c2, T &c3, T &c4)
+template < typename T > __always_inline void
+div_QQW_QQW_QQW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t1, t2, t3, t4;
-    div_QTW_QTW_QTW(a1, a2, a3, b1, b2, b3, c1, c2, c3);////52 - 31
-    mul_QTW_QQW_QQW(c1, c2, c3, b1, b2, b3, b4, t1, t2, t3, t4);////72 - 26
-    add_QQW_QQW_QQW(a1, a2, a3, a4, -t1, -t2, -t3, -t4, t1, t2, t3, t4);////40 - 14
-    c4 = (t1 + t2 + t3 + t4) / (b1 + b2 + b3);
+  T t0, t1, t2, t3;
+  T e40;
+  e40 = a3 + a2;
+  T e41;
+  e41 = b3 + b2;
+  div_QTW_QTW_QTW ( a0, a1, e40, b0, b1, e41, c0, c1, c2 );
+  mul_QTW_QTW_QQW ( c0, c1, c2, b0, b1, e41, t0, t1, t2, t3 );
+  sub_QTW_QQW_QQW ( a0, a1, e40, t0, t1, t2, t3, t0, t1, t2, t3 );
+  T tn, td;
+  tn = t0 + t1 + t2 + t3;
+  td = b0 + b1 + e41;
+  c3 = tn / td;
 }
 
-// --------------------
-// square
-// --------------------
-
-// sqr:1-2
-template < typename T > __always_inline void sqr_SW_PA(T const a, T &c1, T &c2)
+// sqr: 1-1
+template < typename T > __always_inline void
+sqr_SW_SW ( T const a0, T & c0 )
 {
-    TwoProductFMA(a, a, c1, c2);
+  c0 = a0 * a0;
 }
 
-// sqr:1-3
-template < typename T > __always_inline void sqr_SW_QTW(T const a, T &c1, T &c2, T &c3)
+// sqr: 1-2
+template < typename T > __always_inline void
+sqr_SW_PA ( T const a0, T & c0, T & c1 )
 {
-    TwoProductFMA(a, a, c1, c2);
-    c3 = fp_const<T>::zero();
+  TwoProductFMA( a0, a0, c0, c1 );
 }
 
-// sqr:1-4
-template < typename T > __always_inline void sqr_SW_QQW(T const a, T &c1, T &c2, T &c3, T &c4)
+// sqr: 1-3
+template < typename T > __always_inline void
+sqr_SW_QTW ( T const a0, T & c0, T & c1, T & c2 )
 {
-    TwoProductFMA(a, a, c1, c2);
-    c3 = fp_const<T>::zero();
-    c4 = fp_const<T>::zero();
+  TwoProductFMA( a0, a0, c0, c1 );
+  c2 = fp_const<T>::zero();
 }
 
-// sqr:2-1
-template < typename T > __always_inline void sqr_PA_SW(T const a1, T const a2, T &c)
+// sqr: 1-4
+template < typename T > __always_inline void
+sqr_SW_QQW ( T const a0, T & c0, T & c1, T & c2, T & c3 )
 {
-    c = (a1 + a2) * (a1 + a2);
+  TwoProductFMA( a0, a0, c0, c1 );
+  c2 = fp_const<T>::zero();
+  c3 = fp_const<T>::zero();
 }
 
-// sqr:2-2
-template < typename T > __always_inline void sqr_PA_PA(T const a1, T const a2, T &c1, T &c2)
+// sqr: 2-1
+template < typename T > __always_inline void
+sqr_PA_SW ( T const a0, T const a1, T & c0 )
 {
-    T e1;
-    TwoProductFMA(a1, a1, c1, e1);
-    c2 = std::fma(a1, 2 * a2, e1);
+  T t0;
+  t0 = a1 + a0;
+  c0 = t0 * t0;
 }
 
-// sqr:2-3
-template < typename T > __always_inline void sqr_PA_QTW(T const a1, T const a2, T &c1, T &c2, T &c3)
+// sqr: 2-2
+template < typename T > __always_inline void
+sqr_PA_PA ( T const a0, T const a1, T & c0, T & c1 )
 {
-    T e1, e2, e3;
-    T t2;
-    TwoProductFMA(a1, a1, c1, e1);
-    TwoProductFMA(a1, 2 * a2, t2, e2);
-    TwoSum(t2, e1, c2, e3);
-    c3 = std::fma(a2, a2, e2) + e3;
+  T t0;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  c1 = std::fma ( t0, a1, c1 );
 }
 
-// sqr:2-4
-template < typename T > __always_inline void sqr_PA_QQW(T const a1, T const a2, T &c1, T &c2, T &c3, T &c4)
+// sqr: 2-3
+template < typename T > __always_inline void
+sqr_PA_QTW ( T const a0, T const a1, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e5, e7, e14;
-    T t2, t4, t5;
-    
-    TwoProductFMA(a1, a1, c1, e1);
-    TwoProductFMA(a1, 2 * a2, t2, e2);
-    TwoSum(t2, e1, c2, e5);
-    TwoProductFMA(a2, a2, t5, e7);
-    TwoSum(t5, e5, c3, e14);
-    c4 = e7 + e14;
+  T t0, t1;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = std::fma ( a1, a1, c2 );
+  c2 = c2 + t1;
 }
 
-// sqr:3-1
-template < typename T > __always_inline void sqr_QTW_SW(T const a1, T const a2, T const a3, T &c)
+// sqr: 2-4
+template < typename T > __always_inline void
+sqr_PA_QQW ( T const a0, T const a1, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t;
-    t = a1 + a2 + a3;
-    c = t * t;
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoProductFMA( a1, a1, t2, t3 );
+  TwoSum( c2, t2, c2, t2 );
+  c3 = t2 + t3;
 }
 
-// sqr:3-2
-template < typename T > __always_inline void sqr_QTW_PA(T const a1, T const a2, T const a3, T &c1, T &c2)
+// sqr: 3-1
+template < typename T > __always_inline void
+sqr_QTW_SW ( T const a0, T const a1, T const a2, T & c0 )
 {
-    T e1;
-    TwoProductFMA(a1, a1, c1, e1);
-    c2 = std::fma(2 * a1, a2, e1);
+  T t0;
+  t0 = a2 + a1 + a0;
+  c0 = t0 * t0;
 }
 
-// sqr:3-3
-template < typename T > __always_inline void sqr_QTW_QTW(T const a1, T const a2, T const a3, T &c1, T &c2, T &c3)
+// sqr: 3-2
+template < typename T > __always_inline void
+sqr_QTW_PA ( T const a0, T const a1, T const a2, T & c0, T & c1 )
 {
-    T e1, e2, e5;
-    T t2;
-    
-    TwoProductFMA(a1, a1, c1, e1);
-    TwoProductFMA(a1, 2 * a2, t2, e2);
-    TwoSum(t2, e1, c2, e5);
-    c3 = std::fma(a1, 2 * a3, e2) + std::fma(a2, a2, e5);
+  T t0, t1;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  t1 = a2 + a1;
+  c1 = std::fma ( t0, t1, c1 );
 }
 
-// sqr:3-4
-template < typename T > __always_inline void sqr_QTW_QQW(T const a1, T const a2, T const a3, T &c1, T &c2, T &c3, T &c4)
+// sqr: 3-3
+template < typename T > __always_inline void
+sqr_QTW_QTW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e5;
-    T e6, e7, e9, e11, e14;
-    T t2, t4, t5;
-
-    TwoProductFMA(a1, a1, c1, e1);
-    TwoProductFMA(a1, 2 * a2, t2, e2);
-    TwoSum(t2, e1, c2, e5);
-    TwoProductFMA(a1, 2 * a3, t4, e6);
-    TwoProductFMA(a2, a2, t5, e7);
-    TwoSum(t4, t5, c3, e9);
-    TwoSum(c3, e2, c3, e11);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(a2, 2 * a3, e6) + e7 + e9 + e11 + e14;
+  T t0, t1;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = std::fma ( t0, a2, c2 );
+  c2 = std::fma ( a1, a1, c2 );
+  c2 = c2 + t1;
 }
 
-// sqr:4-1
-template < typename T > __always_inline void sqr_QQW_SW(T const a1, T const a2, T const a3, T const a4, T &c)
+// sqr: 3-4
+template < typename T > __always_inline void
+sqr_QTW_QQW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2, T & c3 )
 {
-    T t;
-    t = a1 + a2 +a3 + a4;
-    c = t * t;
+  T t0, t1, t2, t3, t4, t5;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoProductFMA( t0, a2, t2, c3 );
+  TwoProductFMA( a1, a1, t3, t4 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  t5 = a1 + a1;
+  c3 = std::fma ( t5, a2, c3 );
+  c3 = c3 + t2 + t3 + t4;
 }
 
-// sqr:4-2
-template < typename T > __always_inline void sqr_QQW_PA(T const a1, T const a2, T const a3, T const a4, T &c1, T &c2)
+// sqr: 4-1
+template < typename T > __always_inline void
+sqr_QQW_SW ( T const a0, T const a1, T const a2, T const a3, T & c0 )
 {
-    T e1;
-    TwoProductFMA(a1, a1, c1, e1);
-    c2 = std::fma(2 * a1, a2, e1);
+  T t0;
+  t0 = a3 + a2 + a1 + a0;
+  c0 = t0 * t0;
 }
 
-// sqr:4-3
-template < typename T > __always_inline void sqr_QQW_QTW(T const a1, T const a2, T const a3, T const a4, T &c1, T &c2, T &c3)
+// sqr: 4-2
+template < typename T > __always_inline void
+sqr_QQW_PA ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1 )
 {
-    T e1, e2, e5;
-    T t2;
-    
-    TwoProductFMA(a1, a1, c1, e1);
-    TwoProductFMA(a1, 2 * a2, t2, e2);
-    TwoSum(t2, e1, c2, e5);
-    c3 = std::fma(a1, 2 * a3, std::fma(a2, a2, e2)) + e5;
+  T t0, t1;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  t1 = a3 + a2 + a1;
+  c1 = std::fma ( t0, t1, c1 );
 }
 
-// sqr:4-4
-template < typename T > __always_inline void sqr_QQW_QQW(T const a1, T const a2, T const a3, T const a4, T &c1, T &c2, T &c3, T &c4)
+// sqr: 4-3
+template < typename T > __always_inline void
+sqr_QQW_QTW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T & c2 )
 {
-    T e1, e2, e5, e6, e7, e9, e11, e14;
-    T t2, t4, t5;
-    
-    TwoProductFMA(a1, a1, c1, e1);
-    TwoProductFMA(a1, 2 * a2, t2, e2);
-    TwoSum(t2, e1, c2, e5);
-    TwoProductFMA(a1, 2 * a3, t4, e6);
-    TwoProductFMA(a2, a2, t5, e7);
-    TwoSum(t4, t5, c3, e9);
-    TwoSum(c3, e2, c3, e11);
-    TwoSum(c3, e5, c3, e14);
-    c4 = std::fma(2 * a2, a3, 2 * a1 * a4) + e6 + e7 + e9 + e11 + e14;
+  T t0, t1;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  c2 = std::fma ( t0, a2, c2 );
+  c2 = std::fma ( a1, a1, c2 );
+  c2 = c2 + t1;
 }
 
-// ------------------------------
-// Sqrt
-// ------------------------------
-
-// sqrt: 1-2
-template < typename T > __always_inline void sqrt_SW_PA(T const a, T &ch, T &cl)
+// sqr: 4-4
+template < typename T > __always_inline void
+sqr_QQW_QQW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T & c2, T & c3 )
 {
-    ch = std::sqrt(a);
-    cl = std::fma(-ch, ch, a) / (ch + ch);
+  T t0, t1, t2, t3, t4, t5;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoProductFMA( t0, a2, t2, c3 );
+  TwoProductFMA( a1, a1, t3, t4 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  t5 = a1 + a1;
+  c3 = std::fma ( t5, a2, c3 );
+  c3 = std::fma ( a3, t0, c3 );
+  c3 = c3 + t2 + t3 + t4;
 }
 
-// sqrt: 1-3
-template < typename T > __always_inline void sqrt_SW_QTW(T const a, T &c1, T &c2, T &c3)
+// add: 1-1-2
+template < typename T > __always_inline void
+add_SW_SW_DW ( T const a0, T const b0, T & c0, T & c1 )
 {
-    T t1, t2,t3;
-    sqrt_SW_PA(a, c1, c2);
-    sqr_PA_QTW(c1, c2, t1, t2, t3);
-    add_QTW_SW_QTW(t1, t2, t3, -a, t1, t2, t3);
-    c3 = - (t1 + t2 + t3) / (2 * (c1 + c2));
+  TwoSum( a0, b0, c0, c1 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
-// sqrt: 1-4
-template < typename T > __always_inline void sqrt_SW_QQW(T const a, T &c1, T &c2, T &c3, T &c4)
+// add: 1-1-3
+template < typename T > __always_inline void
+add_SW_SW_TW ( T const a0, T const b0, T & c0, T & c1, T & c2 )
 {
-    T t1, t2, t3, t4;
-    sqrt_SW_QTW(a, c1, c2, c3);
-    sqr_QTW_QQW(c1, c2, c3, t1, t2, t3, t4);
-    add_QQW_SW_QQW(t1, t2, t3, t4, -a, t1, t2, t3, t4);
-    c4 = - (t1 + t2 + t3 + t4) / (2 * (c1 + c2 + c3));
+  TwoSum( a0, b0, c0, c1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  c2 = fp_const<T>::zero();
+}
+
+// add: 1-1-4
+template < typename T > __always_inline void
+add_SW_SW_QW ( T const a0, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  TwoSum( a0, b0, c0, c1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  c2 = fp_const<T>::zero();
+  c3 = fp_const<T>::zero();
+}
+
+// add: 1-2-1
+template < typename T > __always_inline void
+add_SW_DW_SW ( T const a0, T const b0, T const b1, T & c0 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, t0 );
+  t0 = t0 + b1;
+  c0 = c0 + t0;
+}
+
+// add: 1-2-2
+template < typename T > __always_inline void
+add_SW_DW_DW ( T const a0, T const b0, T const b1, T & c0, T & c1 )
+{
+  TwoSum( a0, b0, c0, c1 );
+  c1 = c1 + b1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 1-2-3
+template < typename T > __always_inline void
+add_SW_DW_TW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, t0, c1, c2 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 1-2-4
+template < typename T > __always_inline void
+add_SW_DW_QW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, t0, c1, c2 );
+  c3 = fp_const<T>::zero();
+}
+
+// add: 1-3-1
+template < typename T > __always_inline void
+add_SW_TW_SW ( T const a0, T const b0, T const b1, T const b2, T & c0 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = b2 + b1;
+  t0 = t0 + t1;
+  c0 = c0 + t0;
+}
+
+// add: 1-3-2
+template < typename T > __always_inline void
+add_SW_TW_DW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  TwoSum( a0, b0, c0, c1 );
+  c1 = c1 + b1;
+  FastTwoSum( c0, c1, c0, c1 );
+  c1 = c1 + b2;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 1-3-3
+template < typename T > __always_inline void
+add_SW_TW_TW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( t0, b2, t0, t1 );
+  FastTwoSum( c1, t0, c1, c2 );
+  c2 = c2 + t1;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 1-3-4
+template < typename T > __always_inline void
+add_SW_TW_QW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, b2, c1, c2 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c2, t0, c2, c3 );
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 1-4-1
+template < typename T > __always_inline void
+add_SW_QW_SW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = b3 + b2;
+  t2 = t1 + b1;
+  t0 = t0 + t2;
+  c0 = c0 + t0;
+}
+
+// add: 1-4-2
+template < typename T > __always_inline void
+add_SW_QW_DW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  c1 = c1 + b1;
+  FastTwoSum( c0, c1, c0, c1 );
+  t0 = b2 + b3;
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 1-4-3
+template < typename T > __always_inline void
+add_SW_QW_TW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( t0, b2, t0, t1 );
+  FastTwoSum( c1, t0, c1, c2 );
+  t0 = b3 + t1;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 1-4-4
+template < typename T > __always_inline void
+add_SW_QW_QW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, b1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, b2, c1, c2 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c2, b3, c2, c3 );
+  TwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 2-1-1
+template < typename T > __always_inline void
+add_DW_SW_SW ( T const a0, T const a1, T const b0, T & c0 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, t0 );
+  t0 = t0 + a1;
+  c0 = c0 + t0;
+}
+
+// add: 2-1-2
+template < typename T > __always_inline void
+add_DW_SW_DW ( T const a0, T const a1, T const b0, T & c0, T & c1 )
+{
+  TwoSum( a0, b0, c0, c1 );
+  c1 = c1 + a1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 2-1-3
+template < typename T > __always_inline void
+add_DW_SW_TW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, t0, c1, c2 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 2-1-4
+template < typename T > __always_inline void
+add_DW_SW_QW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, t0, c1, c2 );
+  c3 = fp_const<T>::zero();
+}
+
+// add: 2-2-1
+template < typename T > __always_inline void
+add_DW_DW_SW ( T const a0, T const a1, T const b0, T const b1, T & c0 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = a1 + b1;
+  t0 = t0 + t1;
+  c0 = c0 + t0;
+}
+
+// add: 2-2-2
+template < typename T > __always_inline void
+add_DW_DW_DW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, t1 );
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 2-2-3
+template < typename T > __always_inline void
+add_DW_DW_TW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 2-2-4
+template < typename T > __always_inline void
+add_DW_DW_QW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c2, t0, c2, c3 );
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 2-3-1
+template < typename T > __always_inline void
+add_DW_TW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = a1 + b1;
+  t2 = b2 + t1;
+  t0 = t0 + t2;
+  c0 = c0 + t0;
+}
+
+// add: 2-3-2
+template < typename T > __always_inline void
+add_DW_TW_DW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, t1 );
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + b2;
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 2-3-3
+template < typename T > __always_inline void
+add_DW_TW_TW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( t0, b2, t0, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + t1;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 2-3-4
+template < typename T > __always_inline void
+add_DW_TW_QW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, b2, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c2, t1, c2, c3 );
+  TwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 2-4-1
+template < typename T > __always_inline void
+add_DW_QW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  T t0, t1, t2, t3;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = a1 + b1;
+  t2 = b3 + b2;
+  t3 = t2 + t1;
+  t0 = t0 + t3;
+  c0 = c0 + t0;
+}
+
+// add: 2-4-2
+template < typename T > __always_inline void
+add_DW_QW_DW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, t1 );
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + b2 + b3;
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 2-4-3
+template < typename T > __always_inline void
+add_DW_QW_TW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( t0, b2, t0, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + b3 + t1;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 2-4-4
+template < typename T > __always_inline void
+add_DW_QW_QW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, b2, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( b3, t1, c3, t1 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoSum( c3, t0, c3, t0 );
+  t2 = t1 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t2;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 3-1-1
+template < typename T > __always_inline void
+add_TW_SW_SW ( T const a0, T const a1, T const a2, T const b0, T & c0 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = a2 + a1;
+  t0 = t0 + t1;
+  c0 = c0 + t0;
+}
+
+// add: 3-1-2
+template < typename T > __always_inline void
+add_TW_SW_DW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1 )
+{
+  TwoSum( a0, b0, c0, c1 );
+  c1 = c1 + a1;
+  FastTwoSum( c0, c1, c0, c1 );
+  c1 = c1 + a2;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 3-1-3
+template < typename T > __always_inline void
+add_TW_SW_TW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( t0, a2, t0, t1 );
+  FastTwoSum( c1, t0, c1, c2 );
+  c2 = c2 + t1;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 3-1-4
+template < typename T > __always_inline void
+add_TW_SW_QW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, a2, c1, c2 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c2, t0, c2, c3 );
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 3-2-1
+template < typename T > __always_inline void
+add_TW_DW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = a1 + b1;
+  t2 = a2 + t1;
+  t0 = t0 + t2;
+  c0 = c0 + t0;
+}
+
+// add: 3-2-2
+template < typename T > __always_inline void
+add_TW_DW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, t1 );
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + a2;
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 3-2-3
+template < typename T > __always_inline void
+add_TW_DW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( t0, a2, t0, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + t1;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 3-2-4
+template < typename T > __always_inline void
+add_TW_DW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, a2, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c2, t1, c2, c3 );
+  TwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 3-3-1
+template < typename T > __always_inline void
+add_TW_TW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0 )
+{
+  T t0, t1, t2, t3;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = a1 + b1;
+  t2 = a2 + b2;
+  t3 = t2 + t1;
+  t0 = t0 + t3;
+  c0 = c0 + t0;
+}
+
+// add: 3-3-2
+template < typename T > __always_inline void
+add_TW_TW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, t1 );
+  t2 = a2 + b2;
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t2;
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 3-3-3
+template < typename T > __always_inline void
+add_TW_TW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( a2, b2, t1, t2 );
+  TwoSum( t0, t1, t0, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + t1 + t2;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 3-3-4
+template < typename T > __always_inline void
+add_TW_TW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( a2, b2, t1, c3 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, t1, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c3, t1, c3, t1 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoSum( c3, t0, c3, t0 );
+  t2 = t1 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t2;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 3-4-1
+template < typename T > __always_inline void
+add_TW_QW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  T t0, t1, t2, t3, t4;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = a1 + b1;
+  t2 = a2 + b2;
+  t3 = b3 + t2;
+  t4 = t3 + t1;
+  t0 = t0 + t4;
+  c0 = c0 + t0;
+}
+
+// add: 3-4-2
+template < typename T > __always_inline void
+add_TW_QW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, t1 );
+  t2 = a2 + b2;
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t2 + b3;
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 3-4-3
+template < typename T > __always_inline void
+add_TW_QW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( a2, b2, t1, t2 );
+  TwoSum( t0, t1, t0, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + b3 + t1 + t2;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 3-4-4
+template < typename T > __always_inline void
+add_TW_QW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( a2, b2, t1, c3 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, t1, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, b3, c3, t2 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c3, t1, c3, t1 );
+  t3 = t2 + t1;
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoSum( c3, t0, c3, t0 );
+  t3 = t3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t3;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 4-1-1
+template < typename T > __always_inline void
+add_QW_SW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = a3 + a2;
+  t2 = t1 + a1;
+  t0 = t0 + t2;
+  c0 = c0 + t0;
+}
+
+// add: 4-1-2
+template < typename T > __always_inline void
+add_QW_SW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  c1 = c1 + a1;
+  FastTwoSum( c0, c1, c0, c1 );
+  t0 = a2 + a3;
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 4-1-3
+template < typename T > __always_inline void
+add_QW_SW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( t0, a2, t0, t1 );
+  FastTwoSum( c1, t0, c1, c2 );
+  t0 = a3 + t1;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 4-1-4
+template < typename T > __always_inline void
+add_QW_SW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( c1, a1, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, a2, c1, c2 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c2, a3, c2, c3 );
+  TwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 4-2-1
+template < typename T > __always_inline void
+add_QW_DW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0 )
+{
+  T t0, t1, t2, t3;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = a1 + b1;
+  t2 = a3 + a2;
+  t3 = t2 + t1;
+  t0 = t0 + t3;
+  c0 = c0 + t0;
+}
+
+// add: 4-2-2
+template < typename T > __always_inline void
+add_QW_DW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, t1 );
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + a2 + a3;
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 4-2-3
+template < typename T > __always_inline void
+add_QW_DW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( t0, a2, t0, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + a3 + t1;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 4-2-4
+template < typename T > __always_inline void
+add_QW_DW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, a2, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( a3, t1, c3, t1 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoSum( c3, t0, c3, t0 );
+  t2 = t1 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t2;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 4-3-1
+template < typename T > __always_inline void
+add_QW_TW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0 )
+{
+  T t0, t1, t2, t3, t4;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = a1 + b1;
+  t2 = a2 + b2;
+  t3 = a3 + t2;
+  t4 = t3 + t1;
+  t0 = t0 + t4;
+  c0 = c0 + t0;
+}
+
+// add: 4-3-2
+template < typename T > __always_inline void
+add_QW_TW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, t1 );
+  t2 = a2 + b2;
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t2 + a3;
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 4-3-3
+template < typename T > __always_inline void
+add_QW_TW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( a2, b2, t1, t2 );
+  TwoSum( t0, t1, t0, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + a3 + t1 + t2;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 4-3-4
+template < typename T > __always_inline void
+add_QW_TW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( a2, b2, t1, c3 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, t1, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, a3, c3, t2 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c3, t1, c3, t1 );
+  t3 = t2 + t1;
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoSum( c3, t0, c3, t0 );
+  t3 = t3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t3;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// add: 4-4-1
+template < typename T > __always_inline void
+add_QW_QW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  T t0, t1, t2, t3, t4, t5;
+  TwoSum( a0, b0, c0, t0 );
+  t1 = a1 + b1;
+  t2 = a2 + b2;
+  t3 = a3 + b3;
+  t4 = t3 + t2;
+  t5 = t4 + t1;
+  t0 = t0 + t5;
+  c0 = c0 + t0;
+}
+
+// add: 4-4-2
+template < typename T > __always_inline void
+add_QW_QW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, t1 );
+  t2 = a2 + b2;
+  t3 = a3 + b3;
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t2 + t3;
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// add: 4-4-3
+template < typename T > __always_inline void
+add_QW_QW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( a2, b2, t1, t2 );
+  TwoSum( t0, t1, t0, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t3 = a3 + b3;
+  t0 = t0 + t3 + t1 + t2;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// add: 4-4-4
+template < typename T > __always_inline void
+add_QW_QW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3;
+  TwoSum( a0, b0, c0, c1 );
+  TwoSum( a1, b1, t0, c2 );
+  TwoSum( a2, b2, t1, c3 );
+  TwoSum( a3, b3, t2, t3 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, t1, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t2, c3, t2 );
+  t3 = t3 + t2;
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c3, t1, c3, t1 );
+  t3 = t3 + t1;
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoSum( c3, t0, c3, t0 );
+  t3 = t3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t3;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// sub: 1-1-2
+template < typename T > __always_inline void
+sub_SW_SW_DW ( T const a0, T const b0, T & c0, T & c1 )
+{
+  add_SW_SW_DW ( a0, -b0, c0, c1 );
+}
+
+// sub: 1-1-3
+template < typename T > __always_inline void
+sub_SW_SW_TW ( T const a0, T const b0, T & c0, T & c1, T & c2 )
+{
+  add_SW_SW_TW ( a0, -b0, c0, c1, c2 );
+}
+
+// sub: 1-1-4
+template < typename T > __always_inline void
+sub_SW_SW_QW ( T const a0, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_SW_SW_QW ( a0, -b0, c0, c1, c2, c3 );
+}
+
+// sub: 1-2-1
+template < typename T > __always_inline void
+sub_SW_DW_SW ( T const a0, T const b0, T const b1, T & c0 )
+{
+  add_SW_DW_SW ( a0, -b0, -b1, c0 );
+}
+
+// sub: 1-2-2
+template < typename T > __always_inline void
+sub_SW_DW_DW ( T const a0, T const b0, T const b1, T & c0, T & c1 )
+{
+  add_SW_DW_DW ( a0, -b0, -b1, c0, c1 );
+}
+
+// sub: 1-2-3
+template < typename T > __always_inline void
+sub_SW_DW_TW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  add_SW_DW_TW ( a0, -b0, -b1, c0, c1, c2 );
+}
+
+// sub: 1-2-4
+template < typename T > __always_inline void
+sub_SW_DW_QW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_SW_DW_QW ( a0, -b0, -b1, c0, c1, c2, c3 );
+}
+
+// sub: 1-3-1
+template < typename T > __always_inline void
+sub_SW_TW_SW ( T const a0, T const b0, T const b1, T const b2, T & c0 )
+{
+  add_SW_TW_SW ( a0, -b0, -b1, -b2, c0 );
+}
+
+// sub: 1-3-2
+template < typename T > __always_inline void
+sub_SW_TW_DW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  add_SW_TW_DW ( a0, -b0, -b1, -b2, c0, c1 );
+}
+
+// sub: 1-3-3
+template < typename T > __always_inline void
+sub_SW_TW_TW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  add_SW_TW_TW ( a0, -b0, -b1, -b2, c0, c1, c2 );
+}
+
+// sub: 1-3-4
+template < typename T > __always_inline void
+sub_SW_TW_QW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_SW_TW_QW ( a0, -b0, -b1, -b2, c0, c1, c2, c3 );
+}
+
+// sub: 1-4-1
+template < typename T > __always_inline void
+sub_SW_QW_SW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  add_SW_QW_SW ( a0, -b0, -b1, -b2, -b3, c0 );
+}
+
+// sub: 1-4-2
+template < typename T > __always_inline void
+sub_SW_QW_DW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  add_SW_QW_DW ( a0, -b0, -b1, -b2, -b3, c0, c1 );
+}
+
+// sub: 1-4-3
+template < typename T > __always_inline void
+sub_SW_QW_TW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  add_SW_QW_TW ( a0, -b0, -b1, -b2, -b3, c0, c1, c2 );
+}
+
+// sub: 1-4-4
+template < typename T > __always_inline void
+sub_SW_QW_QW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_SW_QW_QW ( a0, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
+}
+
+// sub: 2-1-1
+template < typename T > __always_inline void
+sub_DW_SW_SW ( T const a0, T const a1, T const b0, T & c0 )
+{
+  add_DW_SW_SW ( a0, a1, -b0, c0 );
+}
+
+// sub: 2-1-2
+template < typename T > __always_inline void
+sub_DW_SW_DW ( T const a0, T const a1, T const b0, T & c0, T & c1 )
+{
+  add_DW_SW_DW ( a0, a1, -b0, c0, c1 );
+}
+
+// sub: 2-1-3
+template < typename T > __always_inline void
+sub_DW_SW_TW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2 )
+{
+  add_DW_SW_TW ( a0, a1, -b0, c0, c1, c2 );
+}
+
+// sub: 2-1-4
+template < typename T > __always_inline void
+sub_DW_SW_QW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_DW_SW_QW ( a0, a1, -b0, c0, c1, c2, c3 );
+}
+
+// sub: 2-2-1
+template < typename T > __always_inline void
+sub_DW_DW_SW ( T const a0, T const a1, T const b0, T const b1, T & c0 )
+{
+  add_DW_DW_SW ( a0, a1, -b0, -b1, c0 );
+}
+
+// sub: 2-2-2
+template < typename T > __always_inline void
+sub_DW_DW_DW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1 )
+{
+  add_DW_DW_DW ( a0, a1, -b0, -b1, c0, c1 );
+}
+
+// sub: 2-2-3
+template < typename T > __always_inline void
+sub_DW_DW_TW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  add_DW_DW_TW ( a0, a1, -b0, -b1, c0, c1, c2 );
+}
+
+// sub: 2-2-4
+template < typename T > __always_inline void
+sub_DW_DW_QW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_DW_DW_QW ( a0, a1, -b0, -b1, c0, c1, c2, c3 );
+}
+
+// sub: 2-3-1
+template < typename T > __always_inline void
+sub_DW_TW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0 )
+{
+  add_DW_TW_SW ( a0, a1, -b0, -b1, -b2, c0 );
+}
+
+// sub: 2-3-2
+template < typename T > __always_inline void
+sub_DW_TW_DW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  add_DW_TW_DW ( a0, a1, -b0, -b1, -b2, c0, c1 );
+}
+
+// sub: 2-3-3
+template < typename T > __always_inline void
+sub_DW_TW_TW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  add_DW_TW_TW ( a0, a1, -b0, -b1, -b2, c0, c1, c2 );
+}
+
+// sub: 2-3-4
+template < typename T > __always_inline void
+sub_DW_TW_QW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_DW_TW_QW ( a0, a1, -b0, -b1, -b2, c0, c1, c2, c3 );
+}
+
+// sub: 2-4-1
+template < typename T > __always_inline void
+sub_DW_QW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  add_DW_QW_SW ( a0, a1, -b0, -b1, -b2, -b3, c0 );
+}
+
+// sub: 2-4-2
+template < typename T > __always_inline void
+sub_DW_QW_DW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  add_DW_QW_DW ( a0, a1, -b0, -b1, -b2, -b3, c0, c1 );
+}
+
+// sub: 2-4-3
+template < typename T > __always_inline void
+sub_DW_QW_TW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  add_DW_QW_TW ( a0, a1, -b0, -b1, -b2, -b3, c0, c1, c2 );
+}
+
+// sub: 2-4-4
+template < typename T > __always_inline void
+sub_DW_QW_QW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_DW_QW_QW ( a0, a1, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
+}
+
+// sub: 3-1-1
+template < typename T > __always_inline void
+sub_TW_SW_SW ( T const a0, T const a1, T const a2, T const b0, T & c0 )
+{
+  add_TW_SW_SW ( a0, a1, a2, -b0, c0 );
+}
+
+// sub: 3-1-2
+template < typename T > __always_inline void
+sub_TW_SW_DW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1 )
+{
+  add_TW_SW_DW ( a0, a1, a2, -b0, c0, c1 );
+}
+
+// sub: 3-1-3
+template < typename T > __always_inline void
+sub_TW_SW_TW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2 )
+{
+  add_TW_SW_TW ( a0, a1, a2, -b0, c0, c1, c2 );
+}
+
+// sub: 3-1-4
+template < typename T > __always_inline void
+sub_TW_SW_QW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_TW_SW_QW ( a0, a1, a2, -b0, c0, c1, c2, c3 );
+}
+
+// sub: 3-2-1
+template < typename T > __always_inline void
+sub_TW_DW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0 )
+{
+  add_TW_DW_SW ( a0, a1, a2, -b0, -b1, c0 );
+}
+
+// sub: 3-2-2
+template < typename T > __always_inline void
+sub_TW_DW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1 )
+{
+  add_TW_DW_DW ( a0, a1, a2, -b0, -b1, c0, c1 );
+}
+
+// sub: 3-2-3
+template < typename T > __always_inline void
+sub_TW_DW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  add_TW_DW_TW ( a0, a1, a2, -b0, -b1, c0, c1, c2 );
+}
+
+// sub: 3-2-4
+template < typename T > __always_inline void
+sub_TW_DW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_TW_DW_QW ( a0, a1, a2, -b0, -b1, c0, c1, c2, c3 );
+}
+
+// sub: 3-3-1
+template < typename T > __always_inline void
+sub_TW_TW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0 )
+{
+  add_TW_TW_SW ( a0, a1, a2, -b0, -b1, -b2, c0 );
+}
+
+// sub: 3-3-2
+template < typename T > __always_inline void
+sub_TW_TW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  add_TW_TW_DW ( a0, a1, a2, -b0, -b1, -b2, c0, c1 );
+}
+
+// sub: 3-3-3
+template < typename T > __always_inline void
+sub_TW_TW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  add_TW_TW_TW ( a0, a1, a2, -b0, -b1, -b2, c0, c1, c2 );
+}
+
+// sub: 3-3-4
+template < typename T > __always_inline void
+sub_TW_TW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_TW_TW_QW ( a0, a1, a2, -b0, -b1, -b2, c0, c1, c2, c3 );
+}
+
+// sub: 3-4-1
+template < typename T > __always_inline void
+sub_TW_QW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  add_TW_QW_SW ( a0, a1, a2, -b0, -b1, -b2, -b3, c0 );
+}
+
+// sub: 3-4-2
+template < typename T > __always_inline void
+sub_TW_QW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  add_TW_QW_DW ( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1 );
+}
+
+// sub: 3-4-3
+template < typename T > __always_inline void
+sub_TW_QW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  add_TW_QW_TW ( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1, c2 );
+}
+
+// sub: 3-4-4
+template < typename T > __always_inline void
+sub_TW_QW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_TW_QW_QW ( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
+}
+
+// sub: 4-1-1
+template < typename T > __always_inline void
+sub_QW_SW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0 )
+{
+  add_QW_SW_SW ( a0, a1, a2, a3, -b0, c0 );
+}
+
+// sub: 4-1-2
+template < typename T > __always_inline void
+sub_QW_SW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1 )
+{
+  add_QW_SW_DW ( a0, a1, a2, a3, -b0, c0, c1 );
+}
+
+// sub: 4-1-3
+template < typename T > __always_inline void
+sub_QW_SW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2 )
+{
+  add_QW_SW_TW ( a0, a1, a2, a3, -b0, c0, c1, c2 );
+}
+
+// sub: 4-1-4
+template < typename T > __always_inline void
+sub_QW_SW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_QW_SW_QW ( a0, a1, a2, a3, -b0, c0, c1, c2, c3 );
+}
+
+// sub: 4-2-1
+template < typename T > __always_inline void
+sub_QW_DW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0 )
+{
+  add_QW_DW_SW ( a0, a1, a2, a3, -b0, -b1, c0 );
+}
+
+// sub: 4-2-2
+template < typename T > __always_inline void
+sub_QW_DW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1 )
+{
+  add_QW_DW_DW ( a0, a1, a2, a3, -b0, -b1, c0, c1 );
+}
+
+// sub: 4-2-3
+template < typename T > __always_inline void
+sub_QW_DW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  add_QW_DW_TW ( a0, a1, a2, a3, -b0, -b1, c0, c1, c2 );
+}
+
+// sub: 4-2-4
+template < typename T > __always_inline void
+sub_QW_DW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_QW_DW_QW ( a0, a1, a2, a3, -b0, -b1, c0, c1, c2, c3 );
+}
+
+// sub: 4-3-1
+template < typename T > __always_inline void
+sub_QW_TW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0 )
+{
+  add_QW_TW_SW ( a0, a1, a2, a3, -b0, -b1, -b2, c0 );
+}
+
+// sub: 4-3-2
+template < typename T > __always_inline void
+sub_QW_TW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  add_QW_TW_DW ( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1 );
+}
+
+// sub: 4-3-3
+template < typename T > __always_inline void
+sub_QW_TW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  add_QW_TW_TW ( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1, c2 );
+}
+
+// sub: 4-3-4
+template < typename T > __always_inline void
+sub_QW_TW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_QW_TW_QW ( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1, c2, c3 );
+}
+
+// sub: 4-4-1
+template < typename T > __always_inline void
+sub_QW_QW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  add_QW_QW_SW ( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0 );
+}
+
+// sub: 4-4-2
+template < typename T > __always_inline void
+sub_QW_QW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  add_QW_QW_DW ( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1 );
+}
+
+// sub: 4-4-3
+template < typename T > __always_inline void
+sub_QW_QW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  add_QW_QW_TW ( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1, c2 );
+}
+
+// sub: 4-4-4
+template < typename T > __always_inline void
+sub_QW_QW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  add_QW_QW_QW ( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
+}
+
+// mul: 1-1-2
+template < typename T > __always_inline void
+mul_SW_SW_DW ( T const a0, T const b0, T & c0, T & c1 )
+{
+  TwoProductFMA( a0, b0, c0, c1 );
+}
+
+// mul: 1-1-3
+template < typename T > __always_inline void
+mul_SW_SW_TW ( T const a0, T const b0, T & c0, T & c1, T & c2 )
+{
+  TwoProductFMA( a0, b0, c0, c1 );
+  c2 = fp_const<T>::zero();
+}
+
+// mul: 1-1-4
+template < typename T > __always_inline void
+mul_SW_SW_QW ( T const a0, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  TwoProductFMA( a0, b0, c0, c1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  c2 = fp_const<T>::zero();
+  c3 = fp_const<T>::zero();
+}
+
+// mul: 1-2-1
+template < typename T > __always_inline void
+mul_SW_DW_SW ( T const a0, T const b0, T const b1, T & c0 )
+{
+  c0 = a0 * b0;
+}
+
+// mul: 1-2-2
+template < typename T > __always_inline void
+mul_SW_DW_DW ( T const a0, T const b0, T const b1, T & c0, T & c1 )
+{
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t0 = t0 + t1;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 1-2-3
+template < typename T > __always_inline void
+mul_SW_DW_TW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 1-2-4
+template < typename T > __always_inline void
+mul_SW_DW_QW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 1-3-1
+template < typename T > __always_inline void
+mul_SW_TW_SW ( T const a0, T const b0, T const b1, T const b2, T & c0 )
+{
+  c0 = a0 * b0;
+}
+
+// mul: 1-3-2
+template < typename T > __always_inline void
+mul_SW_TW_DW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t0 = t0 + t1;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t0 = std::fma ( a0, b2, t0 );
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 1-3-3
+template < typename T > __always_inline void
+mul_SW_TW_TW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t1, t2 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t1, c2, t1 );
+  t0 = t0 + t1 + t2;
+  FastTwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 1-3-4
+template < typename T > __always_inline void
+mul_SW_TW_QW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t0, t1 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c3, t1, c3, t1 );
+  t2 = t0 + t1;
+  FastTwoSum( c3, t2, c3, t2 );
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t2;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 1-4-1
+template < typename T > __always_inline void
+mul_SW_QW_SW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  c0 = a0 * b0;
+}
+
+// mul: 1-4-2
+template < typename T > __always_inline void
+mul_SW_QW_DW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t0 = t0 + t1;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t2 = b2 + b3;
+  t0 = std::fma ( a0, t2, t0 );
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 1-4-3
+template < typename T > __always_inline void
+mul_SW_QW_TW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t1, t2 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t1, c2, t1 );
+  t0 = t0 + t1 + t2;
+  FastTwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = std::fma ( a0, b3, t0 );
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 1-4-4
+template < typename T > __always_inline void
+mul_SW_QW_QW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t0, t1 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c3, t1, c3, t1 );
+  t2 = t0 + t1;
+  FastTwoSum( c3, t2, c3, t2 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a0, b3, t3, t0 );
+  TwoSum( c3, t3, c3, t3 );
+  t4 = t2 + t3 + t0;
+  c3 = c3 + t4;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 2-1-1
+template < typename T > __always_inline void
+mul_DW_SW_SW ( T const a0, T const a1, T const b0, T & c0 )
+{
+  c0 = a0 * b0;
+}
+
+// mul: 2-1-2
+template < typename T > __always_inline void
+mul_DW_SW_DW ( T const a0, T const a1, T const b0, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t2 = t2 + t1;
+  FastTwoSum( c1, t2, c1, t2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  c1 = c1 + t2;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 2-1-3
+template < typename T > __always_inline void
+mul_DW_SW_TW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( t0, t1, c2, t1 );
+  FastTwoSum( c2, t1, c2, t2 );
+  FastTwoSum( c1, c2, c1, c2 );
+  c2 = c2 + t2;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 2-1-4
+template < typename T > __always_inline void
+mul_DW_SW_QW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( t0, t1, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, t1, c2, c3 );
+}
+
+// mul: 2-2-1
+template < typename T > __always_inline void
+mul_DW_DW_SW ( T const a0, T const a1, T const b0, T const b1, T & c0 )
+{
+  c0 = a0 * b0;
+  c0 = std::fma ( a1, b1, c0 );
+}
+
+// mul: 2-2-2
+template < typename T > __always_inline void
+mul_DW_DW_DW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoProductFMA( a1, b0, t2, t3 );
+  TwoSum( t0, t2, t0, t2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t3;
+  t0 = t0 + t1 + t2;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t0 = std::fma ( a1, b1, t0 );
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 2-2-3
+template < typename T > __always_inline void
+mul_DW_DW_TW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a1, b1, t3, t4 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  t0 = t0 + t1 + t2 + t3 + t4;
+  FastTwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 2-2-4
+template < typename T > __always_inline void
+mul_DW_DW_QW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a1, b1, t2, t3 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t2, c3, t2 );
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c3, t3, c3, t3 );
+  t0 = t0 + t1 + t2 + t3;
+  FastTwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 2-3-1
+template < typename T > __always_inline void
+mul_DW_TW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0 )
+{
+  T t0;
+  c0 = a0 * b0;
+  t0 = b2 + b1;
+  c0 = std::fma ( a1, t0, c0 );
+}
+
+// mul: 2-3-2
+template < typename T > __always_inline void
+mul_DW_TW_DW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoProductFMA( a1, b0, t2, t3 );
+  TwoSum( t0, t2, t0, t2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t3;
+  t0 = t0 + t1 + t2;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t0 = std::fma ( a1, b1, t0 );
+  t0 = std::fma ( a0, b2, t0 );
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 2-3-3
+template < typename T > __always_inline void
+mul_DW_TW_TW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4, t5, t6;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t3, t4 );
+  TwoProductFMA( a1, b1, t5, t6 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  TwoSum( c2, t5, c2, t5 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6;
+  FastTwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = std::fma ( a1, b2, t0 );
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 2-3-4
+template < typename T > __always_inline void
+mul_DW_TW_QW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4, t5, t6;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t4, c3, t4 );
+  TwoSum( c3, t2, c3, t2 );
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c3, t3, c3, t3 );
+  TwoSum( c3, t5, c3, t5 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5;
+  FastTwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a1, b2, t3, t4 );
+  TwoSum( c3, t3, c3, t1 );
+  t6 = t0 + t1 + t4;
+  FastTwoSum( c3, t6, c3, t6 );
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t6;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 2-4-1
+template < typename T > __always_inline void
+mul_DW_QW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  T t0;
+  c0 = a0 * b0;
+  t0 = b3 + b2 + b1;
+  c0 = std::fma ( a1, t0, c0 );
+}
+
+// mul: 2-4-2
+template < typename T > __always_inline void
+mul_DW_QW_DW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3, t4;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoProductFMA( a1, b0, t2, t3 );
+  TwoSum( t0, t2, t0, t2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t3;
+  t0 = t0 + t1 + t2;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t4 = b2 + b3;
+  t0 = std::fma ( a1, b1, t0 );
+  t0 = std::fma ( a0, t4, t0 );
+  c1 = c1 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 2-4-3
+template < typename T > __always_inline void
+mul_DW_QW_TW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4, t5, t6;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t3, t4 );
+  TwoProductFMA( a1, b1, t5, t6 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  TwoSum( c2, t5, c2, t5 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6;
+  FastTwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = std::fma ( a0, b3, t0 );
+  t0 = std::fma ( a1, b2, t0 );
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 2-4-4
+template < typename T > __always_inline void
+mul_DW_QW_QW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4, t5, t6;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t4, c3, t4 );
+  TwoSum( c3, t2, c3, t2 );
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c3, t3, c3, t3 );
+  TwoSum( c3, t5, c3, t5 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5;
+  FastTwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a0, b3, t1, t2 );
+  TwoProductFMA( a1, b2, t3, t4 );
+  TwoSum( t1, t3, t1, t3 );
+  TwoSum( c3, t1, c3, t1 );
+  t6 = t0 + t1 + t2 + t3 + t4;
+  FastTwoSum( c3, t6, c3, t6 );
+  FastTwoSum( c2, c3, c2, c3 );
+  t0 = std::fma ( a1, b3, t6 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 3-1-1
+template < typename T > __always_inline void
+mul_TW_SW_SW ( T const a0, T const a1, T const a2, T const b0, T & c0 )
+{
+  c0 = a0 * b0;
+}
+
+// mul: 3-1-2
+template < typename T > __always_inline void
+mul_TW_SW_DW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t2 = t2 + t1;
+  FastTwoSum( c1, t2, c1, t2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t3 = std::fma ( b0, a2, t2 );
+  c1 = c1 + t3;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 3-1-3
+template < typename T > __always_inline void
+mul_TW_SW_TW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a2, b0, t2, t3 );
+  TwoSum( t0, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  t4 = t1 + t2 + t3;
+  FastTwoSum( c2, t4, c2, t4 );
+  FastTwoSum( c1, c2, c1, c2 );
+  c2 = c2 + t4;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 3-1-4
+template < typename T > __always_inline void
+mul_TW_SW_QW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a2, b0, t2, t3 );
+  TwoSum( t0, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( t2, t1, c3, t1 );
+  TwoSum( c3, t3, c3, t3 );
+  t0 = t1 + t3;
+  FastTwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 3-2-1
+template < typename T > __always_inline void
+mul_TW_DW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0 )
+{
+  T t0;
+  c0 = a0 * b0;
+  t0 = a2 + a1;
+  c0 = std::fma ( t0, b1, c0 );
+}
+
+// mul: 3-2-2
+template < typename T > __always_inline void
+mul_TW_DW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoProductFMA( a1, b0, t2, t3 );
+  TwoSum( t0, t2, t0, t2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t3;
+  t0 = t0 + t1 + t2;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t0 = std::fma ( a1, b1, t0 );
+  t1 = std::fma ( b0, a2, t0 );
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 3-2-3
+template < typename T > __always_inline void
+mul_TW_DW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4, t5, t6;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a2, b0, t3, t4 );
+  TwoProductFMA( a1, b1, t5, t6 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  TwoSum( c2, t5, c2, t5 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6;
+  FastTwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = std::fma ( a2, b1, t0 );
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 3-2-4
+template < typename T > __always_inline void
+mul_TW_DW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4, t5, t6;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a1, b1, t2, t3 );
+  TwoProductFMA( a2, b0, t4, t5 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t4, c3, t4 );
+  TwoSum( c3, t2, c3, t2 );
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c3, t3, c3, t3 );
+  TwoSum( c3, t5, c3, t5 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5;
+  FastTwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a2, b1, t3, t4 );
+  TwoSum( c3, t3, c3, t1 );
+  t6 = t0 + t1 + t4;
+  FastTwoSum( c3, t6, c3, t6 );
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t6;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 3-3-1
+template < typename T > __always_inline void
+mul_TW_TW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0 )
+{
+  T t0, t1;
+  c0 = a0 * b0;
+  t0 = a2 + a1;
+  t1 = b2 + b1;
+  c0 = std::fma ( t0, t1, c0 );
+}
+
+// mul: 3-3-2
+template < typename T > __always_inline void
+mul_TW_TW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoProductFMA( a1, b0, t2, t3 );
+  TwoSum( t0, t2, t0, t2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t3;
+  t0 = t0 + t1 + t2;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t0 = std::fma ( a1, b1, t0 );
+  t0 = t0 * fp_const<T>::half();
+  t1 = std::fma ( a0, b2, t0 );
+  t2 = std::fma ( b0, a2, t0 );
+  t1 = t1 + t2;
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 3-3-3
+template < typename T > __always_inline void
+mul_TW_TW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4, t5, t6, t7, t8;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t3, t4 );
+  TwoProductFMA( a2, b0, t5, t6 );
+  TwoProductFMA( a1, b1, t7, t8 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  TwoSum( c2, t5, c2, t5 );
+  TwoSum( c2, t7, c2, t7 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8;
+  FastTwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 * fp_const<T>::half();
+  t1 = std::fma ( a1, b2, t0 );
+  t2 = std::fma ( a2, b1, t0 );
+  t0 = t1 + t2;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 3-3-4
+template < typename T > __always_inline void
+mul_TW_TW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4, t5, t6, t7, t8;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoProductFMA( a2, b0, t6, t7 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  TwoSum( c2, t6, c2, t6 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t6, c3, t6 );
+  TwoSum( c3, t4, c3, t4 );
+  TwoSum( c3, t2, c3, t2 );
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c3, t3, c3, t3 );
+  TwoSum( c3, t5, c3, t5 );
+  TwoSum( c3, t7, c3, t7 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
+  FastTwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a1, b2, t3, t4 );
+  TwoProductFMA( a2, b1, t5, t6 );
+  TwoSum( t3, t5, t3, t5 );
+  TwoSum( c3, t3, c3, t1 );
+  t4 = t4 + t6;
+  t8 = t0 + t1 + t4 + t5;
+  FastTwoSum( c3, t8, c3, t8 );
+  FastTwoSum( c2, c3, c2, c3 );
+  t0 = std::fma ( a2, b2, t8 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 3-4-1
+template < typename T > __always_inline void
+mul_TW_QW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  T t0, t1;
+  c0 = a0 * b0;
+  t0 = a2 + a1;
+  t1 = b3 + b2 + b1;
+  c0 = std::fma ( t0, t1, c0 );
+}
+
+// mul: 3-4-2
+template < typename T > __always_inline void
+mul_TW_QW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3, t4;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoProductFMA( a1, b0, t2, t3 );
+  TwoSum( t0, t2, t0, t2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t3;
+  t0 = t0 + t1 + t2;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t4 = b2 + b3;
+  t0 = std::fma ( a1, b1, t0 );
+  t0 = std::fma ( a0, t4, t0 );
+  t1 = std::fma ( b0, a2, t0 );
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 3-4-3
+template < typename T > __always_inline void
+mul_TW_QW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4, t5, t6, t7, t8;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t3, t4 );
+  TwoProductFMA( a2, b0, t5, t6 );
+  TwoProductFMA( a1, b1, t7, t8 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  TwoSum( c2, t5, c2, t5 );
+  TwoSum( c2, t7, c2, t7 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8;
+  FastTwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = std::fma ( a0, b3, t0 );
+  t0 = std::fma ( a1, b2, t0 );
+  t0 = std::fma ( a2, b1, t0 );
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 3-4-4
+template < typename T > __always_inline void
+mul_TW_QW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4, t5, t6, t7, t8;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoProductFMA( a2, b0, t6, t7 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  TwoSum( c2, t6, c2, t6 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t6, c3, t6 );
+  TwoSum( c3, t4, c3, t4 );
+  TwoSum( c3, t2, c3, t2 );
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c3, t3, c3, t3 );
+  TwoSum( c3, t5, c3, t5 );
+  TwoSum( c3, t7, c3, t7 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
+  FastTwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a0, b3, t1, t2 );
+  TwoProductFMA( a1, b2, t3, t4 );
+  TwoProductFMA( a2, b1, t5, t6 );
+  TwoSum( t3, t5, t3, t5 );
+  TwoSum( t1, t3, t1, t3 );
+  TwoSum( c3, t1, c3, t1 );
+  t8 = t0 + t1 + t2 + t3 + t4 + t5 + t6;
+  FastTwoSum( c3, t8, c3, t8 );
+  FastTwoSum( c2, c3, c2, c3 );
+  t0 = std::fma ( a1, b3, t8 );
+  t0 = std::fma ( a2, b2, t0 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 4-1-1
+template < typename T > __always_inline void
+mul_QW_SW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0 )
+{
+  c0 = a0 * b0;
+}
+
+// mul: 4-1-2
+template < typename T > __always_inline void
+mul_QW_SW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3, t4;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t2 = t2 + t1;
+  FastTwoSum( c1, t2, c1, t2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t3 = a2 + a3;
+  t4 = std::fma ( b0, t3, t2 );
+  c1 = c1 + t4;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 4-1-3
+template < typename T > __always_inline void
+mul_QW_SW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a2, b0, t2, t3 );
+  TwoSum( t0, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  t4 = t1 + t2 + t3;
+  FastTwoSum( c2, t4, c2, t4 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t4 = std::fma ( a3, b0, t4 );
+  c2 = c2 + t4;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 4-1-4
+template < typename T > __always_inline void
+mul_QW_SW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4, t5;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a2, b0, t2, t3 );
+  TwoSum( t0, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( t2, t1, c3, t1 );
+  TwoSum( c3, t3, c3, t3 );
+  t0 = t1 + t3;
+  FastTwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a3, b0, t3, t4 );
+  TwoSum( c3, t3, c3, t1 );
+  t5 = t0 + t1 + t4;
+  c3 = c3 + t5;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 4-2-1
+template < typename T > __always_inline void
+mul_QW_DW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0 )
+{
+  T t0;
+  c0 = a0 * b0;
+  t0 = a3 + a2 + a1;
+  c0 = std::fma ( t0, b1, c0 );
+}
+
+// mul: 4-2-2
+template < typename T > __always_inline void
+mul_QW_DW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3, t4;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoProductFMA( a1, b0, t2, t3 );
+  TwoSum( t0, t2, t0, t2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t3;
+  t0 = t0 + t1 + t2;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t4 = a2 + a3;
+  t0 = std::fma ( a1, b1, t0 );
+  t1 = std::fma ( b0, t4, t0 );
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 4-2-3
+template < typename T > __always_inline void
+mul_QW_DW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4, t5, t6;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a2, b0, t3, t4 );
+  TwoProductFMA( a1, b1, t5, t6 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  TwoSum( c2, t5, c2, t5 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6;
+  FastTwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = std::fma ( a3, b0, t0 );
+  t0 = std::fma ( a2, b1, t0 );
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 4-2-4
+template < typename T > __always_inline void
+mul_QW_DW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4, t5, t6, t7, t8;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a1, b1, t2, t3 );
+  TwoProductFMA( a2, b0, t4, t5 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t4, c3, t4 );
+  TwoSum( c3, t2, c3, t2 );
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c3, t3, c3, t3 );
+  TwoSum( c3, t5, c3, t5 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5;
+  FastTwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a2, b1, t3, t4 );
+  TwoProductFMA( a3, b0, t5, t6 );
+  TwoSum( t5, t3, t1, t7 );
+  TwoSum( c3, t1, c3, t1 );
+  t8 = t0 + t1 + t7 + t4 + t6;
+  FastTwoSum( c3, t8, c3, t8 );
+  FastTwoSum( c2, c3, c2, c3 );
+  t0 = std::fma ( a3, b1, t8 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 4-3-1
+template < typename T > __always_inline void
+mul_QW_TW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0 )
+{
+  T t0, t1;
+  c0 = a0 * b0;
+  t0 = a3 + a2 + a1;
+  t1 = b2 + b1;
+  c0 = std::fma ( t0, t1, c0 );
+}
+
+// mul: 4-3-2
+template < typename T > __always_inline void
+mul_QW_TW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3, t4;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoProductFMA( a1, b0, t2, t3 );
+  TwoSum( t0, t2, t0, t2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t3;
+  t0 = t0 + t1 + t2;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t4 = a2 + a3;
+  t0 = std::fma ( a1, b1, t0 );
+  t0 = std::fma ( a0, b2, t0 );
+  t1 = std::fma ( b0, t4, t0 );
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 4-3-3
+template < typename T > __always_inline void
+mul_QW_TW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4, t5, t6, t7, t8;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t3, t4 );
+  TwoProductFMA( a2, b0, t5, t6 );
+  TwoProductFMA( a1, b1, t7, t8 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  TwoSum( c2, t5, c2, t5 );
+  TwoSum( c2, t7, c2, t7 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8;
+  FastTwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = std::fma ( a3, b0, t0 );
+  t0 = std::fma ( a1, b2, t0 );
+  t0 = std::fma ( a2, b1, t0 );
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 4-3-4
+template < typename T > __always_inline void
+mul_QW_TW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4, t5, t6, t7, t8, t9;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoProductFMA( a2, b0, t6, t7 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  TwoSum( c2, t6, c2, t6 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t6, c3, t6 );
+  TwoSum( c3, t4, c3, t4 );
+  TwoSum( c3, t2, c3, t2 );
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c3, t3, c3, t3 );
+  TwoSum( c3, t5, c3, t5 );
+  TwoSum( c3, t7, c3, t7 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
+  FastTwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a1, b2, t3, t4 );
+  TwoProductFMA( a2, b1, t5, t6 );
+  TwoProductFMA( a3, b0, t7, t8 );
+  TwoSum( t3, t5, t3, t5 );
+  TwoSum( t7, t3, t1, t3 );
+  TwoSum( c3, t1, c3, t1 );
+  t9 = t0 + t1 + t3 + t4 + t5 + t6 + t8;
+  FastTwoSum( c3, t9, c3, t9 );
+  FastTwoSum( c2, c3, c2, c3 );
+  t0 = std::fma ( a2, b2, t9 );
+  t0 = std::fma ( a3, b1, t0 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// mul: 4-4-1
+template < typename T > __always_inline void
+mul_QW_QW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  T t0, t1;
+  c0 = a0 * b0;
+  t0 = a3 + a2 + a1;
+  t1 = b3 + b2 + b1;
+  c0 = std::fma ( t0, t1, c0 );
+}
+
+// mul: 4-4-2
+template < typename T > __always_inline void
+mul_QW_QW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3, t4, t5;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, t0, t1 );
+  TwoProductFMA( a1, b0, t2, t3 );
+  TwoSum( t0, t2, t0, t2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t3;
+  t0 = t0 + t1 + t2;
+  FastTwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t4 = a2 + a3;
+  t5 = b2 + b3;
+  t0 = std::fma ( a1, b1, t0 );
+  t0 = t0 * fp_const<T>::half();
+  t1 = std::fma ( a0, t5, t0 );
+  t2 = std::fma ( b0, t4, t0 );
+  t1 = t1 + t2;
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// mul: 4-4-3
+template < typename T > __always_inline void
+mul_QW_QW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4, t5, t6, t7, t8;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, t0 );
+  TwoProductFMA( a1, b0, t1, t2 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t3, t4 );
+  TwoProductFMA( a2, b0, t5, t6 );
+  TwoProductFMA( a1, b1, t7, t8 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  TwoSum( c2, t5, c2, t5 );
+  TwoSum( c2, t7, c2, t7 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8;
+  FastTwoSum( c2, t0, c2, t0 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 * fp_const<T>::half();
+  t1 = std::fma ( a0, b3, t0 );
+  t2 = std::fma ( a3, b0, t0 );
+  t1 = std::fma ( a1, b2, t1 );
+  t2 = std::fma ( a2, b1, t2 );
+  t0 = t1 + t2;
+  c2 = c2 + t0;
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// mul: 4-4-4
+template < typename T > __always_inline void
+mul_QW_QW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11;
+  TwoProductFMA( a0, b0, c0, c1 );
+  TwoProductFMA( a0, b1, c2, c3 );
+  TwoProductFMA( a1, b0, t0, t1 );
+  TwoSum( c1, c2, c1, c2 );
+  TwoSum( c1, t0, c1, t0 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a0, b2, t2, t3 );
+  TwoProductFMA( a1, b1, t4, t5 );
+  TwoProductFMA( a2, b0, t6, t7 );
+  TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  TwoSum( c2, t6, c2, t6 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoSum( c3, t6, c3, t6 );
+  TwoSum( c3, t4, c3, t4 );
+  TwoSum( c3, t2, c3, t2 );
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c3, t3, c3, t3 );
+  TwoSum( c3, t5, c3, t5 );
+  TwoSum( c3, t7, c3, t7 );
+  t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
+  FastTwoSum( c3, t0, c3, t0 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a0, b3, t1, t2 );
+  TwoProductFMA( a1, b2, t3, t4 );
+  TwoProductFMA( a2, b1, t5, t6 );
+  TwoProductFMA( a3, b0, t7, t8 );
+  TwoSum( t1, t7, t1, t7 );
+  TwoSum( t3, t5, t3, t5 );
+  TwoSum( t1, t3, t1, t3 );
+  TwoSum( c3, t1, c3, t1 );
+  t2 = t2 + t8;
+  t4 = t4 + t6;
+  t9 = t0 + t1 + t2 + t3 + t4 + t5 + t7;
+  FastTwoSum( c3, t9, c3, t9 );
+  FastTwoSum( c2, c3, c2, c3 );
+  t0 = t9 * fp_const<T>::half();
+  t10 = std::fma ( a1, b3, t0 );
+  t11 = std::fma ( a3, b1, t0 );
+  t0 = t10 + t11;
+  t0 = std::fma ( a2, b2, t0 );
+  c3 = c3 + t0;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 1-1-2
+template < typename T > __always_inline void
+div_SW_SW_DW ( T const a0, T const b0, T & c0, T & c1 )
+{
+  T r = a0;
+  c0 = r / b0;
+  r = std::fma( -b0, c0, r );
+  c1 = r / b0;
+}
+
+// div: 1-1-3
+template < typename T > __always_inline void
+div_SW_SW_TW ( T const a0, T const b0, T & c0, T & c1, T & c2 )
+{
+  T r = a0;
+  c0 = r / b0;
+  r = std::fma( -b0, c0, r );
+  c1 = r / b0;
+  r = std::fma( -b0, c1, r );
+  c2 = r / b0;
+}
+
+// div: 1-1-4
+template < typename T > __always_inline void
+div_SW_SW_QW ( T const a0, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  T r = a0;
+  c0 = r / b0;
+  r = std::fma( -b0, c0, r );
+  c1 = r / b0;
+  r = std::fma( -b0, c1, r );
+  c2 = r / b0;
+  r = std::fma( -b0, c2, r );
+  c3 = r / b0;
+}
+
+// div: 1-2-1
+template < typename T > __always_inline void
+div_SW_DW_SW ( T const a0, T const b0, T const b1, T & c0 )
+{
+  T t0, t1;
+  T r0;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_SW_DW_SW ( a0, t0, t1, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 1-2-2
+template < typename T > __always_inline void
+div_SW_DW_DW ( T const a0, T const b0, T const b1, T & c0, T & c1 )
+{
+  T t0, t1;
+  T r0;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_SW_DW_SW ( a0, t0, t1, r0 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_DW_SW_DW ( b0, b1, c1, t0, t1 );
+  sub_SW_DW_SW ( r0, t0, t1, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 1-2-3
+template < typename T > __always_inline void
+div_SW_DW_TW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  T r0;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_SW_DW_SW ( a0, t0, t1, r0 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_DW_SW_DW ( b0, b1, c1, t0, t1 );
+  sub_SW_DW_SW ( r0, t0, t1, r0 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_DW_SW_DW ( b0, b1, c2, t0, t1 );
+  sub_SW_DW_SW ( r0, t0, t1, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 1-2-4
+template < typename T > __always_inline void
+div_SW_DW_QW ( T const a0, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1;
+  T r0;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_SW_DW_SW ( a0, t0, t1, r0 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_DW_SW_DW ( b0, b1, c1, t0, t1 );
+  sub_SW_DW_SW ( r0, t0, t1, r0 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_DW_SW_DW ( b0, b1, c2, t0, t1 );
+  sub_SW_DW_SW ( r0, t0, t1, r0 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_DW_SW_DW ( b0, b1, c3, t0, t1 );
+  sub_SW_DW_SW ( r0, t0, t1, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 1-3-1
+template < typename T > __always_inline void
+div_SW_TW_SW ( T const a0, T const b0, T const b1, T const b2, T & c0 )
+{
+  T t0, t1, t2;
+  T r0;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_SW_TW_SW ( a0, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 1-3-2
+template < typename T > __always_inline void
+div_SW_TW_DW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  T r0;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_SW_TW_SW ( a0, t0, t1, t2, r0 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_SW_TW_SW ( r0, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 1-3-3
+template < typename T > __always_inline void
+div_SW_TW_TW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2;
+  T r0;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_SW_TW_SW ( a0, t0, t1, t2, r0 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_SW_TW_SW ( r0, t0, t1, t2, r0 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_TW_SW_TW ( b0, b1, b2, c2, t0, t1, t2 );
+  sub_SW_TW_SW ( r0, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 1-3-4
+template < typename T > __always_inline void
+div_SW_TW_QW ( T const a0, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2;
+  T r0;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_SW_TW_SW ( a0, t0, t1, t2, r0 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_SW_TW_SW ( r0, t0, t1, t2, r0 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_TW_SW_TW ( b0, b1, b2, c2, t0, t1, t2 );
+  sub_SW_TW_SW ( r0, t0, t1, t2, r0 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_TW_SW_TW ( b0, b1, b2, c3, t0, t1, t2 );
+  sub_SW_TW_SW ( r0, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 1-4-1
+template < typename T > __always_inline void
+div_SW_QW_SW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  T t0, t1, t2, t3;
+  T r0;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_SW_QW_SW ( a0, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 1-4-2
+template < typename T > __always_inline void
+div_SW_QW_DW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3;
+  T r0;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_SW_QW_SW ( a0, t0, t1, t2, t3, r0 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_SW_QW_SW ( r0, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 1-4-3
+template < typename T > __always_inline void
+div_SW_QW_TW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3;
+  T r0;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_SW_QW_SW ( a0, t0, t1, t2, t3, r0 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_SW_QW_SW ( r0, t0, t1, t2, t3, r0 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
+  sub_SW_QW_SW ( r0, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 1-4-4
+template < typename T > __always_inline void
+div_SW_QW_QW ( T const a0, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3;
+  T r0;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_SW_QW_SW ( a0, t0, t1, t2, t3, r0 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_SW_QW_SW ( r0, t0, t1, t2, t3, r0 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
+  sub_SW_QW_SW ( r0, t0, t1, t2, t3, r0 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
+  sub_SW_QW_SW ( r0, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 2-1-1
+template < typename T > __always_inline void
+div_DW_SW_SW ( T const a0, T const a1, T const b0, T & c0 )
+{
+  T t0;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_DW_SW_SW ( a0, a1, t0, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 2-1-2
+template < typename T > __always_inline void
+div_DW_SW_DW ( T const a0, T const a1, T const b0, T & c0, T & c1 )
+{
+  T t0;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_DW_SW_DW ( a0, a1, t0, r0, r1 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_SW_SW_SW ( b0, c1, t0 );
+  sub_DW_SW_SW ( r0, r1, t0, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 2-1-3
+template < typename T > __always_inline void
+div_DW_SW_TW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2 )
+{
+  T t0;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_DW_SW_DW ( a0, a1, t0, r0, r1 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_SW_SW_SW ( b0, c1, t0 );
+  sub_DW_SW_DW ( r0, r1, t0, r0, r1 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_SW_SW_SW ( b0, c2, t0 );
+  sub_DW_SW_SW ( r0, r1, t0, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 2-1-4
+template < typename T > __always_inline void
+div_DW_SW_QW ( T const a0, T const a1, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_DW_SW_DW ( a0, a1, t0, r0, r1 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_SW_SW_SW ( b0, c1, t0 );
+  sub_DW_SW_DW ( r0, r1, t0, r0, r1 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_SW_SW_SW ( b0, c2, t0 );
+  sub_DW_SW_DW ( r0, r1, t0, r0, r1 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_SW_SW_SW ( b0, c3, t0 );
+  sub_DW_SW_SW ( r0, r1, t0, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 2-2-1
+template < typename T > __always_inline void
+div_DW_DW_SW ( T const a0, T const a1, T const b0, T const b1, T & c0 )
+{
+  T t0, t1;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_DW_DW_SW ( a0, a1, t0, t1, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 2-2-2
+template < typename T > __always_inline void
+div_DW_DW_DW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1 )
+{
+  c0 = a0 / b0;
+  c1 = std::fma( -b0, c0, a0 ) + a1;
+  c1 = std::fma( -b1, c0, c1 ) / (b0 + b1);
+}
+
+// div: 2-2-3
+template < typename T > __always_inline void
+div_DW_DW_TW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_DW_DW_DW ( a0, a1, t0, t1, r0, r1 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_DW_SW_DW ( b0, b1, c1, t0, t1 );
+  sub_DW_DW_DW ( r0, r1, t0, t1, r0, r1 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_DW_SW_DW ( b0, b1, c2, t0, t1 );
+  sub_DW_DW_SW ( r0, r1, t0, t1, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 2-2-4
+template < typename T > __always_inline void
+div_DW_DW_QW ( T const a0, T const a1, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_DW_DW_DW ( a0, a1, t0, t1, r0, r1 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_DW_SW_DW ( b0, b1, c1, t0, t1 );
+  sub_DW_DW_DW ( r0, r1, t0, t1, r0, r1 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_DW_SW_DW ( b0, b1, c2, t0, t1 );
+  sub_DW_DW_DW ( r0, r1, t0, t1, r0, r1 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_DW_SW_DW ( b0, b1, c3, t0, t1 );
+  sub_DW_DW_SW ( r0, r1, t0, t1, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 2-3-1
+template < typename T > __always_inline void
+div_DW_TW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0 )
+{
+  T t0, t1, t2;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_DW_TW_SW ( a0, a1, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 2-3-2
+template < typename T > __always_inline void
+div_DW_TW_DW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_DW_TW_DW ( a0, a1, t0, t1, t2, r0, r1 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_DW_TW_SW ( r0, r1, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 2-3-3
+template < typename T > __always_inline void
+div_DW_TW_TW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_DW_TW_DW ( a0, a1, t0, t1, t2, r0, r1 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_DW_TW_DW ( r0, r1, t0, t1, t2, r0, r1 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_TW_SW_TW ( b0, b1, b2, c2, t0, t1, t2 );
+  sub_DW_TW_SW ( r0, r1, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 2-3-4
+template < typename T > __always_inline void
+div_DW_TW_QW ( T const a0, T const a1, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_DW_TW_DW ( a0, a1, t0, t1, t2, r0, r1 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_DW_TW_DW ( r0, r1, t0, t1, t2, r0, r1 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_TW_SW_TW ( b0, b1, b2, c2, t0, t1, t2 );
+  sub_DW_TW_DW ( r0, r1, t0, t1, t2, r0, r1 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_TW_SW_TW ( b0, b1, b2, c3, t0, t1, t2 );
+  sub_DW_TW_SW ( r0, r1, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 2-4-1
+template < typename T > __always_inline void
+div_DW_QW_SW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_DW_QW_SW ( a0, a1, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 2-4-2
+template < typename T > __always_inline void
+div_DW_QW_DW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_DW_QW_DW ( a0, a1, t0, t1, t2, t3, r0, r1 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_DW_QW_SW ( r0, r1, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 2-4-3
+template < typename T > __always_inline void
+div_DW_QW_TW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_DW_QW_DW ( a0, a1, t0, t1, t2, t3, r0, r1 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_DW_QW_DW ( r0, r1, t0, t1, t2, t3, r0, r1 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
+  sub_DW_QW_SW ( r0, r1, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 2-4-4
+template < typename T > __always_inline void
+div_DW_QW_QW ( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_DW_QW_DW ( a0, a1, t0, t1, t2, t3, r0, r1 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_DW_QW_DW ( r0, r1, t0, t1, t2, t3, r0, r1 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
+  sub_DW_QW_DW ( r0, r1, t0, t1, t2, t3, r0, r1 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
+  sub_DW_QW_SW ( r0, r1, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 3-1-1
+template < typename T > __always_inline void
+div_TW_SW_SW ( T const a0, T const a1, T const a2, T const b0, T & c0 )
+{
+  T t0;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_TW_SW_SW ( a0, a1, a2, t0, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 3-1-2
+template < typename T > __always_inline void
+div_TW_SW_DW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1 )
+{
+  T t0;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_TW_SW_TW ( a0, a1, a2, t0, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_SW_SW_SW ( b0, c1, t0 );
+  sub_TW_SW_SW ( r0, r1, r2, t0, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 3-1-3
+template < typename T > __always_inline void
+div_TW_SW_TW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2 )
+{
+  T t0;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_TW_SW_TW ( a0, a1, a2, t0, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_SW_SW_SW ( b0, c1, t0 );
+  sub_TW_SW_TW ( r0, r1, r2, t0, r0, r1, r2 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_SW_SW_SW ( b0, c2, t0 );
+  sub_TW_SW_SW ( r0, r1, r2, t0, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 3-1-4
+template < typename T > __always_inline void
+div_TW_SW_QW ( T const a0, T const a1, T const a2, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_TW_SW_TW ( a0, a1, a2, t0, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_SW_SW_SW ( b0, c1, t0 );
+  sub_TW_SW_TW ( r0, r1, r2, t0, r0, r1, r2 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_SW_SW_SW ( b0, c2, t0 );
+  sub_TW_SW_TW ( r0, r1, r2, t0, r0, r1, r2 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_SW_SW_SW ( b0, c3, t0 );
+  sub_TW_SW_SW ( r0, r1, r2, t0, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 3-2-1
+template < typename T > __always_inline void
+div_TW_DW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0 )
+{
+  T t0, t1;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_TW_DW_SW ( a0, a1, a2, t0, t1, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 3-2-2
+template < typename T > __always_inline void
+div_TW_DW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1 )
+{
+  T t0, t1;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_TW_DW_TW ( a0, a1, a2, t0, t1, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_DW_SW_DW ( b0, b1, c1, t0, t1 );
+  sub_TW_DW_SW ( r0, r1, r2, t0, t1, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 3-2-3
+template < typename T > __always_inline void
+div_TW_DW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_TW_DW_TW ( a0, a1, a2, t0, t1, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_DW_SW_DW ( b0, b1, c1, t0, t1 );
+  sub_TW_DW_TW ( r0, r1, r2, t0, t1, r0, r1, r2 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_DW_SW_DW ( b0, b1, c2, t0, t1 );
+  sub_TW_DW_SW ( r0, r1, r2, t0, t1, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 3-2-4
+template < typename T > __always_inline void
+div_TW_DW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_TW_DW_TW ( a0, a1, a2, t0, t1, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_DW_SW_DW ( b0, b1, c1, t0, t1 );
+  sub_TW_DW_TW ( r0, r1, r2, t0, t1, r0, r1, r2 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_DW_SW_DW ( b0, b1, c2, t0, t1 );
+  sub_TW_DW_TW ( r0, r1, r2, t0, t1, r0, r1, r2 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_DW_SW_DW ( b0, b1, c3, t0, t1 );
+  sub_TW_DW_SW ( r0, r1, r2, t0, t1, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 3-3-1
+template < typename T > __always_inline void
+div_TW_TW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0 )
+{
+  T t0, t1, t2;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_TW_TW_SW ( a0, a1, a2, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 3-3-2
+template < typename T > __always_inline void
+div_TW_TW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_TW_TW_TW ( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_TW_TW_SW ( r0, r1, r2, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 3-3-3
+template < typename T > __always_inline void
+div_TW_TW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_TW_TW_TW ( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_TW_TW_TW ( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_TW_SW_TW ( b0, b1, b2, c2, t0, t1, t2 );
+  sub_TW_TW_SW ( r0, r1, r2, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 3-3-4
+template < typename T > __always_inline void
+div_TW_TW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_TW_TW_TW ( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_TW_TW_TW ( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_TW_SW_TW ( b0, b1, b2, c2, t0, t1, t2 );
+  sub_TW_TW_TW ( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_TW_SW_TW ( b0, b1, b2, c3, t0, t1, t2 );
+  sub_TW_TW_SW ( r0, r1, r2, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 3-4-1
+template < typename T > __always_inline void
+div_TW_QW_SW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_TW_QW_SW ( a0, a1, a2, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 3-4-2
+template < typename T > __always_inline void
+div_TW_QW_DW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_TW_QW_TW ( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_TW_QW_SW ( r0, r1, r2, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 3-4-3
+template < typename T > __always_inline void
+div_TW_QW_TW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_TW_QW_TW ( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_TW_QW_TW ( r0, r1, r2, t0, t1, t2, t3, r0, r1, r2 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
+  sub_TW_QW_SW ( r0, r1, r2, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 3-4-4
+template < typename T > __always_inline void
+div_TW_QW_QW ( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1, r2;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_TW_QW_TW ( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_TW_QW_TW ( r0, r1, r2, t0, t1, t2, t3, r0, r1, r2 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
+  sub_TW_QW_TW ( r0, r1, r2, t0, t1, t2, t3, r0, r1, r2 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
+  sub_TW_QW_SW ( r0, r1, r2, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 4-1-1
+template < typename T > __always_inline void
+div_QW_SW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0 )
+{
+  T t0;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_QW_SW_SW ( a0, a1, a2, a3, t0, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 4-1-2
+template < typename T > __always_inline void
+div_QW_SW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1 )
+{
+  T t0;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_QW_SW_QW ( a0, a1, a2, a3, t0, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_SW_SW_SW ( b0, c1, t0 );
+  sub_QW_SW_SW ( r0, r1, r2, r3, t0, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 4-1-3
+template < typename T > __always_inline void
+div_QW_SW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2 )
+{
+  T t0;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_QW_SW_QW ( a0, a1, a2, a3, t0, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_SW_SW_SW ( b0, c1, t0 );
+  sub_QW_SW_QW ( r0, r1, r2, r3, t0, r0, r1, r2, r3 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_SW_SW_SW ( b0, c2, t0 );
+  sub_QW_SW_SW ( r0, r1, r2, r3, t0, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 4-1-4
+template < typename T > __always_inline void
+div_QW_SW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_SW_SW_SW ( b0, c0, t0 );
+  sub_QW_SW_QW ( a0, a1, a2, a3, t0, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_SW_SW_SW ( b0, c1, t0 );
+  sub_QW_SW_QW ( r0, r1, r2, r3, t0, r0, r1, r2, r3 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_SW_SW_SW ( b0, c2, t0 );
+  sub_QW_SW_QW ( r0, r1, r2, r3, t0, r0, r1, r2, r3 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_SW_SW_SW ( b0, c3, t0 );
+  sub_QW_SW_SW ( r0, r1, r2, r3, t0, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 4-2-1
+template < typename T > __always_inline void
+div_QW_DW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0 )
+{
+  T t0, t1;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_QW_DW_SW ( a0, a1, a2, a3, t0, t1, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 4-2-2
+template < typename T > __always_inline void
+div_QW_DW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1 )
+{
+  T t0, t1;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_QW_DW_QW ( a0, a1, a2, a3, t0, t1, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_DW_SW_DW ( b0, b1, c1, t0, t1 );
+  sub_QW_DW_SW ( r0, r1, r2, r3, t0, t1, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 4-2-3
+template < typename T > __always_inline void
+div_QW_DW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2 )
+{
+  T t0, t1;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_QW_DW_QW ( a0, a1, a2, a3, t0, t1, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_DW_SW_DW ( b0, b1, c1, t0, t1 );
+  sub_QW_DW_QW ( r0, r1, r2, r3, t0, t1, r0, r1, r2, r3 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_DW_SW_DW ( b0, b1, c2, t0, t1 );
+  sub_QW_DW_SW ( r0, r1, r2, r3, t0, t1, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 4-2-4
+template < typename T > __always_inline void
+div_QW_DW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_DW_SW_DW ( b0, b1, c0, t0, t1 );
+  sub_QW_DW_QW ( a0, a1, a2, a3, t0, t1, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_DW_SW_DW ( b0, b1, c1, t0, t1 );
+  sub_QW_DW_QW ( r0, r1, r2, r3, t0, t1, r0, r1, r2, r3 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_DW_SW_DW ( b0, b1, c2, t0, t1 );
+  sub_QW_DW_QW ( r0, r1, r2, r3, t0, t1, r0, r1, r2, r3 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_DW_SW_DW ( b0, b1, c3, t0, t1 );
+  sub_QW_DW_SW ( r0, r1, r2, r3, t0, t1, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 4-3-1
+template < typename T > __always_inline void
+div_QW_TW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0 )
+{
+  T t0, t1, t2;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_QW_TW_SW ( a0, a1, a2, a3, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 4-3-2
+template < typename T > __always_inline void
+div_QW_TW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_QW_TW_QW ( a0, a1, a2, a3, t0, t1, t2, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_QW_TW_SW ( r0, r1, r2, r3, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 4-3-3
+template < typename T > __always_inline void
+div_QW_TW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_QW_TW_QW ( a0, a1, a2, a3, t0, t1, t2, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_QW_TW_QW ( r0, r1, r2, r3, t0, t1, t2, r0, r1, r2, r3 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_TW_SW_TW ( b0, b1, b2, c2, t0, t1, t2 );
+  sub_QW_TW_SW ( r0, r1, r2, r3, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 4-3-4
+template < typename T > __always_inline void
+div_QW_TW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_TW_SW_TW ( b0, b1, b2, c0, t0, t1, t2 );
+  sub_QW_TW_QW ( a0, a1, a2, a3, t0, t1, t2, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_TW_SW_TW ( b0, b1, b2, c1, t0, t1, t2 );
+  sub_QW_TW_QW ( r0, r1, r2, r3, t0, t1, t2, r0, r1, r2, r3 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_TW_SW_TW ( b0, b1, b2, c2, t0, t1, t2 );
+  sub_QW_TW_QW ( r0, r1, r2, r3, t0, t1, t2, r0, r1, r2, r3 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_TW_SW_TW ( b0, b1, b2, c3, t0, t1, t2 );
+  sub_QW_TW_SW ( r0, r1, r2, r3, t0, t1, t2, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// div: 4-4-1
+template < typename T > __always_inline void
+div_QW_QW_SW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_QW_QW_SW ( a0, a1, a2, a3, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c0 = c0 + r0;
+}
+
+// div: 4-4-2
+template < typename T > __always_inline void
+div_QW_QW_DW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_QW_QW_QW ( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_QW_QW_SW ( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c1 = c1 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// div: 4-4-3
+template < typename T > __always_inline void
+div_QW_QW_TW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_QW_QW_QW ( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_QW_QW_QW ( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
+  sub_QW_QW_SW ( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c2 = c2 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// div: 4-4-4
+template < typename T > __always_inline void
+div_QW_QW_QW ( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3;
+  T r0, r1, r2, r3;
+  c0 = a0 / b0;
+  mul_QW_SW_QW ( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
+  sub_QW_QW_QW ( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
+  c1 = r0 / b0;
+  FastTwoSum( c0, c1, c0, c1 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
+  sub_QW_QW_QW ( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+  c2 = r0 / b0;
+  FastTwoSum( c1, c2, c1, c2 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
+  sub_QW_QW_QW ( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+  c3 = r0 / b0;
+  FastTwoSum( c2, c3, c2, c3 );
+  mul_QW_SW_QW ( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
+  sub_QW_QW_SW ( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
+  r0 = r0 / b0;
+  c3 = c3 + r0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// sqr: 1-2
+template < typename T > __always_inline void
+sqr_SW_DW ( T const a0, T & c0, T & c1 )
+{
+  TwoProductFMA( a0, a0, c0, c1 );
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// sqr: 1-3
+template < typename T > __always_inline void
+sqr_SW_TW ( T const a0, T & c0, T & c1, T & c2 )
+{
+  TwoProductFMA( a0, a0, c0, c1 );
+  c2 = fp_const<T>::zero();
+}
+
+// sqr: 1-4
+template < typename T > __always_inline void
+sqr_SW_QW ( T const a0, T & c0, T & c1, T & c2, T & c3 )
+{
+  TwoProductFMA( a0, a0, c0, c1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  c2 = fp_const<T>::zero();
+  c3 = fp_const<T>::zero();
+}
+
+// sqr: 2-1
+template < typename T > __always_inline void
+sqr_DW_SW ( T const a0, T const a1, T & c0 )
+{
+  T t0;
+  c0 = a0 * a0;
+  t0 = a0 + a0;
+  c0 = std::fma ( t0, a1, c0 );
+}
+
+// sqr: 2-2
+template < typename T > __always_inline void
+sqr_DW_DW ( T const a0, T const a1, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, t2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t2;
+  t1 = std::fma ( a1, a1, t1 );
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// sqr: 2-3
+template < typename T > __always_inline void
+sqr_DW_TW ( T const a0, T const a1, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( a1, a1, t2, t3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t1 = t1 + t2 + t3;
+  c2 = c2 + t1;
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// sqr: 2-4
+template < typename T > __always_inline void
+sqr_DW_QW ( T const a0, T const a1, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, t1, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoProductFMA( a1, a1, t2, t3 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( t2, t3, c3, t3 );
+  FastTwoSum( c2, c3, c2, c3 );
+  t1 = t1 + t3;
+  c3 = c3 + t1;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// sqr: 3-1
+template < typename T > __always_inline void
+sqr_TW_SW ( T const a0, T const a1, T const a2, T & c0 )
+{
+  T t0, t1;
+  c0 = a0 * a0;
+  t0 = a0 + a0;
+  t1 = a2 + a1;
+  c0 = std::fma ( t0, t1, c0 );
+}
+
+// sqr: 3-2
+template < typename T > __always_inline void
+sqr_TW_DW ( T const a0, T const a1, T const a2, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, t2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t2;
+  t1 = std::fma ( a1, a1, t1 );
+  t1 = std::fma ( a2, t0, t1 );
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// sqr: 3-3
+template < typename T > __always_inline void
+sqr_TW_TW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4, t5, t6;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( t0, a2, t2, t3 );
+  TwoProductFMA( a1, a1, t4, t5 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t1 = t1 + t2 + t3 + t4 + t5;
+  t6 = a2 + a2;
+  t1 = std::fma ( t6, a1, t1 );
+  c2 = c2 + t1;
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// sqr: 3-4
+template < typename T > __always_inline void
+sqr_TW_QW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4, t5, t6, t7;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, t1, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoProductFMA( t0, a2, t2, c3 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a1, a1, t3, t4 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  FastTwoSum( c2, c3, c2, c3 );
+  t5 = a1 + a1;
+  TwoProductFMA( t5, a2, t6, t7 );
+  TwoSum( c3, t2, c3, t2 );
+  TwoSum( c3, t3, c3, t3 );
+  TwoSum( c3, t4, c3, t4 );
+  TwoSum( c3, t6, c3, t6 );
+  FastTwoSum( c2, c3, c2, c3 );
+  t1 = t1 + t3 + t4 + t2 + t6 + t7;
+  t1 = std::fma ( a2, a2, t1 );
+  c3 = c3 + t1;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
+}
+
+// sqr: 4-1
+template < typename T > __always_inline void
+sqr_QW_SW ( T const a0, T const a1, T const a2, T const a3, T & c0 )
+{
+  T t0, t1;
+  c0 = a0 * a0;
+  t0 = a0 + a0;
+  t1 = a3 + a2 + a1;
+  c0 = std::fma ( t0, t1, c0 );
+}
+
+// sqr: 4-2
+template < typename T > __always_inline void
+sqr_QW_DW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1 )
+{
+  T t0, t1, t2;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, t2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  t1 = t1 + t2;
+  t1 = std::fma ( a1, a1, t1 );
+  t1 = std::fma ( a2, t0, t1 );
+  c1 = c1 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+}
+
+// sqr: 4-3
+template < typename T > __always_inline void
+sqr_QW_TW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T & c2 )
+{
+  T t0, t1, t2, t3, t4, t5, t6;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoProductFMA( t0, a2, t2, t3 );
+  TwoProductFMA( a1, a1, t4, t5 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t4, c2, t4 );
+  FastTwoSum( c1, c2, c1, c2 );
+  t1 = t1 + t2 + t3 + t4 + t5;
+  t1 = std::fma ( t0, a3, t1 );
+  t6 = a2 + a2;
+  t1 = std::fma ( t6, a1, t1 );
+  c2 = c2 + t1;
+  FastTwoSum( c1, c2, c1, c2 );
+}
+
+// sqr: 4-4
+template < typename T > __always_inline void
+sqr_QW_QW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T & c2, T & c3 )
+{
+  T t0, t1, t2, t3, t4, t5, t6, t7, t8, t9;
+  TwoProductFMA( a0, a0, c0, c1 );
+  t0 = a0 + a0;
+  TwoProductFMA( t0, a1, t1, c2 );
+  TwoSum( c1, t1, c1, t1 );
+  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c2, t1, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  TwoProductFMA( t0, a2, t2, c3 );
+  FastTwoSum( c2, c3, c2, c3 );
+  TwoProductFMA( a1, a1, t3, t4 );
+  TwoSum( c2, t2, c2, t2 );
+  TwoSum( c2, t3, c2, t3 );
+  FastTwoSum( c2, c3, c2, c3 );
+  t5 = a1 + a1;
+  TwoProductFMA( t5, a2, t6, t7 );
+  TwoProductFMA( a3, t0, t8, t9 );
+  TwoSum( t6, t8, t6, t8 );
+  TwoSum( c3, t2, c3, t2 );
+  TwoSum( c3, t3, c3, t3 );
+  TwoSum( c3, t4, c3, t4 );
+  TwoSum( c3, t6, c3, t6 );
+  FastTwoSum( c2, c3, c2, c3 );
+  t1 = t1 + t3 + t4 + t2 + t6 + t7 + t8 + t9;
+  t1 = std::fma ( a3, t5, t1 );
+  t1 = std::fma ( a2, a2, t1 );
+  c3 = c3 + t1;
+  FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c2, c3, c2, c3 );
 }
 
 
-// sqrt: 2-1
-template < typename T > __always_inline void sqrt_PA_SW(T const ah, T const al, T &c)
-{
-    c = std::sqrt(ah + al);
-}
 
-// sqrt: 2-2
-template < typename T > __always_inline void sqrt_PA_PA(T const ah, T const al, T &ch, T &cl)
-{
-    ch = std::sqrt(ah);
-    cl = (std::fma(-ch, ch, ah) + al) / (ch + ch);
-}
-
-// sqrt: 2-3
-template < typename T > __always_inline void sqrt_PA_QTW(T const a1, T const a2, T &c1, T &c2, T &c3)
-{
-    T t1, t2,t3;
-    sqrt_PA_PA(a1, a2, c1, c2);
-    sqr_PA_QTW(c1, c2, t1, t2, t3);
-    add_QTW_PA_QTW(t1, t2, t3, -a1, -a2, t1, t2, t3);
-    c3 = - (t1 + t2 + t3) / (2 * (c1 + c2));
-}
-
-// sqrt: 2-4
-template < typename T > __always_inline void sqrt_PA_QQW(T const a1, T const a2, T &c1, T &c2, T &c3, T &c4)
-{
-    T t1, t2, t3, t4;
-    sqrt_PA_QTW(a1, a2, c1, c2, c3);
-    sqr_QTW_QQW(c1, c2, c3, t1, t2, t3, t4);
-    add_QQW_PA_QQW(t1, t2, t3, t4, -a1, -a2, t1, t2, t3, t4);
-    c4 = - (t1 + t2 + t3 + t4) / (2 * (c1 + c2 + c3));
-}
-
-// sqrt: 3-1
-template < typename T > __always_inline void sqrt_QTW_SW(T const a1, T const a2, T const a3, T &c)
-{
-    c = std::sqrt(a1 + a2 + a3);
-}
-
-// sqrt: 3-2
-template < typename T > __always_inline void sqrt_QTW_PA(T const a1, T const a2, T const a3, T &c1, T &c2)
-{
-    sqrt_PA_PA(a1, a2 + a3, c1, c2);
-}
-
-// sqrt: 3-3
-template < typename T > __always_inline void sqrt_QTW_QTW(T const a1, T const a2, T const a3, T &c1, T &c2, T &c3)
-{
-    T t1, t2,t3;
-    sqrt_PA_PA(a1, a2, c1, c2);
-    sqr_PA_QTW(c1, c2, t1, t2, t3);
-    add_QTW_QTW_QTW(t1, t2, t3, -a1, -a2, -a3, t1, t2, t3);
-    c3 = - (t1 + t2 + t3) / (2 * (c1 + c2));
-}
-
-// sqrt: 3-4
-template < typename T > __always_inline void sqrt_QTW_QQW(T const a1, T const a2, T const a3, T &c1, T &c2, T &c3, T &c4)
-{
-    T t1, t2, t3, t4;
-    sqrt_QTW_QTW(a1, a2, a3, c1, c2, c3);
-    sqr_QTW_QQW(c1, c2, c3, t1, t2, t3, t4);
-    add_QQW_QTW_QQW(t1, t2, t3, t4, -a1, -a2, -a3, t1, t2, t3, t4);
-    c4 = - (t1 + t2 + t3 + t4) / (2 * (c1 + c2 + c3));
-}
-
-// sqrt: 4-1
-template < typename T > __always_inline void sqrt_QQW_SW(T const a1, T const a2, T const a3, T const a4, T &c)
-{
-    c = std::sqrt(a1 + a2 + a3 + a4);
-}
-
-// sqrt: 4-2
-template < typename T > __always_inline void sqrt_QQW_PA(T const a1, T const a2, T const a3, T const a4, T &c1, T &c2)
-{
-    sqrt_QTW_PA(a1, a2, a3 + a4, c1, c2);
-}
-
-// sqrt: 4-3
-template < typename T > __always_inline void sqrt_QQW_QTW(T const a1, T const a2, T const a3, T const a4, T &c1, T &c2, T &c3)
-{
-    sqrt_QTW_QTW(a1, a2, a3 + a4, c1, c2, c3);
-}
-
-// sqrt: 4-4
-template < typename T > __always_inline void sqrt_QQW_QQW(T const a1, T const a2, T const a3, T const a4, T &c1, T &c2, T &c3, T &c4)
-{
-    T t1, t2, t3, t4;
-    sqrt_QTW_QTW(a1, a2, a3, c1, c2, c3);
-    sqr_QTW_QQW(c1, c2, c3, t1, t2, t3, t4);
-    add_QQW_QQW_QQW(t1, t2, t3, t4, -a1, -a2, -a3, -a4, t1, t2, t3, t4);
-    c4 = - (t1 + t2 + t3 + t4) / (2 * (c1 + c2 + c3));
-}
-
-
-
-// -------------------------------
-// Double word Part
-// -------------------------------
-// Double word arithmetic: add
-template < typename T > __always_inline void add_SW_SW_DW(T const a, T const b, T &ch, T &cl)
-{
-    TwoSum(a, b, ch, cl);
-}
-
-template < typename T > __always_inline void add_SW_DW_SW(T const a, T const bh, T const bl, T &c)
-{
-//    *c = a + bh;
-    T sh, se, eh;//
-    TwoSum(a, bh, sh, eh);//
-    se = eh + bl;//
-    c = sh + se;//
-}
-
-template < typename T > __always_inline void add_SW_DW_DW(T const a, T const bh, T const bl, T &ch, T &cl)
-{
-    T sh, sl, eh, el, se, te;
-    TwoSum(a, bh, sh, eh);
-    se = eh + bl;
-//    FastTwoSum(sh, se, &sh, &se);
-    FastTwoSum(sh, se, ch, cl);
-}
-
-template < typename T > __always_inline void add_DW_SW_SW(T const ah, T const al, T const b, T &c)
-{
-    T sh, eh, el, se, te;
-    TwoSum(ah, b, sh, eh);
-    se = eh + al;
-    FastTwoSum(sh, se, sh, se);
-    c = sh + se;
-}
-
-template < typename T > __always_inline void add_DW_SW_DW(T const ah, T const al, T const bh, T &ch, T &cl)
-{
-    T sh, eh, el, se, te;
-    TwoSum(ah, bh, sh, eh);
-    se = eh + al;
-//    FastTwoSum(sh, se, &sh, &se);
-    FastTwoSum(sh, se, ch, cl);
-}
-
-template < typename T > __always_inline void add_DW_DW_SW(T const ah, T const al, T const bh, T const bl, T &c)
-{
-    T sh, sl, eh, el, se, te;
-    TwoSum(ah, bh, sh, eh);
-    TwoSum(al, bl, sl, el);
-    se = eh + sl;
-    FastTwoSum(sh, se, sh, se);
-    te = se + el;
-    c = sh + te;
-}
-
-template < typename T > __always_inline void add_DW_DW_DW(T const ah, T const al, T const bh, T const bl, T &ch, T &cl)
-{
-    T sh, sl, eh, el, se, te;
-    TwoSum(ah, bh, sh, eh);
-    TwoSum(al, bl, sl, el);
-    se = eh + sl;
-    FastTwoSum(sh, se, sh, se);
-    te = se + el;
-    FastTwoSum(sh, te, ch, cl);
-}
-
-
-// Double word arithmetic: mul
-template < typename T > __always_inline void mul_SW_SW_DW(T const a, T const b, T &ch, T &cl)
-{
-    TwoProductFMA(a, b, ch, cl);
-}
-
-template < typename T > __always_inline void mul_SW_DW_SW(T const a, T const bh, T const bl, T &c)
-{
-    T p1, p2;
-    TwoProductFMA(a, bh, p1, p2);
-    c = p1 + std::fma(a, bl, p2);
-}
-
-template < typename T > __always_inline void mul_SW_DW_DW(T const ah, T const bh, T const bl, T &ch, T &cl)
-{
-    T p1, p2;
-    TwoProductFMA(ah, bh, p1, p2);
-    p2 = std::fma(ah, bl, p2);
-    FastTwoSum(p1, p2, ch, cl);
-}
-
-template < typename T > __always_inline void mul_DW_SW_SW(T const ah, T const al, T const b, T &c)
-{
-    T p1, p2;
-    TwoProductFMA(ah, b, p1, p2);
-    p2 = std::fma(al, b, p2);
-    c = p1 + p2;
-}
-
-template < typename T > __always_inline void mul_DW_SW_DW(T const ah, T const al, T const b, T &ch, T &cl)
-{
-    T p1, p2;
-    TwoProductFMA(ah, b, p1, p2);
-    p2 = std::fma(al, b, p2);
-    FastTwoSum(p1, p2, ch, cl);
-}
-
-template < typename T > __always_inline void mul_DW_DW_SW(T const ah, T const al, T const bh, T const bl, T &c)
-{
-    T p1, p2;
-    TwoProductFMA(ah, bh, p1, p2);
-    p2 = std::fma(ah, bl, p2);
-    p2 = std::fma(al, bh, p2);
-    c = p1 + p2;
-}
-
-template < typename T > __always_inline void mul_DW_DW_DW(T const ah, T const al, T const bh, T const bl, T &ch, T &cl)
-{
-    T p1, p2;
-    TwoProductFMA(ah, bh, p1, p2);
-    p2 = std::fma(ah, bl, p2);
-    p2 = std::fma(al, bh, p2);
-    FastTwoSum(p1, p2, ch, cl);
-}
-
-// Double word arithmetic: div
-
-template < typename T > __always_inline void div_SW_SW_DW(T const a, T const b, T &ch, T &cl)
-{
-    T dh, dl, s1, s2, t;
-    ch = a / b;
-    mul_SW_SW_DW(ch, b, dh, dl);
-    TwoSum(a, -dh, s1, s2);
-    s2 = s2 - dl;
-    t = (s1 + s2) / b;
-    FastTwoSum(ch, t, ch, cl);
-}
-
-////////////////?????/////////////////
-template < typename T > __always_inline void div_SW_DW_SW(T const a, T const bh, T const bl, T &c)
-{
-    T dh, dl, s1, s2;
-    c = a / bh;
-    mul_SW_DW_DW(c, bh, bl, dh, dl);
-    TwoSum(a, -dh, s1, s2);
-    s2 = s2 - dl;
-    c = c + (s1 + s2) / bh;
-}
-
-template < typename T > __always_inline void div_SW_DW_DW(T const a, T const bh, T const bl, T &ch, T &cl)
-{
-    T dh, dl, s1, s2, t;
-    ch = a / bh;
-    mul_SW_DW_DW(ch, bh, bl, dh, dl);
-    TwoSum(a, -dh, s1, s2);
-    s2 = s2 - dl;
-    t = (s1 + s2) / bh;
-    FastTwoSum(ch, t, ch, cl);
-}
-
-////???????????????/////////
-template < typename T > __always_inline void div_DW_SW_SW(T const ah, T const al, T const b, T &c)
-{
-    T dh, dl, s1, s2;
-    c = ah / b;
-    mul_SW_SW_DW(c, b, dh, dl);
-    TwoSum(ah, -dh, s1, s2);
-    s2 = s2 - dl + al;
-    c = c + (s1 + s2) / b;
-}
-
-template < typename T > __always_inline void div_DW_SW_DW(T const ah, T const al, T const b, T &ch, T &cl)
-{
-    T dh, dl, s1, s2, t;
-    ch = ah / b;
-    mul_SW_SW_DW(ch, b, dh, dl);
-    TwoSum(ah, -dh, s1, s2);
-    s2 = s2 - dl + al;
-    t = (s1 + s2) / b;
-    FastTwoSum(ch, t, ch, cl);
-}
-
-///?????////
-template < typename T > __always_inline void div_DW_DW_SW(T const ah, T const al, T const bh, T const bl, T &c)
-{
-    T dh, dl, s1, s2;
-    c = ah / bh;
-    mul_SW_DW_DW(c, bh, bl, dh, dl);
-    TwoSum(ah, -dh, s1, s2);
-    s2 = s2 - dl + al;
-    c = c + (s1 + s2) / bh;
-}
-
-template < typename T > __always_inline void div_DW_DW_DW(T const ah, T const al, T const bh, T const bl, T &ch, T &cl)
-{
-    T dh, dl, s1, s2, t;
-    ch = ah / bh;
-    mul_SW_DW_DW(ch, bh, bl, dh, dl);
-    TwoSum(ah, -dh, s1, s2);
-    s2 = s2 - dl + al;
-    t = (s1 + s2) / bh;
-    FastTwoSum(ch, t, ch, cl);
-}
-
-// Double word arithmetic: sqrt
-template < typename T > __always_inline void sqrt_SW_DW(T const a, T &ch, T &cl)
-{
-    T x, ax, r1, r2, s1;
-    x = fp_const<T>::one() / std::sqrt(a);
-    ax = a * x;
-    TwoProductFMA(ax, ax, r1, r2);
-    add_SW_DW_SW(a, -r1, -r2, s1);
-    TwoSum(ax, s1 * (x * fp_const<T>::half()), ch, cl);
-}
-
-template < typename T > __always_inline void sqrt_DW_SW(T const ah, T const al, T &c)
-{
-    T x, ax, r1, r2, s1;
-    x = fp_const<T>::one() / std::sqrt(ah);
-    ax = ah * x;
-    TwoProductFMA(ax, ax, r1, r2);
-    add_DW_DW_SW(ah, al, -r1, -r2, s1);
-    c = ax + s1 * (x * fp_const<T>::half());
-}
-
-
-template < typename T > __always_inline void sqrt_DW_DW(T const ah, T const al, T &ch, T &cl)
-{
-    T x, ax, r1, r2, s1;
-    x = fp_const<T>::one() / std::sqrt(ah);
-    ax = ah * x;
-    TwoProductFMA(ax, ax, r1, r2);
-    add_DW_DW_SW(ah, al, -r1, -r2, s1);
-    TwoSum(ax, s1 * (x * fp_const<T>::half()), ch, cl);
-}
+#include "sqrt.hpp"
 
 }
 
 #endif
+

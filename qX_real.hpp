@@ -546,178 +546,109 @@ namespace qX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_add ( tX_real::tx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-
-      T f[6];
-      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1 e
-      twoSum( a.x[1], b.x[1], f[2], f[3] ); // e e^2
-      twoSum( a.x[2], b.x[2], f[4], f[5] ); // e^2 e^3
-      f[5] = f[5] + b.x[3]; // e^3
-
-      twoSum( f[1], f[2], f[1], f[2] ); // e e^2
-      twoSum( f[2], f[3], f[2], f[3] ); // e^2 e^3
-      twoSum( f[2], f[4], f[2], f[4] ); // e^2 e^3
-      f[3] = f[3] + f[4] + f[5];
-
-      auto c = TX{ f };
-      Normalize( c );
-      return c;
+      QxW::add_TW_QW_QW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::add_QTW_QQW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_add ( dX_real::dx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-
-      T f[5];
-      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1 e
-      twoSum( a.x[1], b.x[1], f[2], f[3] ); // e e^2
-      twoSum( f[3], b.x[2], f[3], f[4] ); // e^2 e^3
-
-      twoSum( f[1], f[2], f[1], f[2] ); // e e^2
-      twoSum( f[2], f[3], f[2], f[3] ); // e^2 e^3
-      f[3] = f[3] + f[4];
-
-      auto c = TX{ f };
-      Normalize( c );
-      return c;
+      QxW::add_DW_QW_QW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::add_PA_QQW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Ab >
   INLINE auto const operator_add ( T const& a, qX_real::qx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,Ab>;
+    TX c;
     if ( Ab == Algorithm::Accurate ) {
-
-      T f[4];
-      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1 e
-      twoSum( f[1], b.x[1], f[1], f[2] ); // e e^2
-      twoSum( f[2], b.x[2], f[2], f[3] ); // e^2 e^3
-
-      auto c = TX{ f };
-      Normalize( c );
-      return c;
+      QxW::add_SW_QW_QW( a.x[0], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::add_SW_QQW_QQW( a.x[0], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_add ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      T f[6];
-      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1  e
-      twoSum( a.x[1], b.x[1], f[2], f[3] ); // e  e2
-      twoSum( a.x[2], b.x[2], f[4], f[5] ); // e2 e3
-
-      twoSum( f[1], f[2] ); // e  e2
-      twoSum( f[2], f[3] ); // e2 e3
-      twoSum( f[2], f[4] ); // e2 e3
-      f[3] = f[3] + f[4] + f[5];
-
-      auto c = TX{ f };
-      Normalize( c );
-      return c;
+      QxW::add_TW_TW_QW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::add_QTW_QTW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_add ( dX_real::dx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      T f[5];
-      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1  e
-      twoSum( a.x[1], b.x[1], f[2], f[3] ); // e  e2
-      f[4] = b.x[2];
-
-      twoSum( f[1], f[2] ); // e  e2
-      twoSum( f[2], f[3] ); // e2 e3
-      twoSum( f[2], f[4] ); // e2 e3
-      f[3] = f[3] + f[4];
-
-      auto c = TX{ f };
-      Normalize( c );
-      return c;
+      QxW::add_DW_TW_QW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::add_PA_QTW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Ab >
   INLINE auto const operator_add ( T const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,Ab>;
+    TX c;
     if ( Ab == Algorithm::Accurate ) {
-      T f[4];
-      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1  e
-      f[2] = b.x[1]; // e
-      f[3] = b.x[2]; // e2
-
-      twoSum( f[1], f[2] ); // e  e2
-      twoSum( f[2], f[3] ); // e2 e3
-
-      auto c = TX{ f };
-      Normalize( c );
-      return c;
+      QxW::add_SW_TW_QW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::add_SW_QTW_QQW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_add ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      T f[4];
-      twoSum( a.x[0], b.x[0], f[0], f[1] ); // 1  e
-      twoSum( a.x[1], b.x[1], f[2], f[3] ); // e  e2
-
-      twoSum( f[1], f[2] ); // e  e2
-      twoSum( f[2], f[3] ); // e2 e3
-
-      auto c = TX{ f };
-      Normalize( c );
-      return c;
+      QxW::add_PA_PA_QQW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::add_PA_PA_QQW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Ab >
   INLINE auto const operator_add ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,Ab>;
     TX c;
-    QxW::add_SW_PA_QQW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
-    if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
+    if ( Ab == Algorithm::Accurate ) {
+      QxW::add_SW_DW_QW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
+    } else {
+      QxW::add_SW_PA_QQW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
+      if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
+    }
     return c;
   }
   template < typename T, Algorithm A, IF_T_fp<T> >
   INLINE auto const operator_add ( T const& a, T const& b ) {
     using TX = qX_real::qx_real<T,A>;
     TX c;
-    QxW::add_SW_SW_QQW( a, b, c.x[0], c.x[1], c.x[2], c.x[3] );
-    if ( A != Algorithm::Quasi ) { Normalize( c ); }
+    if ( A == Algorithm::Accurate ) {
+      QxW::add_SW_SW_QW( a, b, c.x[0], c.x[1], c.x[2], c.x[3] );
+    } else {
+      QxW::add_SW_SW_QQW( a, b, c.x[0], c.x[1], c.x[2], c.x[3] );
+      if ( A != Algorithm::Quasi ) { Normalize( c ); }
+    }
     return c;
   }
   //
@@ -885,7 +816,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a } * TX{ b };
+      QxW::mul_TW_QW_QW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
       QxW::mul_QTW_QQW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -897,7 +828,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a } * TX{ b };
+      QxW::mul_DW_QW_QW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
       QxW::mul_PA_QQW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -909,7 +840,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,Ab>;
     TX c;
     if ( Ab == Algorithm::Accurate ) {
-      c = TX{ a } * TX{ b };
+      QxW::mul_SW_QW_QW( a, b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
       QxW::mul_SW_QQW_QQW( a, b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
@@ -921,7 +852,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a } * TX{ b };
+      QxW::mul_TW_TW_QW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
       QxW::mul_QTW_QTW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -933,7 +864,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a } * TX{ b };
+      QxW::mul_DW_TW_QW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
       QxW::mul_PA_QTW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -945,7 +876,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,Ab>;
     TX c;
     if ( Ab == Algorithm::Accurate ) {
-      c = TX{ a } * TX{ b };
+      QxW::mul_SW_TW_QW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
       QxW::mul_SW_QTW_QQW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
@@ -957,7 +888,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a } * TX{ b };
+      QxW::mul_DW_DW_QW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
       QxW::mul_PA_PA_QQW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -969,7 +900,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,Ab>;
     TX c;
     if ( Ab == Algorithm::Accurate ) {
-      c = TX{ a } * TX{ b };
+      QxW::mul_SW_DW_QW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
       QxW::mul_SW_PA_QQW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
@@ -981,7 +912,7 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,A>;
     TX c;
     if ( A == Algorithm::Accurate ) {
-      c = TX{ a } * TX{ b };
+      QxW::mul_SW_SW_QW( a, b, c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
       QxW::mul_SW_SW_QQW( a, b, c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
@@ -1065,216 +996,194 @@ namespace qX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto const operator_div_body ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Quasi ) {
-  //
-  // Accurate in QD by Bailey and Hida
-  //
-      auto q0 = a.x[0] / b.x[0];
-      auto r = a - (b * q0);
-      //
-      auto q1 = r.x[0] / b.x[0];
-      r = r - (b * q1);
-      //
-      auto q2 = r.x[0] / b.x[0];
-      r = r - (b * q2);
-      //
-      auto q3 = r.x[0] / b.x[0];
-      r = r - (b * q3);
-      //
-
-      quickSum( q0, q1 );
-      quickSum( q1, q2 );
-      quickSum( q2, q3 );
-      if ( A == Algorithm::Accurate ) {
-        q3 = q3 + r.x[0] / b.x[0];
-      }
-      return TX{ q0, q1, q2, q3 };
-
+      QxW::div_QW_QW_QW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_QQW_QQW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
-      return c;
+      if ( A != Algorithm::Quasi ) { Normalize( c ); }
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto const operator_div_body ( tX_real::tx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      return (TX{ a } / b);
+      QxW::div_TW_QW_QW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_QTW_QQW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto const operator_div_body ( qX_real::qx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      return (a / TX{ b });
+      QxW::div_QW_TW_QW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_QQW_QTW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto const operator_div_body ( dX_real::dx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      return (TX{ a } / b);
+      QxW::div_DW_QW_QW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_PA_QQW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto const operator_div_body ( qX_real::qx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      return (a / TX{ b });
+      QxW::div_QW_DW_QW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_QQW_PA_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Ab, IF_T_fp<T> >
   inline auto const operator_div_body ( T const& a, qX_real::qx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,Ab>;
+    TX c;
     if ( Ab == Algorithm::Accurate ) {
-      return (TX{ a } / b);
+      QxW::div_SW_QW_QW( a, b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_SW_QQW_QQW( a, b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, IF_T_fp<T> >
   inline auto const operator_div_body ( qX_real::qx_real<T,Aa> const& a, T const& b ) {
     using TX = qX_real::qx_real<T,Aa>;
+    TX c;
     if ( Aa == Algorithm::Accurate ) {
-      return (a / TX{ b });
+      QxW::div_QW_SW_QW( a.x[0], a.x[1], a.x[2], a.x[3], b, c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_QQW_SW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], b, c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto const operator_div_body ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      return (TX{ a } / TX{ b });
+      QxW::div_TW_TW_QW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_QTW_QTW_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto const operator_div_body ( dX_real::dx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      return (TX{ a } / TX{ b });
+      QxW::div_DW_TW_QW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_PA_QTW_QQW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto const operator_div_body ( tX_real::tx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      return (TX{ a } / TX{ b });
+      QxW::div_TW_DW_QW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_QTW_PA_QQW( a.x[0], a.x[1], a.x[2], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Ab >
   inline auto const operator_div_body ( T const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,Ab>;
+    TX c;
     if ( Ab == Algorithm::Accurate ) {
-      return (TX{ a } / TX{ b });
+      QxW::div_SW_TW_QW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_SW_QTW_QQW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa >
   inline auto const operator_div_body ( tX_real::tx_real<T,Aa> const& a, T const& b ) {
     using TX = qX_real::qx_real<T,Aa>;
+    TX c;
     if ( Aa == Algorithm::Accurate ) {
-      return (TX{ a } / TX{ b });
+      QxW::div_TW_SW_QW( a.x[0], a.x[1], a.x[2], b, c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_QTW_SW_QQW( a.x[0], a.x[1], a.x[2], b, c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   inline auto const operator_div_body ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      return (TX{ a } / TX{ b });
+      QxW::div_DW_DW_QW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_PA_PA_QQW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Ab >
   inline auto const operator_div_body ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = qX_real::qx_real<T,Ab>;
+    TX c;
     if ( Ab == Algorithm::Accurate ) {
-      return (TX{ a } / TX{ b });
+      QxW::div_SW_DW_QW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_SW_PA_QQW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa >
   inline auto const operator_div_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) {
     using TX = qX_real::qx_real<T,Aa>;
+    TX c;
     if ( Aa == Algorithm::Accurate ) {
-      return (TX{ a } / TX{ b });
+      QxW::div_DW_SW_QW( a.x[0], a.x[1], b, c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_PA_SW_QQW( a.x[0], a.x[1], b, c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm A, IF_T_fp<T> >
   inline auto const operator_div_body ( T const& a, T const& b ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      return (TX{ a } / TX{ b });
+      QxW::div_SW_SW_QW( a, b, c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::div_SW_SW_QQW( a, b, c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   //
 #if MX_REAL_USE_INF_NAN_EXCEPTION
@@ -1603,74 +1512,50 @@ namespace qX_real {
   template < typename T, Algorithm Aa >
   INLINE auto const operator_sqrt_body ( qX_real::qx_real<T,Aa> const& a ) {
     using TX = qX_real::qx_real<T,Aa>;
+    TX c;
     if ( Aa == Algorithm::Accurate ) {
-      // scaling
-      auto as = fp<T>::sqrt( a.x[0] );
-      auto e  = fp<T>::exponent( as );
-      auto ex = fp<T>::exponenti( as );
-      auto ex2 = ex * fp<T>::half;
-
-      auto ax = TX{ (a.x[0]*ex)*ex2,
-                    (a.x[1]*ex)*ex2,
-                    (a.x[2]*ex)*ex2,
-                    (a.x[3]*ex)*ex2 };
-
-      auto r  = TX{ e / as };
-      r = (3*TX::half() - ax * (r * r)) * r;
-      r = (3*TX::half() - ax * (r * r)) * r;
-      r = (3*TX::half() - ax * (r * r)) * r;
-
-      // scaling back
-      r = ax * r;
-      e = 2 * e;
-      r.x[0] *= e;
-      r.x[1] *= e;
-      r.x[2] *= e;
-      r.x[3] *= e;
-
-      return r;
+      QxW::sqrt_QW_QW( a.x[0], a.x[1], a.x[2], a.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::sqrt_QQW_QQW( a.x[0], a.x[1], a.x[2], a.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa >
   INLINE auto const operator_sqrt_body ( tX_real::tx_real<T,Aa> const& a ) {
     using TX = qX_real::qx_real<T,Aa>;
+    TX c;
     if ( Aa == Algorithm::Accurate ) {
-      return qX_real::operator_sqrt_body( qx_real<T,Aa>( a ) );
+      QxW::sqrt_TW_QW( a.x[0], a.x[1], a.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::sqrt_QTW_QQW( a.x[0], a.x[1], a.x[2], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa >
   INLINE auto const operator_sqrt_body ( dX_real::dx_real<T,Aa> const& a ) {
     using TX = qX_real::qx_real<T,Aa>;
+    TX c;
     if ( Aa == Algorithm::Accurate ) {
-      return qX_real::operator_sqrt_body( qx_real<T,Aa>( a ) );
+      QxW::sqrt_DW_QW( a.x[0], a.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::sqrt_PA_QQW( a.x[0], a.x[1], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm A=Algorithm::Accurate >
   INLINE auto const operator_sqrt_body ( T const& a ) {
     using TX = qX_real::qx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      return qX_real::operator_sqrt_body( qx_real<T,A>( a ) );
+      QxW::sqrt_SW_QW( a, c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      TX c;
       QxW::sqrt_SW_QQW( a, c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   //
 #if MX_REAL_USE_INF_NAN_EXCEPTION

@@ -16,7 +16,7 @@ namespace mX_real {
 
 
 #include "Ozaki-QW/qxw.hpp"
-#include "Ozaki-QW/qxw-ex.hpp"
+//#include "Ozaki-QW/qxw-ex.hpp"
 
   //
   // Descrition of the Algorithm
