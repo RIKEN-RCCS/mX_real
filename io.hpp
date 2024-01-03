@@ -133,6 +133,8 @@ auto print( std::string message, T const &x, bool const flag = false )
   mX_real::debug_print<typename T::base_T>( message, x, flag );
 }
 
+void print( std::string message, mpfr::mpreal const &x, bool const flag = false ) { }
+
 void print( std::string message, float const &x, bool const flag = false ) {
   unsigned int * d = (unsigned int *)&x;
   long double xx = (long double)x;
@@ -161,18 +163,22 @@ void print( std::string message, double const &x, bool const flag = false ) {
   }
 }
 
+#ifdef  _QD_DD_REAL_H
 void print( std::string message, dd_real const &x, bool const flag = false ) {
   unsigned long * d = (unsigned long *)&x;
   long double xx = (long double)x.x[1] + (long double)x.x[0];
   std::cout << message;
   printf(" _DD : %016lx %016lx %26.19Le\n", d[0], d[1], xx);
 }
+#endif
 
+#ifdef  _QD_QD_REAL_H
 void print( std::string message, qd_real const &x, bool const flag = false ) {
   unsigned long * d = (unsigned long *)&x;
   long double xx = (long double)x.x[3] + (long double)x.x[2] + (long double)x.x[1] + (long double)x.x[0];
   std::cout << message;
   printf(" _QD : %016lx %016lx %016lx %016lx %26.19Le\n", d[0], d[1], d[2], d[3], xx);
 }
+#endif
 
 #endif
