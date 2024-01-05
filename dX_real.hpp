@@ -92,7 +92,7 @@ namespace dX_real {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         auto s = h;
-        NormalizeStrict( s );
+        Normalize<1>( s );
         x[0] = s.x[0]; x[1] = s.x[1];
       }
     }
@@ -108,7 +108,7 @@ namespace dX_real {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         auto s = h;
-        NormalizeStrict( s );
+        Normalize<1>( s );
         x[0] = s.x[0]; x[1] = s.x[1];
       }
     }
@@ -124,7 +124,7 @@ namespace dX_real {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         auto s = h;
-        NormalizeStrict( s );
+        Normalize<1>( s );
         x[0] = s.x[0]; x[1] = s.x[1];
       }
     }
@@ -155,7 +155,7 @@ namespace dX_real {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         auto s = h;
-        NormalizeStrict( s );
+        Normalize<1>( s );
         x[0] = s.x[0]; x[1] = s.x[1];
       }
       return *this;
@@ -172,7 +172,7 @@ namespace dX_real {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         auto s = h;
-        NormalizeStrict( s );
+        Normalize<1>( s );
         x[0] = s.x[0]; x[1] = s.x[1];
       }
       return *this;
@@ -189,7 +189,7 @@ namespace dX_real {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
         auto s = h;
-        NormalizeStrict( s );
+        Normalize<1>( s );
         x[0] = s.x[0]; x[1] = s.x[1];
       }
       return *this;
@@ -221,7 +221,7 @@ namespace dX_real {
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         auto s = *this;
-        NormalizeStrict( s );
+        Normalize<1>( s );
         return DX_REAL<_A_>{ s.x };
       } else {
         return DX_REAL<_A_>{ x };
@@ -240,7 +240,7 @@ namespace dX_real {
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         auto s = *this;
-        NormalizeStrict( s );
+        Normalize<1>( s );
         return TX_REAL<_A_>{ s.x[0], s.x[1], fp<T>::zero };
       } else {
         T c = std::isinf(x[0]) ? x[0] : fp<T>::zero;
@@ -260,7 +260,7 @@ namespace dX_real {
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         auto s = *this;
-        NormalizeStrict( s );
+        Normalize<1>( s );
         return QX_REAL<_A_>( s.x[0], s.x[1], fp<T>::zero, fp<T>::zero );
       } else {
         T c = std::isinf(x[0]) ? x[0] : fp<T>::zero;
@@ -337,7 +337,7 @@ namespace dX_real {
     // operations to THIS object
     INLINE void constexpr reverse_sign () { x[0] = -x[0]; x[1] = -x[1]; }
     INLINE void constexpr zerofy ()       { x[0] = x[1] = fp<T>::zero; }
-    INLINE void constexpr Normalize ()    { mX_real::Normalize( *this ); }
+    INLINE void constexpr normalize ()    { mX_real::Normalize( *this ); }
     //
     INLINE DX_REAL<> reversed_sign () const { return reversed_sign( *this ); }
     INLINE bool      signbit ()       const { return signbit( *this ); }
