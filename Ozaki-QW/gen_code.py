@@ -116,23 +116,9 @@ def final () :
 
 def mX_suffics ( ACC, width ) :
     if ACC > 0 :
-        if width == 1 :
-            return '_SW'
-        elif width == 2 :
-            return '_DW'
-        elif width == 3 :
-            return '_TW'
-        elif width == 4 :
-            return '_QW'
+        return [ '_', '_SW', '_DW', '_TW', '_QW' ][width]
     else :
-        if width == 1 :
-            return '_SW'
-        elif width == 2 :
-            return '_PA'
-        elif width == 3 :
-            return '_QTW'
-        elif width == 4 :
-            return '_QQW'
+        return [ '_', '_SW', '_PA', '_QTW', '_QQW' ][width]
 
 def fname ( Func, NA, NB, NC, ACC ) :
     print( '{}{}{}{}'.format(
@@ -145,27 +131,23 @@ def def_head ( Func, NA, NB, NC, ACC, va, vb, vc ) :
         print( '// {}: {}-{}'.format( Func, NA, NC ) )
     print( 'template < typename T > __always_inline void' )
     fname( Func, NA, NB, NC, ACC )
-    trick = ' ('
-    for i in range(NA) :
-        print( '{} T const {}{}'.format( trick, va, i ), end='' )
-        trick = ','
-    for i in range(NB) :
-        print( '{} T const {}{}'.format( trick, vb, i ), end='' )
-    for i in range(NC) :
-        print( '{} T & {}{}'.format( trick, vc, i ), end='' )
-    print( ' )' )
+    va_list = ','.join( [ ' T const {}{}'.format( va, i ) for i in range( NA ) ] )
+    vb_list = ','.join( [ ' T const {}{}'.format( vb, i ) for i in range( NB ) ] )
+    vc_list = ','.join( [ ' T &{}{}'.format( vc, i ) for i in range( NC ) ] )
+    if NB > 0 :
+        print( '({},{},{} )'.format( va_list, vb_list, vc_list ) )
+    else :
+        print( '({},{} )'.format( va_list, vc_list ) )
 
 def caller_head ( Func, NA, NB, NC, ACC, va, vb, vc ) :
     fname( Func, NA, NB, NC, ACC )
-    trick = ' ('
-    for i in range(NA) :
-        print( '{} {}'.format( trick, va[i] ), end='' )
-        trick = ','
-    for i in range(NB) :
-        print( '{} {}'.format( trick, vb[i] ), end='' )
-    for i in range(NC) :
-        print( '{} {}'.format( trick, vc[i] ), end='' )
-    print( ' );' )
+    va_list = ','.join( [ ' {}'.format( va[i] ) for i in range( NA ) ] )
+    vb_list = ','.join( [ ' {}'.format( vb[i] ) for i in range( NB ) ] )
+    vc_list = ','.join( [ ' {}'.format( vc[i] ) for i in range( NC ) ] )
+    if NB > 0 :
+        print( '({},{},{} );'.format( va_list, vb_list, vc_list ) )
+    else :
+        print( '({},{} );'.format( va_list, vc_list ) )
 
 def insert ( line, pos, element ) :
     L = len( line )
@@ -1010,15 +992,10 @@ def gen_add( NA, NB, NC, ACC ) :
         line[2] = 'ADD e1 a1 b1'
         line[3] = 'ADD e2 a2 b2'
         line[4] = 'ADD e3 a3 b3'
-            
-        line[5] = 'ADD e4 e3 e2'
-        line[6] = 'ADD e5 e4 e1'
+        line[5] = 'SUM 4 c0 c0 e1 e2 e3'
             
         if ACC > 0 :
-            line[7] = 'ADD e0 e0 e5'
-            line[8] = 'ADD c0 c0 e0'
-        else :
-            line[7] = 'ADD c0 e0 e5'
+            line[6] = 'ADD c0 c0 e0'
 
     if NC == 2 :
         line[0] = '!'
@@ -1141,22 +1118,24 @@ def gen_mul( NA, NB, NC, ACC ) :
     if NC == 1 :
         line[0] = '!'
         if ACC == 0 :
-            line[1] = 'SUM 4 e0 a3 a2 a1 a0'
-            line[2] = 'SUM 4 e1 b3 b2 b1 b0'
+            line[1] = 'SUM 4 e0 a0 a1 a2 a3'
+            line[2] = 'SUM 4 e1 b0 b1 b2 b3'
             line[3] = 'MUL c0 e0 e1'
         else :
             line[1] = 'MUL c0 a0 b0'
-            line[2] = 'SUM 3 e0 a3 a2 a1'
-            line[3] = 'SUM 3 e1 b3 b2 b1'
-            line[4] = 'MAD c0 e0 e1 c0'
+            line[2] = 'SUM 3 e0 a1 a2 a3'
+            line[3] = 'SUM 3 e1 b1 b2 b3'
+            line[4] = 'MAD c0 a0 e1 c0'
+            line[5] = 'MAD c0 b0 e0 c0'
+            line[6] = 'MAD c0 e0 e1 c0'
 
     if NC == 2 :
         line[0] = '!'
         line[1] = 'FMA a0 b0 c0 c1' # (c1)
 
         if ACC == 0 :
-            line[2] = 'SUM 3 e0 a3 a2 a1'
-            line[3] = 'SUM 3 e1 b3 b2 b1'
+            line[2] = 'SUM 3 e0 a1 a2 a3'
+            line[3] = 'SUM 3 e1 b1 b2 b3'
             line[4] = 'MAD c1 a0 e1 c1' # (c1)
             line[5] = 'MAD c1 b0 e0 c1' # (c1)
         else :
@@ -1168,25 +1147,23 @@ def gen_mul( NA, NB, NC, ACC ) :
 
             line[7] = 'ADD e3 e3 e5'  # (c1)(e2,e4,e3)
             line[8] = 'SUM 3 e2 e2 e3 e4' # (c1)(e2)
-            line[9] = 'QQQ c1 e2 c1 e2' # (c1)(e2)
-            line[10] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
 
-            line[11] = 'ADD e0 a2 a3'
-            line[12] = 'ADD e1 b2 b3'
-            line[13] = 'MAD e2 a1 b1 e2' # (c1)(e2)
+            line[9] = 'ADD e0 a2 a3'
+            line[10] = 'ADD e1 b2 b3'
+            line[11] = 'MAD e2 a1 b1 e2' # (c1)(e2)
             if NA == NB :
-                line[14] = 'MUL e2 e2 fp_const<T>::half()' # (c1)(e2)
-                line[15] = 'MAD e3 a0 e1 e2' # (c1)(e2,e3)
-                line[16] = 'MAD e4 b0 e0 e2' # (c1)(e3,e4)
-                line[17] = 'ADD e3 e3 e4' # (c1)(e3)
+                line[12] = 'MUL e2 e2 fp_const<T>::half()' # (c1)(e2)
+                line[13] = 'MAD e3 a0 e1 e2' # (c1)(e2,e3)
+                line[14] = 'MAD e4 b0 e0 e2' # (c1)(e3,e4)
+                line[15] = 'ADD e3 e3 e4' # (c1)(e3)
             else :
-                line[14] = 'MAD e2 a0 e1 e2' # (c1)(e2)
-                line[15] = 'MAD e3 b0 e0 e2' # (c1)(e3)
-                line[16] = '!' # (c1)(e3)
-                line[17] = '!' # (c1)(e3)
+                line[12] = 'MAD e2 a0 e1 e2' # (c1)(e2)
+                line[13] = 'MAD e3 b0 e0 e2' # (c1)(e3)
+                line[14] = '!' # (c1)(e3)
+                line[15] = '!' # (c1)(e3)
 
-            line[18] = 'ADD c1 c1 e3' # (c1)
-            line[19] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
+            line[16] = 'ADD c1 c1 e3' # (c1)
+            line[17] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
 
     if NC == 3 :
         line[0] = '!'
@@ -1217,29 +1194,27 @@ def gen_mul( NA, NB, NC, ACC ) :
             line[15] = 'TWO c2 e9 c2 e9' # (c1)(c2)(e9,e7,e5,e4,e2,e3,e6,e8,e10)
 
             line[16] = 'SUM 9 e2 e2 e3 e4 e5 e6 e7 e8 e9 e10'  # (c1)(c2)(e2)
-            line[17] = 'QQQ c2 e2 c2 e2' # (c1)(c2)(e2)
-            line[18] = 'QQQ c1 c2 c1 c2' if NA*NB > 1 else '!'
 
             if NA == NB :
-                line[19] = 'MUL e2 e2 fp_const<T>::half()' # (c1)(c2)(e2)
-                line[20] = 'MAD e3 a0 b3 e2' # (c1)(c2)(e3)
-                line[21] = 'MAD e4 a3 b0 e2' # (c1)(c2)(e4,e3)
-                line[22] = 'MAD e3 a1 b2 e3' # (c1)(c2)(e4,e3)
-                line[23] = 'MAD e4 a2 b1 e4' # (c1)(c2)(e4,e3)
-                line[24] = 'ADD e2 e3 e4' # (c1)(c2)(e2)
+                line[17] = 'MUL e2 e2 fp_const<T>::half()' # (c1)(c2)(e2)
+                line[18] = 'MAD e3 a0 b3 e2' # (c1)(c2)(e3)
+                line[19] = 'MAD e4 a3 b0 e2' # (c1)(c2)(e4,e3)
+                line[20] = 'MAD e3 a1 b2 e3' # (c1)(c2)(e4,e3)
+                line[21] = 'MAD e4 a2 b1 e4' # (c1)(c2)(e4,e3)
+                line[22] = 'ADD e2 e3 e4' # (c1)(c2)(e2)
             else :
-                line[19] = 'MAD e2 a0 b3 e2' # (c1)(c2)(e2)
-                line[20] = 'MAD e2 a3 b0 e2' # (c1)(c2)(e2)
-                line[21] = 'MAD e2 a1 b2 e2' # (c1)(c2)(e2)
-                line[22] = 'MAD e2 a2 b1 e2' # (c1)(c2)(e2)
-                line[23] = '!'
-                line[24] = '!'
+                line[17] = 'MAD e2 a0 b3 e2' # (c1)(c2)(e2)
+                line[18] = 'MAD e2 a3 b0 e2' # (c1)(c2)(e2)
+                line[19] = 'MAD e2 a1 b2 e2' # (c1)(c2)(e2)
+                line[20] = 'MAD e2 a2 b1 e2' # (c1)(c2)(e2)
+                line[21] = '!'
+                line[22] = '!'
 
-            line[25] = 'ADD c2 c2 e2' # (c1)(c2)
+            line[23] = 'ADD c2 c2 e2' # (c1)(c2)
+            line[24] = 'QQQ c1 c2 c1 c2' if NA*NB > 1 else '!'
+
+            line[25] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
             line[26] = 'QQQ c1 c2 c1 c2' if NA*NB > 1 else '!'
-
-            line[27] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
-            line[28] = 'QQQ c1 c2 c1 c2' if NA*NB > 1 else '!'
 
 
     if NC == 4 :
@@ -1251,7 +1226,7 @@ def gen_mul( NA, NB, NC, ACC ) :
         line[4] = 'TWO c1 c2 c1 c2' # (c1,e3)(c2,c3,e4)
         line[5] = 'TWO c1 e3 c1 e3' # (c1)(c2,e3,c3,e4)
 
-        line[6] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
+        line[6] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 and ACC > 0 else '!'
 
         line[7] = 'FMA a0 b2 e5 e6' # (c1)(c2,e3,c3,e4,e5)(e6)
         line[8] = 'FMA a1 b1 e7 e8' # (c1)(c2,e3,c3,e4,e5,e7)(e6,e8)
@@ -1283,49 +1258,46 @@ def gen_mul( NA, NB, NC, ACC ) :
             line[24] = 'TWO c3 e10 c3 e10' # (c1)(c2)(c3)(e10,e8,e9,e7,e5,e4,e3,e6)
             line[25] = 'SUM 8 e3 e3 e4 e5 e6 e7 e8 e9 e10' # (c1)(c2)(c3)(e3)
 
-            line[26] = 'QQQ c3 e3 c3 e3' if NA*NB > 2 else '!' # (c1)(c2)(c3)(e3)
-            line[27] = 'QQQ c2 c3 c2 c3' if NA*NB > 2 else '!'
+            line[26] = 'FMA a0 b3 e4 e5' # (c1)(c2)(c3,e4)(e3,e5)
+            line[27] = 'FMA a1 b2 e6 e7' # (c1)(c2)(c3,e4,e6)(e3,e5,e7)
+            line[28] = 'FMA a2 b1 e8 e9' # (c1)(c2)(c3,e4,e6,e8)(e3,e5,e7,e9)
+            line[29] = 'FMA a3 b0 e10 e11' # (c1)(c2)(c3,e4,e6,e8,e10)(e3,e5,e7,e9,e11)
 
-            line[28] = 'FMA a0 b3 e4 e5' # (c1)(c2)(c3,e4)(e3,e5)
-            line[29] = 'FMA a1 b2 e6 e7' # (c1)(c2)(c3,e4,e6)(e3,e5,e7)
-            line[30] = 'FMA a2 b1 e8 e9' # (c1)(c2)(c3,e4,e6,e8)(e3,e5,e7,e9)
-            line[31] = 'FMA a3 b0 e10 e11' # (c1)(c2)(c3,e4,e6,e8,e10)(e3,e5,e7,e9,e11)
-
-            line[32] = 'TWO e4 e10 e4 e10' # (c1)(c2)(c3,e4,e6,e8)(e10,e3,e5,e7,e9,e11)
-            line[33] = 'TWO e6 e8 e6 e8' # (c1)(c2)(c3,e4,e6)(e8,e10,e3,e5,e7,e9,e11)
-            line[34] = 'TWO e4 e6 e4 e6' # (c1)(c2)(e4,c3)(e6,e8,e10,e3,e5,e7,e9,e11)
-            line[35] = 'TWO c3 e4 c3 e4' # (c1)(c2)(c3)(e4,e6,e8,e10,e3,e5,e7,e9,e11)
+            line[30] = 'TWO e4 e10 e4 e10' # (c1)(c2)(c3,e4,e6,e8)(e10,e3,e5,e7,e9,e11)
+            line[31] = 'TWO e6 e8 e6 e8' # (c1)(c2)(c3,e4,e6)(e8,e10,e3,e5,e7,e9,e11)
+            line[32] = 'TWO e4 e6 e4 e6' # (c1)(c2)(e4,c3)(e6,e8,e10,e3,e5,e7,e9,e11)
+            line[33] = 'TWO c3 e4 c3 e4' # (c1)(c2)(c3)(e4,e6,e8,e10,e3,e5,e7,e9,e11)
 
             if NA == NB :
-                line[36] = 'ADD e5 e5 e11' # (c1)(c2)(c3)(e4,e6,e8,e10,e3,e5,e7)
-                line[37] = 'ADD e7 e7 e9'
-                line[38] = 'SUM 7 e2 e3 e4 e5 e6 e7 e8 e10' # (c1)(c2)(c3)(e2)
+                line[34] = 'ADD e5 e5 e11' # (c1)(c2)(c3)(e4,e6,e8,e10,e3,e5,e7)
+                line[35] = 'ADD e7 e7 e9'
+                line[36] = 'SUM 7 e2 e3 e4 e5 e6 e7 e8 e10' # (c1)(c2)(c3)(e2)
             else :
-                line[36] = 'SUM 9 e2 e3 e4 e5 e6 e7 e8 e9 e10 e11' # (c1)(c2)(c3)(e2)
-                line[37] = '!'
-                line[38] = '!'
+                line[34] = 'SUM 9 e2 e3 e4 e5 e6 e7 e8 e9 e10 e11' # (c1)(c2)(c3)(e2)
+                line[35] = '!'
+                line[36] = '!'
 
-            line[39] = 'QQQ c3 e2 c3 e2' if NA*NB > 4 else '!' # (c1)(c2)(c3)(e2)
-            line[40] = 'QQQ c2 c3 c2 c3' if NA*NB > 4 else '!'
+            line[37] = 'QQQ c3 e2 c3 e2' if NA*NB > 4 else '!' # (c1)(c2)(c3)(e2)
+            line[38] = 'QQQ c2 c3 c2 c3' if NA*NB > 4 else '!'
 
             if NA == NB :
-                line[41] = 'MUL e3 e2 fp_const<T>::half()' # (c1)(c2)(c3)(e3)
-                line[42] = 'MAD e0 a1 b3 e3' # (c1)(c2)(c3)(e0,e3)
-                line[43] = 'MAD e1 a3 b1 e3' # (c1)(c2)(c3)(e0,e1,e3)
-                line[44] = 'ADD e3 e0 e1' # (c1)(c2)(c3)(e3)
-                line[45] = 'MAD e3 a2 b2 e3' # (c1)(c2)(c3)(e3)
+                line[39] = 'MUL e3 e2 fp_const<T>::half()' # (c1)(c2)(c3)(e3)
+                line[40] = 'MAD e0 a1 b3 e3' # (c1)(c2)(c3)(e0,e3)
+                line[41] = 'MAD e1 a3 b1 e3' # (c1)(c2)(c3)(e0,e1,e3)
+                line[42] = 'ADD e3 e0 e1' # (c1)(c2)(c3)(e3)
+                line[43] = 'MAD e3 a2 b2 e3' # (c1)(c2)(c3)(e3)
             else :
-                line[41] = 'MAD e3 a1 b3 e2' # (c1)(c2)(c3)(e3)
-                line[42] = 'MAD e3 a2 b2 e3' # (c1)(c2)(c3)(e3)
-                line[43] = 'MAD e3 a3 b1 e3' # (c1)(c2)(c3)(e3)
-                line[44] = '!'
-                line[45] = '!'
-            line[46] = 'ADD c3 c3 e3' # (c1)(c2)(c3)
-            line[47] = 'QQQ c2 c3 c2 c3' if NA*NB > 2 else '!'
+                line[39] = 'MAD e3 a1 b3 e2' # (c1)(c2)(c3)(e3)
+                line[40] = 'MAD e3 a2 b2 e3' # (c1)(c2)(c3)(e3)
+                line[41] = 'MAD e3 a3 b1 e3' # (c1)(c2)(c3)(e3)
+                line[42] = '!'
+                line[43] = '!'
+            line[44] = 'ADD c3 c3 e3' # (c1)(c2)(c3)
+            line[45] = 'QQQ c2 c3 c2 c3' if NA*NB > 2 else '!'
 
-            line[48] = 'QQQ c0 c1 c0 c1'
-            line[49] = 'QQQ c1 c2 c1 c2'
-            line[50] = 'QQQ c2 c3 c2 c3'
+            line[46] = 'QQQ c0 c1 c0 c1'
+            line[47] = 'QQQ c1 c2 c1 c2'
+            line[48] = 'QQQ c2 c3 c2 c3'
 
 
     line = INIT_propagate( line, NA, NB, NC )
@@ -1350,12 +1322,12 @@ def gen_sqr( NA, NC, ACC ) :
     if NC == 1 :
         line[0] = '!'
         if ACC == 0 :
-            line[1] = 'SUM 4 e0 a3 a2 a1 a0'
+            line[1] = 'SUM 4 e0 a0 a1 a2 a3'
             line[2] = 'MUL c0 e0 e0'
         else :
             line[1] = 'MUL c0 a0 a0'
             line[2] = 'ADD e0 a0 a0'
-            line[3] = 'SUM 3 e1 a3 a2 a1'
+            line[3] = 'SUM 3 e1 a1 a2 a3'
             line[4] = 'MAD c0 e0 e1 c0'
 
 
@@ -1365,7 +1337,7 @@ def gen_sqr( NA, NC, ACC ) :
 
         line[2] = 'ADD e0 a0 a0' # if NA > 1 else 'ZER e0'
         if ACC == 0 :
-            line[3] = 'SUM 3 e1 a3 a2 a1'
+            line[3] = 'SUM 3 e1 a1 a2 a3'
             line[4] = 'MAD c1 e0 e1 c1' 
         else:
             line[3] = 'FMA e0 a1 e2 e3' # (c1,e2)(e3)
@@ -1387,13 +1359,13 @@ def gen_sqr( NA, NC, ACC ) :
         line[2] = 'ADD e0 a0 a0' # if NA > 1 else 'ZER e0'
         line[3] = 'FMA e0 a1 e1 c2' # (c1,e1)(c2)
         line[4] = 'TWO c1 e1 c1 e1' # (c1)(c2,e1)
-        line[5] = 'QQQ c0 c1 c0 c1' if NA > 1 and ACC > 0 else '!'
 
         if ACC == 0 :
-            line[6] = 'MAD c2 e0 a2 c2' # (c1)(c2,e1)
-            line[7] = 'MAD c2 a1 a1 c2' # (c1)(c2,e1)
-            line[8] = 'ADD c2 c2 e1' # (c1)(c2)
+            line[5] = 'MAD c2 e0 a2 c2' # (c1)(c2,e1)
+            line[6] = 'MAD c2 a1 a1 c2' # (c1)(c2,e1)
+            line[7] = 'ADD c2 c2 e1' # (c1)(c2)
         else :
+            line[5] = 'QQQ c0 c1 c0 c1' if NA > 1 else '!'
             line[6] = 'FMA e0 a2 e3 e4' # (c1)(c2,e1,e3)(e4)
             line[7] = 'FMA a1 a1 e5 e6' # (c1)(c2,e1,e3,e5)(e4,e6)
             line[8] = 'TWO c2 e1 c2 e1' # (c1)(c2,e3,e5)(e1,e4,e6)
@@ -1474,17 +1446,11 @@ def gen_sub( NA, NB, NC, ACC ) :
 
     line = {}
     
-    va = ''
-    for i in range( NA ) :
-        va = concat( va, 'a{}'.format(i) )
-    vb = ''
-    for i in range( NB ) :
-        vb = concat( vb, '-b{}'.format(i) )
-    vc = ''
-    for i in range( NC ) :
-        vc = concat( vc, 'c{}'.format(i) )
+    va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NA ) ] )
+    vb_list = ' '.join( [ '-b{}'.format( i ) for i in range( NB ) ] )
+    vc_list = ' '.join( [ 'c{}'.format( i ) for i in range( NC ) ] )
 
-    line[0] = 'add {} {} {} {} {} {} {}'.format( NA, NB, NC, ACC, va, vb, vc )
+    line[0] = 'add {} {} {} {} {} {} {}'.format( NA, NB, NC, ACC, va_list, vb_list, vc_list )
     print_code( 'sub', NA, NB, NC, ACC, line, 0 )
 
 
@@ -1528,15 +1494,11 @@ def gen_div( NA, NB, NC, ACC ) :
         if NC == 1 :
             line[LineCount] = 'DEF 2 e{} e{}'.format( RegCounter, RegCounter+1 )
             LineCount = LineCount + 1
-            va = ''
-            for i in reversed(range( NA )):
-                va = '{} a{}'.format( va, i )
-            vb = ''
-            for i in reversed(range( NB )):
-                vb = '{} b{}'.format( vb, i )
-            line[LineCount] = 'SUM {} e{} {}'.format( NA, RegCounter, va )
+            va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NA ) ] )
+            vb_list = ' '.join( [ 'b{}'.format( i ) for i in range( NB ) ] )
+            line[LineCount] = 'SUM {} e{} {}'.format( NA, RegCounter, va_list )
             LineCount = LineCount + 1
-            line[LineCount] = 'SUM {} e{} {}'.format( NB, RegCounter+1, vb )
+            line[LineCount] = 'SUM {} e{} {}'.format( NB, RegCounter+1, vb_list )
             LineCount = LineCount + 1
             line[LineCount] = 'DIV c0 e{} e{}'.format( RegCounter, RegCounter+1 )
             LineCount = LineCount + 1
@@ -1555,10 +1517,11 @@ def gen_div( NA, NB, NC, ACC ) :
             if NA > NCC :
                 line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
                 LineCount = LineCount + 1
-                va = ''
-                for i in reversed(range( NCC-1, NA )):
-                    va = '{} a{}'.format( va, i )
-                line[LineCount] = 'SUM {} e{} {}'.format( NA-NCC+1, RegCounter, va )
+                #va = ''
+                #for i in range( NCC-1, NA ):
+                #    va = '{} a{}'.format( va, i )
+                va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NCC-1, NA ) ] )
+                line[LineCount] = 'SUM {} e{} {}'.format( NA-NCC+1, RegCounter, va_list )
                 LineCount = LineCount + 1
                 e_list[0] = RegCounter
                 RegCounter = RegCounter + 1
@@ -1566,39 +1529,32 @@ def gen_div( NA, NB, NC, ACC ) :
             if NB > NCC :
                 line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
                 LineCount = LineCount + 1
-                vb = ''
-                for i in reversed(range( NCC-1, NB )):
-                    vb = '{} b{}'.format( vb, i )
-                line[LineCount] = 'SUM {} e{} {}'.format( NB-NCC+1, RegCounter, vb )
+                #vb = ''
+                #for i in range( NCC-1, NB ):
+                #    vb = '{} b{}'.format( vb, i )
+                vb_list = ' '.join( [ 'b{}'.format( i ) for i in range( NCC-1, NB ) ] )
+                line[LineCount] = 'SUM {} e{} {}'.format( NB-NCC+1, RegCounter, vb_list )
                 LineCount = LineCount + 1
                 e_list[1] = RegCounter
                 RegCounter = RegCounter + 1
 
-            va=''
-            for i in range( NCC-1 if NCC < NA else NA ) :
-                va = '{} a{}'.format( va, i )
-            if NA > NCC :
-                va = '{} e{}'.format( va, e_list[0] )
-            vb=''
-            for i in range( NCC-1 if NCC < NB else NB ) :
-                vb = '{} b{}'.format( vb, i )
-            if NB > NCC :
-                vb = '{} e{}'.format( vb, e_list[1] )
-            vc=''
-            for i in range( NC-1 ) :
-                vc = '{} c{}'.format( vc, i )
+            va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NCC-1 if NCC < NA else NA ) ] ) \
+                    + ( ' e{}'.format( e_list[0] ) if NA > NCC else '' )
+            vb_list = ' '.join( [ 'b{}'.format( i ) for i in range( NCC-1 if NCC < NB else NB ) ] ) \
+                    + ( ' e{}'.format( e_list[1] ) if NB > NCC else '' )
+            vc_list = ' '.join( [ 'c{}'.format( i ) for i in range( NC-1 ) ] )
 
-            line[LineCount] = 'div {} {} {} {} {} {} {}'.format( NAA, NBB, NCC, ACC, va, vb, vc )
+            line[LineCount] = 'div {} {} {} {} {} {} {}'.format( NAA, NBB, NCC, ACC, va_list, vb_list, vc_list )
             LineCount = LineCount + 1
-            line[LineCount] = 'mul {} {} {} {} {} {} {}'.format( NCC, NBB, NC, ACC, vc, vb, vt )
+            line[LineCount] = 'mul {} {} {} {} {} {} {}'.format( NCC, NBB, NC, ACC, vc_list, vb_list, vt )
             LineCount = LineCount + 1
-            line[LineCount] = 'sub {} {} {} {} {} {} {}'.format( NAA, NC, NC, ACC, va, vt, vt )
+            line[LineCount] = 'sub {} {} {} {} {} {} {}'.format( NAA, NC, NC, ACC, va_list, vt, vt )
             LineCount = LineCount + 1
             line[LineCount] = 'DEF 2 tn td'
             LineCount = LineCount + 1
             line[LineCount] = 'SUM {} tn {}'.format( NC, vt )
             LineCount = LineCount + 1
-            line[LineCount] = 'SUM {} td {}'.format( NBB, vb )
+            line[LineCount] = 'SUM {} td {}'.format( NBB, vb_list )
             LineCount = LineCount + 1
             line[LineCount] = 'DIV c{} tn td'.format( NC-1 )
 
@@ -1628,9 +1584,6 @@ def gen_div( NA, NB, NC, ACC ) :
         for i in range( NC ) :
             line[LineCount] = 'DIV c{} {}0 b0'.format( i, 'a' if i==0 else 'r' )
             LineCount = LineCount + 1
-            if i > 0 :
-                line[LineCount] = 'QQQ c{} c{} c{} c{}'.format( i-1,i, i-1,i )
-                LineCount = LineCount + 1
             line[LineCount] = 'mul {} {} {} {} {} c{} {}'.format( NB, 1, NB, ACC, vb, i, vt )
             LineCount = LineCount + 1
             NAX = ( 1 if i==NC-1 else NA )

@@ -86,9 +86,9 @@ namespace tX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = fp<T>::zero;
       } else {
-        twoSum( h.x[0], h.x[1], x[0], x[1] );
-	quickSum( x[0], x[1] );
-	x[2] = fp<T>::zero;
+	auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1]; x[2] = fp<T>::zero;
       }
     }
     template < Algorithm _A_ >
@@ -102,10 +102,9 @@ namespace tX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
-        twoSum( h.x[1], h.x[2], x[1], x[2] );
-        twoSum( h.x[0], x[1], x[0], x[1] );
-        quickSum( x[0], x[1] );
-        quickSum( x[1], x[2] );
+	auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1]; x[2] = s.x[2];
       }
     }
     template < Algorithm _A_ >
@@ -119,13 +118,9 @@ namespace tX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
-        T f[4];
-        twoSum( h.x[2], h.x[3], f[2], f[3] );
-        twoSum( h.x[1], f[2], f[1], f[2] );
-        twoSum( h.x[0], f[1], f[0], f[1] );
-        quickSum( f[0], f[1], x[0], f[1] );
-        quickSum( f[1], f[2], x[1], f[2] );
-        quickSum( f[2], f[3], x[2], f[3] );
+	auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1]; x[2] = s.x[2];
       }
     }
 
@@ -150,9 +145,9 @@ namespace tX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = fp<T>::zero;
       } else {
-        twoSum( h.x[0], h.x[1], x[0], x[1] );
-        quickSum( x[0], x[1] );
-       	x[2] = fp<T>::zero;
+	auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1]; x[2] = fp<T>::zero;
       }
       return *this;
     }
@@ -168,10 +163,9 @@ namespace tX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
-        twoSum( h.x[1], h.x[2], x[1], x[2] );
-        twoSum( h.x[0], x[1], x[0], x[1] );
-        quickSum( x[0], x[1] );
-        quickSum( x[1], x[2] );
+	auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1]; x[2] = s.x[2];
       }
       return *this;
     }
@@ -186,13 +180,9 @@ namespace tX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
       } else {
-        T f[4];
-        twoSum( h.x[2], h.x[3], f[2], f[3] );
-        twoSum( h.x[1], f[2], f[1], f[2] );
-        twoSum( h.x[0], f[1], f[0], f[1] );
-        quickSum( f[0], f[1], x[0], f[1] );
-        quickSum( f[1], f[2], x[1], f[2] );
-        quickSum( f[2], f[3], x[2], f[3] );
+	auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1]; x[2] = s.x[2];
       }
       return *this;
     }
@@ -219,14 +209,11 @@ namespace tX_real {
       } else
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
-        T f[3];
-        twoSum( x[1], x[2], f[1], f[2] );
-        twoSum( x[0], f[1], f[0], f[1] );
-        quickSum( f[0], f[1] );
-	f[1] = f[1] + f[2];
-	return DX_REAL<_A_>( f );
+        auto s = *this;
+        NormalizeStrict( s );
+	return DX_REAL<_A_>{ s.x };
       } else {
-        return DX_REAL<_A_>( x );
+        return DX_REAL<_A_>{ x };
       }
     }
     template < Algorithm _A_ >
@@ -241,14 +228,11 @@ namespace tX_real {
       } else
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
-        T f[3];
-        twoSum( x[1], x[2], f[1], f[2] );
-        twoSum( x[0], f[1], f[0], f[1] );
-        quickSum( f[0], f[1] );
-        quickSum( f[1], f[2] );
-        return TX_REAL<_A_>( f );
+        auto s = *this;
+        NormalizeStrict( s );
+	return TX_REAL<_A_>{ s.x };
       } else {
-        return TX_REAL<_A_>( x );
+        return TX_REAL<_A_>{ x };
       }
     }
     template < Algorithm _A_ >
@@ -263,14 +247,12 @@ namespace tX_real {
       } else
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
-        T f[3];
-        twoSum( x[1], x[2], f[1], f[2] );
-        twoSum( x[0], f[1], f[0], f[1] );
-        quickSum( f[0], f[1] );
-        quickSum( f[1], f[2] );
-        return QX_REAL<_A_>( f[0], f[1], f[2], fp<T>::zero );
+        auto s = *this;
+        NormalizeStrict( s );
+        return QX_REAL<_A_>{ s.x[0], s.x[1], s.x[2], fp<T>::zero };
       } else {
-        return QX_REAL<_A_>( x[0], x[1], x[2], fp<T>::zero );
+        T c = std::isinf(x[0]) ? x[0] : fp<T>::zero;
+        return QX_REAL<_A_>{ x[0], x[1], x[2], c };
       }
     }
 
@@ -538,77 +520,61 @@ namespace tX_real {
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_add ( dX_real::dx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = tX_real::tx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      T f[4];
-      twoSum( a.x[0], b.x[0], f[0], f[1] );
-      twoSum( a.x[1], b.x[1], f[2], f[3] );
-      f[3] = f[3] + b.x[2];
-      twoSum( f[1], f[2] );
-      f[2] = f[2] + f[3];
-
-      auto c = TX{ f };
-      Normalize( c );
-      return c;
+      QxW::add_DW_TW_TW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
     } else {
-      TX c;
       QxW::add_PA_QTW_QTW( a.x[0], a.x[1], b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Ab >
   INLINE auto const operator_add ( T const& a, tX_real::tx_real<T,Ab> const& b ) {
     using TX = tX_real::tx_real<T,Ab>;
+    TX c;
     if ( Ab == Algorithm::Accurate ) {
-      T f[4];
-      twoSum( a.x[0], b.x[0], f[0], f[1] );
-      twoSum( f[1], b.x[1], f[1], f[2] );
-      f[2] = f[2] + b.x[2];
-
-      auto c = TX{ f };
-      Normalize( c );
-      return c;
+      QxW::add_SW_TW_TW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
     } else {
-      TX c;
       QxW::add_SW_QTW_QTW( a, b.x[0], b.x[1], b.x[2], c.x[0], c.x[1], c.x[2] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm, IF_T_fp<T> >
   INLINE auto const operator_add ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = tX_real::tx_real<T,A>;
+    TX c;
     if ( A == Algorithm::Accurate ) {
-      T f[4];
-      twoSum( a.x[0], b.x[0], f[0], f[1] );
-      twoSum( a.x[1], b.x[1], f[2], f[3] );
-      twoSum( f[1], f[2] );
-      f[2] = f[2] + f[3];
-
-      auto c = TX{ f };
-      Normalize( c );
-      return c;
+      QxW::add_DW_DW_TW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2] );
     } else {
-      TX c;
       QxW::add_PA_PA_QTW( a.x[0], a.x[1], b.x[0], b.x[1], c.x[0], c.x[1], c.x[2] );
       if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      return c;
     }
+    return c;
   }
   template < typename T, Algorithm Ab, IF_T_fp<T> >
   INLINE auto const operator_add ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
     using TX = tX_real::tx_real<T,Ab>;
     TX c;
-    QxW::add_SW_PA_QTW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2] );
-    if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
+    if ( Ab == Algorithm::Accurate ) {
+      QxW::add_SW_DW_TW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2] );
+    } else {
+      QxW::add_SW_PA_QTW( a, b.x[0], b.x[1], c.x[0], c.x[1], c.x[2] );
+      if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
+    }
     return c;
   }
   template < typename T, Algorithm A, IF_T_fp<T> >
   INLINE auto const operator_add ( T const& a, T const& b ) {
     using TX = tX_real::tx_real<T,A>;
     TX c;
-    QxW::add_SW_SW_QTW( a, b, c.x[0], c.x[1], c.x[2] );
-    if ( A != Algorithm::Quasi ) { Normalize( c ); }
+    if ( A == Algorithm::Accurate ) {
+      QxW::add_SW_SW_TW( a, b, c.x[0], c.x[1], c.x[2] );
+    } else {
+      QxW::add_SW_SW_QTW( a, b, c.x[0], c.x[1], c.x[2] );
+      if ( A != Algorithm::Quasi ) { Normalize( c ); }
+    }
     return c;
   }
   //

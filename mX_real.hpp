@@ -289,6 +289,10 @@ namespace mX_real {
 
 
   //
+  // Normalization policy
+  // if O(|x0|)>O(|x1|)>... => quickSum in a decending (w.r.t. O(e)) order once
+  // not guaranteed => TwoSum in an ascending order, then quickSum reversely once
+  //
   template < typename T, Algorithm A >
   INLINE void Normalize( dX_real::dx_real<T,A> & c ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
@@ -354,6 +358,7 @@ namespace mX_real {
     {
       twoSum( c.x[1], c.x[2] );
       twoSum( c.x[0], c.x[1] );
+      //
       quickSum( c.x[0], c.x[1] );
       quickSum( c.x[1], c.x[2] );
       quickSum( c.x[0], c.x[1] );
@@ -407,6 +412,7 @@ namespace mX_real {
       quickSum( c.x[0], c.x[1] );
       quickSum( c.x[1], c.x[2] );
       quickSum( c.x[2], c.x[3] );
+      //
       quickSum( c.x[0], c.x[1] );
       quickSum( c.x[1], c.x[2] );
       quickSum( c.x[2], c.x[3] );

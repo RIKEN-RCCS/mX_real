@@ -114,23 +114,9 @@ def final () :
 
 def mX_suffics ( ACC, width ) :
     if ACC > 0 :
-        if width == 1 :
-            return '_SW'
-        elif width == 2 :
-            return '_DW'
-        elif width == 3 :
-            return '_TW'
-        elif width == 4 :
-            return '_QW'
+        return [ '_', '_SW', '_DW', '_TW', '_QW' ][width]
     else :
-        if width == 1 :
-            return '_SW'
-        elif width == 2 :
-            return '_PA'
-        elif width == 3 :
-            return '_QTW'
-        elif width == 4 :
-            return '_QQW'
+        return [ '_', '_SW', '_PA', '_QTW', '_QQW' ][width]
 
 def fname ( Func, NA, NB, NC, ACC ) :
     print( '{}{}{}{}'.format(
@@ -143,27 +129,23 @@ def def_head ( Func, NA, NB, NC, ACC, va, vb, vc ) :
         print( '// {}: {}-{}'.format( Func, NA, NC ) )
     print( 'template < typename T > __always_inline void' )
     fname( Func, NA, NB, NC, ACC )
-    trick = ' ('
-    for i in range(NA) :
-        print( '{} T const {}{}'.format( trick, va, i ), end='' )
-        trick = ','
-    for i in range(NB) :
-        print( '{} T const {}{}'.format( trick, vb, i ), end='' )
-    for i in range(NC) :
-        print( '{} T & {}{}'.format( trick, vc, i ), end='' )
-    print( ' )' )
+    va_list = ','.join( [ ' T const {}{}'.format( va, i ) for i in range( NA ) ] )
+    vb_list = ','.join( [ ' T const {}{}'.format( vb, i ) for i in range( NB ) ] )
+    vc_list = ','.join( [ ' T &{}{}'.format( vc, i ) for i in range( NC ) ] )
+    if NB > 0 :
+        print( ' ({},{},{} )'.format( va_list, vb_list, vc_list ) )
+    else :
+        print( ' ({},{} )'.format( va_list, vc_list ) )
 
 def caller_head ( Func, NA, NB, NC, ACC, va, vb, vc ) :
     fname( Func, NA, NB, NC, ACC )
-    trick = ' ('
-    for i in range(NA) :
-        print( '{} {}'.format( trick, va[i] ), end='' )
-        trick = ','
-    for i in range(NB) :
-        print( '{} {}'.format( trick, vb[i] ), end='' )
-    for i in range(NC) :
-        print( '{} {}'.format( trick, vc[i] ), end='' )
-    print( ' );' )
+    va_list = ','.join( [ ' {}'.format( va[i] ) for i in range( NA ) ] )
+    vb_list = ','.join( [ ' {}'.format( vb[i] ) for i in range( NB ) ] )
+    vc_list = ','.join( [ ' {}'.format( vc[i] ) for i in range( NC ) ] )
+    if NB > 0 :
+        print( ' ({},{},{} );'.format( va_list, vb_list, vc_list ) )
+    else :
+        print( ' ({},{} );'.format( va_list, vc_list ) )
 
 def insert ( line, pos, element ) :
     L = len( line )
@@ -876,11 +858,7 @@ def print_code( Func, NA, NB, NC, ACC, line, NumRegs ) :
 
     trick = ''
     if NumRegs > 0 :
-        print( '  T', end='' )
-        for i in range( NumRegs ) :
-            print( '{} t{}'.format( trick, i ), end='' )
-            trick = ','
-        print( ';' )
+        print( '  T ' + ', '.join( 't{}'.format( i ) ) + ';' )
 
     for i in range( len(line) ) :
         if '!' in line[i] :
@@ -928,59 +906,33 @@ def print_code( Func, NA, NB, NC, ACC, line, NumRegs ) :
 
         if a_list[0] == 'DEF' :
             num_regs = int( a_list[1] )
-            print( '  T', end='' )
-            trick = ''
-            for j in range( num_regs ) :
-                print( '{} {}'.format( trick, a_list[2+j] ), end='' )
-                trick = ','
-            print( ';' )
+            print( '  T ' + ', '.join( a_list[2+0:2*num_regs] ) + ';' )
 
         if a_list[0] == 'SUM' :
             num_regs = int( a_list[1] )
-            print( '  {}'.format( a_list[2] ), end='' )
-            trick = '='
-            for j in range( num_regs ) :
-                print( ' {} {}'.format( trick, a_list[3+j] ), end='' )
-                trick = '+'
-            print( ';' )
+            print( '  {} = '.format( a_list[2] ) + ' + '.join( a_list[3+0:3+num_regs] ) + ';' )
 
         if a_list[0] == 'add' or a_list[0] == 'sub' or a_list[0] == 'mul' or a_list[0] == 'div' :
-            va = {}
-            vb = {}
-            vc = {}
             Na = int( a_list[1] )
             Nb = int( a_list[2] )
             Nc = int( a_list[3] )
             Acc = int( a_list[4] )
-            for j in range( Na ) :
-                va[j] = a_list[5+j]
-                #print( 'VA={}'.format( va ) )
-            for j in range( Nb ) :
-                vb[j] = a_list[5+Na+j]
-                #print( 'VB={}'.format( vb ) )
-            for j in range( Nc ) :
-                vc[j] = a_list[5+Na+Nb+j]
-                #print( 'VC={}'.format( vc ) )
+            va_list = a_list[5+0:5+Na]
+            vb_list = a_list[5+Na:5+Na+Nb]
+            vc_list = a_list[5+Na+Nb:5+Na+Nb+Nc]
 
             print( '  ', end='' )
-            caller_head( a_list[0], Na, Nb, Nc, Acc, va, vb, vc )
+            caller_head( a_list[0], Na, Nb, Nc, Acc, va_list, vb_list, vc_list )
 
         if a_list[0] == 'sqr' or a_list[0] == 'sqrt' :
-            va = {}
-            vc = {}
             Na = int( a_list[1] )
             Nc = int( a_list[2] )
             Acc = int( a_list[3] )
-            for j in range( Na ) :
-                va[j] = a_list[4+j]
-                #print( 'VA={}'.format( va ) )
-            for j in range( Nc ) :
-                vc[j] = a_list[4+Na+j]
-                #print( 'VC={}'.format( vc ) )
+            va_list = a_list[4+0:4+Na]
+            vc_list = a_list[4+Na:4+Na+Nc]
 
             print( '  ', end='' )
-            caller_head( a_list[0], Na, 0, Nc, Acc, va, va, vc )
-
+            caller_head( a_list[0], Na, 0, Nc, Acc, va_list, va_list, vc_list )
 
     print( '}\n' )
 
@@ -994,10 +946,8 @@ def gen_sqrt( NA, NC, ACC ) :
         if ACC == 0 :
             def_head( 'sqrt', NA, 0, NC, ACC, 'a', 'b', 'c' )
             print( '{' )
-            va = 'a0'
-            for i in range( 1, NA ) :
-                va = 'a{} + {}'.format( i, va )
-            print( '  c0 = std::sqrt( {} );'.format( va ) )
+            va_list = ' + '.join( [ 'a{}'.format( i ) for i in range( NA ) ] )
+            print( '  c0 = std::sqrt( {} );'.format( va_list ) )
             print( '}\n' )
         if ACC == 1 and NA > 1 :
             def_head( 'sqrt', NA, 0, NC, ACC, 'a', 'b', 'c' )
@@ -1006,8 +956,7 @@ def gen_sqrt( NA, NC, ACC ) :
             print( '  T const as = std::sqrt( a0 );' )
             print( '  T const e  = fp_const<T>::exponent ( as );' )
             print( '  T const ex = fp_const<T>::exponenti( as );' )
-            for i in range( NA ) :
-                print( '  T const b{} = ( a{} * ex ) * ex;'.format( i, i ) )
+            [ print( '  T const b{} = ( a{} * ex ) * ex;'.format( i, i ) ) for i in range( NA ) ]
             print( '' )
             print( '  T const x  = e / as;' )
             print( '  T const ax = b0 * x;' )
@@ -1022,7 +971,8 @@ def gen_sqrt( NA, NC, ACC ) :
                 print( '  sub_TW_DW_SW( b0, b1, b2, r0, r1, c0 );' )
             if NA == 4 :
                 print( '  sub_DW_DW_SW( b0, b1, b2, b3, r0, r1, c0 );' )
-            print( '\n  c0 = ax + c0 * ( x * fp_const<T>::half() );' )
+            print( '' )
+            print( '  c0 = ax + c0 * ( x * fp_const<T>::half() );' )
             print( '  c0 = c0 * e;' )
             print( '}\n' )
         return
@@ -1031,11 +981,9 @@ def gen_sqrt( NA, NC, ACC ) :
         if ACC == 0 :
             def_head( 'sqrt', NA, 0, NC, ACC, 'a', 'b', 'c' )
             print( '{' )
-            va = ''
-            for i in range( 1, NA ) :
-                va = 'a{} + {}'.format( i, va )
+            va_list = ''.join( [ ' + a{}'.format( i ) for i in range( 1, NA ) ] )
             print( '  c0 = std::sqrt( a0 );' )
-            print( '  c1 = ( {}std::fma( -c0, c0, a0 ) ) / (c0 + c0);'.format( va ) )
+            print( '  c1 = ( std::fma( -c0, c0, a0 ){} ) / (c0 + c0);'.format( va_list ) )
             print( '}\n' )
             return
         if ACC == 1 :
@@ -1048,8 +996,7 @@ def gen_sqrt( NA, NC, ACC ) :
             print( '  T const as = std::sqrt( a0 );' )
             print( '  T const e  = fp_const<T>::exponent ( as );' )
             print( '  T const ex = fp_const<T>::exponenti( as );' )
-            for i in range( NA ) :
-                print( '  T const b{} = ( a{} * ex ) * ex;'.format( i, i ) )
+            [ print( '  T const b{} = ( a{} * ex ) * ex;'.format( i, i ) ) for i in range( NA ) ]
             print( '' )
             print( '  T const x  = e / as;' )
             print( '  T const ax = b0 * x;' )
@@ -1079,50 +1026,33 @@ def gen_sqrt( NA, NC, ACC ) :
     if ACC == 0 :
         if NA > NC :
 
-            va=''
-            for i in range( NC-1 ) :
-                va = '{} a{}'.format( va, i )
-            vv='a{}'.format(NC-1)
-            for i in range( NA-1, NA ) :
-                vv = '{}+a{}'.format( vv, i )
-            va = '{} {}'.format( va, vv )
+            va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NC-1 ) ] ) + ' ' \
+                    + '+'.join( [ 'a{}'.format( i ) for i in range( NC-1, NA ) ] )
+            vc_list = ' '.join( [ 'c{}'.format( i ) for i in range( NC ) ] )
 
-            vc=''
-            for i in range( NC ) :
-                vc = '{} c{}'.format( vc, i )
-
-            line[LineCount] = 'sqrt {} {} {} {} {}'.format( NC, NC, ACC, va, vc )
+            line[LineCount] = 'sqrt {} {} {} {} {}'.format( NC, NC, ACC, va_list, vc_list )
             LineCount = LineCount + 1
 
         else :
             NCC = NC - 1
             
-            vt = ''
-            line[LineCount] = 'DEF {}'.format( NC )
-            for i in range( NC ) :
-                line[LineCount] = '{} t{}'.format( line[LineCount], i )
-                vt = '{} t{}'.format( vt, i )
-            LineCount = LineCount + 1
+            va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NA ) ] )
+            vc_list = ' '.join( [ 'c{}'.format( i ) for i in range( NCC ) ] )
+            vt_list = ' '.join( [ 't{}'.format( i ) for i in range( NC ) ] )
 
-            va=''
-            for i in range( NA ) :
-                va = '{} a{}'.format( va, i )
-
-            vc=''
-            for i in range( NCC ) :
-                vc = '{} c{}'.format( vc, i )
-
-            line[LineCount] = 'sqrt {} {} {} {} {}'.format( NA, NCC, ACC, va, vc )
+            line[LineCount] = 'DEF {} {}'.format( NC, vt_list )
             LineCount = LineCount + 1
-            line[LineCount] = 'sqr {} {} {} {} {}'.format( NCC, NC, ACC, vc, vt )
+            line[LineCount] = 'sqrt {} {} {} {} {}'.format( NA, NCC, ACC, va_list, vc_list )
             LineCount = LineCount + 1
-            line[LineCount] = 'sub {} {} {} {} {} {} {}'.format( NA, NC, NC, ACC, va, vt, vt )
+            line[LineCount] = 'sqr {} {} {} {} {}'.format( NCC, NC, ACC, vc_list, vt_list )
+            LineCount = LineCount + 1
+            line[LineCount] = 'sub {} {} {} {} {} {} {}'.format( NA, NC, NC, ACC, va_list, vt_list, vt_list )
             LineCount = LineCount + 1
             line[LineCount] = 'DEF 2 tn td'
             LineCount = LineCount + 1
-            line[LineCount] = 'SUM {} tn {}'.format( NC, vt )
+            line[LineCount] = 'SUM {} tn {}'.format( NC, vt_list )
             LineCount = LineCount + 1
-            line[LineCount] = 'SUM {} td {}'.format( NCC, vc )
+            line[LineCount] = 'SUM {} td {}'.format( NCC, vc_list )
             LineCount = LineCount + 1
             line[LineCount] = 'DIV c{} tn td'.format( NC-1 )
             LineCount = LineCount + 1
@@ -1140,30 +1070,17 @@ def gen_sqrt( NA, NC, ACC ) :
 
         NX = max(NA, NC)
 
-        for i in range( NA ) :
-            print( '  T const ax{} = (a{} * ex) * ex2;'.format( i, i ) )
+        [ print( '  T const ax{} = (a{} * ex) * ex2;'.format( i, i ) ) for i in range( NA ) ]
         print( '  T const h0 = 3*fp_const<T>::half();' )
 
-        print( '  T t0', end='' )
-        for i in range(1, NX ) :
-            print( ', t{}'.format( i ), end='' )
-        print( ';' )
-
-        print( '  T r0', end='' )
-        for i in range( 1, NX ) :
-            print( ', r{}'.format( i ), end='' )
-        print( ';\n' )
+        print( '  T ' + ', '.join( [ 't{}'.format( i ) for i in range( NX ) ] ) + ';' )
+        print( '  T ' + ', '.join( [ 'r{}'.format( i ) for i in range( NX ) ] ) + ';' )
         print( '  r0 = e / as;' )
 
-        vax = {}
-        vr  = {}
-        vh  = {}
-        vt  = {}
-        for i in range( NX ) :
-            vax[i] = 'ax{}'.format( i )
-            vr [i] = 'r{}'.format( i )
-            vh [i] = 'h{}'.format( i )
-            vt [i] = 't{}'.format( i )
+        vax = [ 'ax{}'.format(i) for i in range( NX ) ]
+        vr  = [ 'r{}'.format(i) for i in range( NX ) ]
+        vh  = [ 'h{}'.format(i) for i in range( NX ) ]
+        vt  = [ 't{}'.format(i) for i in range( NX ) ]
 
         for itr in range( NC-1 ) :
             print( '' )
@@ -1179,10 +1096,9 @@ def gen_sqrt( NA, NC, ACC ) :
             else :
                 caller_head ( '  mul', NX, NX, NX, ACC, vt, vr, vr )
 
-        print( '\n' )
-        caller_head ( '  mul', NA, NX, NX, ACC, vax, vr, vr )
-        for i in range( NC ) :
-            print( '  c{} = r{} * e2;'.format( i, i ) )
+        print( '' )
+        caller_head ( '  mul', NA, NC, NC, ACC, vax, vr, vr )
+        [ print( '  c{} = r{} * e2;'.format( i, i ) ) for i in range( NC ) ]
         print( '}\n' )
 
         return

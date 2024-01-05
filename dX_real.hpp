@@ -91,8 +91,9 @@ namespace dX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
-        twoSum( h.x[0], h.x[1], x[0], x[1] );
-	quickSum( x[0], x[1] );
+        auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1];
       }
     }
     template < Algorithm _A_ >
@@ -106,11 +107,9 @@ namespace dX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
-        T f[3];
-        twoSum( h.x[1], h.x[2], f[1], f[2] );
-        twoSum( h.x[0], f[1], f[0], f[1] );
-	quickSum( f[0], f[1], x[0], x[1] );
-	quickSum( x[1], f[2] );
+        auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1];
       }
     }
     template < Algorithm _A_ >
@@ -124,13 +123,9 @@ namespace dX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
-        T f[4];
-        twoSum( h.x[2], h.x[3], f[2], f[3] );
-        twoSum( h.x[1], f[2], f[1], f[2] );
-        twoSum( h.x[0], f[1], f[0], f[1] );
-	quickSum( f[0], f[1], x[0], f[1] );
-	f[2] = f[2] + f[3];
-	quickSum( f[1], f[2], x[1], f[2] );
+        auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1];
       }
     }
 
@@ -159,8 +154,9 @@ namespace dX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
-        twoSum( h.x[0], h.x[1], x[0], x[1] );
-        quickSum( x[0], x[1] );
+        auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1];
       }
       return *this;
     }
@@ -175,11 +171,9 @@ namespace dX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
-        T f[3];
-        twoSum( h.x[1], h.x[2], f[1], f[2] );
-        twoSum( h.x[0], f[1], f[0], f[1] );
-	quickSum( f[0], f[1], x[0], f[1] );
-	quickSum( f[1], f[2], x[1], f[2] );
+        auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1];
       }
       return *this;
     }
@@ -194,13 +188,9 @@ namespace dX_real {
       if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
         x[0] = h.x[0]; x[1] = h.x[1];
       } else {
-        T f[4];
-        twoSum( h.x[2], h.x[3], f[2], f[3] );
-        twoSum( h.x[1], f[2], f[1], f[2] );
-        twoSum( h.x[0], f[1], f[0], f[1] );
-	quickSum( f[0], f[1], x[0], f[1] );
-	f[2] = f[2] + f[3];
-	quickSum( f[1], f[2], x[1], f[2] );
+        auto s = h;
+        NormalizeStrict( s );
+        x[0] = s.x[0]; x[1] = s.x[1];
       }
       return *this;
     }
@@ -230,10 +220,9 @@ namespace dX_real {
       } else
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
-        T f[2];
-        twoSum( x[0], x[1], f[0], f[1] );
-	quickSum( f[0], f[1] );
-        return DX_REAL<_A_>{ f };
+        auto s = *this;
+        NormalizeStrict( s );
+        return DX_REAL<_A_>{ s.x };
       } else {
         return DX_REAL<_A_>{ x };
       }
@@ -250,10 +239,9 @@ namespace dX_real {
       } else
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
-        T f[2];
-        twoSum( x[0], x[1], f[0], f[1] );
-	quickSum( f[0], f[1] );
-        return TX_REAL<_A_>( f[0], f[1], fp<T>::zero );
+        auto s = *this;
+        NormalizeStrict( s );
+        return TX_REAL<_A_>{ s.x[0], s.x[1], fp<T>::zero };
       } else {
         T c = std::isinf(x[0]) ? x[0] : fp<T>::zero;
         return TX_REAL<_A_>{ x[0], x[1], c };
@@ -271,10 +259,9 @@ namespace dX_real {
       } else
 #endif
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
-        T f[2];
-        twoSum( x[0], x[1], f[0], f[1] );
-	quickSum( f[0], f[1] );
-        return QX_REAL<_A_>( f[0], f[1], fp<T>::zero, fp<T>::zero );
+        auto s = *this;
+        NormalizeStrict( s );
+        return QX_REAL<_A_>( s.x[0], s.x[1], fp<T>::zero, fp<T>::zero );
       } else {
         T c = std::isinf(x[0]) ? x[0] : fp<T>::zero;
         return QX_REAL<_A_>{ x[0], x[1], c, c };

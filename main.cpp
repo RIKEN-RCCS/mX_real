@@ -235,14 +235,51 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
 
   {
     auto y = T(0);
+    mp_real y_ = double(0);
     for(int i=0x200000;i>=1;i--) {
       auto x = T(i);
       auto x2 = x * x;
-      y = y + T(1) / (x2*x2);
+      auto x4 = x2 * x2;
+      auto z = T(1) / x4;
+      y = y + z;
+
+#if 0
+      mp_real x_ = double(i);
+      mp_real x2_ = x_ * x_;
+      mp_real x4_ = x2_ * x2_;
+      mp_real z_ = mp_real(double(1)) / x4_;
+      y_ = y_ + z_;
+
+      auto X = convert<T>( x_ );
+      auto X2 = convert<T>( x2_ );
+      auto X4 = convert<T>( x4_ );
+      auto Z = convert<T>( z_ );
+      auto Y = convert<T>( y_ );
+
+      if ( i < 500 && std::is_same<T,tf_Real>::value ) {
+		printf( "i= %d\n", i);
+
+    	print( " x >> ", X-x );
+    	print( " x2 >> ", X2-x2 );
+    	print( " x4 >> ", X4-x4 );
+    	print( " y >> ", Y-y );
+    	print( " z >> ", Z-z );
+		print( "YYY", Y );
+		print( "yyy", y );
+      }
+#endif
     }
-    y = sqrt( sqrt( y*90 ) );
-    auto ans = y;
+    auto ans = sqrt( sqrt( y*90 ) );
     print( "pai by sqrt(sqrt(90*sum 1/k^4)) ", ans );
+
+    auto pi = mpfr::const_pi();
+    auto pai = convert<T>( mpfr::const_pi() );
+    auto pai4 = convert<T>( pi*pi*pi*pi );
+
+    print( "pi.appx^4                    =  ", y*90 );
+    print( "pi[mpfr::const_pi]^4         =  ", pai4 );
+    print( "pi[mpfr::const_pi]           =  ", pai );
+    print( "pi[mpfr::const_pi] - pi.appx =  ", pai - ans );
   }
 }
 
@@ -299,6 +336,51 @@ for(int i=1;i<3;i++){
    print( "eps", std::numeric_limits<qf_Real>::epsilon() );
    print( "eps", std::pow( (float)2, -(float)95 ) );
 }
+{
+   tf_Real r = tf_Real::rand();
+   tf_Real x;
+   x.x[0] = 0*r.x[0];
+   x.x[1] = -8*r.x[1];
+   x.x[2] = -9*r.x[2];
+   print( "normalize test", x );
+   QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+   QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+   print( "normalize test", x );
+   QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+   print( "normalize test", x );
+
+   x.x[0] = 0*r.x[0];
+   x.x[1] = -8*r.x[1];
+   x.x[2] = -9*r.x[2];
+   print( "normalize test", x );
+   QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+   QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+   print( "normalize test", x );
+   QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+   print( "normalize test", x );
+
+   x.x[0] = 1.0f*r.x[1];
+   x.x[1] = -0*r.x[2];
+   x.x[2] = +9*r.x[0];
+   print( "normalize test 0", x );
+   QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+   QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+   print( "normalize test 1", x );
+   QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+   print( "normalize test 2", x );
+
+   x.x[0] = 1.0f*r.x[1];
+   x.x[1] = -0*r.x[2];
+   x.x[2] = +9*r.x[0];
+   print( "normalize test 0", x );
+   QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+   QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+   print( "normalize test 1", x );
+   QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+   print( "normalize test 2", x );
+
+}
+#if 1
 {
    print( "min", std::numeric_limits<float>::min() );
    print( "min", std::numeric_limits<dd_Real>::min() );
@@ -430,6 +512,8 @@ for(int i=1;i<3;i++){
   verify<qd_Real>       ( L, alpha, x, y, z );
 
   std::cout << std::endl;
+
+#endif
 
   delete [] x;
   delete [] y;

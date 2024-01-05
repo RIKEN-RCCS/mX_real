@@ -1,13 +1,13 @@
 // sqrt: 1-1
 template < typename T > __always_inline void
-sqrt_SW_SW ( T const a0, T & c0 )
+sqrt_SW_SW ( T const a0, T &c0 )
 {
   c0 = std::sqrt( a0 );
 }
 
 // sqrt: 1-2
 template < typename T > __always_inline void
-sqrt_SW_PA ( T const a0, T & c0, T & c1 )
+sqrt_SW_PA ( T const a0, T &c0, T &c1 )
 {
   c0 = std::sqrt( a0 );
   c1 = ( std::fma( -c0, c0, a0 ) ) / (c0 + c0);
@@ -15,7 +15,7 @@ sqrt_SW_PA ( T const a0, T & c0, T & c1 )
 
 // sqrt: 1-3
 template < typename T > __always_inline void
-sqrt_SW_QTW ( T const a0, T & c0, T & c1, T & c2 )
+sqrt_SW_QTW ( T const a0, T &c0, T &c1, T &c2 )
 {
   T t0, t1, t2;
   sqrt_SW_PA ( a0, c0, c1 );
@@ -30,7 +30,7 @@ sqrt_SW_QTW ( T const a0, T & c0, T & c1, T & c2 )
 
 // sqrt: 1-4
 template < typename T > __always_inline void
-sqrt_SW_QQW ( T const a0, T & c0, T & c1, T & c2, T & c3 )
+sqrt_SW_QQW ( T const a0, T &c0, T &c1, T &c2, T &c3 )
 {
   T t0, t1, t2, t3;
   sqrt_SW_QTW ( a0, c0, c1, c2 );
@@ -45,22 +45,22 @@ sqrt_SW_QQW ( T const a0, T & c0, T & c1, T & c2, T & c3 )
 
 // sqrt: 2-1
 template < typename T > __always_inline void
-sqrt_PA_SW ( T const a0, T const a1, T & c0 )
+sqrt_PA_SW ( T const a0, T const a1, T &c0 )
 {
-  c0 = std::sqrt( a1 + a0 );
+  c0 = std::sqrt( a0 + a1 );
 }
 
 // sqrt: 2-2
 template < typename T > __always_inline void
-sqrt_PA_PA ( T const a0, T const a1, T & c0, T & c1 )
+sqrt_PA_PA ( T const a0, T const a1, T &c0, T &c1 )
 {
   c0 = std::sqrt( a0 );
-  c1 = ( a1 + std::fma( -c0, c0, a0 ) ) / (c0 + c0);
+  c1 = ( std::fma( -c0, c0, a0 ) + a1 ) / (c0 + c0);
 }
 
 // sqrt: 2-3
 template < typename T > __always_inline void
-sqrt_PA_QTW ( T const a0, T const a1, T & c0, T & c1, T & c2 )
+sqrt_PA_QTW ( T const a0, T const a1, T &c0, T &c1, T &c2 )
 {
   T t0, t1, t2;
   sqrt_PA_PA ( a0, a1, c0, c1 );
@@ -75,7 +75,7 @@ sqrt_PA_QTW ( T const a0, T const a1, T & c0, T & c1, T & c2 )
 
 // sqrt: 2-4
 template < typename T > __always_inline void
-sqrt_PA_QQW ( T const a0, T const a1, T & c0, T & c1, T & c2, T & c3 )
+sqrt_PA_QQW ( T const a0, T const a1, T &c0, T &c1, T &c2, T &c3 )
 {
   T t0, t1, t2, t3;
   sqrt_PA_QTW ( a0, a1, c0, c1, c2 );
@@ -90,22 +90,22 @@ sqrt_PA_QQW ( T const a0, T const a1, T & c0, T & c1, T & c2, T & c3 )
 
 // sqrt: 3-1
 template < typename T > __always_inline void
-sqrt_QTW_SW ( T const a0, T const a1, T const a2, T & c0 )
+sqrt_QTW_SW ( T const a0, T const a1, T const a2, T &c0 )
 {
-  c0 = std::sqrt( a2 + a1 + a0 );
+  c0 = std::sqrt( a0 + a1 + a2 );
 }
 
 // sqrt: 3-2
 template < typename T > __always_inline void
-sqrt_QTW_PA ( T const a0, T const a1, T const a2, T & c0, T & c1 )
+sqrt_QTW_PA ( T const a0, T const a1, T const a2, T &c0, T &c1 )
 {
   c0 = std::sqrt( a0 );
-  c1 = ( a2 + a1 + std::fma( -c0, c0, a0 ) ) / (c0 + c0);
+  c1 = ( std::fma( -c0, c0, a0 ) + a1 + a2 ) / (c0 + c0);
 }
 
 // sqrt: 3-3
 template < typename T > __always_inline void
-sqrt_QTW_QTW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2 )
+sqrt_QTW_QTW ( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2 )
 {
   T t0, t1, t2;
   sqrt_QTW_PA ( a0, a1, a2, c0, c1 );
@@ -120,7 +120,7 @@ sqrt_QTW_QTW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2 )
 
 // sqrt: 3-4
 template < typename T > __always_inline void
-sqrt_QTW_QQW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2, T & c3 )
+sqrt_QTW_QQW ( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2, T &c3 )
 {
   T t0, t1, t2, t3;
   sqrt_QTW_QTW ( a0, a1, a2, c0, c1, c2 );
@@ -135,29 +135,29 @@ sqrt_QTW_QQW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2, T & c
 
 // sqrt: 4-1
 template < typename T > __always_inline void
-sqrt_QQW_SW ( T const a0, T const a1, T const a2, T const a3, T & c0 )
+sqrt_QQW_SW ( T const a0, T const a1, T const a2, T const a3, T &c0 )
 {
-  c0 = std::sqrt( a3 + a2 + a1 + a0 );
+  c0 = std::sqrt( a0 + a1 + a2 + a3 );
 }
 
 // sqrt: 4-2
 template < typename T > __always_inline void
-sqrt_QQW_PA ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1 )
+sqrt_QQW_PA ( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1 )
 {
   c0 = std::sqrt( a0 );
-  c1 = ( a3 + a2 + a1 + std::fma( -c0, c0, a0 ) ) / (c0 + c0);
+  c1 = ( std::fma( -c0, c0, a0 ) + a1 + a2 + a3 ) / (c0 + c0);
 }
 
 // sqrt: 4-3
 template < typename T > __always_inline void
-sqrt_QQW_QTW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T & c2 )
+sqrt_QQW_QTW ( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2 )
 {
   sqrt_QTW_QTW ( a0, a1, a2+a3, c0, c1, c2 );
 }
 
 // sqrt: 4-4
 template < typename T > __always_inline void
-sqrt_QQW_QQW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T & c2, T & c3 )
+sqrt_QQW_QQW ( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2, T &c3 )
 {
   T t0, t1, t2, t3;
   sqrt_QQW_QTW ( a0, a1, a2, a3, c0, c1, c2 );
@@ -172,7 +172,7 @@ sqrt_QQW_QQW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T
 
 // sqrt: 1-2
 template < typename T > __always_inline void
-sqrt_SW_DW ( T const a0, T & c0, T & c1 )
+sqrt_SW_DW ( T const a0, T &c0, T &c1 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent ( as );
@@ -193,7 +193,7 @@ sqrt_SW_DW ( T const a0, T & c0, T & c1 )
 
 // sqrt: 1-3
 template < typename T > __always_inline void
-sqrt_SW_TW ( T const a0, T & c0, T & c1, T & c2 )
+sqrt_SW_TW ( T const a0, T &c0, T &c1, T &c2 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent( as );
@@ -204,7 +204,6 @@ sqrt_SW_TW ( T const a0, T & c0, T & c1, T & c2 )
   T const h0 = 3*fp_const<T>::half();
   T t0, t1, t2;
   T r0, r1, r2;
-
   r0 = e / as;
 
   sqr_SW_DW ( r0, t0, t1 );
@@ -217,7 +216,6 @@ sqrt_SW_TW ( T const a0, T & c0, T & c1, T & c2 )
   sub_SW_TW_TW ( h0, t0, t1, t2, t0, t1, t2 );
   mul_TW_TW_TW ( t0, t1, t2, r0, r1, r2, r0, r1, r2 );
 
-
   mul_SW_TW_TW ( ax0, r0, r1, r2, r0, r1, r2 );
   c0 = r0 * e2;
   c1 = r1 * e2;
@@ -226,7 +224,7 @@ sqrt_SW_TW ( T const a0, T & c0, T & c1, T & c2 )
 
 // sqrt: 1-4
 template < typename T > __always_inline void
-sqrt_SW_QW ( T const a0, T & c0, T & c1, T & c2, T & c3 )
+sqrt_SW_QW ( T const a0, T &c0, T &c1, T &c2, T &c3 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent( as );
@@ -237,7 +235,6 @@ sqrt_SW_QW ( T const a0, T & c0, T & c1, T & c2, T & c3 )
   T const h0 = 3*fp_const<T>::half();
   T t0, t1, t2, t3;
   T r0, r1, r2, r3;
-
   r0 = e / as;
 
   sqr_SW_DW ( r0, t0, t1 );
@@ -255,7 +252,6 @@ sqrt_SW_QW ( T const a0, T & c0, T & c1, T & c2, T & c3 )
   sub_SW_QW_QW ( h0, t0, t1, t2, t3, t0, t1, t2, t3 );
   mul_QW_QW_QW ( t0, t1, t2, t3, r0, r1, r2, r3, r0, r1, r2, r3 );
 
-
   mul_SW_QW_QW ( ax0, r0, r1, r2, r3, r0, r1, r2, r3 );
   c0 = r0 * e2;
   c1 = r1 * e2;
@@ -265,7 +261,7 @@ sqrt_SW_QW ( T const a0, T & c0, T & c1, T & c2, T & c3 )
 
 // sqrt: 2-1
 template < typename T > __always_inline void
-sqrt_DW_SW ( T const a0, T const a1, T & c0 )
+sqrt_DW_SW ( T const a0, T const a1, T &c0 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent ( as );
@@ -286,7 +282,7 @@ sqrt_DW_SW ( T const a0, T const a1, T & c0 )
 
 // sqrt: 2-2
 template < typename T > __always_inline void
-sqrt_DW_DW ( T const a0, T const a1, T & c0, T & c1 )
+sqrt_DW_DW ( T const a0, T const a1, T &c0, T &c1 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent ( as );
@@ -308,7 +304,7 @@ sqrt_DW_DW ( T const a0, T const a1, T & c0, T & c1 )
 
 // sqrt: 2-3
 template < typename T > __always_inline void
-sqrt_DW_TW ( T const a0, T const a1, T & c0, T & c1, T & c2 )
+sqrt_DW_TW ( T const a0, T const a1, T &c0, T &c1, T &c2 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent( as );
@@ -320,7 +316,6 @@ sqrt_DW_TW ( T const a0, T const a1, T & c0, T & c1, T & c2 )
   T const h0 = 3*fp_const<T>::half();
   T t0, t1, t2;
   T r0, r1, r2;
-
   r0 = e / as;
 
   sqr_SW_DW ( r0, t0, t1 );
@@ -333,7 +328,6 @@ sqrt_DW_TW ( T const a0, T const a1, T & c0, T & c1, T & c2 )
   sub_SW_TW_TW ( h0, t0, t1, t2, t0, t1, t2 );
   mul_TW_TW_TW ( t0, t1, t2, r0, r1, r2, r0, r1, r2 );
 
-
   mul_DW_TW_TW ( ax0, ax1, r0, r1, r2, r0, r1, r2 );
   c0 = r0 * e2;
   c1 = r1 * e2;
@@ -342,7 +336,7 @@ sqrt_DW_TW ( T const a0, T const a1, T & c0, T & c1, T & c2 )
 
 // sqrt: 2-4
 template < typename T > __always_inline void
-sqrt_DW_QW ( T const a0, T const a1, T & c0, T & c1, T & c2, T & c3 )
+sqrt_DW_QW ( T const a0, T const a1, T &c0, T &c1, T &c2, T &c3 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent( as );
@@ -354,7 +348,6 @@ sqrt_DW_QW ( T const a0, T const a1, T & c0, T & c1, T & c2, T & c3 )
   T const h0 = 3*fp_const<T>::half();
   T t0, t1, t2, t3;
   T r0, r1, r2, r3;
-
   r0 = e / as;
 
   sqr_SW_DW ( r0, t0, t1 );
@@ -372,7 +365,6 @@ sqrt_DW_QW ( T const a0, T const a1, T & c0, T & c1, T & c2, T & c3 )
   sub_SW_QW_QW ( h0, t0, t1, t2, t3, t0, t1, t2, t3 );
   mul_QW_QW_QW ( t0, t1, t2, t3, r0, r1, r2, r3, r0, r1, r2, r3 );
 
-
   mul_DW_QW_QW ( ax0, ax1, r0, r1, r2, r3, r0, r1, r2, r3 );
   c0 = r0 * e2;
   c1 = r1 * e2;
@@ -382,7 +374,7 @@ sqrt_DW_QW ( T const a0, T const a1, T & c0, T & c1, T & c2, T & c3 )
 
 // sqrt: 3-1
 template < typename T > __always_inline void
-sqrt_TW_SW ( T const a0, T const a1, T const a2, T & c0 )
+sqrt_TW_SW ( T const a0, T const a1, T const a2, T &c0 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent ( as );
@@ -404,7 +396,7 @@ sqrt_TW_SW ( T const a0, T const a1, T const a2, T & c0 )
 
 // sqrt: 3-2
 template < typename T > __always_inline void
-sqrt_TW_DW ( T const a0, T const a1, T const a2, T & c0, T & c1 )
+sqrt_TW_DW ( T const a0, T const a1, T const a2, T &c0, T &c1 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent ( as );
@@ -427,7 +419,7 @@ sqrt_TW_DW ( T const a0, T const a1, T const a2, T & c0, T & c1 )
 
 // sqrt: 3-3
 template < typename T > __always_inline void
-sqrt_TW_TW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2 )
+sqrt_TW_TW ( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent( as );
@@ -440,7 +432,6 @@ sqrt_TW_TW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2 )
   T const h0 = 3*fp_const<T>::half();
   T t0, t1, t2;
   T r0, r1, r2;
-
   r0 = e / as;
 
   sqr_SW_DW ( r0, t0, t1 );
@@ -453,7 +444,6 @@ sqrt_TW_TW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2 )
   sub_SW_TW_TW ( h0, t0, t1, t2, t0, t1, t2 );
   mul_TW_TW_TW ( t0, t1, t2, r0, r1, r2, r0, r1, r2 );
 
-
   mul_TW_TW_TW ( ax0, ax1, ax2, r0, r1, r2, r0, r1, r2 );
   c0 = r0 * e2;
   c1 = r1 * e2;
@@ -462,7 +452,7 @@ sqrt_TW_TW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2 )
 
 // sqrt: 3-4
 template < typename T > __always_inline void
-sqrt_TW_QW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2, T & c3 )
+sqrt_TW_QW ( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2, T &c3 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent( as );
@@ -475,7 +465,6 @@ sqrt_TW_QW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2, T & c3 
   T const h0 = 3*fp_const<T>::half();
   T t0, t1, t2, t3;
   T r0, r1, r2, r3;
-
   r0 = e / as;
 
   sqr_SW_DW ( r0, t0, t1 );
@@ -493,7 +482,6 @@ sqrt_TW_QW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2, T & c3 
   sub_SW_QW_QW ( h0, t0, t1, t2, t3, t0, t1, t2, t3 );
   mul_QW_QW_QW ( t0, t1, t2, t3, r0, r1, r2, r3, r0, r1, r2, r3 );
 
-
   mul_TW_QW_QW ( ax0, ax1, ax2, r0, r1, r2, r3, r0, r1, r2, r3 );
   c0 = r0 * e2;
   c1 = r1 * e2;
@@ -503,7 +491,7 @@ sqrt_TW_QW ( T const a0, T const a1, T const a2, T & c0, T & c1, T & c2, T & c3 
 
 // sqrt: 4-1
 template < typename T > __always_inline void
-sqrt_QW_SW ( T const a0, T const a1, T const a2, T const a3, T & c0 )
+sqrt_QW_SW ( T const a0, T const a1, T const a2, T const a3, T &c0 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent ( as );
@@ -526,7 +514,7 @@ sqrt_QW_SW ( T const a0, T const a1, T const a2, T const a3, T & c0 )
 
 // sqrt: 4-2
 template < typename T > __always_inline void
-sqrt_QW_DW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1 )
+sqrt_QW_DW ( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent ( as );
@@ -550,7 +538,7 @@ sqrt_QW_DW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1 )
 
 // sqrt: 4-3
 template < typename T > __always_inline void
-sqrt_QW_TW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T & c2 )
+sqrt_QW_TW ( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent( as );
@@ -564,7 +552,6 @@ sqrt_QW_TW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T &
   T const h0 = 3*fp_const<T>::half();
   T t0, t1, t2, t3;
   T r0, r1, r2, r3;
-
   r0 = e / as;
 
   sqr_SW_DW ( r0, t0, t1 );
@@ -577,8 +564,7 @@ sqrt_QW_TW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T &
   sub_SW_QW_QW ( h0, t0, t1, t2, t3, t0, t1, t2, t3 );
   mul_QW_QW_TW ( t0, t1, t2, t3, r0, r1, r2, r3, r0, r1, r2 );
 
-
-  mul_QW_QW_QW ( ax0, ax1, ax2, ax3, r0, r1, r2, r3, r0, r1, r2, r3 );
+  mul_QW_TW_TW ( ax0, ax1, ax2, ax3, r0, r1, r2, r0, r1, r2 );
   c0 = r0 * e2;
   c1 = r1 * e2;
   c2 = r2 * e2;
@@ -586,7 +572,7 @@ sqrt_QW_TW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T &
 
 // sqrt: 4-4
 template < typename T > __always_inline void
-sqrt_QW_QW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T & c2, T & c3 )
+sqrt_QW_QW ( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2, T &c3 )
 {
   T const as = std::sqrt( a0 );
   T const e  = fp_const<T>::exponent( as );
@@ -600,7 +586,6 @@ sqrt_QW_QW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T &
   T const h0 = 3*fp_const<T>::half();
   T t0, t1, t2, t3;
   T r0, r1, r2, r3;
-
   r0 = e / as;
 
   sqr_SW_DW ( r0, t0, t1 );
@@ -617,7 +602,6 @@ sqrt_QW_QW ( T const a0, T const a1, T const a2, T const a3, T & c0, T & c1, T &
   mul_QW_QW_QW ( ax0, ax1, ax2, ax3, t0, t1, t2, t3, t0, t1, t2, t3 );
   sub_SW_QW_QW ( h0, t0, t1, t2, t3, t0, t1, t2, t3 );
   mul_QW_QW_QW ( t0, t1, t2, t3, r0, r1, r2, r3, r0, r1, r2, r3 );
-
 
   mul_QW_QW_QW ( ax0, ax1, ax2, ax3, r0, r1, r2, r3, r0, r1, r2, r3 );
   c0 = r0 * e2;
