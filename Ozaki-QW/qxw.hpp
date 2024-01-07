@@ -101,7 +101,7 @@ TwoProductFMA ( T const a, T const b, T &x, T &y )
 template < typename T > __always_inline void
 add_SW_SW_SW( T const a0, T const b0, T &c0 )
 {
-  c0 = fp_const<T>::zero();
+  c0 = a0 + b0;
 }
 
 // add: 1-1-2
@@ -132,7 +132,8 @@ add_SW_SW_QQW( T const a0, T const b0, T &c0, T &c1, T &c2, T &c3 )
 template < typename T > __always_inline void
 add_SW_PA_SW( T const a0, T const b0, T const b1, T &c0 )
 {
-  c0 = b1;
+  c0 = a0 + b0;
+  c0 = c0 + b1;
 }
 
 // add: 1-2-2
@@ -164,7 +165,8 @@ add_SW_PA_QQW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
 template < typename T > __always_inline void
 add_SW_QTW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
 {
-  c0 = b1 + b2;
+  c0 = a0 + b0;
+  c0 = c0 + b1 + b2;
 }
 
 // add: 1-3-2
@@ -199,7 +201,8 @@ add_SW_QTW_QQW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T 
 template < typename T > __always_inline void
 add_SW_QQW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
 {
-  c0 = b1 + b2 + b3;
+  c0 = a0 + b0;
+  c0 = c0 + b1 + b2 + b3;
 }
 
 // add: 1-4-2
@@ -236,7 +239,8 @@ add_SW_QQW_QQW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c
 template < typename T > __always_inline void
 add_PA_SW_SW( T const a0, T const a1, T const b0, T &c0 )
 {
-  c0 = a1;
+  c0 = a0 + b0;
+  c0 = c0 + a1;
 }
 
 // add: 2-1-2
@@ -268,7 +272,10 @@ add_PA_SW_QQW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
 template < typename T > __always_inline void
 add_PA_PA_SW( T const a0, T const a1, T const b0, T const b1, T &c0 )
 {
-  c0 = a1 + b1;
+  T t0;
+  c0 = a0 + b0;
+  t0 = a1 + b1;
+  c0 = c0 + t0;
 }
 
 // add: 2-2-2
@@ -307,8 +314,9 @@ template < typename T > __always_inline void
 add_PA_QTW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0 )
 {
   T t0;
+  c0 = a0 + b0;
   t0 = a1 + b1;
-  c0 = t0 + b2;
+  c0 = c0 + t0 + b2;
 }
 
 // add: 2-3-2
@@ -352,8 +360,9 @@ template < typename T > __always_inline void
 add_PA_QQW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0 )
 {
   T t0;
+  c0 = a0 + b0;
   t0 = a1 + b1;
-  c0 = t0 + b2 + b3;
+  c0 = c0 + t0 + b2 + b3;
 }
 
 // add: 2-4-2
@@ -397,7 +406,8 @@ add_PA_QQW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T co
 template < typename T > __always_inline void
 add_QTW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
 {
-  c0 = a1 + a2;
+  c0 = a0 + b0;
+  c0 = c0 + a1 + a2;
 }
 
 // add: 3-1-2
@@ -433,8 +443,9 @@ template < typename T > __always_inline void
 add_QTW_PA_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0 )
 {
   T t0;
+  c0 = a0 + b0;
   t0 = a1 + b1;
-  c0 = t0 + a2;
+  c0 = c0 + t0 + a2;
 }
 
 // add: 3-2-2
@@ -478,9 +489,10 @@ template < typename T > __always_inline void
 add_QTW_QTW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0 )
 {
   T t0, t1;
+  c0 = a0 + b0;
   t0 = a1 + b1;
   t1 = a2 + b2;
-  c0 = t0 + t1;
+  c0 = c0 + t0 + t1;
 }
 
 // add: 3-3-2
@@ -528,9 +540,10 @@ template < typename T > __always_inline void
 add_QTW_QQW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0 )
 {
   T t0, t1;
+  c0 = a0 + b0;
   t0 = a1 + b1;
   t1 = a2 + b2;
-  c0 = t0 + t1 + b3;
+  c0 = c0 + t0 + t1 + b3;
 }
 
 // add: 3-4-2
@@ -578,7 +591,8 @@ add_QTW_QQW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
 template < typename T > __always_inline void
 add_QQW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
 {
-  c0 = a1 + a2 + a3;
+  c0 = a0 + b0;
+  c0 = c0 + a1 + a2 + a3;
 }
 
 // add: 4-1-2
@@ -616,8 +630,9 @@ template < typename T > __always_inline void
 add_QQW_PA_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0 )
 {
   T t0;
+  c0 = a0 + b0;
   t0 = a1 + b1;
-  c0 = t0 + a2 + a3;
+  c0 = c0 + t0 + a2 + a3;
 }
 
 // add: 4-2-2
@@ -662,9 +677,10 @@ template < typename T > __always_inline void
 add_QQW_QTW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0 )
 {
   T t0, t1;
+  c0 = a0 + b0;
   t0 = a1 + b1;
   t1 = a2 + b2;
-  c0 = t0 + t1 + a3;
+  c0 = c0 + t0 + t1 + a3;
 }
 
 // add: 4-3-2
@@ -713,10 +729,11 @@ template < typename T > __always_inline void
 add_QQW_QQW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0 )
 {
   T t0, t1, t2;
+  c0 = a0 + b0;
   t0 = a1 + b1;
   t1 = a2 + b2;
   t2 = a3 + b3;
-  c0 = t0 + t1 + t2;
+  c0 = c0 + t0 + t1 + t2;
 }
 
 // add: 4-4-2

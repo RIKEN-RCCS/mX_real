@@ -987,7 +987,7 @@ def gen_add( NA, NB, NC, ACC ) :
         if ACC > 0 :
             line[1] = 'TWO a0 b0 c0 e0'
         else :
-            line[1] = 'ADD e0 a0 b0'
+            line[1] = 'ADD c0 a0 b0'
             
         line[2] = 'ADD e1 a1 b1'
         line[3] = 'ADD e2 a2 b2'
