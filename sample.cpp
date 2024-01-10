@@ -4,6 +4,12 @@
 #include "mX_real.hpp"
 using namespace mX_real;
 
+#if (defined(__INTEL_CLANG_COMPILER)||defined(__INTEL_LLVM_COMPILER)||defined(__INTEL_COMPILER))
+#define	__isINTEL_COMPILER__	1
+#else
+#define	__isINTEL_COMPILER__	0
+#endif
+
 struct FLOAT {
   float x;
   INLINE FLOAT() {}
@@ -106,7 +112,7 @@ void benchmark( int const& N ) {
 
       REAL C[STEP_i][STEP_j]; // 36*36*4*4=20.25KB
       for(int i=i_; i<Ni_; i++) {
-#ifdef __INTEL_COMPILER
+#if __isINTEL_COMPILER__
       #pragma ivdep
 #else
       #pragma omp simd
@@ -129,7 +135,7 @@ void benchmark( int const& N ) {
 
       REAL A[STEP_k][STEP_j]; // 36*36*4*4=20.25KB
       for(int k=k_; k<Nk_; k++) {
-#ifdef __INTEL_COMPILER
+#if __isINTEL_COMPILER__
       #pragma ivdep
 #else
       #pragma omp simd
@@ -380,7 +386,7 @@ if ( D_k!=1 ) {
     }
 
       for(int i=i_; i<Ni_; i++) {
-#ifdef __INTEL_COMPILER
+#if __isINTEL_COMPILER__
       #pragma ivdep
 #else
       #pragma omp simd

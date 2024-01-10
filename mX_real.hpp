@@ -52,14 +52,14 @@ namespace mX_real {
   //
   // generic terms (const, func, and bit ops)
   //
-#ifdef __INTEL_COMPILER
+#if defined(__INTEL_COMPILER)
 #  define	STATIC_VAR	static inline
-#else
-#if __cplusplus < 201703L
+#elif defined(__INTEL_LLVM_COMPILER)||defined(__INTEL_CLANG_COMPILER)
+#  define	STATIC_VAR	static
+#elif __cplusplus < 201703L
 #  define	STATIC_VAR	static
 #else
 #  define	STATIC_VAR	static inline
-#endif
 #endif
   template < typename T >
   struct fp { static bool constexpr value = false; };
