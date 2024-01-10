@@ -106,8 +106,11 @@ void benchmark( int const& N ) {
 
       REAL C[STEP_i][STEP_j]; // 36*36*4*4=20.25KB
       for(int i=i_; i<Ni_; i++) {
-      #pragma gcc ivdep
+#ifdef __INTEL_COMPILER
       #pragma ivdep
+#else
+      #pragma omp simd
+#endif
       for(int j=j_; j<Nj_; j++) {
         C[i-i_][j-j_] = c[j+i*N];
       }}
@@ -126,8 +129,11 @@ void benchmark( int const& N ) {
 
       REAL A[STEP_k][STEP_j]; // 36*36*4*4=20.25KB
       for(int k=k_; k<Nk_; k++) {
-      #pragma gcc ivdep
+#ifdef __INTEL_COMPILER
       #pragma ivdep
+#else
+      #pragma omp simd
+#endif
       for(int j=j_; j<Nj_; j++) {
         A[k-k_][j-j_] = a[j+k*N];
       }}
@@ -219,8 +225,8 @@ if ( D_k==3 ) {
           auto a2 = A[k-k_+2][j-j_];
           c0 += a1 * s10;
           c1 += a1 * s11;
-          c0 += a1 * s20;
-          c1 += a1 * s21;
+          c0 += a2 * s20;
+          c1 += a2 * s21;
           C[i-i_+0][j-j_] = c0;
           C[i-i_+1][j-j_] = c1;
         }
@@ -374,8 +380,11 @@ if ( D_k!=1 ) {
     }
 
       for(int i=i_; i<Ni_; i++) {
-      #pragma gcc ivdep
+#ifdef __INTEL_COMPILER
       #pragma ivdep
+#else
+      #pragma omp simd
+#endif
       for(int j=j_; j<Nj_; j++) {
         c[j+i*N] = C[i-i_][j-j_];
       }

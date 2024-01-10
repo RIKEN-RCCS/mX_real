@@ -32,17 +32,40 @@ template <> struct fp_const<float> {
   static inline auto constexpr two()  { return 2.0f; }
   static inline auto constexpr half() { return 0.5f; }
 
+  static uint32_t constexpr SBIT = 0x80000000;
   static uint32_t constexpr MASK = 0x7f800000;
   static uint32_t constexpr RINF = 0x7f000000;
+  static uint32_t constexpr XONE = 0x0b800000;
 
+  static inline auto const fp2uint( float const a ) {
+    union { float a; uint32_t e; } x;
+    x.a = a;
+    return x.e;
+  }
+  static inline auto const uint2fp( uint32_t const e ) {
+    union { float a; uint32_t e; } x;
+    x.e = e;
+    return x.a;
+  }
+
+  static INLINE float ulp( float const a ) {
+    if ( a == zero() ) return a;
+    auto e = fp2uint( a );
+    auto s = e & SBIT;
+    e &= MASK;
+    e -= XONE;
+    if ( e & SBIT ) { e = 0; } // underflow
+    e = e | s; // allow -0
+    return uint2fp( e );
+  }
   template < bool inverse = false >
   static inline auto exponent( float const a ) {
     if ( a == zero() ) return one();
-    uint32_t e = *(uint32_t *)&a;
+    auto e = fp2uint( a );
     e &= MASK;
     if ( e == MASK ) return one();
     if ( inverse ) e = RINF - e;
-    return *(float *)&e;
+    return uint2fp( e );
   }
   static inline auto exponenti( float const a ) {
     return exponent<true>( a );
@@ -54,17 +77,40 @@ template <> struct fp_const<double> {
   static inline auto constexpr two()  { return 2.0; }
   static inline auto constexpr half() { return 0.5; }
 
+  static uint64_t constexpr SBIT = 0x8000000000000000;
   static uint64_t constexpr MASK = 0x7ff0000000000000;
   static uint64_t constexpr RINF = 0x7fe0000000000000;
+  static uint64_t constexpr XONE = 0x0340000000000000;
 
+  static inline auto const fp2uint( double const a ) {
+    union { double a; uint64_t e; } x;
+    x.a = a;
+    return x.e;
+  }
+  static inline auto const uint2fp( uint64_t const e ) {
+    union { double a; uint64_t e; } x;
+    x.e = e;
+    return x.a;
+  }
+
+  static INLINE double ulp( double const a ) {
+    if ( a == zero() ) return a;
+    auto e = fp2uint( a );
+    auto s = e & SBIT;
+    e &= MASK;
+    e -= XONE;
+    if ( e & SBIT ) { e = 0; } // underflow
+    e = e | s; // allow -0
+    return uint2fp( e );
+  }
   template < bool inverse = false >
   static inline auto exponent( double const a ) {
     if ( a == zero() ) return one();
-    uint64_t e = *(uint64_t *)&a;
+    auto e = fp2uint( a );
     e &= MASK;
     if ( e == MASK ) return one();
     if ( inverse ) e = RINF - e;
-    return *(double *)&e;
+    return uint2fp( e );
   }
   static inline auto exponenti( double const a ) {
     return exponent<true>( a );
@@ -313,6 +359,7 @@ def ZERO_propagate( line ) :
             if '!' in line[j] :
                 continue
 
+            #print( '{}: {}'.format(j,line[j]) )
             line_pre = line[j]
             a_list = line[j].split()
 
@@ -323,11 +370,17 @@ def ZERO_propagate( line ) :
                     line[j] = 'OUTZ {}'.format( a_list[1] )
                 continue
 
+            if a_list[0] == 'ZER' :
+                if a_list[1] == zero :
+                    break
+                continue
+
             if a_list[0] == 'LET' :
                 if a_list[2] == zero :
                     line[j] = 'ZER {}'.format( a_list[1] )
-                    #print( '{} => {}'.format( line_pre, line[j] ) )
+                    #print( 'LET {} => {}'.format( line_pre, line[j] ) )
                 if a_list[1] == zero :
+                    #print( "LET: next ZERO" )
                     break
                 continue
 
@@ -335,8 +388,10 @@ def ZERO_propagate( line ) :
                 if a_list[1] == zero or a_list[2] == zero :
                     line[j] = 'ZER {}'.format( a_list[3] )
                     insert( line, j+1, 'ZER {}'.format( a_list[4] ) )
-                    #print( '{} => {} / {}'.format( line_pre, line[j], line[j+1] ) )
+                    #print( 'FMA {} => {} / {}'.format( line_pre, line[j], line[j+1] ) )
+                    j = j + 1
                 if a_list[3] == zero or a_list[4] == zero :
+                    #print( "FMA: next ZERO" )
                     break
                 continue
 
@@ -345,49 +400,59 @@ def ZERO_propagate( line ) :
                 if a_list[1] == zero and a_list[2] == zero :
                     line[j] = 'ZER {}'.format( a_list[3] )
                     insert( line, j+1, 'ZER {}'.format( a_list[4] ) )
-                    #print( '{} => {} / {}'.format( line_pre, line[j], line[j+1] ) )
+                    #print( 'TWO/QQQ type1 {} => {} / {}'.format( line_pre, line[j], line[j+1] ) )
+                    j = j + 1
                 if a_list[1] == zero and a_list[2] != zero :
                     line[j] = 'LET {} {}'.format( a_list[3], a_list[2] )
                     insert( line, j+1, 'ZER {}'.format( a_list[4] ) )
-                    #print( '{} => {} / {}'.format( line_pre, line[j], line[j+1] ) )
+                    #print( 'TWO/QQQ type2 {} => {} / {}'.format( line_pre, line[j], line[j+1] ) )
+                    j = j + 1
                 if a_list[2] == zero and a_list[1] != zero :
-                    line[j] = 'LET {} {}'.format( a_list[3], a_list[1] )
-                    insert( line, j+1, 'ZER {}'.format( a_list[4] ) )
-                    #print( '{} => {} / {}'.format( line_pre, line[j], line[j+1] ) )
+                    line[j] = 'ZER {}'.format( a_list[4] )
+                    if a_list[3] != a_list[1] :
+                        insert( line, j, 'LET {} {}'.format( a_list[3], a_list[1] ) )
+                        #print( 'TWO/QQQ type3 {} => {} / {}'.format( line_pre, line[j], line[j+1] ) )
+                        j = j + 1
+                    #else :
+                    #    print( 'TWO/QQQ type4 {} => {}'.format( line_pre, line[j] ) )
                 if a_list[3] == zero or a_list[4] == zero :
+                    #print( "TWO: next ZERO" )
                     break
                 continue
 
             if a_list[0] == 'ADD' :
                 if a_list[2] == zero and a_list[3] == zero :
                     line[j] = 'ZER {}'.format( a_list[1] )
-                    #print( '{} => {}'.format( line_pre, line[j] ) )
+                    #print( 'ADD1 {} => {}'.format( line_pre, line[j] ) )
                 if a_list[2] == zero and a_list[3] != zero :
                     line[j] = 'LET {} {}'.format( a_list[1], a_list[3] )
-                    #print( '{} => {}'.format( line_pre, line[j] ) )
+                    #print( 'ADD2 {} => {}'.format( line_pre, line[j] ) )
                 if a_list[3] == zero and a_list[2] != zero :
                     line[j] = 'LET {} {}'.format( a_list[1], a_list[2] )
-                    #print( '{} => {}'.format( line_pre, line[j] ) )
+                    #print( 'ADD3 {} => {}'.format( line_pre, line[j] ) )
                 if a_list[1] == zero :
+                    #print( "ADD: next ZERO" )
                     break
                 continue
 
             if a_list[0] == 'MUL' :
                 if a_list[2] == zero or a_list[3] == zero :
                     line[j] = 'ZER {}'.format( a_list[1] )
-                    #print( '{} => {}'.format( line_pre, line[j] ) )
+                    #print( 'MUL {} => {}'.format( line_pre, line[j] ) )
                 if a_list[1] == zero :
+                    #print( "MUL: next ZERO" )
                     break
                 continue
 
             if a_list[0] == 'MAD' :
                 if ( a_list[2] == zero or a_list[3] == zero ) and (a_list[4] != zero ) :
                     line[j] = 'LET {} {}'.format( a_list[1], a_list[4] )
-                    #print( '{} => {}'.format( line_pre, line[j] ) )
+                    #print( 'MAD1 {} => {}'.format( line_pre, line[j] ) )
                 if a_list[4] == zero :
                     line[j] = 'MUL {} {} {}'.format( a_list[1], a_list[2], a_list[3] )
-                    #print( '{} => {}'.format( line_pre, line[j] ) )
+                    #print( 'MAD2 {} => {}'.format( line_pre, line[j] ) )
                 if a_list[1] == zero :
+                    #print( "MAD: next ZERO" )
                     break
                 continue
 
@@ -405,11 +470,13 @@ def ZERO_propagate( line ) :
                         line[j] = 'LET {} {}'.format( a_list[2], va )
                     if na == 0 :
                         line[j] = '!'
-                        #print( '{} => {}'.format( line_pre, line[j] ) )
+                    #print( 'SUM {} => {}'.format( line_pre, line[j] ) )
                 if a_list[2] == zero :
+                    #print( "SUM: next ZERO" )
                     break
                 continue
 
+    #print( line )
     return line
 
 def is_effective( param, line, idx ) :
@@ -836,8 +903,8 @@ def regs_rename( line ) :
                 continue
 
             t_reg = 't{}'.format( NumRegs )
-            NumRegs = NumRegs + 1
 
+            flag = 0
             for k in range( i, len(line) ) :
                 if '!' in line[k] :
                     continue
@@ -849,7 +916,10 @@ def regs_rename( line ) :
                 for l in range( len(b_list) ) :
                     if b_list[l] == a_list[j] :
                         b_list[l] = t_reg
+                        flag = 1
                     line[k] = concat( line[k], b_list[l] )
+            if flag == 1 :
+                NumRegs = NumRegs + 1
 
     return ( line, NumRegs )
 
@@ -992,108 +1062,98 @@ def gen_add( NA, NB, NC, ACC ) :
         line[2] = 'ADD e1 a1 b1'
         line[3] = 'ADD e2 a2 b2'
         line[4] = 'ADD e3 a3 b3'
-        line[5] = 'SUM 4 c0 c0 e1 e2 e3'
+        line[5] = 'SUM 3 e1 e1 e2 e3'
+        line[6] = 'ADD c0 c0 e1'
             
         if ACC > 0 :
-            line[6] = 'ADD c0 c0 e0'
+            line[7] = 'ADD c0 c0 e0'
 
     if NC == 2 :
         line[0] = '!'
-        line[1] = 'TWO a0 b0 c0 c1'
+        line[1] = 'TWO a0 b0 c0 c1' # (c0)(c1)
 
         if ACC > 0 :
-            line[2] = 'TWO a1 b1 e1 e4'
+            line[2] = 'TWO a1 b1 e0 e1' # (c0)(c1 e0)(e1)
+            line[3] = 'TWO c1 e0 c1 e0' # (c0)(c1)(e0 e1)
+            line[4] = 'ADD c1 c1 e0' # (c0)(c1)(e1)
+            line[5] = 'ADD e2 a2 b2' # (c0)(c1)(e1 e2)
+            line[6] = 'ADD e3 a3 b3' # (c0)(c1)(e1 e2 e3)
+            line[7] = 'ADD c1 c1 e2' # (c0)(c1)(e1 e3)
+            line[8] = 'ADD c1 c1 e3' # (c0)(c1)(e1)
+            line[9] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
+            line[10] = 'ADD c1 c1 e1' # (c0)(c1)
+            line[11] = 'QQQ c0 c1 c0 c1' if NA > 1 and NB > 1 else '!'
         else :
-            line[2] = 'ADD e4 a1 b1'
+            line[2] = 'ADD e0 a1 b1'
+            line[3] = 'ADD e1 a2 b2'
+            line[4] = 'ADD e2 a3 b3'
+            line[5] = 'SUM 3 e0 e0 e1 e2'
+            line[6] = 'ADD c1 c1 e0'
 
-        line[3] = 'ADD e2 a2 b2'
-        line[4] = 'ADD e3 a3 b3'
-
-        line[5] = 'ADD c1 c1 e1' if ACC > 0 else '!'
-        line[6] = 'QQQ c0 c1 c0 c1' if ACC > 0 else '!'
-        line[7] = 'SUM 3 e4 e4 e2 e3'
-        line[8] = 'ADD c1 c1 e4'
-
-        if NA*NB > 1 :
-            line[9] = 'QQQ c0 c1 c0 c1' if ACC > 0 else '!'
+        if ACC > 0 :
+            line[12] = 'QQQ c0 c1 c0 c1'
 
     if NC == 3 :
         line[0] = '!'
-        line[1] = 'TWO a0 b0 c0 c1'
-        line[2] = 'TWO a1 b1 e0 c2'
-        line[3] = 'TWO c1 e0 c1 e0'
-        line[4] = 'QQQ c0 c1 c0 c1' if ACC > 0 else '!'
+        line[1] = 'TWO a0 b0 c0 c1' # (c0)(c1)
+        line[2] = 'TWO a1 b1 e0 c2' # (c0)(c1 e0)(c2)
+        line[3] = 'TWO c1 e0 c1 e0' # (c0)(c1)(c2 e0)
 
         if ACC > 0 :
-            line[5] = 'TWO a2 b2 e2 e3'
-            line[6] = 'TWO e0 e2 e0 e2'
-            line[7] = 'TWO c2 e0 c2 e0'    
+            line[4] = 'TWO a2 b2 e1 e2' # (c0)(c1)(c2 e0 e1)(e2)
+            line[5] = 'TWO c2 e0 c2 e0' # (c0)(c1)(c2 e1)(e0 e2)
+            line[6] = 'TWO c2 e1 c2 e1' # (c0)(c1)(c2)(e0 e1 e2)
+            line[7] = 'QQQ c1 c2 c1 c2'
+            line[8] = 'ADD e3 a3 b3' # (c0)(c1)(c2)(e0 e1 e2 e3)
+            line[9] = 'ADD c2 c2 e3' # (c0)(c1)(c2)(e0 e1 e2)
+            line[10] = 'QQQ c1 c2 c1 c2' if NA*NB > 2 else '!'
+            line[11] = 'SUM 3 e0 e0 e1 e2' # (c0)(c1)(c2)(e0)
+            line[12] = 'ADD c2 c2 e0' # (c0)(c1)(c2)
+            line[13] = 'QQQ c1 c2 c1 c2' if NA*NB > 2 else '!'
         else :
-            line[5] = 'ADD e2 a2 b2'
-            line[6] = '!'
-            line[7] = 'ZER e3'
-        line[8] = 'QQQ c1 c2 c1 c2' if ACC > 0 else '!'
+            line[4] = 'ADD e1 a2 b2' # (c0)(c1)(c2 e0 e1)
+            line[5] = 'ADD e2 a3 b3' # (c0)(c1)(c2 e0 e1 e2)
+            line[6] = 'SUM 4 c2 c2 e0 e1 e2' # (c0)(c1)(c2)
 
-        line[9] = 'ADD e1 a3 b3'
-        line[10] = 'SUM 4 e0 e0 e1 e2 e3'
-        line[11] = 'ADD c2 c2 e0'
-
-        if NA*NB > 1 :
-            line[12] = 'QQQ c1 c2 c1 c2' if ACC > 0 else '!'
-            line[13] = 'QQQ c0 c1 c0 c1' if ACC > 0 else '!'
-            line[14] = 'QQQ c1 c2 c1 c2' if ACC > 0 else '!'
+        if ACC > 0 :
+            line[14] = 'QQQ c0 c1 c0 c1'
+        if NA*NB > 2 and ACC > 0 :
+            line[15] = 'QQQ c1 c2 c1 c2'
+            line[16] = 'QQQ c0 c1 c0 c1'
 
     if NC == 4 :
-        line[0] = 'TWO a0 b0 c0 c1'
-        line[1] = 'TWO a1 b1 e0 c2'
-        line[2] = 'TWO a2 b2 e1 c3'
+        line[0] = '!'
+        line[1] = 'TWO a0 b0 c0 c1' # (c0)(c1)
+        line[2] = 'TWO a1 b1 e0 c2' # (c0)(c1 e0)(c2)
+        line[3] = 'TWO a2 b2 e1 c3' # (c0)(c1 e0)(c2 e1)(c3)
+        line[4] = 'TWO c1 e0 c1 e0' # (c0)(c1)(c2 e0 e1)(c3)
+        line[5] = 'TWO c2 e0 c2 e0' # (c0)(c1)(c2 e1)(c3 e0)
+        line[6] = 'TWO c2 e1 c2 e1' # (c0)(c1)(c2)(c3 e0 e1)
 
         if ACC > 0 :
-            line[3] = 'TWO a3 b3 e2 e3'
+            line[7] = 'TWO a3 b3 e2 e3' # (c0)(c1)(c2)(c3 e0 e1 e2)(e3)
+            line[8] = 'TWO c3 e0 c3 e0' # (c0)(c1)(c2)(c3 e1 e2)(e0 e3)
+            line[9] = 'TWO c3 e1 c3 e1' # (c0)(c1)(c2)(c3 e2)(e0 e1 e3)
+            line[10] = 'TWO c3 e2 c3 e2' # (c0)(c1)(c2)(c3)(e0 e1 e2 e3)
+            line[11] = 'QQQ c2 c3 c2 c3'
+            line[12] = 'SUM 4 e0 e0 e1 e2 e3' # (c0)(c1)(c2)(c3)(e0)
+            line[13] = 'ADD c3 c3 e0' # (c0)(c1)(c2)(c3)
         else :
-            line[3] = 'ADD e2 a3 b3 e2'
-
-        line[4] = 'TWO c1 e0 c1 e0'
-        line[5] = 'QQQ c0 c1 c0 c1' if ACC > 0 else '!'
-
-        line[6] = 'TWO c2 e1 c2 e1'
-        line[7] = 'QQQ c1 c2 c1 c2' if ACC > 0 else '!'
+            line[7] = 'ADD e2 a3 b3' # (c0)(c1)(c2)(c3 e0 e1 e2)
+            line[8] = 'SUM 4 c3 c3 e0 e1 e2' # (c0)(c1)(c2)(c3)
 
         if ACC > 0 :
-            line[8] = 'TWO c3 e2 c3 e2'
-            line[9] = 'ADD e3 e3 e2'
-        else :
-            line[8] = 'ADD c3 c3 e2'
-            line[9] = '!'
+            line[14] = 'QQQ c0 c1 c0 c1'
+        if NA > 1 and NB > 1 and ACC > 0 :
+            line[15] = 'QQQ c1 c2 c1 c2'
+            line[16] = 'QQQ c2 c3 c2 c3'
 
-        line[10] = 'TWO c2 e0 c2 e0'
+            line[17] = 'QQQ c0 c1 c0 c1'
+            line[18] = 'QQQ c1 c2 c1 c2'
+            line[19] = 'QQQ c2 c3 c2 c3'
 
-        if ACC > 0 :
-            line[11] = 'TWO c3 e1 c3 e1'
-            line[12] = 'ADD e3 e3 e1'
-        else :
-            line[11] = 'ADD c3 c3 e1'
-            line[12] = '!'
-        line[13] = 'QQQ c2 c3 c2 c3' if ACC > 0 else '!'
-
-        if ACC > 0 :
-            line[14] = 'TWO c3 e0 c3 e0'
-            line[15] = 'ADD e3 e3 e0'
-        else :
-            line[14] = 'ADD c3 c3 e0'
-            line[15] = '!'
-        line[16] = 'QQQ c2 c3 c2 c3' if ACC > 0 else '!'
-
-        if ACC > 0 :
-            line[17] = 'ADD c3 c3 e3'
-        else :
-            line[17] = '!'
-
-        if NA*NB > 1 :
-            line[18] = 'QQQ c2 c3 c2 c3' if ACC > 0 else '!'
-            line[19] = 'QQQ c0 c1 c0 c1' if ACC > 0 else '!'
-            line[20] = 'QQQ c1 c2 c1 c2' if ACC > 0 else '!'
-            line[21] = 'QQQ c2 c3 c2 c3' if ACC > 0 else '!'
+            line[20] = 'QQQ c0 c1 c0 c1'
+            line[21] = 'QQQ c1 c2 c1 c2'
 
 
     line = INIT_propagate( line, NA, NB, NC )
@@ -1295,9 +1355,10 @@ def gen_mul( NA, NB, NC, ACC ) :
             line[44] = 'ADD c3 c3 e3' # (c1)(c2)(c3)
             line[45] = 'QQQ c2 c3 c2 c3' if NA*NB > 2 else '!'
 
-            line[46] = 'QQQ c0 c1 c0 c1'
-            line[47] = 'QQQ c1 c2 c1 c2'
-            line[48] = 'QQQ c2 c3 c2 c3'
+            line[46] = 'QQQ c1 c2 c1 c2'
+            line[47] = 'QQQ c0 c1 c0 c1'
+            line[48] = 'QQQ c1 c2 c1 c2'
+            line[49] = 'QQQ c2 c3 c2 c3'
 
 
     line = INIT_propagate( line, NA, NB, NC )
@@ -1380,6 +1441,8 @@ def gen_sqr( NA, NC, ACC ) :
 
             line[16] = 'ADD c2 c2 e1'
             line[17] = 'QQQ c1 c2 c1 c2'
+            line[17] = 'QQQ c0 c1 c0 c1'
+            line[17] = 'QQQ c1 c2 c1 c2'
 
 
     if NC == 4 :
@@ -1423,9 +1486,10 @@ def gen_sqr( NA, NC, ACC ) :
             line[26] = 'ADD c3 c3 e1'
             line[27] = 'QQQ c2 c3 c2 c3'
 
-            line[28] = 'QQQ c0 c1 c0 c1'
-            line[29] = 'QQQ c1 c2 c1 c2'
-            line[30] = 'QQQ c2 c3 c2 c3'
+            line[28] = 'QQQ c1 c2 c1 c2'
+            line[29] = 'QQQ c0 c1 c0 c1'
+            line[30] = 'QQQ c1 c2 c1 c2'
+            line[31] = 'QQQ c2 c3 c2 c3'
 
 
     line = INIT_propagate( line, NA, NB, NC )

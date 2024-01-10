@@ -209,7 +209,7 @@ sqrt_SW_TW ( T const a0, T &c0, T &c1, T &c2 )
   sqr_SW_DW ( r0, t0, t1 );
   mul_SW_DW_TW ( ax0, t0, t1, t0, t1, t2 );
   sub_SW_TW_TW ( h0, t0, t1, t2, t0, t1, t2 );
-  mul_TW_TW_TW ( t0, t1, t2, r0, r1, r2, r0, r1, r2 );
+  mul_TW_SW_TW ( t0, t1, t2, r0, r0, r1, r2 );
 
   sqr_TW_TW ( r0, r1, r2, t0, t1, t2 );
   mul_SW_TW_TW ( ax0, t0, t1, t2, t0, t1, t2 );
@@ -240,7 +240,7 @@ sqrt_SW_QW ( T const a0, T &c0, T &c1, T &c2, T &c3 )
   sqr_SW_DW ( r0, t0, t1 );
   mul_SW_DW_QW ( ax0, t0, t1, t0, t1, t2, t3 );
   sub_SW_QW_QW ( h0, t0, t1, t2, t3, t0, t1, t2, t3 );
-  mul_QW_QW_QW ( t0, t1, t2, t3, r0, r1, r2, r3, r0, r1, r2, r3 );
+  mul_QW_SW_QW ( t0, t1, t2, t3, r0, r0, r1, r2, r3 );
 
   sqr_QW_QW ( r0, r1, r2, r3, t0, t1, t2, t3 );
   mul_SW_QW_QW ( ax0, t0, t1, t2, t3, t0, t1, t2, t3 );
@@ -321,7 +321,7 @@ sqrt_DW_TW ( T const a0, T const a1, T &c0, T &c1, T &c2 )
   sqr_SW_DW ( r0, t0, t1 );
   mul_DW_DW_TW ( ax0, ax1, t0, t1, t0, t1, t2 );
   sub_SW_TW_TW ( h0, t0, t1, t2, t0, t1, t2 );
-  mul_TW_TW_TW ( t0, t1, t2, r0, r1, r2, r0, r1, r2 );
+  mul_TW_SW_TW ( t0, t1, t2, r0, r0, r1, r2 );
 
   sqr_TW_TW ( r0, r1, r2, t0, t1, t2 );
   mul_DW_TW_TW ( ax0, ax1, t0, t1, t2, t0, t1, t2 );
@@ -353,7 +353,7 @@ sqrt_DW_QW ( T const a0, T const a1, T &c0, T &c1, T &c2, T &c3 )
   sqr_SW_DW ( r0, t0, t1 );
   mul_DW_DW_QW ( ax0, ax1, t0, t1, t0, t1, t2, t3 );
   sub_SW_QW_QW ( h0, t0, t1, t2, t3, t0, t1, t2, t3 );
-  mul_QW_QW_QW ( t0, t1, t2, t3, r0, r1, r2, r3, r0, r1, r2, r3 );
+  mul_QW_SW_QW ( t0, t1, t2, t3, r0, r0, r1, r2, r3 );
 
   sqr_QW_QW ( r0, r1, r2, r3, t0, t1, t2, t3 );
   mul_DW_QW_QW ( ax0, ax1, t0, t1, t2, t3, t0, t1, t2, t3 );
@@ -437,7 +437,7 @@ sqrt_TW_TW ( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2 )
   sqr_SW_DW ( r0, t0, t1 );
   mul_TW_DW_TW ( ax0, ax1, ax2, t0, t1, t0, t1, t2 );
   sub_SW_TW_TW ( h0, t0, t1, t2, t0, t1, t2 );
-  mul_TW_TW_TW ( t0, t1, t2, r0, r1, r2, r0, r1, r2 );
+  mul_TW_SW_TW ( t0, t1, t2, r0, r0, r1, r2 );
 
   sqr_TW_TW ( r0, r1, r2, t0, t1, t2 );
   mul_TW_TW_TW ( ax0, ax1, ax2, t0, t1, t2, t0, t1, t2 );
@@ -470,7 +470,7 @@ sqrt_TW_QW ( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2, T &c3 )
   sqr_SW_DW ( r0, t0, t1 );
   mul_TW_DW_QW ( ax0, ax1, ax2, t0, t1, t0, t1, t2, t3 );
   sub_SW_QW_QW ( h0, t0, t1, t2, t3, t0, t1, t2, t3 );
-  mul_QW_QW_QW ( t0, t1, t2, t3, r0, r1, r2, r3, r0, r1, r2, r3 );
+  mul_QW_SW_QW ( t0, t1, t2, t3, r0, r0, r1, r2, r3 );
 
   sqr_QW_QW ( r0, r1, r2, r3, t0, t1, t2, t3 );
   mul_TW_QW_QW ( ax0, ax1, ax2, t0, t1, t2, t3, t0, t1, t2, t3 );
@@ -557,7 +557,7 @@ sqrt_QW_TW ( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2
   sqr_SW_DW ( r0, t0, t1 );
   mul_QW_DW_QW ( ax0, ax1, ax2, ax3, t0, t1, t0, t1, t2, t3 );
   sub_SW_QW_QW ( h0, t0, t1, t2, t3, t0, t1, t2, t3 );
-  mul_QW_QW_QW ( t0, t1, t2, t3, r0, r1, r2, r3, r0, r1, r2, r3 );
+  mul_QW_SW_TW ( t0, t1, t2, t3, r0, r0, r1, r2 );
 
   sqr_QW_QW ( r0, r1, r2, r3, t0, t1, t2, t3 );
   mul_QW_QW_QW ( ax0, ax1, ax2, ax3, t0, t1, t2, t3, t0, t1, t2, t3 );
@@ -591,7 +591,7 @@ sqrt_QW_QW ( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2
   sqr_SW_DW ( r0, t0, t1 );
   mul_QW_DW_QW ( ax0, ax1, ax2, ax3, t0, t1, t0, t1, t2, t3 );
   sub_SW_QW_QW ( h0, t0, t1, t2, t3, t0, t1, t2, t3 );
-  mul_QW_QW_QW ( t0, t1, t2, t3, r0, r1, r2, r3, r0, r1, r2, r3 );
+  mul_QW_SW_QW ( t0, t1, t2, t3, r0, r0, r1, r2, r3 );
 
   sqr_QW_QW ( r0, r1, r2, r3, t0, t1, t2, t3 );
   mul_QW_QW_QW ( ax0, ax1, ax2, ax3, t0, t1, t2, t3, t0, t1, t2, t3 );

@@ -157,7 +157,10 @@ void print( std::string message, double const &x, bool const flag = false ) {
   c0 = (float)t; t -= (double)c0;
   c1 = (float)t;
   xx = (long double)c1 + (long double)c0;
-  printf("  : %08x %08x %26.19Le\n", *(unsigned int *)&c0, *(unsigned int *)&c1, xx);
+  union { unsigned int e; double a; } x; x.a = c0;
+  x.a = c0; auto u0 = x.e;
+  x.a = c1; auto u1 = x.e;
+  printf("  : %08x %08x %26.19Le\n", u0, u1, xx);
   std::cout << "  : " << std::bitset<64>(d[0]);
   printf(" %26.19Le\n", xx);
   }

@@ -16,7 +16,6 @@ namespace mX_real {
 
 
 #include "Ozaki-QW/qxw.hpp"
-//#include "Ozaki-QW/qxw-ex.hpp"
 
   //
   // Descrition of the Algorithm
@@ -116,32 +115,14 @@ namespace mX_real {
       return std::rand();
     }
 
-    using uint_t = uint32_t;
     static INLINE float ulp( float const a ) {
-      if ( a == zero ) return a;
-      uint32_t e = *(uint32_t *)&a;
-      uint32_t s = e & 0x80000000;
-      e &= 0x7f800000;
-      e -= 0x0b800000;
-      if ( e & 0x80000000 ) { e = 0; } // underflow
-      e = e | s; // allow -0
-      return *(float *)&e;
+      return QxW::fp_const<float>::ulp( a );
     }
-
     static INLINE float exponent( float const a ) {
-      if ( a == zero ) return one;
-      uint32_t e = *(uint32_t *)&a;
-      e &= 0x7f800000;
-      if ( e == 0x7f800000 ) return one;
-      return *(float *)&e;
+      return QxW::fp_const<float>::exponent( a );
     }
     static INLINE float exponenti( float const a ) {
-      if ( a == zero ) return one;
-      uint32_t e = *(uint32_t *)&a;
-      e &= 0x7f800000;
-      if ( e == 0x7f800000 ) return one;
-      e = 0x7f000000 - e;
-      return *(float *)&e;
+      return QxW::fp_const<float>::exponenti( a );
     }
   };
   //
@@ -196,32 +177,14 @@ namespace mX_real {
       return std::rand();
     }
 
-    using uint_t = uint64_t;
     static INLINE double ulp( double const a ) {
-      if ( a == zero ) return a;
-      uint64_t e = *(uint64_t *)&a;
-      uint64_t s = e & 0x8000000000000000;
-      e &= 0xfff0000000000000;
-      e -= 0x0340000000000000;
-      if ( e & 0x8000000000000000 ) { e = 0; } // underflow
-      e = e | s; // allow -0
-      return *(double *)&e;
+      return QxW::fp_const<double>::ulp( a );
     }
-
     static INLINE double exponent( double const a ) {
-      if ( a == zero ) return one;
-      uint64_t e = *(uint64_t *)&a;
-      e &= 0x7ff0000000000000;
-      if ( e == 0x7ff0000000000000 ) return one;
-      return *(double *)&e;
+      return QxW::fp_const<double>::exponent( a );
     }
     static INLINE double exponenti( double const a ) {
-      if ( a == zero ) return one;
-      uint64_t e = *(uint64_t *)&a;
-      e &= 0x7ff0000000000000;
-      if ( e == 0x7ff0000000000000 ) return one;
-      e = 0x7fe0000000000000 - e;
-      return *(double *)&e;
+      return QxW::fp_const<double>::exponenti( a );
     }
   };
 #undef STATIC_VAR
@@ -304,8 +267,10 @@ namespace mX_real {
     {
       if ( N_itr > 0 ) {
         twoSum( c.x[0], c.x[1] );
+      } else {
+        quickSum( c.x[0], c.x[1] );
       }
-      for ( int itr = 0; itr < std::max(1,N_itr); itr++ ) {
+      for ( int itr = 1; itr < std::max(1,N_itr); itr++ ) {
         quickSum( c.x[0], c.x[1] );
       }
     }
@@ -323,8 +288,11 @@ namespace mX_real {
       if ( N_itr > 0 ) {
         twoSum( c.x[1], c.x[2] );
         twoSum( c.x[0], c.x[1] );
+      } else {
+        quickSum( c.x[1], c.x[2] );
+        quickSum( c.x[0], c.x[1] );
       }
-      for ( int itr = 0; itr < std::max(1,N_itr); itr++ ) {
+      for ( int itr = 1; itr < std::max(1,N_itr); itr++ ) {
         quickSum( c.x[0], c.x[1] );
         quickSum( c.x[1], c.x[2] );
       }
@@ -344,8 +312,12 @@ namespace mX_real {
         twoSum( c.x[2], c.x[3] );
         twoSum( c.x[1], c.x[2] );
         twoSum( c.x[0], c.x[1] );
+      } else {
+        quickSum( c.x[2], c.x[3] );
+        quickSum( c.x[1], c.x[2] );
+        quickSum( c.x[0], c.x[1] );
       }
-      for ( int itr = 0; itr < std::max(1,N_itr); itr++ ) {
+      for ( int itr = 1; itr < std::max(1,N_itr); itr++ ) {
         quickSum( c.x[0], c.x[1] );
         quickSum( c.x[1], c.x[2] );
         quickSum( c.x[2], c.x[3] );
@@ -413,6 +385,8 @@ namespace mX_real {
 #include "qX_real.hpp"
 //
 
+#undef IF_A_noQuasi
+#undef IF_A_owAble
 #undef IF_T_fp
 #undef IF_T_scalar
 

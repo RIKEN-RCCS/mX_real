@@ -1091,7 +1091,9 @@ def gen_sqrt( NA, NC, ACC ) :
                 caller_head ( '  sqr', NX, 0, NX, ACC, vr, vr, vt )
                 caller_head ( '  mul', NA, NX, NX, ACC, vax, vt, vt )
             caller_head ( '  sub', 1, NX, NX, ACC, vh, vt, vt )
-            if itr == NC-2 :
+            if itr == 0 :
+                caller_head ( '  mul', NX, 1, NC, ACC, vt, vr, vr )
+            elif itr == NC-2 :
                 caller_head ( '  mul', NX, NX, NC, ACC, vt, vr, vr )
             else :
                 caller_head ( '  mul', NX, NX, NX, ACC, vt, vr, vr )

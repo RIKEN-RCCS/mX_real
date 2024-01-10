@@ -13,7 +13,7 @@ ifeq ($(CXX),icpx)
 	CXX = icpx --std=c++14 -fp-model strict #-fast #-qopt-report-stdout -ipo
 endif
 
-CCFLAGS := $(CCFLAGS) -O3
+CCFLAGS := $(CCFLAGS) -O3 -Wall
 LDFLAGS = -fopenmp
 
 # Optimizations

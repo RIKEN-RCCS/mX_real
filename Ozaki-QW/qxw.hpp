@@ -30,17 +30,40 @@ template <> struct fp_const<float> {
   static inline auto constexpr two()  { return 2.0f; }
   static inline auto constexpr half() { return 0.5f; }
 
+  static uint32_t constexpr SBIT = 0x80000000;
   static uint32_t constexpr MASK = 0x7f800000;
   static uint32_t constexpr RINF = 0x7f000000;
+  static uint32_t constexpr XONE = 0x0b800000;
 
+  static inline auto const fp2uint( float const a ) {
+    union { float a; uint32_t e; } x;
+    x.a = a;
+    return x.e;
+  }
+  static inline auto const uint2fp( uint32_t const e ) {
+    union { float a; uint32_t e; } x;
+    x.e = e;
+    return x.a;
+  }
+
+  static INLINE float ulp( float const a ) {
+    if ( a == zero() ) return a;
+    auto e = fp2uint( a );
+    auto s = e & SBIT;
+    e &= MASK;
+    e -= XONE;
+    if ( e & SBIT ) { e = 0; } // underflow
+    e = e | s; // allow -0
+    return uint2fp( e );
+  }
   template < bool inverse = false >
   static inline auto exponent( float const a ) {
     if ( a == zero() ) return one();
-    uint32_t e = *(uint32_t *)&a;
+    auto e = fp2uint( a );
     e &= MASK;
     if ( e == MASK ) return one();
     if ( inverse ) e = RINF - e;
-    return *(float *)&e;
+    return uint2fp( e );
   }
   static inline auto exponenti( float const a ) {
     return exponent<true>( a );
@@ -52,17 +75,40 @@ template <> struct fp_const<double> {
   static inline auto constexpr two()  { return 2.0; }
   static inline auto constexpr half() { return 0.5; }
 
+  static uint64_t constexpr SBIT = 0x8000000000000000;
   static uint64_t constexpr MASK = 0x7ff0000000000000;
   static uint64_t constexpr RINF = 0x7fe0000000000000;
+  static uint64_t constexpr XONE = 0x0340000000000000;
 
+  static inline auto const fp2uint( double const a ) {
+    union { double a; uint64_t e; } x;
+    x.a = a;
+    return x.e;
+  }
+  static inline auto const uint2fp( uint64_t const e ) {
+    union { double a; uint64_t e; } x;
+    x.e = e;
+    return x.a;
+  }
+
+  static INLINE double ulp( double const a ) {
+    if ( a == zero() ) return a;
+    auto e = fp2uint( a );
+    auto s = e & SBIT;
+    e &= MASK;
+    e -= XONE;
+    if ( e & SBIT ) { e = 0; } // underflow
+    e = e | s; // allow -0
+    return uint2fp( e );
+  }
   template < bool inverse = false >
   static inline auto exponent( double const a ) {
     if ( a == zero() ) return one();
-    uint64_t e = *(uint64_t *)&a;
+    auto e = fp2uint( a );
     e &= MASK;
     if ( e == MASK ) return one();
     if ( inverse ) e = RINF - e;
-    return *(double *)&e;
+    return uint2fp( e );
   }
   static inline auto exponenti( double const a ) {
     return exponent<true>( a );
@@ -165,8 +211,10 @@ add_SW_PA_QQW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
 template < typename T > __always_inline void
 add_SW_QTW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
 {
+  T t0;
   c0 = a0 + b0;
-  c0 = c0 + b1 + b2;
+  t0 = b1 + b2;
+  c0 = c0 + t0;
 }
 
 // add: 1-3-2
@@ -183,26 +231,30 @@ add_SW_QTW_PA( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
 template < typename T > __always_inline void
 add_SW_QTW_QTW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
 {
+  T t0;
   TwoSum( a0, b0, c0, c1 );
-  TwoSum( c1, b1, c1, c2 );
-  c2 = c2 + b2;
+  TwoSum( c1, b1, c1, t0 );
+  c2 = t0 + b2;
 }
 
 // add: 1-3-4
 template < typename T > __always_inline void
 add_SW_QTW_QQW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
 {
+  T t0;
   TwoSum( a0, b0, c0, c1 );
-  TwoSum( c1, b1, c1, c3 );
-  TwoSum( b2, c3, c2, c3 );
+  TwoSum( c1, b1, c1, t0 );
+  TwoSum( t0, b2, c2, c3 );
 }
 
 // add: 1-4-1
 template < typename T > __always_inline void
 add_SW_QQW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
 {
+  T t0;
   c0 = a0 + b0;
-  c0 = c0 + b1 + b2 + b3;
+  t0 = b1 + b2 + b3;
+  c0 = c0 + t0;
 }
 
 // add: 1-4-2
@@ -219,20 +271,21 @@ add_SW_QQW_PA( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0
 template < typename T > __always_inline void
 add_SW_QQW_QTW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
 {
+  T t0;
   TwoSum( a0, b0, c0, c1 );
-  TwoSum( c1, b1, c1, c2 );
-  c2 = c2 + b3 + b2;
+  TwoSum( c1, b1, c1, t0 );
+  c2 = t0 + b2 + b3;
 }
 
 // add: 1-4-4
 template < typename T > __always_inline void
 add_SW_QQW_QQW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0;
+  T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, b1, c1, t0 );
-  TwoSum( b2, t0, c2, t0 );
-  c3 = b3 + t0;
+  TwoSum( t0, b2, c2, t1 );
+  c3 = t1 + b3;
 }
 
 // add: 2-1-1
@@ -316,7 +369,8 @@ add_PA_QTW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0
   T t0;
   c0 = a0 + b0;
   t0 = a1 + b1;
-  c0 = c0 + t0 + b2;
+  t0 = t0 + b2;
+  c0 = c0 + t0;
 }
 
 // add: 2-3-2
@@ -338,8 +392,7 @@ add_PA_QTW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  t0 = t0 + b2;
-  c2 = c2 + t0;
+  c2 = c2 + t0 + b2;
 }
 
 // add: 2-3-4
@@ -350,9 +403,9 @@ add_PA_QTW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  TwoSum( c2, b2, c2, t1 );
   TwoSum( c2, t0, c2, t0 );
-  c3 = t1 + t0;
+  TwoSum( c2, b2, c2, t1 );
+  c3 = t0 + t1;
 }
 
 // add: 2-4-1
@@ -362,7 +415,8 @@ add_PA_QQW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T con
   T t0;
   c0 = a0 + b0;
   t0 = a1 + b1;
-  c0 = c0 + t0 + b2 + b3;
+  t0 = t0 + b2 + b3;
+  c0 = c0 + t0;
 }
 
 // add: 2-4-2
@@ -384,8 +438,7 @@ add_PA_QQW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T co
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  t0 = t0 + b3 + b2;
-  c2 = c2 + t0;
+  c2 = c2 + t0 + b2 + b3;
 }
 
 // add: 2-4-4
@@ -396,18 +449,19 @@ add_PA_QQW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T co
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  TwoSum( c2, b2, c2, t1 );
   TwoSum( c2, t0, c2, t0 );
-  c3 = b3 + t1;
-  c3 = c3 + t0;
+  TwoSum( c2, b2, c2, t1 );
+  c3 = t0 + t1 + b3;
 }
 
 // add: 3-1-1
 template < typename T > __always_inline void
 add_QTW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
 {
+  T t0;
   c0 = a0 + b0;
-  c0 = c0 + a1 + a2;
+  t0 = a1 + a2;
+  c0 = c0 + t0;
 }
 
 // add: 3-1-2
@@ -424,18 +478,20 @@ add_QTW_SW_PA( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
 template < typename T > __always_inline void
 add_QTW_SW_QTW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2 )
 {
+  T t0;
   TwoSum( a0, b0, c0, c1 );
-  TwoSum( c1, a1, c1, c2 );
-  c2 = c2 + a2;
+  TwoSum( c1, a1, c1, t0 );
+  c2 = t0 + a2;
 }
 
 // add: 3-1-4
 template < typename T > __always_inline void
 add_QTW_SW_QQW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2, T &c3 )
 {
+  T t0;
   TwoSum( a0, b0, c0, c1 );
-  TwoSum( c1, a1, c1, c3 );
-  TwoSum( a2, c3, c2, c3 );
+  TwoSum( c1, a1, c1, t0 );
+  TwoSum( t0, a2, c2, c3 );
 }
 
 // add: 3-2-1
@@ -445,7 +501,8 @@ add_QTW_PA_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0
   T t0;
   c0 = a0 + b0;
   t0 = a1 + b1;
-  c0 = c0 + t0 + a2;
+  t0 = t0 + a2;
+  c0 = c0 + t0;
 }
 
 // add: 3-2-2
@@ -467,8 +524,7 @@ add_QTW_PA_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  t0 = t0 + a2;
-  c2 = c2 + t0;
+  c2 = c2 + t0 + a2;
 }
 
 // add: 3-2-4
@@ -479,9 +535,9 @@ add_QTW_PA_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  TwoSum( c2, a2, c2, t1 );
   TwoSum( c2, t0, c2, t0 );
-  c3 = t1 + t0;
+  TwoSum( c2, a2, c2, t1 );
+  c3 = t0 + t1;
 }
 
 // add: 3-3-1
@@ -492,7 +548,8 @@ add_QTW_QTW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T co
   c0 = a0 + b0;
   t0 = a1 + b1;
   t1 = a2 + b2;
-  c0 = c0 + t0 + t1;
+  t0 = t0 + t1;
+  c0 = c0 + t0;
 }
 
 // add: 3-3-2
@@ -516,8 +573,7 @@ add_QTW_QTW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
   t1 = a2 + b2;
-  t0 = t0 + t1;
-  c2 = c2 + t0;
+  c2 = c2 + t0 + t1;
 }
 
 // add: 3-3-4
@@ -529,10 +585,9 @@ add_QTW_QTW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
   TwoSum( a1, b1, t0, c2 );
   TwoSum( a2, b2, t1, c3 );
   TwoSum( c1, t0, c1, t0 );
-  TwoSum( c2, t1, c2, t1 );
   TwoSum( c2, t0, c2, t0 );
-  c3 = c3 + t1;
-  c3 = c3 + t0;
+  TwoSum( c2, t1, c2, t1 );
+  c3 = c3 + t0 + t1;
 }
 
 // add: 3-4-1
@@ -543,7 +598,8 @@ add_QTW_QQW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T co
   c0 = a0 + b0;
   t0 = a1 + b1;
   t1 = a2 + b2;
-  c0 = c0 + t0 + t1 + b3;
+  t0 = t0 + t1 + b3;
+  c0 = c0 + t0;
 }
 
 // add: 3-4-2
@@ -567,8 +623,7 @@ add_QTW_QQW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
   t1 = a2 + b2;
-  t0 = t0 + b3 + t1;
-  c2 = c2 + t0;
+  c2 = c2 + t0 + t1 + b3;
 }
 
 // add: 3-4-4
@@ -580,19 +635,19 @@ add_QTW_QQW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
   TwoSum( a1, b1, t0, c2 );
   TwoSum( a2, b2, t1, c3 );
   TwoSum( c1, t0, c1, t0 );
-  TwoSum( c2, t1, c2, t1 );
-  c3 = c3 + b3;
   TwoSum( c2, t0, c2, t0 );
-  c3 = c3 + t1;
-  c3 = c3 + t0;
+  TwoSum( c2, t1, c2, t1 );
+  c3 = c3 + t0 + t1 + b3;
 }
 
 // add: 4-1-1
 template < typename T > __always_inline void
 add_QQW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
 {
+  T t0;
   c0 = a0 + b0;
-  c0 = c0 + a1 + a2 + a3;
+  t0 = a1 + a2 + a3;
+  c0 = c0 + t0;
 }
 
 // add: 4-1-2
@@ -609,20 +664,21 @@ add_QQW_SW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0
 template < typename T > __always_inline void
 add_QQW_SW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2 )
 {
+  T t0;
   TwoSum( a0, b0, c0, c1 );
-  TwoSum( c1, a1, c1, c2 );
-  c2 = c2 + a3 + a2;
+  TwoSum( c1, a1, c1, t0 );
+  c2 = t0 + a2 + a3;
 }
 
 // add: 4-1-4
 template < typename T > __always_inline void
 add_QQW_SW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0;
+  T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, a1, c1, t0 );
-  TwoSum( a2, t0, c2, t0 );
-  c3 = a3 + t0;
+  TwoSum( t0, a2, c2, t1 );
+  c3 = t1 + a3;
 }
 
 // add: 4-2-1
@@ -632,7 +688,8 @@ add_QQW_PA_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T con
   T t0;
   c0 = a0 + b0;
   t0 = a1 + b1;
-  c0 = c0 + t0 + a2 + a3;
+  t0 = t0 + a2 + a3;
+  c0 = c0 + t0;
 }
 
 // add: 4-2-2
@@ -654,8 +711,7 @@ add_QQW_PA_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  t0 = t0 + a3 + a2;
-  c2 = c2 + t0;
+  c2 = c2 + t0 + a2 + a3;
 }
 
 // add: 4-2-4
@@ -666,10 +722,9 @@ add_QQW_PA_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  TwoSum( c2, a2, c2, t1 );
   TwoSum( c2, t0, c2, t0 );
-  c3 = a3 + t1;
-  c3 = c3 + t0;
+  TwoSum( c2, a2, c2, t1 );
+  c3 = t0 + t1 + a3;
 }
 
 // add: 4-3-1
@@ -680,7 +735,8 @@ add_QQW_QTW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   c0 = a0 + b0;
   t0 = a1 + b1;
   t1 = a2 + b2;
-  c0 = c0 + t0 + t1 + a3;
+  t0 = t0 + t1 + a3;
+  c0 = c0 + t0;
 }
 
 // add: 4-3-2
@@ -704,8 +760,7 @@ add_QQW_QTW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T c
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
   t1 = a2 + b2;
-  t0 = t0 + a3 + t1;
-  c2 = c2 + t0;
+  c2 = c2 + t0 + t1 + a3;
 }
 
 // add: 4-3-4
@@ -717,11 +772,9 @@ add_QQW_QTW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T c
   TwoSum( a1, b1, t0, c2 );
   TwoSum( a2, b2, t1, c3 );
   TwoSum( c1, t0, c1, t0 );
-  TwoSum( c2, t1, c2, t1 );
-  c3 = c3 + a3;
   TwoSum( c2, t0, c2, t0 );
-  c3 = c3 + t1;
-  c3 = c3 + t0;
+  TwoSum( c2, t1, c2, t1 );
+  c3 = c3 + t0 + t1 + a3;
 }
 
 // add: 4-4-1
@@ -733,7 +786,8 @@ add_QQW_QQW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   t0 = a1 + b1;
   t1 = a2 + b2;
   t2 = a3 + b3;
-  c0 = c0 + t0 + t1 + t2;
+  t0 = t0 + t1 + t2;
+  c0 = c0 + t0;
 }
 
 // add: 4-4-2
@@ -759,25 +813,22 @@ add_QQW_QQW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T c
   TwoSum( c1, t0, c1, t0 );
   t1 = a2 + b2;
   t2 = a3 + b3;
-  t0 = t0 + t2 + t1;
-  c2 = c2 + t0;
+  c2 = c2 + t0 + t1 + t2;
 }
 
 // add: 4-4-4
 template < typename T > __always_inline void
 add_QQW_QQW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0, t1, t2, t3;
+  T t0, t1, t2;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( a2, b2, t1, c3 );
-  t2 = a3 + b3;
   TwoSum( c1, t0, c1, t0 );
-  TwoSum( c2, t1, c2, t1 );
-  c3 = c3 + t2;
   TwoSum( c2, t0, c2, t0 );
-  c3 = c3 + t1;
-  c3 = c3 + t0;
+  TwoSum( c2, t1, c2, t1 );
+  t2 = a3 + b3;
+  c3 = c3 + t0 + t1 + t2;
 }
 
 // sub: 1-1-1
@@ -3195,8 +3246,10 @@ add_SW_DW_SW( T const a0, T const b0, T const b1, T &c0 )
 template < typename T > __always_inline void
 add_SW_DW_DW( T const a0, T const b0, T const b1, T &c0, T &c1 )
 {
+  T t0;
   TwoSum( a0, b0, c0, c1 );
-  c1 = c1 + b1;
+  TwoSum( c1, b1, c1, t0 );
+  c1 = c1 + t0;
   FastTwoSum( c0, c1, c0, c1 );
 }
 
@@ -3207,22 +3260,17 @@ add_SW_DW_TW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   T t0;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, b1, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, t0, c1, c2 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 1-2-4
 template < typename T > __always_inline void
 add_SW_DW_QW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0;
   TwoSum( a0, b0, c0, c1 );
-  TwoSum( c1, b1, c1, t0 );
+  TwoSum( c1, b1, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, t0, c1, c2 );
   c3 = fp_const<T>::zero();
 }
 
@@ -3230,9 +3278,10 @@ add_SW_DW_QW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
 template < typename T > __always_inline void
 add_SW_TW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
 {
-  T t0;
+  T t0, t1;
   TwoSum( a0, b0, c0, t0 );
-  c0 = c0 + b1 + b2;
+  t1 = b1 + b2;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -3240,9 +3289,10 @@ add_SW_TW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
 template < typename T > __always_inline void
 add_SW_TW_DW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
 {
+  T t0;
   TwoSum( a0, b0, c0, c1 );
-  c1 = c1 + b1;
-  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c1, b1, c1, t0 );
+  c1 = c1 + t0;
   c1 = c1 + b2;
   FastTwoSum( c0, c1, c0, c1 );
 }
@@ -3254,39 +3304,35 @@ add_SW_TW_TW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c
   T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, b1, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( t0, b2, t0, t1 );
-  FastTwoSum( c1, t0, c1, c2 );
+  TwoSum( t0, b2, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
   c2 = c2 + t1;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 1-3-4
 template < typename T > __always_inline void
 add_SW_TW_QW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0;
+  T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, b1, c1, t0 );
+  TwoSum( t0, b2, c2, t1 );
+  FastTwoSum( c2, t1, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, b2, c1, c2 );
-  TwoSum( c2, t0, c2, t0 );
-  FastTwoSum( c2, t0, c2, c3 );
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
 }
 
 // add: 1-4-1
 template < typename T > __always_inline void
 add_SW_QW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
 {
-  T t0;
+  T t0, t1;
   TwoSum( a0, b0, c0, t0 );
-  c0 = c0 + b1 + b2 + b3;
+  t1 = b1 + b2 + b3;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -3296,10 +3342,10 @@ add_SW_QW_DW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0,
 {
   T t0;
   TwoSum( a0, b0, c0, c1 );
-  c1 = c1 + b1;
-  FastTwoSum( c0, c1, c0, c1 );
-  t0 = b2 + b3;
+  TwoSum( c1, b1, c1, t0 );
   c1 = c1 + t0;
+  c1 = c1 + b2;
+  c1 = c1 + b3;
   FastTwoSum( c0, c1, c0, c1 );
 }
 
@@ -3310,34 +3356,29 @@ add_SW_QW_TW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0,
   T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, b1, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( t0, b2, t0, t1 );
-  FastTwoSum( c1, t0, c1, c2 );
-  t0 = b3 + t1;
-  c2 = c2 + t0;
+  TwoSum( t0, b2, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  c2 = c2 + b3;
+  FastTwoSum( c1, c2, c1, c2 );
+  c2 = c2 + t1;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 1-4-4
 template < typename T > __always_inline void
 add_SW_QW_QW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0;
+  T t0, t1, t2;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, b1, c1, t0 );
+  TwoSum( t0, b2, c2, t1 );
+  TwoSum( t1, b3, c3, t2 );
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t2;
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, b2, c1, c2 );
-  TwoSum( c2, t0, c2, t0 );
-  FastTwoSum( c2, b3, c2, c3 );
-  TwoSum( c3, t0, c3, t0 );
-  FastTwoSum( c2, c3, c2, c3 );
-  c3 = c3 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
 }
 
 // add: 2-1-1
@@ -3354,8 +3395,10 @@ add_DW_SW_SW( T const a0, T const a1, T const b0, T &c0 )
 template < typename T > __always_inline void
 add_DW_SW_DW( T const a0, T const a1, T const b0, T &c0, T &c1 )
 {
+  T t0;
   TwoSum( a0, b0, c0, c1 );
-  c1 = c1 + a1;
+  TwoSum( c1, a1, c1, t0 );
+  c1 = c1 + t0;
   FastTwoSum( c0, c1, c0, c1 );
 }
 
@@ -3366,22 +3409,17 @@ add_DW_SW_TW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   T t0;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, a1, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, t0, c1, c2 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 2-1-4
 template < typename T > __always_inline void
 add_DW_SW_QW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0;
   TwoSum( a0, b0, c0, c1 );
-  TwoSum( c1, a1, c1, t0 );
+  TwoSum( c1, a1, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, t0, c1, c2 );
   c3 = fp_const<T>::zero();
 }
 
@@ -3403,6 +3441,7 @@ add_DW_DW_DW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
   T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
   c1 = c1 + t0;
   FastTwoSum( c0, c1, c0, c1 );
   c1 = c1 + t1;
@@ -3417,13 +3456,13 @@ add_DW_DW_TW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
   TwoSum( c2, t0, c2, t0 );
   FastTwoSum( c1, c2, c1, c2 );
   c2 = c2 + t0;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 2-2-4
@@ -3434,14 +3473,16 @@ add_DW_DW_QW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   TwoSum( c2, t0, c2, t0 );
   FastTwoSum( c2, t0, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 2-3-1
@@ -3451,7 +3492,8 @@ add_DW_TW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0 
   T t0, t1;
   TwoSum( a0, b0, c0, t0 );
   t1 = a1 + b1;
-  c0 = c0 + t1 + b2;
+  t1 = t1 + b2;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -3462,9 +3504,10 @@ add_DW_TW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0,
   T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
   c1 = c1 + t0;
+  c1 = c1 + b2;
   FastTwoSum( c0, c1, c0, c1 );
-  t1 = t1 + b2;
   c1 = c1 + t1;
   FastTwoSum( c0, c1, c0, c1 );
 }
@@ -3477,15 +3520,15 @@ add_DW_TW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0,
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( t0, b2, t0, t1 );
   TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, b2, c2, t1 );
   FastTwoSum( c1, c2, c1, c2 );
   t0 = t0 + t1;
   c2 = c2 + t0;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 2-3-4
@@ -3496,18 +3539,19 @@ add_DW_TW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0,
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( c2, b2, c2, t1 );
-  FastTwoSum( c1, c2, c1, c2 );
   TwoSum( c2, t0, c2, t0 );
-  FastTwoSum( c2, t1, c2, c3 );
-  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c2, b2, c2, t1 );
+  TwoSum( t0, t1, c3, t1 );
   FastTwoSum( c2, c3, c2, c3 );
-  c3 = c3 + t0;
+  c3 = c3 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 2-4-1
@@ -3517,7 +3561,8 @@ add_DW_QW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T cons
   T t0, t1;
   TwoSum( a0, b0, c0, t0 );
   t1 = a1 + b1;
-  c0 = c0 + t1 + b2 + b3;
+  t1 = t1 + b2 + b3;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -3528,9 +3573,11 @@ add_DW_QW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T cons
   T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
   c1 = c1 + t0;
+  c1 = c1 + b2;
+  c1 = c1 + b3;
   FastTwoSum( c0, c1, c0, c1 );
-  t1 = t1 + b2 + b3;
   c1 = c1 + t1;
   FastTwoSum( c0, c1, c0, c1 );
 }
@@ -3543,15 +3590,17 @@ add_DW_QW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T cons
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( t0, b2, t0, t1 );
   TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, b2, c2, t1 );
   FastTwoSum( c1, c2, c1, c2 );
-  t0 = t0 + b3 + t1;
+  c2 = c2 + b3;
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + t1;
   c2 = c2 + t0;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 2-4-4
@@ -3562,29 +3611,31 @@ add_DW_QW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T cons
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( c2, b2, c2, t1 );
-  FastTwoSum( c1, c2, c1, c2 );
   TwoSum( c2, t0, c2, t0 );
-  TwoSum( b3, t1, c3, t1 );
+  TwoSum( c2, b2, c2, t1 );
+  TwoSum( t0, t1, c3, t1 );
+  TwoSum( c3, b3, c3, t2 );
   FastTwoSum( c2, c3, c2, c3 );
-  TwoSum( c3, t0, c3, t0 );
-  t2 = t1 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  c3 = c3 + t2;
+  t0 = t1 + t2;
+  c3 = c3 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 3-1-1
 template < typename T > __always_inline void
 add_TW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
 {
-  T t0;
+  T t0, t1;
   TwoSum( a0, b0, c0, t0 );
-  c0 = c0 + a1 + a2;
+  t1 = a1 + a2;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -3592,9 +3643,10 @@ add_TW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
 template < typename T > __always_inline void
 add_TW_SW_DW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
 {
+  T t0;
   TwoSum( a0, b0, c0, c1 );
-  c1 = c1 + a1;
-  FastTwoSum( c0, c1, c0, c1 );
+  TwoSum( c1, a1, c1, t0 );
+  c1 = c1 + t0;
   c1 = c1 + a2;
   FastTwoSum( c0, c1, c0, c1 );
 }
@@ -3606,30 +3658,25 @@ add_TW_SW_TW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c
   T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, a1, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( t0, a2, t0, t1 );
-  FastTwoSum( c1, t0, c1, c2 );
+  TwoSum( t0, a2, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
   c2 = c2 + t1;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 3-1-4
 template < typename T > __always_inline void
 add_TW_SW_QW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0;
+  T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, a1, c1, t0 );
+  TwoSum( t0, a2, c2, t1 );
+  FastTwoSum( c2, t1, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, a2, c1, c2 );
-  TwoSum( c2, t0, c2, t0 );
-  FastTwoSum( c2, t0, c2, c3 );
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
 }
 
 // add: 3-2-1
@@ -3639,7 +3686,8 @@ add_TW_DW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0 
   T t0, t1;
   TwoSum( a0, b0, c0, t0 );
   t1 = a1 + b1;
-  c0 = c0 + t1 + a2;
+  t1 = t1 + a2;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -3650,9 +3698,10 @@ add_TW_DW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0,
   T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
   c1 = c1 + t0;
+  c1 = c1 + a2;
   FastTwoSum( c0, c1, c0, c1 );
-  t1 = t1 + a2;
   c1 = c1 + t1;
   FastTwoSum( c0, c1, c0, c1 );
 }
@@ -3665,15 +3714,15 @@ add_TW_DW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0,
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( t0, a2, t0, t1 );
   TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, a2, c2, t1 );
   FastTwoSum( c1, c2, c1, c2 );
   t0 = t0 + t1;
   c2 = c2 + t0;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 3-2-4
@@ -3684,18 +3733,19 @@ add_TW_DW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0,
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( c2, a2, c2, t1 );
-  FastTwoSum( c1, c2, c1, c2 );
   TwoSum( c2, t0, c2, t0 );
-  FastTwoSum( c2, t1, c2, c3 );
-  TwoSum( c3, t0, c3, t0 );
+  TwoSum( c2, a2, c2, t1 );
+  TwoSum( t0, t1, c3, t1 );
   FastTwoSum( c2, c3, c2, c3 );
-  c3 = c3 + t0;
+  c3 = c3 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 3-3-1
@@ -3706,7 +3756,8 @@ add_TW_TW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   TwoSum( a0, b0, c0, t0 );
   t1 = a1 + b1;
   t2 = a2 + b2;
-  c0 = c0 + t1 + t2;
+  t1 = t1 + t2;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -3717,10 +3768,11 @@ add_TW_TW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   T t0, t1, t2;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, t1 );
-  t2 = a2 + b2;
+  TwoSum( c1, t0, c1, t0 );
   c1 = c1 + t0;
+  t2 = a2 + b2;
+  c1 = c1 + t2;
   FastTwoSum( c0, c1, c0, c1 );
-  t1 = t1 + t2;
   c1 = c1 + t1;
   FastTwoSum( c0, c1, c0, c1 );
 }
@@ -3733,41 +3785,42 @@ add_TW_TW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
   TwoSum( a2, b2, t1, t2 );
-  TwoSum( t0, t1, t0, t1 );
   TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t1, c2, t1 );
   FastTwoSum( c1, c2, c1, c2 );
   t0 = t0 + t1 + t2;
   c2 = c2 + t0;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 3-3-4
 template < typename T > __always_inline void
 add_TW_TW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0, t1, t2;
+  T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( a2, b2, t1, c3 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( c2, t1, c2, t1 );
-  FastTwoSum( c1, c2, c1, c2 );
   TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( c3, t0, c3, t0 );
   TwoSum( c3, t1, c3, t1 );
   FastTwoSum( c2, c3, c2, c3 );
-  TwoSum( c3, t0, c3, t0 );
-  t2 = t1 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  c3 = c3 + t2;
+  t0 = t0 + t1;
+  c3 = c3 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 3-4-1
@@ -3778,7 +3831,8 @@ add_TW_QW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   TwoSum( a0, b0, c0, t0 );
   t1 = a1 + b1;
   t2 = a2 + b2;
-  c0 = c0 + t1 + t2 + b3;
+  t1 = t1 + t2 + b3;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -3789,10 +3843,12 @@ add_TW_QW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   T t0, t1, t2;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, t1 );
-  t2 = a2 + b2;
+  TwoSum( c1, t0, c1, t0 );
   c1 = c1 + t0;
+  t2 = a2 + b2;
+  c1 = c1 + t2;
+  c1 = c1 + b3;
   FastTwoSum( c0, c1, c0, c1 );
-  t1 = t1 + t2 + b3;
   c1 = c1 + t1;
   FastTwoSum( c0, c1, c0, c1 );
 }
@@ -3805,52 +3861,55 @@ add_TW_QW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
   TwoSum( a2, b2, t1, t2 );
-  TwoSum( t0, t1, t0, t1 );
   TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t1, c2, t1 );
   FastTwoSum( c1, c2, c1, c2 );
-  t0 = t0 + b3 + t1 + t2;
+  c2 = c2 + b3;
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + t1 + t2;
   c2 = c2 + t0;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 3-4-4
 template < typename T > __always_inline void
 add_TW_QW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0, t1, t2, t3;
+  T t0, t1, t2;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( a2, b2, t1, c3 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( c2, t1, c2, t1 );
-  FastTwoSum( c1, c2, c1, c2 );
-  TwoSum( c3, b3, c3, t2 );
   TwoSum( c2, t0, c2, t0 );
-  TwoSum( c3, t1, c3, t1 );
-  t3 = t2 + t1;
-  FastTwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
   TwoSum( c3, t0, c3, t0 );
-  t3 = t3 + t0;
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, b3, c3, t2 );
   FastTwoSum( c2, c3, c2, c3 );
-  c3 = c3 + t3;
+  t0 = t0 + t1 + t2;
+  c3 = c3 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 4-1-1
 template < typename T > __always_inline void
 add_QW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
 {
-  T t0;
+  T t0, t1;
   TwoSum( a0, b0, c0, t0 );
-  c0 = c0 + a1 + a2 + a3;
+  t1 = a1 + a2 + a3;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -3860,10 +3919,10 @@ add_QW_SW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0,
 {
   T t0;
   TwoSum( a0, b0, c0, c1 );
-  c1 = c1 + a1;
-  FastTwoSum( c0, c1, c0, c1 );
-  t0 = a2 + a3;
+  TwoSum( c1, a1, c1, t0 );
   c1 = c1 + t0;
+  c1 = c1 + a2;
+  c1 = c1 + a3;
   FastTwoSum( c0, c1, c0, c1 );
 }
 
@@ -3874,34 +3933,29 @@ add_QW_SW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0,
   T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, a1, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( t0, a2, t0, t1 );
-  FastTwoSum( c1, t0, c1, c2 );
-  t0 = a3 + t1;
-  c2 = c2 + t0;
+  TwoSum( t0, a2, c2, t1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  c2 = c2 + a3;
+  FastTwoSum( c1, c2, c1, c2 );
+  c2 = c2 + t1;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 4-1-4
 template < typename T > __always_inline void
 add_QW_SW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0;
+  T t0, t1, t2;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( c1, a1, c1, t0 );
+  TwoSum( t0, a2, c2, t1 );
+  TwoSum( t1, a3, c3, t2 );
+  FastTwoSum( c2, c3, c2, c3 );
+  c3 = c3 + t2;
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, a2, c1, c2 );
-  TwoSum( c2, t0, c2, t0 );
-  FastTwoSum( c2, a3, c2, c3 );
-  TwoSum( c3, t0, c3, t0 );
-  FastTwoSum( c2, c3, c2, c3 );
-  c3 = c3 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
 }
 
 // add: 4-2-1
@@ -3911,7 +3965,8 @@ add_QW_DW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   T t0, t1;
   TwoSum( a0, b0, c0, t0 );
   t1 = a1 + b1;
-  c0 = c0 + t1 + a2 + a3;
+  t1 = t1 + a2 + a3;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -3922,9 +3977,11 @@ add_QW_DW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   T t0, t1;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
   c1 = c1 + t0;
+  c1 = c1 + a2;
+  c1 = c1 + a3;
   FastTwoSum( c0, c1, c0, c1 );
-  t1 = t1 + a2 + a3;
   c1 = c1 + t1;
   FastTwoSum( c0, c1, c0, c1 );
 }
@@ -3937,15 +3994,17 @@ add_QW_DW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( t0, a2, t0, t1 );
   TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, a2, c2, t1 );
   FastTwoSum( c1, c2, c1, c2 );
-  t0 = t0 + a3 + t1;
+  c2 = c2 + a3;
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + t1;
   c2 = c2 + t0;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 4-2-4
@@ -3956,20 +4015,21 @@ add_QW_DW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( c2, a2, c2, t1 );
-  FastTwoSum( c1, c2, c1, c2 );
   TwoSum( c2, t0, c2, t0 );
-  TwoSum( a3, t1, c3, t1 );
+  TwoSum( c2, a2, c2, t1 );
+  TwoSum( t0, t1, c3, t1 );
+  TwoSum( c3, a3, c3, t2 );
   FastTwoSum( c2, c3, c2, c3 );
-  TwoSum( c3, t0, c3, t0 );
-  t2 = t1 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  c3 = c3 + t2;
+  t0 = t1 + t2;
+  c3 = c3 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 4-3-1
@@ -3980,7 +4040,8 @@ add_QW_TW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   TwoSum( a0, b0, c0, t0 );
   t1 = a1 + b1;
   t2 = a2 + b2;
-  c0 = c0 + t1 + t2 + a3;
+  t1 = t1 + t2 + a3;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -3991,10 +4052,12 @@ add_QW_TW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   T t0, t1, t2;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, t1 );
-  t2 = a2 + b2;
+  TwoSum( c1, t0, c1, t0 );
   c1 = c1 + t0;
+  t2 = a2 + b2;
+  c1 = c1 + t2;
+  c1 = c1 + a3;
   FastTwoSum( c0, c1, c0, c1 );
-  t1 = t1 + t2 + a3;
   c1 = c1 + t1;
   FastTwoSum( c0, c1, c0, c1 );
 }
@@ -4007,43 +4070,45 @@ add_QW_TW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
   TwoSum( a2, b2, t1, t2 );
-  TwoSum( t0, t1, t0, t1 );
   TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t1, c2, t1 );
   FastTwoSum( c1, c2, c1, c2 );
-  t0 = t0 + a3 + t1 + t2;
+  c2 = c2 + a3;
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + t1 + t2;
   c2 = c2 + t0;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 4-3-4
 template < typename T > __always_inline void
 add_QW_TW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
 {
-  T t0, t1, t2, t3;
+  T t0, t1, t2;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( a2, b2, t1, c3 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( c2, t1, c2, t1 );
-  FastTwoSum( c1, c2, c1, c2 );
-  TwoSum( c3, a3, c3, t2 );
   TwoSum( c2, t0, c2, t0 );
-  TwoSum( c3, t1, c3, t1 );
-  t3 = t2 + t1;
-  FastTwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
   TwoSum( c3, t0, c3, t0 );
-  t3 = t3 + t0;
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, a3, c3, t2 );
   FastTwoSum( c2, c3, c2, c3 );
-  c3 = c3 + t3;
+  t0 = t0 + t1 + t2;
+  c3 = c3 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 4-4-1
@@ -4055,7 +4120,8 @@ add_QW_QW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   t1 = a1 + b1;
   t2 = a2 + b2;
   t3 = a3 + b3;
-  c0 = c0 + t1 + t2 + t3;
+  t1 = t1 + t2 + t3;
+  c0 = c0 + t1;
   c0 = c0 + t0;
 }
 
@@ -4066,11 +4132,13 @@ add_QW_QW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   T t0, t1, t2, t3;
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, t1 );
+  TwoSum( c1, t0, c1, t0 );
+  c1 = c1 + t0;
   t2 = a2 + b2;
   t3 = a3 + b3;
-  c1 = c1 + t0;
+  c1 = c1 + t2;
+  c1 = c1 + t3;
   FastTwoSum( c0, c1, c0, c1 );
-  t1 = t1 + t2 + t3;
   c1 = c1 + t1;
   FastTwoSum( c0, c1, c0, c1 );
 }
@@ -4083,17 +4151,19 @@ add_QW_QW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
   TwoSum( a2, b2, t1, t2 );
-  TwoSum( t0, t1, t0, t1 );
   TwoSum( c2, t0, c2, t0 );
+  TwoSum( c2, t1, c2, t1 );
   FastTwoSum( c1, c2, c1, c2 );
   t3 = a3 + b3;
-  t0 = t0 + t3 + t1 + t2;
+  c2 = c2 + t3;
+  FastTwoSum( c1, c2, c1, c2 );
+  t0 = t0 + t1 + t2;
   c2 = c2 + t0;
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // add: 4-4-4
@@ -4104,25 +4174,24 @@ add_QW_QW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   TwoSum( a0, b0, c0, c1 );
   TwoSum( a1, b1, t0, c2 );
   TwoSum( a2, b2, t1, c3 );
-  TwoSum( a3, b3, t2, t3 );
   TwoSum( c1, t0, c1, t0 );
-  FastTwoSum( c0, c1, c0, c1 );
-  TwoSum( c2, t1, c2, t1 );
-  FastTwoSum( c1, c2, c1, c2 );
-  TwoSum( c3, t2, c3, t2 );
-  t3 = t3 + t2;
   TwoSum( c2, t0, c2, t0 );
-  TwoSum( c3, t1, c3, t1 );
-  t3 = t3 + t1;
-  FastTwoSum( c2, c3, c2, c3 );
+  TwoSum( c2, t1, c2, t1 );
+  TwoSum( a3, b3, t2, t3 );
   TwoSum( c3, t0, c3, t0 );
-  t3 = t3 + t0;
+  TwoSum( c3, t1, c3, t1 );
+  TwoSum( c3, t2, c3, t2 );
   FastTwoSum( c2, c3, c2, c3 );
-  c3 = c3 + t3;
+  t0 = t0 + t1 + t2 + t3;
+  c3 = c3 + t0;
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // sub: 1-1-2
@@ -4706,6 +4775,7 @@ mul_SW_TW_QW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c
   t2 = t0 + t1;
   c3 = c3 + t2;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -4778,6 +4848,7 @@ mul_SW_QW_QW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0,
   t4 = t2 + t3 + t0;
   c3 = c3 + t4;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -4912,6 +4983,7 @@ mul_DW_DW_QW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c
   t0 = t0 + t1 + t2 + t3;
   c3 = c3 + t0;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -5007,6 +5079,7 @@ mul_DW_TW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0,
   FastTwoSum( c2, c3, c2, c3 );
   c3 = c3 + t6;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -5107,6 +5180,7 @@ mul_DW_QW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T cons
   t0 = std::fma ( a1, b3, t6 );
   c3 = c3 + t0;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -5174,6 +5248,7 @@ mul_TW_SW_QW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c
   t0 = t1 + t3;
   c3 = c3 + t0;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -5269,6 +5344,7 @@ mul_TW_DW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0,
   FastTwoSum( c2, c3, c2, c3 );
   c3 = c3 + t6;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -5381,6 +5457,7 @@ mul_TW_TW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   t0 = std::fma ( a2, b2, t8 );
   c3 = c3 + t0;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -5493,6 +5570,7 @@ mul_TW_QW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   t0 = std::fma ( a2, b2, t0 );
   c3 = c3 + t0;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -5565,6 +5643,7 @@ mul_QW_SW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0,
   t5 = t0 + t1 + t4;
   c3 = c3 + t5;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -5665,6 +5744,7 @@ mul_QW_DW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   t0 = std::fma ( a3, b1, t8 );
   c3 = c3 + t0;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -5777,6 +5857,7 @@ mul_QW_TW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   t0 = std::fma ( a3, b1, t0 );
   c3 = c3 + t0;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -5902,6 +5983,7 @@ mul_QW_QW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   t0 = std::fma ( a2, b2, t0 );
   c3 = c3 + t0;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -7165,6 +7247,7 @@ sqr_DW_QW( T const a0, T const a1, T &c0, T &c1, T &c2, T &c3 )
   t1 = t1 + t3;
   c3 = c3 + t1;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -7250,6 +7333,7 @@ sqr_TW_QW( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2, T &c3 )
   t1 = std::fma ( a2, a2, t1 );
   c3 = c3 + t1;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
@@ -7339,6 +7423,7 @@ sqr_QW_QW( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2, 
   t1 = std::fma ( a2, a2, t1 );
   c3 = c3 + t1;
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );

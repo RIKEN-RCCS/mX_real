@@ -549,9 +549,9 @@ namespace qX_real {
     using TX = qX_real::qx_real<T,Ab>;
     TX c;
     if ( Ab == Algorithm::Accurate ) {
-      QxW::add_SW_QW_QW( a.x[0], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
+      QxW::add_SW_QW_QW( a, b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
     } else {
-      QxW::add_SW_QQW_QQW( a.x[0], b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
+      QxW::add_SW_QQW_QQW( a, b.x[0], b.x[1], b.x[2], b.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
       if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
     }
     return c;
@@ -700,19 +700,19 @@ namespace qX_real {
   }
   //
   template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
-    // ::Accurate += ::Sloppy or ::Quasi are not allowed
+    // ::Accurate += (::Sloppy or ::Quasi) : not allowed
     // if neccessary, write as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
   INLINE auto const& operator+= ( qX_real::qx_real<T,Aa>& a, qX_real::qx_real<T,Ab> const& b ) {
     return qX_real::operator_add_ow ( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
-    // ::Accurate += ::Sloppy or ::Quasi are not allowed
+    // ::Accurate += (::Sloppy or ::Quasi) : not allowed
     // if neccessary, write as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
   INLINE auto const& operator+= ( qX_real::qx_real<T,Aa>& a, tX_real::tx_real<T,Ab> const& b ) {
     return qX_real::operator_add_ow ( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
-    // ::Accurate += ::Sloppy or ::Quasi are not allowed
+    // ::Accurate += (::Sloppy or ::Quasi) : not allowed
     // if neccessary, write as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
   INLINE auto const& operator+= ( qX_real::qx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
     return qX_real::operator_add_ow ( a, b );
@@ -944,20 +944,20 @@ namespace qX_real {
   }
   //
   template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
-    // ::Accurate += ::Sloppy or ::Quasi are not allowed
-    // if neccessary, write as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
+    // ::Accurate *= (::Sloppy or ::Quasi) : not allowed
+    // if neccessary, write as a *= dx_real<T,Algorithm::Accurate>(b), explicitly.
   INLINE auto const& operator*= ( qX_real::qx_real<T,Aa>& a, qX_real::qx_real<T,Ab> const& b ) {
     return qX_real::operator_mul_ow ( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
-    // ::Accurate += ::Sloppy or ::Quasi are not allowed
-    // if neccessary, write as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
+    // ::Accurate *= (::Sloppy or ::Quasi) : not allowed
+    // if neccessary, write as a *= dx_real<T,Algorithm::Accurate>(b), explicitly.
   INLINE auto const& operator*= ( qX_real::qx_real<T,Aa>& a, tX_real::tx_real<T,Ab> const& b ) {
     return qX_real::operator_mul_ow ( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
-    // ::Accurate += ::Sloppy or ::Quasi are not allowed
-    // if neccessary, write as a += dx_real<T,Algorithm::Accurate>(b), explicitly.
+    // ::Accurate *= (::Sloppy or ::Quasi) : not allowed
+    // if neccessary, write as a *= dx_real<T,Algorithm::Accurate>(b), explicitly.
   INLINE auto const& operator*= ( qX_real::qx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
     return qX_real::operator_mul_ow ( a, b );
   }
@@ -1211,8 +1211,8 @@ namespace qX_real {
   //
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_div ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,A>;
     try { qX_real::operator_div_exception<A>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1224,8 +1224,8 @@ namespace qX_real {
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_div ( tX_real::tx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,A>;
     try { qX_real::operator_div_exception<A>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1237,8 +1237,8 @@ namespace qX_real {
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_div ( qX_real::qx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,A>;
     try { qX_real::operator_div_exception<A>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1250,8 +1250,8 @@ namespace qX_real {
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_div ( dX_real::dx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,A>;
     try { qX_real::operator_div_exception<A>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1263,8 +1263,8 @@ namespace qX_real {
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_div ( qX_real::qx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,A>;
     try { qX_real::operator_div_exception<A>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1276,8 +1276,8 @@ namespace qX_real {
   }
   template < typename T, Algorithm Ab >
   INLINE auto const operator_div ( T const& a, qX_real::qx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,Ab>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,Ab>;
     try { qX_real::operator_div_exception<Ab>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1289,21 +1289,17 @@ namespace qX_real {
   }
   template < typename T, Algorithm Aa >
   INLINE auto const operator_div ( qX_real::qx_real<T,Aa> const& a, T const& b ) {
-    using TX = qX_real::qx_real<T,Aa>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,Aa>;
     try { qX_real::operator_div_exception<Aa>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
-    if ( Aa != Algorithm::Quasi ) {
-      return qX_real::operator_div_body( a, b );
-    } else {
-      return qX_real::operator_div_body( a, b.element_rotate() );
-    }
+    return qX_real::operator_div_body( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_div ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,A>;
     try { qX_real::operator_div_exception<A>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1315,8 +1311,8 @@ namespace qX_real {
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_div ( dX_real::dx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,A>;
     try { qX_real::operator_div_exception<A>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1328,8 +1324,8 @@ namespace qX_real {
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_div ( tX_real::tx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,A>;
     try { qX_real::operator_div_exception<A>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1341,8 +1337,8 @@ namespace qX_real {
   }
   template < typename T, Algorithm Ab >
   INLINE auto const operator_div ( T const& a, tX_real::tx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,Ab>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,Ab>;
     try { qX_real::operator_div_exception<Ab>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1354,21 +1350,17 @@ namespace qX_real {
   }
   template < typename T, Algorithm Aa >
   INLINE auto const operator_div ( tX_real::tx_real<T,Aa> const& a, T const& b ) {
-    using TX = qX_real::qx_real<T,Aa>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,Aa>;
     try { qX_real::operator_div_exception<Aa>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
-    if ( Aa != Algorithm::Quasi ) {
-      return qX_real::operator_div_body( a, b );
-    } else {
-      return qX_real::operator_div_body( a, b.element_rotate() );
-    }
+    return qX_real::operator_div_body( a, b );
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_div ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,A>;
     try { qX_real::operator_div_exception<A>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1380,8 +1372,8 @@ namespace qX_real {
   }
   template < typename T, Algorithm Ab >
   INLINE auto const operator_div ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
-    using TX = qX_real::qx_real<T,Ab>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,Ab>;
     try { qX_real::operator_div_exception<Ab>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1393,21 +1385,17 @@ namespace qX_real {
   }
   template < typename T, Algorithm Aa >
   INLINE auto const operator_div ( dX_real::dx_real<T,Aa> const& a, T const& b ) {
-    using TX = qX_real::qx_real<T,Aa>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,Aa>;
     try { qX_real::operator_div_exception<Aa>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
-    if ( Aa != Algorithm::Quasi ) {
-      return qX_real::operator_div_body( a, b );
-    } else {
-      return qX_real::operator_div_body( a, b.element_rotate() );
-    }
+    return qX_real::operator_div_body( a, b );
   }
   template < typename T, Algorithm A, IF_T_fp<T> >
   INLINE auto const operator_div ( T const& a, T const& b ) {
-    using TX = qX_real::qx_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,A>;
     try { tX_real::operator_div_exception<A>( b ); }
     catch ( TX const& e ) { return e; }
 #endif
@@ -1441,6 +1429,46 @@ namespace qX_real {
   template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
   inline auto const operator/ ( qX_real::qx_real<T,Aa> const& a, Ts const& b) {
     return qX_real::operator_div( a, T(b) );
+  }
+  //
+  template < typename T, Algorithm Aa >
+  INLINE auto const& operator_div_ow (  qX_real::qx_real<T,Aa>& a, qX_real::qx_real<T,Aa> const& b ) {
+    return (a = qX_real::operator_mul( a, b ));
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const& operator_div_ow (  qX_real::qx_real<T,Aa>& a, tX_real::tx_real<T,Aa> const& b ) {
+    return (a = qX_real::operator_mul( a, b ));
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const& operator_div_ow (  qX_real::qx_real<T,Aa>& a, dX_real::dx_real<T,Aa> const& b ) {
+    return (a = qX_real::operator_mul( a, b ));
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const& operator_div_ow (  qX_real::qx_real<T,Aa>& a, T const& b ) {
+    return (a = qX_real::operator_mul( a, b ));
+  }
+  //
+  template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
+    // ::Accurate /= (::Sloppy or ::Quasi) : not allowed
+    // if neccessary, write as a /= dx_real<T,Algorithm::Accurate>(b), explicitly.
+  INLINE auto const& operator/= ( qX_real::qx_real<T,Aa>& a, qX_real::qx_real<T,Ab> const& b ) {
+    return qX_real::operator_div_ow ( a, b );
+  }
+  template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
+    // ::Accurate /= (::Sloppy or ::Quasi) : not allowed
+    // if neccessary, write as a /= dx_real<T,Algorithm::Accurate>(b), explicitly.
+  INLINE auto const& operator/= ( qX_real::qx_real<T,Aa>& a, tX_real::tx_real<T,Ab> const& b ) {
+    return qX_real::operator_div_ow ( a, b );
+  }
+  template < typename T, Algorithm Aa, Algorithm Ab, IF_A_owAble<Aa,Ab> >
+    // ::Accurate /= (::Sloppy or ::Quasi) : not allowed
+    // if neccessary, write as a /= dx_real<T,Algorithm::Accurate>(b), explicitly.
+  INLINE auto const& operator/= ( qX_real::qx_real<T,Aa>& a, dX_real::dx_real<T,Ab> const& b ) {
+    return qX_real::operator_div_ow ( a, b );
+  }
+  template < typename Ts, typename T, Algorithm Aa, IF_T_scalar<Ts> >
+  INLINE auto const& operator/= ( qX_real::qx_real<T,Aa>& a, Ts const& b ) {
+    return qX_real::operator_div_ow ( a, T(b) );
   }
 
 
@@ -1572,8 +1600,8 @@ namespace qX_real {
   //
   template < typename T, Algorithm Aa >
   INLINE auto const operator_sqrt ( qX_real::qx_real<T,Aa> const& a ) {
-    using TX = qX_real::qx_real<T,Aa>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
+    using TX = qX_real::qx_real<T,Aa>;
     try { qX_real::operator_sqrt_exception( a ); }
     catch ( TX const& e ) { return e; }
 #else

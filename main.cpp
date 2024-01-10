@@ -28,8 +28,12 @@ template < typename T > void printTYPE( void ) {
 template < typename T >
 T nrm2( int const& L, T const* x ) {
  T z = 0;
- #pragma gcc ivdep
- #pragma ivdep
+// #pragma gcc ivdep
+#ifdef __INTEL_COMPILER
+#pragma ivdep
+#else
+#pragma omp simd
+#endif
  for(int i=0; i<L; i++) {
    z += x[i] * x[i];
  }
@@ -39,8 +43,12 @@ T nrm2( int const& L, T const* x ) {
 template < typename T >
 T asum( int const& L, T const* x ) {
  T z = 0;
- #pragma gcc ivdep
- #pragma ivdep
+// #pragma gcc ivdep
+#ifdef __INTEL_COMPILER
+#pragma ivdep
+#else
+#pragma omp simd
+#endif
  for(int i=0; i<L; i++) {
    z += abs( x[i] );
  }
@@ -50,8 +58,12 @@ T asum( int const& L, T const* x ) {
 template < typename T >
 T dot( int const& L, T const* x, T const *y ) {
  T z = 0;
- #pragma gcc ivdep
- #pragma ivdep
+// #pragma gcc ivdep
+#ifdef __INTEL_COMPILER
+#pragma ivdep
+#else
+#pragma omp simd
+#endif
  for(int i=0; i<L; i++) {
    z += x[i] * y[i];
  }
@@ -60,8 +72,12 @@ T dot( int const& L, T const* x, T const *y ) {
 
 template < typename T >
 void axpy( int const& L, T const& alpha, T const* x, T *y ) {
- #pragma gcc ivdep
- #pragma ivdep
+// #pragma gcc ivdep
+#ifdef __INTEL_COMPILER
+#pragma ivdep
+#else
+#pragma omp simd
+#endif
  for(int i=0; i<L; i++) {
    y[i] += alpha * x[i];
  }
@@ -71,8 +87,12 @@ template < typename T >
 void gemv( int const& L, int const& N, T const& alpha, T const *a, T const* x, T *y ) {
  for(int j=0; j<N; j++) {
    auto s = alpha * x[j];
-   #pragma gcc ivdep
-   #pragma ivdep
+//   #pragma gcc ivdep
+#ifdef __INTEL_COMPILER
+#pragma ivdep
+#else
+#pragma omp simd
+#endif
    for(int i=0; i<L; i++) {
      y[i] += a[i+j*L] * s;
    }
@@ -87,8 +107,12 @@ init( int const L, mp_real const& alpha, mp_real * x, mp_real * y, mp_real * z )
   unsigned int seed = 1;
   mpfr::random( seed );
 
-  #pragma gcc ivdep
-  #pragma ivdep
+//  #pragma gcc ivdep
+#ifdef __INTEL_COMPILER
+#pragma ivdep
+#else
+#pragma omp simd
+#endif
   for(int i=0; i<L; i++) {
     x[i] = 2*mpfr::random() - 1;
     y[i] = 2*mpfr::random() - 1;
@@ -97,8 +121,12 @@ init( int const L, mp_real const& alpha, mp_real * x, mp_real * y, mp_real * z )
   axpy( L, alpha, x, z+8 );
 
   int M = (int)sqrt((double)L);
-  #pragma gcc ivdep
-  #pragma ivdep
+//  #pragma gcc ivdep
+#ifdef __INTEL_COMPILER
+#pragma ivdep
+#else
+#pragma omp simd
+#endif
   for(int i=0; i<M; i++) {
     z[i+8+L] = y[i];
   }
@@ -235,51 +263,50 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
 
   {
     auto y = T(0);
-    mp_real y_ = double(0);
-    for(int i=0x200000;i>=1;i--) {
-      auto x = T(i);
+    auto x = T(0);
+    //while ( true ) {
+    for(int i=0; i<=400; i++) {
+#if 0
+      x = x + T(1);
       auto x2 = x * x;
       auto x4 = x2 * x2;
       auto z = T(1) / x4;
+      auto y0= y;
       y = y + z;
-
-#if 0
-      mp_real x_ = double(i);
-      mp_real x2_ = x_ * x_;
-      mp_real x4_ = x2_ * x2_;
-      mp_real z_ = mp_real(double(1)) / x4_;
-      y_ = y_ + z_;
-
-      auto X = convert<T>( x_ );
-      auto X2 = convert<T>( x2_ );
-      auto X4 = convert<T>( x4_ );
-      auto Z = convert<T>( z_ );
-      auto Y = convert<T>( y_ );
-
-      if ( i < 500 && std::is_same<T,tf_Real>::value ) {
-		printf( "i= %d\n", i);
-
-    	print( " x >> ", X-x );
-    	print( " x2 >> ", X2-x2 );
-    	print( " x4 >> ", X4-x4 );
-    	print( " y >> ", Y-y );
-    	print( " z >> ", Z-z );
-		print( "YYY", Y );
-		print( "yyy", y );
-      }
+      if ( abs(y0-y) == T(0) ) break;
+#else
+      auto s1 = double(2) / (4*x+double(1));
+      auto s2 = double(2) / (4*x+double(2));
+      auto s3 = double(1) / (4*x+double(3));
+      auto z = s1 + s2 + s3;
+      for(int j=0; j<i; j++) z = z * double(-0.25);
+      if ( z == T(0) ) break; // uderflow
+      y += z;
+      x += double(1);
 #endif
     }
-    auto ans = sqrt( sqrt( y*90 ) );
-    print( "pai by sqrt(sqrt(90*sum 1/k^4)) ", ans );
-
     auto pi = mpfr::const_pi();
     auto pai = convert<T>( mpfr::const_pi() );
+
+//    auto ans = sqrt( sqrt( y*90 ) );
+    auto ans = y;
+#if 0
+    print( "pai by sqrt(sqrt(90*sum 1/k^4)) ", ans );
+
     auto pai4 = convert<T>( pi*pi*pi*pi );
 
     print( "pi.appx^4                    =  ", y*90 );
     print( "pi[mpfr::const_pi]^4         =  ", pai4 );
     print( "pi[mpfr::const_pi]           =  ", pai );
     print( "pi[mpfr::const_pi] - pi.appx =  ", pai - ans );
+#else
+    print( "pi.appx                      =  ", ans );
+    print( "pi[mpfr::const_pi]           =  ", pai );
+    print( "pi[mpfr::const_pi] - pi.appx =  ", pai - ans );
+    T c;
+    QxW::add_QW_QW_QW( pai.x[0], pai.x[1], pai.x[2], pai.x[3], -ans.x[0], -ans.x[1], -ans.x[2], -ans.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
+    print( "pi[mpfr::const_pi] - pi.appx =  ", c );
+#endif
   }
 }
 
@@ -483,6 +510,7 @@ for(int i=1;i<3;i++){
   std::cout << " BLAS2&3: Matrix dimension = " << M << " x " << M << "\n",
   std::cout << " - elapsed time - : func mode : ----- Relative Error in binary & long double format ----- \n";
 
+#if 0
   verify<float>         ( L, alpha, x, y, z );
   verify<df_Real_quasi> ( L, alpha, x, y, z );
   verify<df_Real_sloppy>( L, alpha, x, y, z );
@@ -508,6 +536,7 @@ for(int i=1;i<3;i++){
   verify<qd_Real_sloppy>( L, alpha, x, y, z );
 #ifdef  _QD_QD_REAL_H
   verify<qd_real>       ( L, alpha, x, y, z ); // QD native
+#endif
 #endif
   verify<qd_Real>       ( L, alpha, x, y, z );
 
