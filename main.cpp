@@ -303,9 +303,6 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
     print( "pi.appx                      =  ", ans );
     print( "pi[mpfr::const_pi]           =  ", pai );
     print( "pi[mpfr::const_pi] - pi.appx =  ", pai - ans );
-    T c;
-    QxW::add_QW_QW_QW( pai.x[0], pai.x[1], pai.x[2], pai.x[3], -ans.x[0], -ans.x[1], -ans.x[2], -ans.x[3], c.x[0], c.x[1], c.x[2], c.x[3] );
-    print( "pi[mpfr::const_pi] - pi.appx =  ", c );
 #endif
   }
 }
@@ -510,7 +507,7 @@ for(int i=1;i<3;i++){
   std::cout << " BLAS2&3: Matrix dimension = " << M << " x " << M << "\n",
   std::cout << " - elapsed time - : func mode : ----- Relative Error in binary & long double format ----- \n";
 
-#if 0
+#if 1
   verify<float>         ( L, alpha, x, y, z );
   verify<df_Real_quasi> ( L, alpha, x, y, z );
   verify<df_Real_sloppy>( L, alpha, x, y, z );
