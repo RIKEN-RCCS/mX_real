@@ -116,6 +116,7 @@ sqrt_QTW_QTW ( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2 )
   td = c0 + c1;
   c2 = tn / td;
   c2 = c2 * fp_const<T>::half();
+  std::cout << c0 << " " << c1 << " " << c2 << "\n";
 }
 
 // sqrt: 3-4

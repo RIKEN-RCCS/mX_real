@@ -10,7 +10,7 @@
 #include <math.h>
 
 #define	INLINE	__always_inline
-#define	MX_REAL_USE_INF_NAN_EXCEPTION	0
+#define	MX_REAL_USE_INF_NAN_EXCEPTION	1
 
 namespace mX_real {
 
@@ -18,7 +18,7 @@ namespace mX_real {
 #include "Ozaki-QW/qxw.hpp"
 
   //
-  // Descrition of the Algorithm
+  // Enum-Class definition of the internal Algorithms
   //
   enum class Algorithm {
   //
@@ -26,7 +26,7 @@ namespace mX_real {
     Sloppy   = 1,
     Quasi    = 2,
   //
-  // alias names
+  // name aliasing
     IEEE     = Accurate,
     PairWise = Quasi,
     PairArithmetic = Quasi,
@@ -270,9 +270,6 @@ namespace mX_real {
       } else {
         quickSum( c.x[0], c.x[1] );
       }
-      for ( int itr = 1; itr < std::max(1,N_itr); itr++ ) {
-        quickSum( c.x[0], c.x[1] );
-      }
     }
   }
   //
@@ -286,15 +283,12 @@ namespace mX_real {
 #endif
     {
       if ( N_itr > 0 ) {
-        twoSum( c.x[1], c.x[2] );
         twoSum( c.x[0], c.x[1] );
+        twoSum( c.x[1], c.x[2] );
       } else {
-        quickSum( c.x[1], c.x[2] );
-        quickSum( c.x[0], c.x[1] );
-      }
-      for ( int itr = 1; itr < std::max(1,N_itr); itr++ ) {
         quickSum( c.x[0], c.x[1] );
         quickSum( c.x[1], c.x[2] );
+        quickSum( c.x[0], c.x[1] );
       }
     }
   }
@@ -309,18 +303,15 @@ namespace mX_real {
 #endif
     {
       if ( N_itr > 0 ) {
-        twoSum( c.x[2], c.x[3] );
-        twoSum( c.x[1], c.x[2] );
         twoSum( c.x[0], c.x[1] );
+        twoSum( c.x[1], c.x[2] );
+        twoSum( c.x[2], c.x[3] );
       } else {
-        quickSum( c.x[2], c.x[3] );
-        quickSum( c.x[1], c.x[2] );
-        quickSum( c.x[0], c.x[1] );
-      }
-      for ( int itr = 1; itr < std::max(1,N_itr); itr++ ) {
         quickSum( c.x[0], c.x[1] );
         quickSum( c.x[1], c.x[2] );
         quickSum( c.x[2], c.x[3] );
+        quickSum( c.x[1], c.x[2] );
+        quickSum( c.x[0], c.x[1] );
       }
     }
   }
@@ -379,11 +370,22 @@ namespace mX_real {
 #define IF_T_fp		typename __dummy_T__=if_T_fp
 #define IF_T_scalar	typename __dummy_T__=if_T_scalar
 
+// helper macro to extend argument list elements into the raw QxW style
+#define _SX_(a)	a
+#define _DX_(a) a.x[0], a.x[1]
+#define _TX_(a) a.x[0], a.x[1], a.x[2]
+#define _QX_(a) a.x[0], a.x[1], a.x[2], a.x[3]
+
 //
 #include "dX_real.hpp"
 #include "tX_real.hpp"
 #include "qX_real.hpp"
 //
+
+#undef	_SX_
+#undef	_DX_
+#undef	_TX_
+#undef	_QX_
 
 #undef IF_A_noQuasi
 #undef IF_A_owAble

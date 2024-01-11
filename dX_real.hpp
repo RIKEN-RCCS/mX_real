@@ -551,7 +551,7 @@ namespace dX_real {
   }
   //
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-  template < Algorithm A, typename T >
+  template < Algorithm A, typename T, IF_T_fp<T> >
   INLINE auto const operator_add_exception ( T const& a, T const& b ) {
     using TX = dX_real::dx_real<T,A>;
     if ( fp<T>::isnan( a ) || fp<T>::isnan( b ) ) {
@@ -566,10 +566,10 @@ namespace dX_real {
 	}
     }
     if ( fp<T>::isinf( a ) ) {
-        auto c = fp<T>::copysign( inf, a ); throw TX{ c,c };
+        auto c = fp<T>::copysign( fp<T>::inf, a ); throw TX{ c,c };
     }
     if ( fp<T>::isinf( b ) ) {
-        auto c = fp<T>::copysign( inf, b ); throw TX{ c,c };
+        auto c = fp<T>::copysign( fp<T>::inf, b ); throw TX{ c,c };
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
@@ -580,7 +580,7 @@ namespace dX_real {
   }
   template < typename T, Algorithm Ab >
   INLINE auto const operator_add_exception ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
-    auto sb = a.quick_Normalized();
+    auto sb = b.quick_Normalized();
     dX_real::operator_add_exception <Ab>( a, sb );
   }
 #endif
@@ -726,7 +726,7 @@ namespace dX_real {
   }
   //
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-  template < Algorithm A, typename T >
+  template < Algorithm A, typename T, IF_T_fp<T> >
   INLINE auto const operator_mul_exception ( T const& a, T const& b ) {
     using TX = dX_real::dx_real<T,A>;
     if ( fp<T>::isnan( a ) || fp<T>::isnan( b ) ) {
@@ -742,7 +742,7 @@ namespace dX_real {
         auto c = fp<T>::copysign( fp<T>::copysign( fp<T>::inf, a ), b ); throw TX{ c,c };
     }
     if ( fp<T>::is_zero( a ) || fp<T>::is_zero( b ) ) {
-        auto c = fp<T>::copysign( inf, b ); throw TX{ c,c };
+        auto c = fp<T>::copysign( fp<T>::copysign( fp<T>::zero, a ), b ); throw TX{ c,c };
     }
   }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
@@ -753,7 +753,7 @@ namespace dX_real {
   }
   template < typename T, Algorithm Ab >
   INLINE auto const operator_mul_exception ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
-    auto sb = a.quick_Normalized();
+    auto sb = b.quick_Normalized();
     dX_real::operator_mul_exception <Ab>( a, sb );
   }
 #endif
@@ -762,7 +762,7 @@ namespace dX_real {
   INLINE auto const operator_mul ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     using TX = dX_real::dx_real<T,A>;
-    try { dX_real::operator_mul_exception<A>( a, b ); }
+    try { dX_real::operator_mul_exception( a, b ); }
     catch ( TX const& e ) { return e; }
 #endif
     return dX_real::operator_mul_body( a, b );
@@ -771,7 +771,7 @@ namespace dX_real {
   INLINE auto const operator_mul ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     using TX = dX_real::dx_real<T,Ab>;
-    try { dX_real::operator_mul_exception<Ab>( a, b ); }
+    try { dX_real::operator_mul_exception( a, b ); }
     catch ( TX const& e ) { return e; }
 #endif
     return dX_real::operator_mul_body( a, b );
@@ -885,7 +885,7 @@ namespace dX_real {
   }
   //
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-  template < Algorithm A, typename T >
+  template < Algorithm A, typename T, IF_T_fp<T> >
   INLINE auto const operator_div_exception ( T const& a, T const& b ) {
     using TX = dX_real::dx_real<T,A>;
     if ( fp<T>::isnan( a ) || fp<T>::isnan( b ) ) {
@@ -908,11 +908,21 @@ namespace dX_real {
       }
     }
   }
+  template < typename T, Algorithm Ab >
+  INLINE auto const operator_div_exception ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
+    auto sb = b.quick_Normalized();
+    dX_real::operator_div_exception<Ab>( a, sb );
+  }
+  template < typename T, Algorithm Aa >
+  INLINE auto const operator_div_exception ( dX_real::dx_real<T,Aa> const& a, T const& b ) {
+    auto sa = a.quick_Normalized();
+    dX_real::operator_div_exception<Aa>( sa, b );
+  }
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_div_exception ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
     auto sa = a.quick_Normalized();
     auto sb = b.quick_Normalized();
-    dX_real::operator_div_exception <A>( sa, sb );
+    dX_real::operator_div_exception<A>( sa, sb );
   }
 #endif
   //
@@ -933,7 +943,7 @@ namespace dX_real {
   INLINE auto const operator_div ( T const& a, dX_real::dx_real<T,Ab> const& b ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     using TX = dX_real::dx_real<T,Ab>;
-    try { dX_real::operator_div_exception<Ab>( b ); }
+    try { dX_real::operator_div_exception( a, b ); }
     catch ( TX const& e ) { return e; }
 #endif
     if ( Ab != Algorithm::Quasi ) {
@@ -946,7 +956,7 @@ namespace dX_real {
   INLINE auto const operator_div ( dX_real::dx_real<T,Aa> const& a, T const& b ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     using TX = dX_real::dx_real<T,Aa>;
-    try { dX_real::operator_div_exception<Aa>( b ); }
+    try { dX_real::operator_div_exception( a, b ); }
     catch ( TX const& e ) { return e; }
 #endif
     return dX_real::operator_div_body( a, b );
@@ -955,7 +965,7 @@ namespace dX_real {
   INLINE auto const operator_div ( T const& a, T const& b ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     using TX = dX_real::dx_real<T,A>;
-    try { dX_real::operator_div_exception<A>( b ); }
+    try { dX_real::operator_div_exception<A>( a, b ); }
     catch ( TX const& e ) { return e; }
 #endif
     return dX_real::operator_div_body( a, b );

@@ -19,16 +19,20 @@ using namespace mX_real;
 #include "mpfr_convert.hpp"
 using mp_real = mpfr::mpreal;
 
-
+#if 0
+//
+// next function helps the detection of typenames, but
+// has to be availabel for the only developper purpose.
+//
 #include <boost/type_index.hpp>
 template < typename T > void printTYPE( void ) {
   std::cout << boost::typeindex::type_id_with_cvr<T>().pretty_name(); }
+#endif
 
 
 template < typename T >
 T nrm2( int const& L, T const* x ) {
  T z = 0;
-// #pragma gcc ivdep
 #ifdef __INTEL_COMPILER
 #pragma ivdep
 #else
@@ -43,7 +47,6 @@ T nrm2( int const& L, T const* x ) {
 template < typename T >
 T asum( int const& L, T const* x ) {
  T z = 0;
-// #pragma gcc ivdep
 #ifdef __INTEL_COMPILER
 #pragma ivdep
 #else
@@ -58,7 +61,6 @@ T asum( int const& L, T const* x ) {
 template < typename T >
 T dot( int const& L, T const* x, T const *y ) {
  T z = 0;
-// #pragma gcc ivdep
 #ifdef __INTEL_COMPILER
 #pragma ivdep
 #else
@@ -72,7 +74,6 @@ T dot( int const& L, T const* x, T const *y ) {
 
 template < typename T >
 void axpy( int const& L, T const& alpha, T const* x, T *y ) {
-// #pragma gcc ivdep
 #ifdef __INTEL_COMPILER
 #pragma ivdep
 #else
@@ -87,7 +88,6 @@ template < typename T >
 void gemv( int const& L, int const& N, T const& alpha, T const *a, T const* x, T *y ) {
  for(int j=0; j<N; j++) {
    auto s = alpha * x[j];
-//   #pragma gcc ivdep
 #ifdef __INTEL_COMPILER
 #pragma ivdep
 #else
@@ -107,7 +107,6 @@ init( int const L, mp_real const& alpha, mp_real * x, mp_real * y, mp_real * z )
   unsigned int seed = 1;
   mpfr::random( seed );
 
-//  #pragma gcc ivdep
 #ifdef __INTEL_COMPILER
 #pragma ivdep
 #else
@@ -121,7 +120,6 @@ init( int const L, mp_real const& alpha, mp_real * x, mp_real * y, mp_real * z )
   axpy( L, alpha, x, z+8 );
 
   int M = (int)sqrt((double)L);
-//  #pragma gcc ivdep
 #ifdef __INTEL_COMPILER
 #pragma ivdep
 #else
@@ -363,45 +361,49 @@ for(int i=1;i<3;i++){
 {
    tf_Real r = tf_Real::rand();
    tf_Real x;
-   x.x[0] = 0*r.x[0];
-   x.x[1] = -8*r.x[1];
-   x.x[2] = -9*r.x[2];
-   print( "normalize test", x );
+   x.x[0] =  9*r.x[0];
+   x.x[1] = -9*r.x[0];
+   x.x[2] = 1*r.x[2];
+   print( "normalize test A0", x );
    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-   print( "normalize test", x );
+   print( "normalize test A1", x );
    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-   print( "normalize test", x );
+   print( "normalize test A2", x );
+   QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+   print( "normalize test A3", x );
 
-   x.x[0] = 0*r.x[0];
-   x.x[1] = -8*r.x[1];
-   x.x[2] = -9*r.x[2];
-   print( "normalize test", x );
+   x.x[0] =  9*r.x[0];
+   x.x[1] = -9*r.x[0];
+   x.x[2] = 1*r.x[2];
+   print( "normalize test B0", x );
    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-   print( "normalize test", x );
+   print( "normalize test B1", x );
    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-   print( "normalize test", x );
+   print( "normalize test B2", x );
 
-   x.x[0] = 1.0f*r.x[1];
-   x.x[1] = -0*r.x[2];
-   x.x[2] = +9*r.x[0];
-   print( "normalize test 0", x );
+   x.x[0] =  9*r.x[0];
+   x.x[1] = -9*r.x[0];
+   x.x[2] = 1*r.x[2];
+   print( "normalize test C0", x );
    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-   print( "normalize test 1", x );
+   print( "normalize test C1", x );
    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-   print( "normalize test 2", x );
+   print( "normalize test C2", x );
+   QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+   print( "normalize test C3", x );
 
-   x.x[0] = 1.0f*r.x[1];
-   x.x[1] = -0*r.x[2];
-   x.x[2] = +9*r.x[0];
-   print( "normalize test 0", x );
+   x.x[0] =  9*r.x[0];
+   x.x[1] = -9*r.x[0];
+   x.x[2] = 1*r.x[2];
+   print( "normalize test D0", x );
    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-   print( "normalize test 1", x );
+   print( "normalize test D1", x );
    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-   print( "normalize test 2", x );
+   print( "normalize test D2", x );
 
 }
 #if 1
@@ -458,6 +460,43 @@ for(int i=1;i<3;i++){
    print( "add ", a + b );
 //   print( "mulx", operator+(a,b) );
    print( "addx", dX_real::operator_add(a,b) );
+}
+{
+   double ss[] = { 
+	9.3493629504948217e-11,
+	8.9988572149479751e-11,
+	6.0181269689874028e-11,
+	1.1177540837348232e-10,
+	1.4183408614254489e-10,
+	   };
+   for(int i=0; i<5;i++) {
+     print( ">>", ss[i] );
+     print( ">>", float(ss[i]) );
+     mp_real sp = ss[i];
+     tf_Real_quasi s0 = convert<tf_Real_quasi>(sp);
+
+     print( ">>", s0 );
+     tf_Real_quasi s1 = 1 / sqrt(s0);
+     tf_Real_quasi s2 = 1 / s1;
+     tf_Real_quasi s3 = s2 * s2;
+     print( ">>", s3 );
+
+     tf_Real_sloppy t0 = s0;
+
+     print( ">>", t0 );
+     tf_Real_sloppy t1 = 1 / sqrt(t0);
+     tf_Real_sloppy t2 = 1 / t1;
+     tf_Real_sloppy t3 = t2 * t2;
+     print( ">>", t3 );
+
+     tf_Real c0 = s0;
+
+     print( ">>", c0 );
+     tf_Real c1 = 1 / sqrt(c0);
+     tf_Real c2 = 1 / c1;
+     tf_Real c3 = c2 * c2;
+     print( ">>", c3 );
+   }
 }
 {
    float x = std::numeric_limits<float>::quiet_NaN();

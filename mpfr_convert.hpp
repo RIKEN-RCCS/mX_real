@@ -2,6 +2,11 @@
 #define MX_REAL_MPFR_CONVERT_H
 
 
+#include <boost/type_index.hpp>
+template < typename T > void printTYPE( void ) {
+  std::cout << boost::typeindex::type_id_with_cvr<T>().pretty_name(); }
+
+
 //
 // MPFR extensions
 //
@@ -60,6 +65,7 @@ namespace mX_real {
     using _T  = typename T::base_T; T t;
     for(int i=0; i<T::L; i++) {
       auto s = (_T)((double)X);
+
       if ( i<T::L-1 && s != zero<_T>() ) {
 
         auto e  = fp<_T>::exponent( s );
