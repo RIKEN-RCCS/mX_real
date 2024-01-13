@@ -33,14 +33,24 @@ namespace qX_real {
     static int constexpr L = 4;
     T x[L];
 
+
     //
     // A special member function utilized in constructors
     //
-    static INLINE T constexpr quick_Normalized( QX_REAL<> const& a ) {
-      auto s = a.x[0];
-      if ( A == Algorithm::Quasi ) { s += a.x[1] + a.x[2] + a.x[3]; }
+    INLINE T quick_Normalized() const {
+      auto s = x[0];
+      if ( A == Algorithm::Quasi ) { s += x[1] + x[2] + x[3]; }
       return s;
     }
+    INLINE QX_REAL<> element_rotate () const {
+      T y[L]; y[0] = x[0]; y[1] = x[1]; y[2] = x[2]; y[3] = x[3];
+      for(int i=0; i<L-1; i++) {
+        if ( ! fp<T>::is_zero( y[0] ) ) { return QX_REAL<>( y ); }
+        T t = y[0]; y[0] = y[1]; y[1] = y[2]; y[2] = y[3]; y[3] = t;
+      }
+      return QX_REAL<>( y );
+    }
+
 
     //
     INLINE qx_real() {
@@ -307,45 +317,7 @@ namespace qX_real {
       return QX_REAL<>( c0, c1, c2, c3 );
     }
 
-
     static INLINE QX_REAL<> constexpr rand ();
-    //
-    static INLINE QX_REAL<> constexpr reversed_sign ( QX_REAL<> const& a );
-    static INLINE bool      constexpr signbit       ( QX_REAL<> const& a );
-    static INLINE bool      constexpr isinf         ( QX_REAL<> const& a );
-    static INLINE bool      constexpr isnan         ( QX_REAL<> const& a );
-    static INLINE bool      constexpr is_zero       ( QX_REAL<> const& a );
-    static INLINE bool      constexpr is_positive   ( QX_REAL<> const& a );
-    static INLINE bool      constexpr is_negative   ( QX_REAL<> const& a );
-    static INLINE QX_REAL<> constexpr sqrt          ( QX_REAL<> const& a );
-    static INLINE QX_REAL<> constexpr abs           ( QX_REAL<> const& a );
-
-
-    // operations to THIS object
-    INLINE void constexpr reverse_sign () { x[0] = -x[0]; x[1] = -x[1]; x[2] = -x[2]; x[3] = -x[3]; }
-    INLINE void constexpr zerofy ()       { x[0] = x[1] = x[2] = x[3] = fp<T>::zero; }
-    template < int N_itr = 0 >
-    INLINE void constexpr Normalize ()    { mX_real::Normalize<N_itr>( *this ); }
-    //
-    INLINE QX_REAL<> reversed_sign () const { return reversed_sign( *this ); }
-    INLINE bool      signbit ()       const { return signbit( *this ); }
-    INLINE bool      isinf ()         const { return isinf( *this ); }
-    INLINE bool      isnan ()         const { return isnan( *this ); }
-    INLINE bool      is_zero ()       const { return is_zero( *this ); }
-    INLINE bool      is_positive ()   const { return is_positive( *this ); }
-    INLINE bool      is_negative ()   const { return is_negative( *this ); }
-    INLINE QX_REAL<> sqrt ()          const { return sqrt( *this ); }
-    INLINE QX_REAL<> abs ()           const { return abs( *this ); }
-    INLINE T         quick_Normalized () const { return quick_Normalized( *this ); }
-    //
-    INLINE QX_REAL<> element_rotate () const {
-      T y[L]; y[0] = x[0]; y[1] = x[1]; y[2] = x[2]; y[3] = x[3];
-      for(int i=0; i<L-1; i++) {
-        if ( ! fp<T>::is_zero( y[0] ) ) { return QX_REAL<>( y ); }
-        T t = y[0]; y[0] = y[1]; y[1] = y[2]; y[2] = y[3]; y[3] = t;
-      }
-      return QX_REAL<>( y );
-    }
 
   };
 
@@ -387,31 +359,6 @@ namespace qX_real {
   template < typename T, Algorithm Aa >
   INLINE bool constexpr is_negative ( qX_real::qx_real<T,Aa> const& a ) {
     return a.quick_Normalized() < fp<T>::zero;
-  }
-  //
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr qX_real::qx_real<T,Aa>::isinf ( qX_real::qx_real<T,Aa> const& a ) {
-    return qX_real::isinf<T,Aa>( a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr qX_real::qx_real<T,Aa>::isnan ( qX_real::qx_real<T,Aa> const& a ) {
-    return qX_real::isnan<T,Aa>( a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr qX_real::qx_real<T,Aa>::signbit ( qX_real::qx_real<T,Aa> const& a ) {
-    return qX_real::signbit<T,Aa>( a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr qX_real::qx_real<T,Aa>::is_zero ( qX_real::qx_real<T,Aa> const& a ) {
-    return qX_real::is_zero<T,Aa>( a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr qX_real::qx_real<T,Aa>::is_positive ( qX_real::qx_real<T,Aa> const& a ) {
-    return qX_real::is_positive<T,Aa>( a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr qX_real::qx_real<T,Aa>::is_negative ( qX_real::qx_real<T,Aa> const& a ) {
-    return qX_real::is_negative<T,Aa>( a );
   }
   //
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
@@ -489,10 +436,6 @@ namespace qX_real {
   template < typename T, Algorithm Aa >
   INLINE auto const reversed_sign ( qX_real::qx_real<T,Aa> const& a ) {
     return qX_real::qx_real<T,Aa>( -a.x[0], -a.x[1], -a.x[2], -a.x[3] );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE qX_real::qx_real<T,Aa> constexpr qX_real::qx_real<T,Aa>::reversed_sign ( qX_real::qx_real<T,Aa> const& a ) {
-    return qX_real::reversed_sign( a );
   }
   //
   template < typename T, Algorithm Aa >
@@ -1504,11 +1447,6 @@ namespace qX_real {
   INLINE auto const abs ( qX_real::qx_real<T,Aa> const& a ) {
     return qX_real::operator_abs( a );
   }
-  //
-  template < typename T, Algorithm Aa >
-  INLINE qX_real::qx_real<T,Aa> constexpr qX_real::qx_real<T,Aa>::abs ( qX_real::qx_real<T,Aa> const& a ) {
-    return qX_real::abs( a );
-  }
 
 
   //
@@ -1670,11 +1608,6 @@ namespace qX_real {
   template < typename T, Algorithm A=Algorithm::Accurate, IF_T_fp<T> >
   INLINE auto const sqrt ( T const& a ) {
     return qX_real::operator_sqrt<T,A>( a );
-  }
-  //
-  template < typename T, Algorithm Aa >
-  INLINE qX_real::qx_real<T,Aa> constexpr qX_real::qx_real<T,Aa>::sqrt ( qX_real::qx_real<T,Aa> const& a ) {
-    return qX_real::sqrt( a );
   }
 
 

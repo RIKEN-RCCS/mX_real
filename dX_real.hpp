@@ -35,14 +35,24 @@ namespace dX_real {
     static int constexpr L = 2;
     T x[L];
 
+
     //
     // A special member function utilized in constructors
     //
-    static INLINE T constexpr quick_Normalized ( DX_REAL<> const& a ) {
-      T s = a.x[0];
-      if ( A == Algorithm::Quasi ) { s += a.x[1]; }
+    INLINE T quick_Normalized () const {
+      T s = x[0];
+      if ( A == Algorithm::Quasi ) { s += x[1]; }
       return s;
     }
+    INLINE DX_REAL<> element_rotate () const {
+      T y[L]; y[0] = x[0]; y[1] = x[1];
+      for(int i=0; i<L-1; i++) {
+        if ( ! fp<T>::is_zero( y[0] ) ) { return DX_REAL<>( y ); }
+        T t = y[0]; y[0] = y[1]; y[1] = t;
+      }
+      return DX_REAL<>( y );
+    }
+
 
     //
     // Simple constructors
@@ -320,45 +330,7 @@ namespace dX_real {
       return DX_REAL<>{ c0, c1 };
     }
 
-
     static INLINE DX_REAL<> constexpr rand ();
-    //
-    static INLINE DX_REAL<> constexpr reversed_sign ( DX_REAL<> const& a );
-    static INLINE bool      constexpr signbit       ( DX_REAL<> const& a );
-    static INLINE bool      constexpr isinf         ( DX_REAL<> const& a );
-    static INLINE bool      constexpr isnan         ( DX_REAL<> const& a );
-    static INLINE bool      constexpr is_zero       ( DX_REAL<> const& a );
-    static INLINE bool      constexpr is_positive   ( DX_REAL<> const& a );
-    static INLINE bool      constexpr is_negative   ( DX_REAL<> const& a );
-    static INLINE DX_REAL<> constexpr sqrt          ( DX_REAL<> const& a );
-    static INLINE DX_REAL<> constexpr abs           ( DX_REAL<> const& a );
-
-
-    // operations to THIS object
-    INLINE void constexpr reverse_sign () { x[0] = -x[0]; x[1] = -x[1]; }
-    INLINE void constexpr zerofy ()       { x[0] = x[1] = fp<T>::zero; }
-    template < int N_itr = 0 >
-    INLINE void constexpr Normalize ()    { mX_real::Normalize<N_itr>( *this ); }
-    //
-    INLINE DX_REAL<> reversed_sign () const { return reversed_sign( *this ); }
-    INLINE bool      signbit ()       const { return signbit( *this ); }
-    INLINE bool      isinf ()         const { return isinf( *this ); }
-    INLINE bool      isnan ()         const { return isnan( *this ); }
-    INLINE bool      is_zero ()       const { return is_zero( *this ); }
-    INLINE bool      is_positive ()   const { return is_positive( *this ); }
-    INLINE bool      is_negative ()   const { return is_negative( *this ); }
-    INLINE DX_REAL<> sqrt ()          const { return sqrt( *this ); }
-    INLINE DX_REAL<> abs ()           const { return abs( *this ); }
-    INLINE T         quick_Normalized () const { return quick_Normalized( *this ); }
-    //
-    INLINE DX_REAL<> element_rotate () const {
-      T y[L]; y[0] = x[0]; y[1] = x[1];
-      for(int i=0; i<L-1; i++) {
-        if ( ! fp<T>::is_zero( y[0] ) ) { return DX_REAL<>( y ); }
-        T t = y[0]; y[0] = y[1]; y[1] = t;
-      }
-      return DX_REAL<>( y );
-    }
 
   };
 
@@ -400,31 +372,6 @@ namespace dX_real {
   template < typename T, Algorithm Aa >
   INLINE bool constexpr is_negative ( dX_real::dx_real<T,Aa> const& a ) {
     return a.quick_Normalized() < fp<T>::zero;
-  }
-  //
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr dX_real::dx_real<T,Aa>::isinf ( dX_real::dx_real<T,Aa> const& a ) {
-    return dX_real::isinf<T,Aa>( a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr dX_real::dx_real<T,Aa>::isnan ( dX_real::dx_real<T,Aa> const& a ) {
-    return dX_real::isnan<T,Aa>( a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr dX_real::dx_real<T,Aa>::signbit ( dX_real::dx_real<T,Aa> const& a ) {
-    return dX_real::signbit<T,Aa>( a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr dX_real::dx_real<T,Aa>::is_zero ( dX_real::dx_real<T,Aa> const& a ) {
-    return dX_real::is_zero<T,Aa>( a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr dX_real::dx_real<T,Aa>::is_positive ( dX_real::dx_real<T,Aa> const& a ) {
-    return dX_real::is_positive<T,Aa>( a );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr dX_real::dx_real<T,Aa>::is_negative ( dX_real::dx_real<T,Aa> const& a ) {
-    return dX_real::is_negative<T,Aa>( a );
   }
   //
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
@@ -494,10 +441,6 @@ namespace dX_real {
   template < typename T, Algorithm Aa >
   INLINE auto const reversed_sign ( dX_real::dx_real<T,Aa> const& a ) {
     return dX_real::dx_real<T,Aa>( -a.x[0], -a.x[1] );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE dX_real::dx_real<T,Aa> constexpr dX_real::dx_real<T,Aa>::reversed_sign ( dX_real::dx_real<T,Aa> const& a ) {
-    return dX_real::reversed_sign( a );
   }
   //
   template < typename T, Algorithm Aa >
@@ -1049,10 +992,6 @@ namespace dX_real {
   INLINE auto const abs ( dX_real::dx_real<T,Aa> const& a ) {
     return dX_real::operator_abs( a );
   }
-  template < typename T, Algorithm Aa >
-  INLINE dX_real::dx_real<T,Aa> constexpr dX_real::dx_real<T,Aa>::abs ( dX_real::dx_real<T,Aa> const& a ) {
-    return dX_real::abs( a );
-  }
 
 
   //
@@ -1136,11 +1075,6 @@ namespace dX_real {
   template < typename T, Algorithm A=Algorithm::Accurate, IF_T_fp<T> >
   INLINE auto const sqrt ( T const& a ) {
     return dX_real::operator_sqrt<T,A>( a );
-  }
-  //
-  template < typename T, Algorithm Aa >
-  INLINE dX_real::dx_real<T,Aa> constexpr dX_real::dx_real<T,Aa>::sqrt ( dX_real::dx_real<T,Aa> const& a ) {
-    return dX_real::sqrt( a );
   }
 
 

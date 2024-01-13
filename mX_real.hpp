@@ -265,7 +265,7 @@ namespace mX_real {
     } else
 #endif
     {
-      if ( N_itr > 0 ) {
+      if ( N_itr > 0 || A != Algorithm::Accurate ) {
         twoSum( c.x[0], c.x[1] );
       } else {
         quickSum( c.x[0], c.x[1] );
@@ -282,9 +282,10 @@ namespace mX_real {
     } else
 #endif
     {
-      if ( N_itr > 0 ) {
+      if ( N_itr > 0 || A != Algorithm::Accurate ) {
         twoSum( c.x[0], c.x[1] );
         twoSum( c.x[1], c.x[2] );
+        quickSum( c.x[0], c.x[1] );
       } else {
         quickSum( c.x[0], c.x[1] );
         quickSum( c.x[1], c.x[2] );
@@ -302,14 +303,18 @@ namespace mX_real {
     } else
 #endif
     {
-      if ( N_itr > 0 ) {
+      if ( N_itr > 0 || A != Algorithm::Accurate ) {
         twoSum( c.x[0], c.x[1] );
         twoSum( c.x[1], c.x[2] );
         twoSum( c.x[2], c.x[3] );
+        quickSum( c.x[0], c.x[1] );
+        quickSum( c.x[1], c.x[2] );
+        quickSum( c.x[0], c.x[1] );
       } else {
         quickSum( c.x[0], c.x[1] );
         quickSum( c.x[1], c.x[2] );
         quickSum( c.x[2], c.x[3] );
+        quickSum( c.x[0], c.x[1] );
         quickSum( c.x[1], c.x[2] );
         quickSum( c.x[0], c.x[1] );
       }

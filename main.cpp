@@ -444,21 +444,20 @@ for(int i=1;i<3;i++){
    print( "test negative", s );
    quickSum( s.x[0], s.x[1] );
    print( "test negative", s );
-   print( "sqrt", dX_real::dx_real<float,Algorithm::Quasi>::sqrt( df_Real_quasi( 0.1f ) + s ) );
-   print( "sqrt", dX_real::dx_real<float,Algorithm::Sloppy>::sqrt( df_Real_sloppy( 0.1f ) + s ) );
-   print( "sqrt", dX_real::dx_real<float,Algorithm::Accurate>::sqrt( df_Real( 0.1f ) + s ) );
-   print( "sqrt", dX_real::sqrt( 0.1f ) );
-   print( "sqrt", tX_real::sqrt( 0.1f ) );
-   print( "sqrt", qX_real::sqrt( 0.1f ) );
-   print( "sqrt", dX_real::sqrt( s ) );
-   print( "sqrt", tX_real::sqrt( s ) );
-   print( "sqrt", qX_real::sqrt( s ) );
+   print( "sqrt f+s", dX_real::sqrt( df_Real_quasi( 0.1f ) + s ) );
+   print( "sqrt f+s", dX_real::sqrt( df_Real_sloppy( 0.1f ) + s ) );
+   print( "sqrt f+s", dX_real::sqrt( df_Real( 0.1f ) + s ) );
+   print( "sqrt f", dX_real::sqrt( 0.1f ) );
+   print( "sqrt f", tX_real::sqrt( 0.1f ) );
+   print( "sqrt f", qX_real::sqrt( 0.1f ) );
+   print( "sqrt s", dX_real::sqrt( s ) );
+   print( "sqrt s", tX_real::sqrt( s ) );
+   print( "sqrt s", qX_real::sqrt( s ) );
    float a = 0.1;
    float b = 0.3;
    print( "mul ", a * b );
    print( "mulx", dX_real::operator_mul(a,b) );
    print( "add ", a + b );
-//   print( "mulx", operator+(a,b) );
    print( "addx", dX_real::operator_add(a,b) );
 }
 {

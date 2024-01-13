@@ -1147,13 +1147,9 @@ def gen_add( NA, NB, NC, ACC ) :
         if NA > 1 and NB > 1 and ACC > 0 :
             line[15] = 'QQQ c1 c2 c1 c2'
             line[16] = 'QQQ c2 c3 c2 c3'
-
             line[17] = 'QQQ c0 c1 c0 c1'
             line[18] = 'QQQ c1 c2 c1 c2'
-            line[19] = 'QQQ c2 c3 c2 c3'
-
-            line[20] = 'QQQ c0 c1 c0 c1'
-            line[21] = 'QQQ c1 c2 c1 c2'
+            line[19] = 'QQQ c0 c1 c0 c1'
 
 
     line = INIT_propagate( line, NA, NB, NC )
@@ -1271,10 +1267,10 @@ def gen_mul( NA, NB, NC, ACC ) :
                 line[22] = '!'
 
             line[23] = 'ADD c2 c2 e2' # (c1)(c2)
-            line[24] = 'QQQ c1 c2 c1 c2' if NA*NB > 1 else '!'
 
-            line[25] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
-            line[26] = 'QQQ c1 c2 c1 c2' if NA*NB > 1 else '!'
+            line[24] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
+            line[25] = 'QQQ c1 c2 c1 c2' if NA*NB > 1 else '!'
+            line[26] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
 
 
     if NC == 4 :
@@ -1353,12 +1349,13 @@ def gen_mul( NA, NB, NC, ACC ) :
                 line[42] = '!'
                 line[43] = '!'
             line[44] = 'ADD c3 c3 e3' # (c1)(c2)(c3)
-            line[45] = 'QQQ c2 c3 c2 c3' if NA*NB > 2 else '!'
 
+            line[45] = 'QQQ c0 c1 c0 c1'
             line[46] = 'QQQ c1 c2 c1 c2'
-            line[47] = 'QQQ c0 c1 c0 c1'
-            line[48] = 'QQQ c1 c2 c1 c2'
-            line[49] = 'QQQ c2 c3 c2 c3'
+            line[47] = 'QQQ c2 c3 c2 c3'
+            line[48] = 'QQQ c0 c1 c0 c1'
+            line[49] = 'QQQ c1 c2 c1 c2'
+            line[50] = 'QQQ c0 c1 c0 c1'
 
 
     line = INIT_propagate( line, NA, NB, NC )
@@ -1440,9 +1437,10 @@ def gen_sqr( NA, NC, ACC ) :
             line[15] = 'MAD e1 e2 a1 e1'
 
             line[16] = 'ADD c2 c2 e1'
-            line[17] = 'QQQ c1 c2 c1 c2'
+
             line[17] = 'QQQ c0 c1 c0 c1'
-            line[17] = 'QQQ c1 c2 c1 c2'
+            line[18] = 'QQQ c1 c2 c1 c2'
+            line[19] = 'QQQ c0 c1 c0 c1'
 
 
     if NC == 4 :
@@ -1484,12 +1482,13 @@ def gen_sqr( NA, NC, ACC ) :
             line[25] = 'MAD e1 a2 a2 e1'
 
             line[26] = 'ADD c3 c3 e1'
-            line[27] = 'QQQ c2 c3 c2 c3'
 
+            line[27] = 'QQQ c0 c1 c0 c1'
             line[28] = 'QQQ c1 c2 c1 c2'
-            line[29] = 'QQQ c0 c1 c0 c1'
-            line[30] = 'QQQ c1 c2 c1 c2'
-            line[31] = 'QQQ c2 c3 c2 c3'
+            line[29] = 'QQQ c2 c3 c2 c3'
+            line[30] = 'QQQ c0 c1 c0 c1'
+            line[31] = 'QQQ c1 c2 c1 c2'
+            line[32] = 'QQQ c0 c1 c0 c1'
 
 
     line = INIT_propagate( line, NA, NB, NC )
@@ -1543,7 +1542,8 @@ def gen_div( NA, NB, NC, ACC ) :
     if NA==2 and NB==2 and NC==2 :
         def_head( 'div', NA, NB, NC, ACC, 'a', 'b', 'c' )
         print( '{' )
-        print( '  c0 = a0 / b0;' )
+        # print( '  c0 = a0 / b0;' )
+        print( '  c0 = a0 / (b0 + b1);' )
         print( '  c1 = std::fma( -b0, c0, a0 ) + a1;' )
         print( '  c1 = std::fma( -b1, c0, c1 ) / (b0 + b1);' )
         print( '}\n' )
@@ -1571,19 +1571,16 @@ def gen_div( NA, NB, NC, ACC ) :
             NAA = min( NA, NCC )
             NBB = min( NB, NCC )
             
-            vt = ''
+            vt_list = ''
             line[LineCount] = 'DEF {}'.format( NC )
             for i in range( NC ) :
                 line[LineCount] = '{} t{}'.format( line[LineCount], i )
-                vt = '{} t{}'.format( vt, i )
+                vt_list = '{} t{}'.format( vt_list, i )
             LineCount = LineCount + 1
 
             if NA > NCC :
                 line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
                 LineCount = LineCount + 1
-                #va = ''
-                #for i in range( NCC-1, NA ):
-                #    va = '{} a{}'.format( va, i )
                 va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NCC-1, NA ) ] )
                 line[LineCount] = 'SUM {} e{} {}'.format( NA-NCC+1, RegCounter, va_list )
                 LineCount = LineCount + 1
@@ -1593,15 +1590,14 @@ def gen_div( NA, NB, NC, ACC ) :
             if NB > NCC :
                 line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
                 LineCount = LineCount + 1
-                #vb = ''
-                #for i in range( NCC-1, NB ):
-                #    vb = '{} b{}'.format( vb, i )
                 vb_list = ' '.join( [ 'b{}'.format( i ) for i in range( NCC-1, NB ) ] )
                 line[LineCount] = 'SUM {} e{} {}'.format( NB-NCC+1, RegCounter, vb_list )
                 LineCount = LineCount + 1
                 e_list[1] = RegCounter
                 RegCounter = RegCounter + 1
 
+            vA_list = ' '.join( [ 'a{}'.format( i ) for i in range( NA ) ] )
+            vB_list = ' '.join( [ 'b{}'.format( i ) for i in range( NB ) ] )
             va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NCC-1 if NCC < NA else NA ) ] ) \
                     + ( ' e{}'.format( e_list[0] ) if NA > NCC else '' )
             vb_list = ' '.join( [ 'b{}'.format( i ) for i in range( NCC-1 if NCC < NB else NB ) ] ) \
@@ -1610,13 +1606,13 @@ def gen_div( NA, NB, NC, ACC ) :
 
             line[LineCount] = 'div {} {} {} {} {} {} {}'.format( NAA, NBB, NCC, ACC, va_list, vb_list, vc_list )
             LineCount = LineCount + 1
-            line[LineCount] = 'mul {} {} {} {} {} {} {}'.format( NCC, NBB, NC, ACC, vc_list, vb_list, vt )
+            line[LineCount] = 'mul {} {} {} {} {} {} {}'.format( NCC, NB, NC, ACC, vc_list, vB_list, vt_list )
             LineCount = LineCount + 1
-            line[LineCount] = 'sub {} {} {} {} {} {} {}'.format( NAA, NC, NC, ACC, va_list, vt, vt )
+            line[LineCount] = 'sub {} {} {} {} {} {} {}'.format( NA, NC, NC, ACC, vA_list, vt_list, vt_list )
             LineCount = LineCount + 1
             line[LineCount] = 'DEF 2 tn td'
             LineCount = LineCount + 1
-            line[LineCount] = 'SUM {} tn {}'.format( NC, vt )
+            line[LineCount] = 'SUM {} tn {}'.format( NC, vt_list )
             LineCount = LineCount + 1
             line[LineCount] = 'SUM {} td {}'.format( NBB, vb_list )
             LineCount = LineCount + 1
@@ -1659,7 +1655,7 @@ def gen_div( NA, NB, NC, ACC ) :
         line[LineCount] = 'ADD c{} c{} r0'.format( NC-1, NC-1 )
         LineCount = LineCount + 1
 
-        for i in range( 1, NC ) :
+        for i in reversed( range( 1, NC ) ) :
             line[LineCount] = 'QQQ c{} c{} c{} c{}'.format( i-1,i, i-1,i )
             LineCount = LineCount + 1
 

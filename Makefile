@@ -14,7 +14,7 @@ ifeq ($(CXX),icpx)
 endif
 
 CCFLAGS := $(CCFLAGS) -O3 -Wall
-LDFLAGS = -fopenmp
+LDFLAGS = -fopenmp -lquadmath -lm
 
 # Optimizations
 CCFLAGS := $(CCFLAGS) -mfma -mavx2

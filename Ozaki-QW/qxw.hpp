@@ -2171,7 +2171,7 @@ div_SW_PA_PA( T const a0, T const b0, T const b1, T &c0, T &c1 )
   T e40;
   e40 = b0 + b1;
   div_SW_SW_SW( a0, e40, c0 );
-  mul_SW_SW_PA( c0, e40, t0, t1 );
+  mul_SW_PA_PA( c0, b0, b1, t0, t1 );
   sub_SW_PA_PA( a0, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
@@ -2225,7 +2225,7 @@ div_SW_QTW_PA( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
   T e40;
   e40 = b0 + b1 + b2;
   div_SW_SW_SW( a0, e40, c0 );
-  mul_SW_SW_PA( c0, e40, t0, t1 );
+  mul_SW_QTW_PA( c0, b0, b1, b2, t0, t1 );
   sub_SW_PA_PA( a0, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
@@ -2241,7 +2241,7 @@ div_SW_QTW_QTW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T 
   T e40;
   e40 = b1 + b2;
   div_SW_PA_PA( a0, b0, e40, c0, c1 );
-  mul_PA_PA_QTW( c0, c1, b0, e40, t0, t1, t2 );
+  mul_PA_QTW_QTW( c0, c1, b0, b1, b2, t0, t1, t2 );
   sub_SW_QTW_QTW( a0, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
@@ -2281,7 +2281,7 @@ div_SW_QQW_PA( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0
   T e40;
   e40 = b0 + b1 + b2 + b3;
   div_SW_SW_SW( a0, e40, c0 );
-  mul_SW_SW_PA( c0, e40, t0, t1 );
+  mul_SW_QQW_PA( c0, b0, b1, b2, b3, t0, t1 );
   sub_SW_PA_PA( a0, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
@@ -2297,7 +2297,7 @@ div_SW_QQW_QTW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c
   T e40;
   e40 = b1 + b2 + b3;
   div_SW_PA_PA( a0, b0, e40, c0, c1 );
-  mul_PA_PA_QTW( c0, c1, b0, e40, t0, t1, t2 );
+  mul_PA_QQW_QTW( c0, c1, b0, b1, b2, b3, t0, t1, t2 );
   sub_SW_QTW_QTW( a0, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
@@ -2313,7 +2313,7 @@ div_SW_QQW_QQW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c
   T e40;
   e40 = b2 + b3;
   div_SW_QTW_QTW( a0, b0, b1, e40, c0, c1, c2 );
-  mul_QTW_QTW_QQW( c0, c1, c2, b0, b1, e40, t0, t1, t2, t3 );
+  mul_QTW_QQW_QQW( c0, c1, c2, b0, b1, b2, b3, t0, t1, t2, t3 );
   sub_SW_QQW_QQW( a0, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
@@ -2340,7 +2340,7 @@ div_PA_SW_PA( T const a0, T const a1, T const b0, T &c0, T &c1 )
   e40 = a0 + a1;
   div_SW_SW_SW( e40, b0, c0 );
   mul_SW_SW_PA( c0, b0, t0, t1 );
-  sub_SW_PA_PA( e40, t0, t1, t0, t1 );
+  sub_PA_PA_PA( a0, a1, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
   td = b0;
@@ -2389,7 +2389,7 @@ div_PA_PA_SW( T const a0, T const a1, T const b0, T const b1, T &c0 )
 template < typename T > __always_inline void
 div_PA_PA_PA( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
 {
-  c0 = a0 / b0;
+  c0 = a0 / (b0 + b1);
   c1 = std::fma( -b0, c0, a0 ) + a1;
   c1 = std::fma( -b1, c0, c1 ) / (b0 + b1);
 }
@@ -2442,8 +2442,8 @@ div_PA_QTW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0
   T e41;
   e41 = b0 + b1 + b2;
   div_SW_SW_SW( e40, e41, c0 );
-  mul_SW_SW_PA( c0, e41, t0, t1 );
-  sub_SW_PA_PA( e40, t0, t1, t0, t1 );
+  mul_SW_QTW_PA( c0, b0, b1, b2, t0, t1 );
+  sub_PA_PA_PA( a0, a1, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
   td = e41;
@@ -2458,7 +2458,7 @@ div_PA_QTW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c
   T e40;
   e40 = b1 + b2;
   div_PA_PA_PA( a0, a1, b0, e40, c0, c1 );
-  mul_PA_PA_QTW( c0, c1, b0, e40, t0, t1, t2 );
+  mul_PA_QTW_QTW( c0, c1, b0, b1, b2, t0, t1, t2 );
   sub_PA_QTW_QTW( a0, a1, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
@@ -2500,8 +2500,8 @@ div_PA_QQW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T con
   T e41;
   e41 = b0 + b1 + b2 + b3;
   div_SW_SW_SW( e40, e41, c0 );
-  mul_SW_SW_PA( c0, e41, t0, t1 );
-  sub_SW_PA_PA( e40, t0, t1, t0, t1 );
+  mul_SW_QQW_PA( c0, b0, b1, b2, b3, t0, t1 );
+  sub_PA_PA_PA( a0, a1, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
   td = e41;
@@ -2516,7 +2516,7 @@ div_PA_QQW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T co
   T e40;
   e40 = b1 + b2 + b3;
   div_PA_PA_PA( a0, a1, b0, e40, c0, c1 );
-  mul_PA_PA_QTW( c0, c1, b0, e40, t0, t1, t2 );
+  mul_PA_QQW_QTW( c0, c1, b0, b1, b2, b3, t0, t1, t2 );
   sub_PA_QTW_QTW( a0, a1, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
@@ -2532,7 +2532,7 @@ div_PA_QQW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T co
   T e40;
   e40 = b2 + b3;
   div_PA_QTW_QTW( a0, a1, b0, b1, e40, c0, c1, c2 );
-  mul_QTW_QTW_QQW( c0, c1, c2, b0, b1, e40, t0, t1, t2, t3 );
+  mul_QTW_QQW_QQW( c0, c1, c2, b0, b1, b2, b3, t0, t1, t2, t3 );
   sub_PA_QQW_QQW( a0, a1, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
@@ -2559,7 +2559,7 @@ div_QTW_SW_PA( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
   e40 = a0 + a1 + a2;
   div_SW_SW_SW( e40, b0, c0 );
   mul_SW_SW_PA( c0, b0, t0, t1 );
-  sub_SW_PA_PA( e40, t0, t1, t0, t1 );
+  sub_QTW_PA_PA( a0, a1, a2, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
   td = b0;
@@ -2575,7 +2575,7 @@ div_QTW_SW_QTW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T 
   e40 = a1 + a2;
   div_PA_SW_PA( a0, e40, b0, c0, c1 );
   mul_PA_SW_QTW( c0, c1, b0, t0, t1, t2 );
-  sub_PA_QTW_QTW( a0, e40, t0, t1, t2, t0, t1, t2 );
+  sub_QTW_QTW_QTW( a0, a1, a2, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
   td = b0;
@@ -2616,8 +2616,8 @@ div_QTW_PA_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0
   T e41;
   e41 = b0 + b1;
   div_SW_SW_SW( e40, e41, c0 );
-  mul_SW_SW_PA( c0, e41, t0, t1 );
-  sub_SW_PA_PA( e40, t0, t1, t0, t1 );
+  mul_SW_PA_PA( c0, b0, b1, t0, t1 );
+  sub_QTW_PA_PA( a0, a1, a2, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
   td = e41;
@@ -2633,7 +2633,7 @@ div_QTW_PA_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c
   e40 = a1 + a2;
   div_PA_PA_PA( a0, e40, b0, b1, c0, c1 );
   mul_PA_PA_QTW( c0, c1, b0, b1, t0, t1, t2 );
-  sub_PA_QTW_QTW( a0, e40, t0, t1, t2, t0, t1, t2 );
+  sub_QTW_QTW_QTW( a0, a1, a2, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
   td = b0 + b1;
@@ -2674,8 +2674,8 @@ div_QTW_QTW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T co
   T e41;
   e41 = b0 + b1 + b2;
   div_SW_SW_SW( e40, e41, c0 );
-  mul_SW_SW_PA( c0, e41, t0, t1 );
-  sub_SW_PA_PA( e40, t0, t1, t0, t1 );
+  mul_SW_QTW_PA( c0, b0, b1, b2, t0, t1 );
+  sub_QTW_PA_PA( a0, a1, a2, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
   td = e41;
@@ -2692,8 +2692,8 @@ div_QTW_QTW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
   T e41;
   e41 = b1 + b2;
   div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
-  mul_PA_PA_QTW( c0, c1, b0, e41, t0, t1, t2 );
-  sub_PA_QTW_QTW( a0, e40, t0, t1, t2, t0, t1, t2 );
+  mul_PA_QTW_QTW( c0, c1, b0, b1, b2, t0, t1, t2 );
+  sub_QTW_QTW_QTW( a0, a1, a2, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
   td = b0 + e41;
@@ -2734,8 +2734,8 @@ div_QTW_QQW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T co
   T e41;
   e41 = b0 + b1 + b2 + b3;
   div_SW_SW_SW( e40, e41, c0 );
-  mul_SW_SW_PA( c0, e41, t0, t1 );
-  sub_SW_PA_PA( e40, t0, t1, t0, t1 );
+  mul_SW_QQW_PA( c0, b0, b1, b2, b3, t0, t1 );
+  sub_QTW_PA_PA( a0, a1, a2, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
   td = e41;
@@ -2752,8 +2752,8 @@ div_QTW_QQW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
   T e41;
   e41 = b1 + b2 + b3;
   div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
-  mul_PA_PA_QTW( c0, c1, b0, e41, t0, t1, t2 );
-  sub_PA_QTW_QTW( a0, e40, t0, t1, t2, t0, t1, t2 );
+  mul_PA_QQW_QTW( c0, c1, b0, b1, b2, b3, t0, t1, t2 );
+  sub_QTW_QTW_QTW( a0, a1, a2, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
   td = b0 + e41;
@@ -2768,7 +2768,7 @@ div_QTW_QQW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
   T e40;
   e40 = b2 + b3;
   div_QTW_QTW_QTW( a0, a1, a2, b0, b1, e40, c0, c1, c2 );
-  mul_QTW_QTW_QQW( c0, c1, c2, b0, b1, e40, t0, t1, t2, t3 );
+  mul_QTW_QQW_QQW( c0, c1, c2, b0, b1, b2, b3, t0, t1, t2, t3 );
   sub_QTW_QQW_QQW( a0, a1, a2, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
@@ -2795,7 +2795,7 @@ div_QQW_SW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0
   e40 = a0 + a1 + a2 + a3;
   div_SW_SW_SW( e40, b0, c0 );
   mul_SW_SW_PA( c0, b0, t0, t1 );
-  sub_SW_PA_PA( e40, t0, t1, t0, t1 );
+  sub_QQW_PA_PA( a0, a1, a2, a3, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
   td = b0;
@@ -2811,7 +2811,7 @@ div_QQW_SW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c
   e40 = a1 + a2 + a3;
   div_PA_SW_PA( a0, e40, b0, c0, c1 );
   mul_PA_SW_QTW( c0, c1, b0, t0, t1, t2 );
-  sub_PA_QTW_QTW( a0, e40, t0, t1, t2, t0, t1, t2 );
+  sub_QQW_QTW_QTW( a0, a1, a2, a3, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
   td = b0;
@@ -2827,7 +2827,7 @@ div_QQW_SW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c
   e40 = a2 + a3;
   div_QTW_SW_QTW( a0, a1, e40, b0, c0, c1, c2 );
   mul_QTW_SW_QQW( c0, c1, c2, b0, t0, t1, t2, t3 );
-  sub_QTW_QQW_QQW( a0, a1, e40, t0, t1, t2, t3, t0, t1, t2, t3 );
+  sub_QQW_QQW_QQW( a0, a1, a2, a3, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
   td = b0;
@@ -2854,8 +2854,8 @@ div_QQW_PA_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T con
   T e41;
   e41 = b0 + b1;
   div_SW_SW_SW( e40, e41, c0 );
-  mul_SW_SW_PA( c0, e41, t0, t1 );
-  sub_SW_PA_PA( e40, t0, t1, t0, t1 );
+  mul_SW_PA_PA( c0, b0, b1, t0, t1 );
+  sub_QQW_PA_PA( a0, a1, a2, a3, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
   td = e41;
@@ -2871,7 +2871,7 @@ div_QQW_PA_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   e40 = a1 + a2 + a3;
   div_PA_PA_PA( a0, e40, b0, b1, c0, c1 );
   mul_PA_PA_QTW( c0, c1, b0, b1, t0, t1, t2 );
-  sub_PA_QTW_QTW( a0, e40, t0, t1, t2, t0, t1, t2 );
+  sub_QQW_QTW_QTW( a0, a1, a2, a3, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
   td = b0 + b1;
@@ -2887,7 +2887,7 @@ div_QQW_PA_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   e40 = a2 + a3;
   div_QTW_PA_QTW( a0, a1, e40, b0, b1, c0, c1, c2 );
   mul_QTW_PA_QQW( c0, c1, c2, b0, b1, t0, t1, t2, t3 );
-  sub_QTW_QQW_QQW( a0, a1, e40, t0, t1, t2, t3, t0, t1, t2, t3 );
+  sub_QQW_QQW_QQW( a0, a1, a2, a3, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
   td = b0 + b1;
@@ -2914,8 +2914,8 @@ div_QQW_QTW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   T e41;
   e41 = b0 + b1 + b2;
   div_SW_SW_SW( e40, e41, c0 );
-  mul_SW_SW_PA( c0, e41, t0, t1 );
-  sub_SW_PA_PA( e40, t0, t1, t0, t1 );
+  mul_SW_QTW_PA( c0, b0, b1, b2, t0, t1 );
+  sub_QQW_PA_PA( a0, a1, a2, a3, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
   td = e41;
@@ -2932,8 +2932,8 @@ div_QQW_QTW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T c
   T e41;
   e41 = b1 + b2;
   div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
-  mul_PA_PA_QTW( c0, c1, b0, e41, t0, t1, t2 );
-  sub_PA_QTW_QTW( a0, e40, t0, t1, t2, t0, t1, t2 );
+  mul_PA_QTW_QTW( c0, c1, b0, b1, b2, t0, t1, t2 );
+  sub_QQW_QTW_QTW( a0, a1, a2, a3, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
   td = b0 + e41;
@@ -2949,7 +2949,7 @@ div_QQW_QTW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T c
   e40 = a2 + a3;
   div_QTW_QTW_QTW( a0, a1, e40, b0, b1, b2, c0, c1, c2 );
   mul_QTW_QTW_QQW( c0, c1, c2, b0, b1, b2, t0, t1, t2, t3 );
-  sub_QTW_QQW_QQW( a0, a1, e40, t0, t1, t2, t3, t0, t1, t2, t3 );
+  sub_QQW_QQW_QQW( a0, a1, a2, a3, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
   td = b0 + b1 + b2;
@@ -2976,8 +2976,8 @@ div_QQW_QQW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   T e41;
   e41 = b0 + b1 + b2 + b3;
   div_SW_SW_SW( e40, e41, c0 );
-  mul_SW_SW_PA( c0, e41, t0, t1 );
-  sub_SW_PA_PA( e40, t0, t1, t0, t1 );
+  mul_SW_QQW_PA( c0, b0, b1, b2, b3, t0, t1 );
+  sub_QQW_PA_PA( a0, a1, a2, a3, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
   td = e41;
@@ -2994,8 +2994,8 @@ div_QQW_QQW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T c
   T e41;
   e41 = b1 + b2 + b3;
   div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
-  mul_PA_PA_QTW( c0, c1, b0, e41, t0, t1, t2 );
-  sub_PA_QTW_QTW( a0, e40, t0, t1, t2, t0, t1, t2 );
+  mul_PA_QQW_QTW( c0, c1, b0, b1, b2, b3, t0, t1, t2 );
+  sub_QQW_QTW_QTW( a0, a1, a2, a3, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
   td = b0 + e41;
@@ -3012,8 +3012,8 @@ div_QQW_QQW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T c
   T e41;
   e41 = b2 + b3;
   div_QTW_QTW_QTW( a0, a1, e40, b0, b1, e41, c0, c1, c2 );
-  mul_QTW_QTW_QQW( c0, c1, c2, b0, b1, e41, t0, t1, t2, t3 );
-  sub_QTW_QQW_QQW( a0, a1, e40, t0, t1, t2, t3, t0, t1, t2, t3 );
+  mul_QTW_QQW_QQW( c0, c1, c2, b0, b1, b2, b3, t0, t1, t2, t3 );
+  sub_QQW_QQW_QQW( a0, a1, a2, a3, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
   td = b0 + b1 + e41;
@@ -3480,9 +3480,7 @@ add_DW_DW_QW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 2-3-1
@@ -3549,9 +3547,7 @@ add_DW_TW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0,
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 2-4-1
@@ -3623,9 +3619,7 @@ add_DW_QW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T cons
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 3-1-1
@@ -3743,9 +3737,7 @@ add_TW_DW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0,
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 3-3-1
@@ -3818,9 +3810,7 @@ add_TW_TW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 3-4-1
@@ -3897,9 +3887,7 @@ add_TW_QW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 4-1-1
@@ -4027,9 +4015,7 @@ add_QW_DW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 4-3-1
@@ -4106,9 +4092,7 @@ add_QW_TW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // add: 4-4-1
@@ -4189,9 +4173,7 @@ add_QW_QW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
-  FastTwoSum( c2, c3, c2, c3 );
   FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
 }
 
 // sub: 1-1-2
@@ -4656,6 +4638,7 @@ mul_SW_SW_QW( T const a0, T const b0, T &c0, T &c1, T &c2, T &c3 )
 {
   TwoProductFMA( a0, b0, c0, c1 );
   FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c0, c1, c0, c1 );
   c2 = fp_const<T>::zero();
   c3 = fp_const<T>::zero();
 }
@@ -4693,9 +4676,9 @@ mul_SW_DW_TW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   FastTwoSum( c0, c1, c0, c1 );
   TwoSum( c2, t0, c2, t0 );
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 1-2-4
@@ -4711,6 +4694,9 @@ mul_SW_DW_QW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 1-3-1
@@ -4752,9 +4738,9 @@ mul_SW_TW_TW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c
   TwoSum( c2, t1, c2, t1 );
   t0 = t0 + t1 + t2;
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 1-3-4
@@ -4774,11 +4760,12 @@ mul_SW_TW_QW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c
   TwoSum( c3, t1, c3, t1 );
   t2 = t0 + t1;
   c3 = c3 + t2;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 1-4-1
@@ -4822,9 +4809,9 @@ mul_SW_QW_TW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0,
   t0 = t0 + t1 + t2;
   t0 = std::fma ( a0, b3, t0 );
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 1-4-4
@@ -4847,11 +4834,12 @@ mul_SW_QW_QW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0,
   TwoSum( c3, t3, c3, t3 );
   t4 = t2 + t3 + t0;
   c3 = c3 + t4;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 2-1-1
@@ -4887,9 +4875,9 @@ mul_DW_SW_TW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   FastTwoSum( c0, c1, c0, c1 );
   TwoSum( t0, t1, c2, t1 );
   c2 = c2 + t1;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 2-1-4
@@ -4906,6 +4894,9 @@ mul_DW_SW_QW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, t1, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 2-2-1
@@ -4954,9 +4945,9 @@ mul_DW_DW_TW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c
   TwoSum( c2, t3, c2, t3 );
   t0 = t0 + t1 + t2 + t3 + t4;
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 2-2-4
@@ -4982,11 +4973,12 @@ mul_DW_DW_QW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c
   TwoSum( c3, t3, c3, t3 );
   t0 = t0 + t1 + t2 + t3;
   c3 = c3 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 2-3-1
@@ -5041,9 +5033,9 @@ mul_DW_TW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0,
   t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6;
   t0 = std::fma ( a1, b2, t0 );
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 2-3-4
@@ -5078,11 +5070,12 @@ mul_DW_TW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0,
   FastTwoSum( c3, t6, c3, t6 );
   FastTwoSum( c2, c3, c2, c3 );
   c3 = c3 + t6;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 2-4-1
@@ -5139,9 +5132,9 @@ mul_DW_QW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T cons
   t0 = std::fma ( a0, b3, t0 );
   t0 = std::fma ( a1, b2, t0 );
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 2-4-4
@@ -5179,11 +5172,12 @@ mul_DW_QW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T cons
   FastTwoSum( c2, c3, c2, c3 );
   t0 = std::fma ( a1, b3, t6 );
   c3 = c3 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 3-1-1
@@ -5225,9 +5219,9 @@ mul_TW_SW_TW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c
   TwoSum( c2, t2, c2, t2 );
   t4 = t1 + t2 + t3;
   c2 = c2 + t4;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 3-1-4
@@ -5247,11 +5241,12 @@ mul_TW_SW_QW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c
   TwoSum( c3, t3, c3, t3 );
   t0 = t1 + t3;
   c3 = c3 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 3-2-1
@@ -5306,9 +5301,9 @@ mul_TW_DW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0,
   t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6;
   t0 = std::fma ( a2, b1, t0 );
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 3-2-4
@@ -5343,11 +5338,12 @@ mul_TW_DW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0,
   FastTwoSum( c3, t6, c3, t6 );
   FastTwoSum( c2, c3, c2, c3 );
   c3 = c3 + t6;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 3-3-1
@@ -5411,9 +5407,9 @@ mul_TW_TW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   t2 = std::fma ( a2, b1, t0 );
   t0 = t1 + t2;
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 3-3-4
@@ -5456,11 +5452,12 @@ mul_TW_TW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   FastTwoSum( c2, c3, c2, c3 );
   t0 = std::fma ( a2, b2, t8 );
   c3 = c3 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 3-4-1
@@ -5522,9 +5519,9 @@ mul_TW_QW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   t0 = std::fma ( a1, b2, t0 );
   t0 = std::fma ( a2, b1, t0 );
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 3-4-4
@@ -5569,11 +5566,12 @@ mul_TW_QW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   t0 = std::fma ( a1, b3, t8 );
   t0 = std::fma ( a2, b2, t0 );
   c3 = c3 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 4-1-1
@@ -5617,9 +5615,9 @@ mul_QW_SW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0,
   t4 = t1 + t2 + t3;
   t4 = std::fma ( a3, b0, t4 );
   c2 = c2 + t4;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 4-1-4
@@ -5642,11 +5640,12 @@ mul_QW_SW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0,
   TwoSum( c3, t3, c3, t1 );
   t5 = t0 + t1 + t4;
   c3 = c3 + t5;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 4-2-1
@@ -5703,9 +5702,9 @@ mul_QW_DW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   t0 = std::fma ( a3, b0, t0 );
   t0 = std::fma ( a2, b1, t0 );
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 4-2-4
@@ -5743,11 +5742,12 @@ mul_QW_DW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   FastTwoSum( c2, c3, c2, c3 );
   t0 = std::fma ( a3, b1, t8 );
   c3 = c3 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 4-3-1
@@ -5809,9 +5809,9 @@ mul_QW_TW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   t0 = std::fma ( a1, b2, t0 );
   t0 = std::fma ( a2, b1, t0 );
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 4-3-4
@@ -5856,11 +5856,12 @@ mul_QW_TW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   t0 = std::fma ( a2, b2, t9 );
   t0 = std::fma ( a3, b1, t0 );
   c3 = c3 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 4-4-1
@@ -5928,9 +5929,9 @@ mul_QW_QW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   t2 = std::fma ( a2, b1, t2 );
   t0 = t1 + t2;
   c2 = c2 + t0;
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // mul: 4-4-4
@@ -5982,11 +5983,12 @@ mul_QW_QW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   t0 = t10 + t11;
   t0 = std::fma ( a2, b2, t0 );
   c3 = c3 + t0;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 1-1-2
@@ -6072,8 +6074,8 @@ div_SW_DW_TW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   sub_SW_DW_SW( r0, t0, t1, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 1-2-4
@@ -6096,9 +6098,9 @@ div_SW_DW_QW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   sub_SW_DW_SW( r0, t0, t1, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 1-3-1
@@ -6148,8 +6150,8 @@ div_SW_TW_TW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c
   sub_SW_TW_SW( r0, t0, t1, t2, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 1-3-4
@@ -6172,9 +6174,9 @@ div_SW_TW_QW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c
   sub_SW_TW_SW( r0, t0, t1, t2, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 1-4-1
@@ -6224,8 +6226,8 @@ div_SW_QW_TW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0,
   sub_SW_QW_SW( r0, t0, t1, t2, t3, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 1-4-4
@@ -6248,9 +6250,9 @@ div_SW_QW_QW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0,
   sub_SW_QW_SW( r0, t0, t1, t2, t3, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 2-1-1
@@ -6300,8 +6302,8 @@ div_DW_SW_TW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   sub_DW_SW_SW( r0, r1, t0, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 2-1-4
@@ -6324,9 +6326,9 @@ div_DW_SW_QW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
   sub_DW_SW_SW( r0, r1, t0, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 2-2-1
@@ -6346,7 +6348,7 @@ div_DW_DW_SW( T const a0, T const a1, T const b0, T const b1, T &c0 )
 template < typename T > __always_inline void
 div_DW_DW_DW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
 {
-  c0 = a0 / b0;
+  c0 = a0 / (b0 + b1);
   c1 = std::fma( -b0, c0, a0 ) + a1;
   c1 = std::fma( -b1, c0, c1 ) / (b0 + b1);
 }
@@ -6368,8 +6370,8 @@ div_DW_DW_TW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c
   sub_DW_DW_SW( r0, r1, t0, t1, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 2-2-4
@@ -6392,9 +6394,9 @@ div_DW_DW_QW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c
   sub_DW_DW_SW( r0, r1, t0, t1, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 2-3-1
@@ -6444,8 +6446,8 @@ div_DW_TW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0,
   sub_DW_TW_SW( r0, r1, t0, t1, t2, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 2-3-4
@@ -6468,9 +6470,9 @@ div_DW_TW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0,
   sub_DW_TW_SW( r0, r1, t0, t1, t2, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 2-4-1
@@ -6520,8 +6522,8 @@ div_DW_QW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T cons
   sub_DW_QW_SW( r0, r1, t0, t1, t2, t3, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 2-4-4
@@ -6544,9 +6546,9 @@ div_DW_QW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T cons
   sub_DW_QW_SW( r0, r1, t0, t1, t2, t3, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 3-1-1
@@ -6596,8 +6598,8 @@ div_TW_SW_TW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c
   sub_TW_SW_SW( r0, r1, r2, t0, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 3-1-4
@@ -6620,9 +6622,9 @@ div_TW_SW_QW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c
   sub_TW_SW_SW( r0, r1, r2, t0, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 3-2-1
@@ -6672,8 +6674,8 @@ div_TW_DW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0,
   sub_TW_DW_SW( r0, r1, r2, t0, t1, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 3-2-4
@@ -6696,9 +6698,9 @@ div_TW_DW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0,
   sub_TW_DW_SW( r0, r1, r2, t0, t1, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 3-3-1
@@ -6748,8 +6750,8 @@ div_TW_TW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 3-3-4
@@ -6772,9 +6774,9 @@ div_TW_TW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 3-4-1
@@ -6824,8 +6826,8 @@ div_TW_QW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   sub_TW_QW_SW( r0, r1, r2, t0, t1, t2, t3, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 3-4-4
@@ -6848,9 +6850,9 @@ div_TW_QW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T cons
   sub_TW_QW_SW( r0, r1, r2, t0, t1, t2, t3, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 4-1-1
@@ -6900,8 +6902,8 @@ div_QW_SW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0,
   sub_QW_SW_SW( r0, r1, r2, r3, t0, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 4-1-4
@@ -6924,9 +6926,9 @@ div_QW_SW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0,
   sub_QW_SW_SW( r0, r1, r2, r3, t0, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 4-2-1
@@ -6976,8 +6978,8 @@ div_QW_DW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   sub_QW_DW_SW( r0, r1, r2, r3, t0, t1, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 4-2-4
@@ -7000,9 +7002,9 @@ div_QW_DW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   sub_QW_DW_SW( r0, r1, r2, r3, t0, t1, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 4-3-1
@@ -7052,8 +7054,8 @@ div_QW_TW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   sub_QW_TW_SW( r0, r1, r2, r3, t0, t1, t2, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 4-3-4
@@ -7076,9 +7078,9 @@ div_QW_TW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   sub_QW_TW_SW( r0, r1, r2, r3, t0, t1, t2, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 4-4-1
@@ -7128,8 +7130,8 @@ div_QW_QW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
   r0 = r0 / b0;
   c2 = c2 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // div: 4-4-4
@@ -7152,9 +7154,9 @@ div_QW_QW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T cons
   sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
   r0 = r0 / b0;
   c3 = c3 + r0;
-  FastTwoSum( c0, c1, c0, c1 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // sqr: 1-2
@@ -7170,6 +7172,7 @@ template < typename T > __always_inline void
 sqr_SW_TW( T const a0, T &c0, T &c1, T &c2 )
 {
   TwoProductFMA( a0, a0, c0, c1 );
+  FastTwoSum( c0, c1, c0, c1 );
   c2 = fp_const<T>::zero();
 }
 
@@ -7178,6 +7181,7 @@ template < typename T > __always_inline void
 sqr_SW_QW( T const a0, T &c0, T &c1, T &c2, T &c3 )
 {
   TwoProductFMA( a0, a0, c0, c1 );
+  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c0, c1, c0, c1 );
   c2 = fp_const<T>::zero();
   c3 = fp_const<T>::zero();
@@ -7225,7 +7229,9 @@ sqr_DW_TW( T const a0, T const a1, T &c0, T &c1, T &c2 )
   FastTwoSum( c1, c2, c1, c2 );
   t1 = t1 + t2 + t3;
   c2 = c2 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // sqr: 2-4
@@ -7246,11 +7252,12 @@ sqr_DW_QW( T const a0, T const a1, T &c0, T &c1, T &c2, T &c3 )
   FastTwoSum( c2, c3, c2, c3 );
   t1 = t1 + t3;
   c3 = c3 + t1;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // sqr: 3-1
@@ -7301,7 +7308,9 @@ sqr_TW_TW( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2 )
   t6 = a2 + a2;
   t1 = std::fma ( t6, a1, t1 );
   c2 = c2 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // sqr: 3-4
@@ -7332,11 +7341,12 @@ sqr_TW_QW( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2, T &c3 )
   t1 = t1 + t3 + t4 + t2 + t6 + t7;
   t1 = std::fma ( a2, a2, t1 );
   c3 = c3 + t1;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // sqr: 4-1
@@ -7388,7 +7398,9 @@ sqr_QW_TW( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2 )
   t6 = a2 + a2;
   t1 = std::fma ( t6, a1, t1 );
   c2 = c2 + t1;
+  FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 // sqr: 4-4
@@ -7422,11 +7434,12 @@ sqr_QW_QW( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2, 
   t1 = std::fma ( a3, t5, t1 );
   t1 = std::fma ( a2, a2, t1 );
   c3 = c3 + t1;
-  FastTwoSum( c2, c3, c2, c3 );
-  FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c0, c1, c0, c1 );
   FastTwoSum( c1, c2, c1, c2 );
   FastTwoSum( c2, c3, c2, c3 );
+  FastTwoSum( c0, c1, c0, c1 );
+  FastTwoSum( c1, c2, c1, c2 );
+  FastTwoSum( c0, c1, c0, c1 );
 }
 
 
