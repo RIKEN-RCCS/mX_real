@@ -3,17 +3,23 @@
 
 #include <assert.h>
 
-#include <iostream>
+//#include <iostream>
+#include <iosfwd>
 #include <sstream>
 #include <bitset>
 #include <limits>
 #include <math.h>
 
 #define	INLINE	__always_inline
-#define	MX_REAL_USE_INF_NAN_EXCEPTION	1
+#define	MX_REAL_USE_INF_NAN_EXCEPTION	0
+
+#if 0
+#include <boost/type_index.hpp>
+template < typename T > void printTYPE( void ) {
+  std::cout << boost::typeindex::type_id_with_cvr<T>().pretty_name(); }
+#endif
 
 namespace mX_real {
-
 
 #include "Ozaki-QW/qxw.hpp"
 
@@ -337,27 +343,104 @@ namespace mX_real {
   template < typename T, Algorithm A >
   struct check_mX_real< qX_real::qx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
 #ifdef __MPREAL_H__
-  template <>struct check_mX_real <mpfr::mpreal> { static bool constexpr value  = false; };
+  template <> struct check_mX_real <mpfr::mpreal> : std::false_type{};
 #endif
 #ifdef  _QD_DD_REAL_H
-  template <> struct check_mX_real <dd_real> { static bool constexpr value  = false; };
+  template <> struct check_mX_real <dd_real> : std::false_type{};
 #endif
 #ifdef  _QD_QD_REAL_H
-  template <> struct check_mX_real <qd_real> { static bool constexpr value  = false; };
+  template <> struct check_mX_real <qd_real> : std::false_type{};
 #endif
 #undef _BOOL_const_type
+
+  //
+  template < typename TXa, typename T, Algorithm A, int L >
+  struct check_TXA_impl {
+    static bool constexpr value = std::is_same< typename TXa::base_T, T >::value;
+    using type_to_be = std::conditional_t<
+	    L == 2,
+	    dX_real::dx_real< T, A >,
+            std::conditional_t<
+	      L == 3,
+	      tX_real::tx_real< T, A >,
+              std::conditional_t<
+	        L == 4,
+                qX_real::qx_real< T, A >,
+	       	void >
+              >
+	    >;
+    using type = typename std::enable_if_t< value, type_to_be >;
+  };
+  template < typename TXa, typename T, Algorithm A, int L >
+  using check_TXA = std::enable_if_t< check_TXA_impl<TXa,T,A,L>::value >;
+  template < typename TXa, typename T, Algorithm A, int L >
+  using return_TXA = std::enable_if_t< check_TXA_impl<TXa,T,A,L>::value,
+       	typename check_TXA_impl<TXa,T,A,L>::type >;
+  template < bool F, typename TXa, typename T, Algorithm A, int L >
+  using cond_return_TXA = std::enable_if_t< F && check_TXA_impl<TXa,T,A,L>::value,
+       	typename check_TXA_impl<TXa,T,A,L>::type >;
+  //
+  //
+  template < typename TXa, typename T, int L >
+  struct check_TX_impl {
+    static Algorithm constexpr A = TXa::base_A;
+    //
+    static bool constexpr value = check_TXA_impl<TXa,T,A,L>::value;
+    using type_to_be = typename check_TXA_impl<TXa,T,A,L>::type_to_be;
+    using type = typename std::enable_if_t< value, type_to_be >;
+  };
+  template < typename TXa, typename T, int L >
+  using check_TX = typename std::enable_if_t< check_TX_impl<TXa,T,L>::value >;
+  template < typename TXa, typename T, int L >
+  using return_TX = std::enable_if_t< check_TX_impl<TXa,T,L>::value,
+       	typename check_TX_impl<TXa,T,L>::type >;
+  template < bool F, typename TXa, typename T, int L >
+  using cond_return_TX = std::enable_if_t< F && check_TX_impl<TXa,T,L>::value,
+       	typename check_TX_impl<TXa,T,L>::type >;
+
+  //
+  template < typename TXa, typename TXb, int L >
+  struct check_TX2_impl {
+    using T = typename TXa::base_T;
+    static Algorithm constexpr A = commonAlgorithm< TXa::base_A, TXb::base_A >::algorithm;
+    //
+    static bool constexpr value = check_TXA_impl<TXa,T,A,L>::value;
+    using type_to_be = typename check_TXA_impl<TXa,T,A,L>::type_to_be;
+    using type = typename std::enable_if_t< value, type_to_be >;
+  };
+  template < typename TXa, typename TXb, int L >
+  using check_TX2 = std::enable_if_t< check_TX2_impl<TXa,TXb,L>::value >;
+  template < typename TXa, typename TXb, int L >
+  using return_TX2 = std::enable_if_t< check_TX2_impl<TXa,TXb,L>::value,
+       	typename check_TX2_impl<TXa,TXb,L>::type >;
+  template < bool F, typename TXa, typename TXb, int L >
+  using cond_return_TX2 = std::enable_if_t< F && check_TX2_impl<TXa,TXb,L>::value,
+       	typename check_TX2_impl<TXa,TXb,L>::type >;
   //
 
+
+
+  //
+  template < typename TX >
+  using if_T_mX = typename std::enable_if_t<check_mX_real<TX>::value>;
+  template < typename TXa, typename TXb >
+  using if_T_mX2 = typename std::enable_if_t<check_mX_real<TXa>::value && check_mX_real<TXb>::value>;
+  template < typename Ta, typename Tb >
+  using if_T_same = typename std::enable_if_t<std::is_same<Ta,Tb>::value>;
 
   // Definition of shortcut structs
   template < Algorithm A >
   using if_A_noQuasi = typename std::enable_if_t<A!=Algorithm::Quasi>;
   template < Algorithm Aa, Algorithm Ab >
+  using if_A2_noQuasi = typename std::enable_if_t<Aa!=Algorithm::Quasi && Ab!=Algorithm::Quasi>;
+  template < Algorithm Aa, Algorithm Ab >
   using if_A_owAble = typename std::enable_if_t<Aa==Ab || Aa!=Algorithm::Accurate>;
-//  using if_A_owAble = typename std::enable_if_t<Aa!=Ab && Aa!=Algorithm::Accurate>;
+
   //
   template < typename Ts >
   using if_T_fp = typename std::enable_if_t<fp<Ts>::value>;
+  template < typename Tsa, typename Tsb >
+  using if_T_fp2 = typename std::enable_if_t<fp<Tsa>::value && fp<Tsb>::value>;
   template < typename Ts >
   using if_T_scalar = typename std::enable_if_t<std::is_arithmetic<Ts>::value>;
   template < typename Ts, typename T >
@@ -366,14 +449,20 @@ namespace mX_real {
   using if_T_double = typename std::enable_if_t<std::is_same<Ts,double>::value, T>;
 
 
+
 }
 
 
 // very short MACRON which mush be ib the template parameter definition
-#define IF_A_noQuasi	typename __dummy_A__=if_A_noQuasi
-#define IF_A_owAble	typename __dummy_A__=if_A_owAble
-#define IF_T_fp		typename __dummy_T__=if_T_fp
-#define IF_T_scalar	typename __dummy_T__=if_T_scalar
+#define IF_A_noQuasi	typename __dummy_A0__=if_A_noQuasi
+#define IF_A2_noQuasi	typename __dummy_A00__=if_A2_noQuasi
+#define IF_A_owAble	typename __dummy_A1__=if_A_owAble
+#define IF_T_fp		typename __dummy_T0__=if_T_fp
+#define IF_T_fp2	typename __dummy_T00__=if_T_fp2
+#define IF_T_scalar	typename __dummy_T1__=if_T_scalar
+#define IF_T_mX		typename __dummy_T2__=if_T_mX
+#define IF_T_mX2	typename __dummy_T22__=if_T_mX2
+#define IF_T_same	typename __dummy_T3__=if_T_same
 
 // helper macro to extend argument list elements into the raw QxW style
 #define _SX_(a)	a

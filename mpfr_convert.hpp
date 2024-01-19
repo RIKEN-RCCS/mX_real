@@ -2,10 +2,11 @@
 #define MX_REAL_MPFR_CONVERT_H
 
 
+#if 0
 #include <boost/type_index.hpp>
 template < typename T > void printTYPE( void ) {
   std::cout << boost::typeindex::type_id_with_cvr<T>().pretty_name(); }
-
+#endif
 
 //
 // MPFR extensions

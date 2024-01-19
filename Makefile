@@ -13,7 +13,7 @@ ifeq ($(CXX),icpx)
 	CXX = icpx --std=c++14 -fp-model strict #-fast #-qopt-report-stdout -ipo
 endif
 
-CCFLAGS := $(CCFLAGS) -O3 -Wall
+CCFLAGS := $(CCFLAGS) -O3 -Wall -I./ -include mX_real.hpp #-ftime-report
 LDFLAGS = -fopenmp -lquadmath -lm
 
 # Optimizations
@@ -29,17 +29,20 @@ QD_LDFLAGS = ../tm_blas/others/qd-2.3.23/src/.libs/libqd.a
 MPFR_CCFLAGS = -I./mpreal/
 MPFR_LDFLAGS = -lmpfr -lgmp
 
-all: a.out sample.exe
+all: a.out sample.exe mX_real.hpp.gch
 
 a.out: main.o
 	$(CXX) -o a.out main.o $(LDFLAGS) $(QD_LDFLAGS) $(MPFR_LDFLAGS)
-main.o: main.cpp mpreal
+main.o: main.cpp mpreal mX_real.hpp.gch
 	$(CXX) -S main.cpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
 	$(CXX) -c main.cpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
 
-sample.exe: sample.cpp mpreal
+sample.exe: sample.cpp mpreal mX_real.hpp.gch
 	$(CXX) -S            sample.cpp $(CCFLAGS)
 	$(CXX) -o sample.exe sample.cpp $(CCFLAGS)
+
+mX_real.hpp.gch: mX_real.hpp
+	$(CXX) -c  -x c++-header mX_real.hpp $(CCFLAGS)
 
 qd_real:
 
@@ -49,5 +52,5 @@ mpreal:
 
 
 clean:
-	\rm *.o a.out *.s sample.exe sample.exe-*
+	\rm *.o a.out *.s sample.exe sample.exe-* *.gch
 

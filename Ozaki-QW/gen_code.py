@@ -147,19 +147,6 @@ TwoProductFMA ( T const a, T const b, T &x, T &y )
 '''
     print( header )
 
-def final () :
-
-    header = '''
-
-#include "sqrt.hpp"
-
-}
-
-#endif
-'''
-    print( header )
-
-
 def mX_suffics ( ACC, width ) :
     if ACC > 0 :
         return [ '_', '_SW', '_DW', '_TW', '_QW' ][width]
@@ -1698,8 +1685,5 @@ if __name__ == '__main__' :
                 for NC in range(1,4+1) :
                     #continue
                     gen_sqr( NA, NC, ACC )
-
-
-    final()
 
 

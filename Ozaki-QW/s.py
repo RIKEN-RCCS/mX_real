@@ -1118,6 +1118,11 @@ if __name__ == '__main__' :
                 for NC in range(1,4+1) :
                     gen_sqrt( NA, NC, ACC )
 
+    print( '}' )
+    print( '' )
+    print( '' )
+    print( '#endif' )
+
 
 
 
