@@ -440,7 +440,7 @@ namespace mX_real {
   template < typename Ts >
   using if_T_fp = typename std::enable_if_t<fp<Ts>::value>;
   template < typename Tsa, typename Tsb >
-  using if_T_fp2 = typename std::enable_if_t<fp<Tsa>::value && fp<Tsb>::value>;
+  using if_T_fp2 = typename std::enable_if_t<if_T_fp<Tsa>::value && if_T_fp<Tsb>::value>;
   template < typename Ts >
   using if_T_scalar = typename std::enable_if_t<std::is_arithmetic<Ts>::value>;
   template < typename Ts, typename T >
@@ -453,7 +453,17 @@ namespace mX_real {
 }
 
 
-// very short MACRON which mush be ib the template parameter definition
+// very short MACRO which mush be used in the if_constexpr/C++17
+#define is_A_noQuasi(A)		(A!=Algorithm::Quasi)
+#define is_A2_noQuasi(Aa,Ab)	(Aa!=Algorithm::Quasi && Ab!=Algorithm::Quasi)
+#define is_A_owAble(Aa,Ab)	(Aa==Ab || Aa!=Algorithm::Accurate)
+#define	is_T_fp(Ts)		(fp<Ts>::value)
+#define	is_T_fp2(Tsa,Tsb)	(is_T_fp(Tsa) && is_T_fp(Tsb))
+#define	is_T_scalar(Ts)		(std::is_arithmetic<Ts>::value)
+#define	is_T_float(Ts)		(std::is_same<Ts,float>::value)
+#define	is_T_double(Ts)		(std::is_same<Ts,double>::value)
+
+// very short MACRO which mush be used in the template parameter definition
 #define IF_A_noQuasi	typename __dummy_A0__=if_A_noQuasi
 #define IF_A2_noQuasi	typename __dummy_A00__=if_A2_noQuasi
 #define IF_A_owAble	typename __dummy_A1__=if_A_owAble

@@ -67,7 +67,8 @@ def gen_op_body( Tc, description, func, op, commutable ) :
             #    continue
 
             print( template( Ta, Tb ) )
-            print( 'INLINE auto const operator_{}_body '.format( func ) + arg_list( Ta, Tb ) )
+            print( 'INLINE auto const operator_{func}_body '.format( func=func ) + arg_list( Ta, Tb ) )
+            #print( 'INLINE auto operator_{func}_body '.format( func=func ) + arg_list( Ta, Tb ) )
 
             if ( Tb > Ta ) and ( commutable == 1 ) :
                 print( '  return operator_{func}_body ( b, a );'.format( func=func ) )
@@ -257,7 +258,8 @@ def gen_exception_div( Tc, description, func, op, commutable ) :
 def gen_op_stub( Tc, description, func, op, commutable ) :
 
     print( 'template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >' )
-    print( 'INLINE auto const operator_{func} ( TXa const& a, TXb const& b )'.format( func=func ) )
+    #print( 'INLINE auto const operator_{func} ( TXa const& a, TXb const& b )'.format( func=func ) )
+    print( 'INLINE auto operator_{func} ( TXa const& a, TXb const& b )'.format( func=func ) )
     print( '-> cond_return_TX2<(TXa::L>=TXb::L),TXa,TXb,{L}> {{'.format( L=Tc ) )
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     print( '  bool flag;' )
@@ -268,7 +270,8 @@ def gen_op_stub( Tc, description, func, op, commutable ) :
     print( '}' )
 
     print( 'template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >' )
-    print( 'INLINE auto const operator_{func} ( TXa const& a, TXb const& b )'.format( func=func ) )
+    #print( 'INLINE auto const operator_{func} ( TXa const& a, TXb const& b )'.format( func=func ) )
+    print( 'INLINE auto operator_{func} ( TXa const& a, TXb const& b )'.format( func=func ) )
     print( '-> cond_return_TX2<(TXa::L<TXb::L),TXa,TXb,{L}> {{'.format( L=Tc ) )
     if commutable == 1 :
         print( '  return {m}X_real::operator_{func} ( b, a );'.format( m=mX_type(Tc), func=func ) )
@@ -282,7 +285,8 @@ def gen_op_stub( Tc, description, func, op, commutable ) :
     print( '}' )
 
     print( 'template < typename TXa, typename T, IF_T_fp<T>, IF_T_mX<TXa> >' )
-    print( 'INLINE auto const operator_{func} ( TXa const& a, T const& b )'.format( func=func ) )
+    #print( 'INLINE auto const operator_{func} ( TXa const& a, T const& b )'.format( func=func ) )
+    print( 'INLINE auto operator_{func} ( TXa const& a, T const& b )'.format( func=func ) )
     print( '-> return_TX<TXa,T,{L}> {{'.format( L=Tc ) )
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     print( '  bool flag;' )
@@ -293,7 +297,8 @@ def gen_op_stub( Tc, description, func, op, commutable ) :
     print( '}' )
 
     print( 'template < typename T, typename TXb, IF_T_fp<T>, IF_T_mX<TXb> >' )
-    print( 'INLINE auto const operator_{func} ( T const& a, TXb const& b )'.format( func=func ) )
+    #print( 'INLINE auto const operator_{func} ( T const& a, TXb const& b )'.format( func=func ) )
+    print( 'INLINE auto operator_{func} ( T const& a, TXb const& b )'.format( func=func ) )
     print( '-> return_TX<TXb,T,{L}> {{'.format( L=Tc ) )
     if commutable == 1 :
         print( '  return {m}X_real::operator_{func} ( b, a );'.format( m=mX_type(Tc), func=func ) )
@@ -307,7 +312,8 @@ def gen_op_stub( Tc, description, func, op, commutable ) :
     print( '}' )
 
     print( 'template < Algorithm A=Algorithm::Accurate, typename T, IF_T_fp<T> >' )
-    print( 'INLINE auto const operator_{func} ( T const& a, T const& b ) {{'.format( func=func ) )
+    #print( 'INLINE auto const operator_{func} ( T const& a, T const& b ) {{'.format( func=func ) )
+    print( 'INLINE auto operator_{func} ( T const& a, T const& b ) {{'.format( func=func ) )
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     print( '  bool flag;' )
     print( '  auto e = {m}X_real::operator_{func}_exception<A> ( a, b, flag );'.format( m=mX_type(Tc), func=func ) )
@@ -319,19 +325,22 @@ def gen_op_stub( Tc, description, func, op, commutable ) :
 def gen_op_operator( Tc, description, func, op, commutable ) :
 
     print( 'template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >' )
-    print( 'INLINE auto const operator{op} ( TXa const& a, TXb const& b )'.format( op=op ) )
+    #print( 'INLINE auto const operator{op} ( TXa const& a, TXb const& b )'.format( op=op ) )
+    print( 'INLINE auto operator{op} ( TXa const& a, TXb const& b )'.format( op=op ) )
     print( '-> cond_return_TX2<(TXa::L=={L}||TXb::L=={L}),TXa,TXb,{L}> {{'.format( L=Tc ) )
     print( '  return {m}X_real::operator_{func} ( a, b );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
     print( 'template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >' )
-    print( 'INLINE auto const operator{op} ( {m}X_real::{m}x_real<T,A> const& a, Ts const& b ) {{'.format( op=op, m=mX_type(Tc) ) )
+    #print( 'INLINE auto const operator{op} ( {m}X_real::{m}x_real<T,A> const& a, Ts const& b ) {{'.format( op=op, m=mX_type(Tc) ) )
+    print( 'INLINE auto operator{op} ( {m}X_real::{m}x_real<T,A> const& a, Ts const& b ) {{'.format( op=op, m=mX_type(Tc) ) )
     print( '  auto const b_ = T(b);' )
     print( '  return {m}X_real::operator_{func} ( a, b_ );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
     print( 'template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >' )
-    print( 'INLINE auto const operator{op} ( Ts const& a, {m}X_real::{m}x_real<T,A> const& b ) {{'.format( op=op, m=mX_type(Tc) ) )
+    #print( 'INLINE auto const operator{op} ( Ts const& a, {m}X_real::{m}x_real<T,A> const& b ) {{'.format( op=op, m=mX_type(Tc) ) )
+    print( 'INLINE auto operator{op} ( Ts const& a, {m}X_real::{m}x_real<T,A> const& b ) {{'.format( op=op, m=mX_type(Tc) ) )
     if commutable == 1 :
         print( '  return b {op} a;'.format( op=op ) )
     else :
@@ -342,18 +351,21 @@ def gen_op_operator( Tc, description, func, op, commutable ) :
 def gen_op_operator_sub( Tc, description, func, op, commutable ) :
 
     print( 'template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >' )
-    print( 'INLINE auto const operator- ( TXa const& a, TXb const& b )' )
+    #print( 'INLINE auto const operator- ( TXa const& a, TXb const& b )' )
+    print( 'INLINE auto operator- ( TXa const& a, TXb const& b )' )
     print( '-> cond_return_TX2<(TXa::L=={L}||TXb::L=={L}),TXa,TXb,{L}> {{'.format( L=Tc ) )
     print( '  return a + (-b);' )
     print( '}' )
 
     print( 'template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >' )
-    print( 'INLINE auto const operator- ( {m}X_real::{m}x_real<T,A> const& a, Ts const& b ) {{'.format( m=mX_type(Tc) ) )
+    #print( 'INLINE auto const operator- ( {m}X_real::{m}x_real<T,A> const& a, Ts const& b ) {{'.format( m=mX_type(Tc) ) )
+    print( 'INLINE auto operator- ( {m}X_real::{m}x_real<T,A> const& a, Ts const& b ) {{'.format( m=mX_type(Tc) ) )
     print( '  return a + (-b);' )
     print( '}' )
 
     print( 'template < Algorithm A=Algorithm::Accurate, typename T, typename Ts, IF_T_scalar<Ts> >' )
-    print( 'INLINE auto const operator- ( Ts const &a, {m}X_real::{m}x_real<T,A> const& b ) {{'.format( m=mX_type(Tc) ) )
+    #print( 'INLINE auto const operator- ( Ts const &a, {m}X_real::{m}x_real<T,A> const& b ) {{'.format( m=mX_type(Tc) ) )
+    print( 'INLINE auto operator- ( Ts const &a, {m}X_real::{m}x_real<T,A> const& b ) {{'.format( m=mX_type(Tc) ) )
     print( '  return a + (-b);' )
     print( '}' )
 
