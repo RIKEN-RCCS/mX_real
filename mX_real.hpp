@@ -27,25 +27,25 @@ namespace mX_real {
   // Enum-Class definition of the internal Algorithms
   //
   enum class Algorithm {
-  //
-    Accurate = 0,
-    Sloppy   = 1,
-    Quasi    = 2,
-  //
-  // name aliasing
-    IEEE     = Accurate,
-    PairWise = Quasi,
-    PairArithmetic = Quasi,
-    Default  = Accurate
+                        //
+                        Accurate = 0,
+                        Sloppy   = 1,
+                        Quasi    = 2,
+                        //
+                        // name aliasing
+                        IEEE     = Accurate,
+                        PairWise = Quasi,
+                        PairArithmetic = Quasi,
+                        Default  = Accurate
   };
 
   template < Algorithm Aa = Algorithm::Accurate, Algorithm Ab = Algorithm::Accurate >
   struct commonAlgorithm {
     static Algorithm constexpr algorithm =
       ( Aa == Algorithm::Accurate && Ab == Algorithm::Accurate ) ?
-        Algorithm::Accurate :
-        ( Aa == Algorithm::Quasi || Ab == Algorithm::Quasi ) ?
-	  Algorithm::Quasi : Algorithm::Sloppy;
+      Algorithm::Accurate :
+      ( Aa == Algorithm::Quasi || Ab == Algorithm::Quasi ) ?
+      Algorithm::Quasi : Algorithm::Sloppy;
   };
 
   std::string toString( Algorithm A ) {
@@ -270,13 +270,13 @@ namespace mX_real {
       c.x[0] = c.x[1] = t;
     } else
 #endif
-    {
-      if ( N_itr > 0 || A != Algorithm::Accurate ) {
-        twoSum( c.x[0], c.x[1] );
-      } else {
-        quickSum( c.x[0], c.x[1] );
+      {
+        if ( N_itr > 0 || A != Algorithm::Accurate ) {
+          twoSum( c.x[0], c.x[1] );
+        } else {
+          quickSum( c.x[0], c.x[1] );
+        }
       }
-    }
   }
   //
   template < int N_itr = 0, typename T, Algorithm A >
@@ -287,17 +287,17 @@ namespace mX_real {
       c.x[0] = c.x[1] = c.x[2] = t;
     } else
 #endif
-    {
-      if ( N_itr > 0 || A != Algorithm::Accurate ) {
-        twoSum( c.x[0], c.x[1] );
-        twoSum( c.x[1], c.x[2] );
-        quickSum( c.x[0], c.x[1] );
-      } else {
-        quickSum( c.x[0], c.x[1] );
-        quickSum( c.x[1], c.x[2] );
-        quickSum( c.x[0], c.x[1] );
+      {
+        if ( N_itr > 0 || A != Algorithm::Accurate ) {
+          twoSum( c.x[0], c.x[1] );
+          twoSum( c.x[1], c.x[2] );
+          quickSum( c.x[0], c.x[1] );
+        } else {
+          quickSum( c.x[0], c.x[1] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[0], c.x[1] );
+        }
       }
-    }
   }
   //
   template < int N_itr = 0, typename T, Algorithm A >
@@ -308,23 +308,23 @@ namespace mX_real {
       c.x[0] = c.x[1] = c.x[2] = c.x[3] = t;
     } else
 #endif
-    {
-      if ( N_itr > 0 || A != Algorithm::Accurate ) {
-        twoSum( c.x[0], c.x[1] );
-        twoSum( c.x[1], c.x[2] );
-        twoSum( c.x[2], c.x[3] );
-        quickSum( c.x[0], c.x[1] );
-        quickSum( c.x[1], c.x[2] );
-        quickSum( c.x[0], c.x[1] );
-      } else {
-        quickSum( c.x[0], c.x[1] );
-        quickSum( c.x[1], c.x[2] );
-        quickSum( c.x[2], c.x[3] );
-        quickSum( c.x[0], c.x[1] );
-        quickSum( c.x[1], c.x[2] );
-        quickSum( c.x[0], c.x[1] );
+      {
+        if ( N_itr > 0 || A != Algorithm::Accurate ) {
+          twoSum( c.x[0], c.x[1] );
+          twoSum( c.x[1], c.x[2] );
+          twoSum( c.x[2], c.x[3] );
+          quickSum( c.x[0], c.x[1] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[0], c.x[1] );
+        } else {
+          quickSum( c.x[0], c.x[1] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[0], c.x[1] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[0], c.x[1] );
+        }
       }
-    }
   }
 
 
@@ -358,27 +358,27 @@ namespace mX_real {
   struct check_TXA_impl {
     static bool constexpr value = std::is_same< typename TXa::base_T, T >::value;
     using type_to_be = std::conditional_t<
-	    L == 2,
-	    dX_real::dx_real< T, A >,
-            std::conditional_t<
-	      L == 3,
-	      tX_real::tx_real< T, A >,
-              std::conditional_t<
-	        L == 4,
-                qX_real::qx_real< T, A >,
-	       	void >
-              >
-	    >;
+      L == 2,
+      dX_real::dx_real< T, A >,
+      std::conditional_t<
+        L == 3,
+        tX_real::tx_real< T, A >,
+        std::conditional_t<
+          L == 4,
+          qX_real::qx_real< T, A >,
+          void >
+        >
+      >;
     using type = typename std::enable_if_t< value, type_to_be >;
   };
   template < typename TXa, typename T, Algorithm A, int L >
   using check_TXA = std::enable_if_t< check_TXA_impl<TXa,T,A,L>::value >;
   template < typename TXa, typename T, Algorithm A, int L >
   using return_TXA = std::enable_if_t< check_TXA_impl<TXa,T,A,L>::value,
-       	typename check_TXA_impl<TXa,T,A,L>::type >;
+                                       typename check_TXA_impl<TXa,T,A,L>::type >;
   template < bool F, typename TXa, typename T, Algorithm A, int L >
   using cond_return_TXA = std::enable_if_t< F && check_TXA_impl<TXa,T,A,L>::value,
-       	typename check_TXA_impl<TXa,T,A,L>::type >;
+                                            typename check_TXA_impl<TXa,T,A,L>::type >;
   //
   //
   template < typename TXa, typename T, int L >
@@ -393,10 +393,10 @@ namespace mX_real {
   using check_TX = typename std::enable_if_t< check_TX_impl<TXa,T,L>::value >;
   template < typename TXa, typename T, int L >
   using return_TX = std::enable_if_t< check_TX_impl<TXa,T,L>::value,
-       	typename check_TX_impl<TXa,T,L>::type >;
+                                      typename check_TX_impl<TXa,T,L>::type >;
   template < bool F, typename TXa, typename T, int L >
   using cond_return_TX = std::enable_if_t< F && check_TX_impl<TXa,T,L>::value,
-       	typename check_TX_impl<TXa,T,L>::type >;
+                                           typename check_TX_impl<TXa,T,L>::type >;
 
   //
   template < typename TXa, typename TXb, int L >
@@ -412,10 +412,10 @@ namespace mX_real {
   using check_TX2 = std::enable_if_t< check_TX2_impl<TXa,TXb,L>::value >;
   template < typename TXa, typename TXb, int L >
   using return_TX2 = std::enable_if_t< check_TX2_impl<TXa,TXb,L>::value,
-       	typename check_TX2_impl<TXa,TXb,L>::type >;
+                                       typename check_TX2_impl<TXa,TXb,L>::type >;
   template < bool F, typename TXa, typename TXb, int L >
   using cond_return_TX2 = std::enable_if_t< F && check_TX2_impl<TXa,TXb,L>::value,
-       	typename check_TX2_impl<TXa,TXb,L>::type >;
+                                            typename check_TX2_impl<TXa,TXb,L>::type >;
   //
 
 
@@ -495,45 +495,45 @@ namespace mX_real {
   // such as Type::Num_API()
   //
   template < typename T > static INLINE auto constexpr zero(void)
-  -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(0); }
+    -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(0); }
   template < typename T > static INLINE auto constexpr zero(void)
-  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::zero(); }
+    -> std::enable_if_t< check_mX_real<T>::value,T> { return T::zero(); }
 
   //
   template < typename T > static INLINE auto constexpr one(void)
-  -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(1); }
+    -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(1); }
   template < typename T > static INLINE auto constexpr one(void)
-  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::one(); }
+    -> std::enable_if_t< check_mX_real<T>::value,T> { return T::one(); }
 
   //
   template < typename T > static INLINE auto constexpr two(void)
-  -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(2); }
+    -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(2); }
   template < typename T > static INLINE auto constexpr two(void)
-  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::two(); }
+    -> std::enable_if_t< check_mX_real<T>::value,T> { return T::two(); }
 
   //
   template < typename T > static INLINE auto constexpr half(void)
-  -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(1)/T(2); }
+    -> std::enable_if_t<!check_mX_real<T>::value,T> { return T(1)/T(2); }
   template < typename T > static INLINE auto constexpr half(void)
-  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::half(); }
+    -> std::enable_if_t< check_mX_real<T>::value,T> { return T::half(); }
 
   //
   template < typename T > static INLINE auto constexpr epsilon(void)
-  -> std::enable_if_t<!check_mX_real<T>::value,T> { return std::numeric_limits<T>::epsilon(); }
+    -> std::enable_if_t<!check_mX_real<T>::value,T> { return std::numeric_limits<T>::epsilon(); }
   template < typename T > static INLINE auto constexpr epsilon(void)
-  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::epsilon(); }
+    -> std::enable_if_t< check_mX_real<T>::value,T> { return T::epsilon(); }
 
   //
   template < typename T > static INLINE auto constexpr nan(void)
-  -> std::enable_if_t<!check_mX_real<T>::value,T> { return std::numeric_limits<T>::quiet_NaN(); }
+    -> std::enable_if_t<!check_mX_real<T>::value,T> { return std::numeric_limits<T>::quiet_NaN(); }
   template < typename T > static INLINE auto constexpr nan(void)
-  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::nan(); }
+    -> std::enable_if_t< check_mX_real<T>::value,T> { return T::nan(); }
 
   //
   template < typename T > static INLINE auto constexpr inf(void)
-  -> std::enable_if_t<!check_mX_real<T>::value,T> { return std::numeric_limits<T>::infinity(); }
+    -> std::enable_if_t<!check_mX_real<T>::value,T> { return std::numeric_limits<T>::infinity(); }
   template < typename T > static INLINE auto constexpr inf(void)
-  -> std::enable_if_t< check_mX_real<T>::value,T> { return T::inf(); }
+    -> std::enable_if_t< check_mX_real<T>::value,T> { return T::inf(); }
 
 
 #ifdef __MPREAL_H__

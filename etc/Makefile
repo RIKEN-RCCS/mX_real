@@ -3,12 +3,15 @@ all: dX_real.hpp tX_real.hpp qX_real.hpp
 
 dX_real.hpp: dX_real.hpp-templ dx_add_sub_mul_div.hpp dx_func.hpp
 	python3 mm.py dX_real.hpp-templ > dX_real.hpp
+	emacs --script indent.el dX_real.hpp
 	cp dX_real.hpp ..
 tX_real.hpp: tX_real.hpp-templ tx_add_sub_mul_div.hpp tx_func.hpp
 	python3 mm.py tX_real.hpp-templ > tX_real.hpp
+	emacs --script indent.el tX_real.hpp
 	cp tX_real.hpp ..
 qX_real.hpp: qX_real.hpp-templ qx_add_sub_mul_div.hpp qx_func.hpp 
 	python3 mm.py qX_real.hpp-templ > qX_real.hpp
+	emacs --script indent.el qX_real.hpp
 	cp qX_real.hpp ..
 
 dx_add_sub_mul_div.hpp: mx.py my.py

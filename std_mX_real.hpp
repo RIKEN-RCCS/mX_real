@@ -10,7 +10,7 @@
 
 
 namespace std {
-
+  
   template < typename T, mX_real::Algorithm A >
   class numeric_limits<mX_real::dX_real::dx_real<T,A>> {
     using TX = mX_real::dX_real::dx_real<T,A>;
@@ -21,10 +21,10 @@ namespace std {
     inline static TX max() { return TX::max(); }
     inline static TX infinity() { return TX::inf(); }
     inline static TX quiet_NaN() { return TX::nan(); }
-
+    
     static int const digits = numeric_limits<T>::digits * TX::L;
   };
-
+  
   template < typename T, mX_real::Algorithm A >
   bool isinf( mX_real::dX_real::dx_real<T,A> const& x ) {
     return mX_real::dX_real::isinf(x);
@@ -53,12 +53,12 @@ namespace std {
   mX_real::dX_real::dx_real<T,A> sqrt( mX_real::dX_real::dx_real<T,A> const& x ) {
     return mX_real::dX_real::sqrt(x);
   }
-
+  
 }
 
 
 namespace std {
-
+  
   template < typename T, mX_real::Algorithm A >
   class numeric_limits<mX_real::tX_real::tx_real<T,A>> {
     using TX = mX_real::tX_real::tx_real<T,A>;
@@ -69,10 +69,10 @@ namespace std {
     inline static TX max() { return TX::max(); }
     inline static TX infinity() { return TX::inf(); }
     inline static TX quiet_NaN() { return TX::nan(); }
-
+    
     static int const digits = numeric_limits<T>::digits * TX::L;
   };
-
+  
   template < typename T, mX_real::Algorithm A >
   bool isinf( mX_real::tX_real::tx_real<T,A> const& x ) {
     return mX_real::tX_real::isinf(x);
@@ -101,12 +101,12 @@ namespace std {
   mX_real::tX_real::tx_real<T,A> sqrt( mX_real::tX_real::tx_real<T,A> const& x ) {
     return mX_real::tX_real::sqrt(x);
   }
-
+  
 }
 
 
 namespace std {
-
+  
   template < typename T, mX_real::Algorithm A >
   class numeric_limits<mX_real::qX_real::qx_real<T,A>> {
     using TX = mX_real::qX_real::qx_real<T,A>;
@@ -117,10 +117,10 @@ namespace std {
     inline static TX max() { return TX::max(); }
     inline static TX infinity() { return TX::inf(); }
     inline static TX quiet_NaN() { return TX::nan(); }
-
+    
     static int const digits = numeric_limits<T>::digits * TX::L;
   };
-
+  
   template < typename T, mX_real::Algorithm A >
   bool isinf( mX_real::qX_real::qx_real<T,A> const& x ) {
     return mX_real::qX_real::isinf(x);
@@ -149,7 +149,7 @@ namespace std {
   mX_real::qX_real::qx_real<T,A> sqrt( mX_real::qX_real::qx_real<T,A> const& x ) {
     return mX_real::qX_real::sqrt(x);
   }
-
+  
 }
 
 
