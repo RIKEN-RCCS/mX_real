@@ -261,6 +261,8 @@ namespace mX_real {
   // Normalization policy
   // if O(|x0|)>O(|x1|)>... => quickSum in a decending (w.r.t. O(e)) order once
   // not guaranteed => TwoSum in an ascending order, then quickSum reversely once
+  // N_itr :  0 => Sloppy
+  //       : >1 => Quasi
   //
   template < int N_itr = 0, typename T, Algorithm A >
   INLINE void Normalize( dX_real::dx_real<T,A> & c ) {
@@ -271,7 +273,7 @@ namespace mX_real {
     } else
 #endif
       {
-        if ( N_itr > 0 || A != Algorithm::Accurate ) {
+        if ( N_itr > 0 || A == Algorithm::Quasi ) {
           twoSum( c.x[0], c.x[1] );
         } else {
           quickSum( c.x[0], c.x[1] );
@@ -288,15 +290,14 @@ namespace mX_real {
     } else
 #endif
       {
-        if ( N_itr > 0 || A != Algorithm::Accurate ) {
+        if ( N_itr > 0 || A == Algorithm::Quasi ) {
           twoSum( c.x[0], c.x[1] );
           twoSum( c.x[1], c.x[2] );
-          quickSum( c.x[0], c.x[1] );
         } else {
           quickSum( c.x[0], c.x[1] );
           quickSum( c.x[1], c.x[2] );
-          quickSum( c.x[0], c.x[1] );
         }
+          quickSum( c.x[0], c.x[1] );
       }
   }
   //
@@ -309,21 +310,18 @@ namespace mX_real {
     } else
 #endif
       {
-        if ( N_itr > 0 || A != Algorithm::Accurate ) {
+        if ( N_itr > 0 || A == Algorithm::Quasi ) {
           twoSum( c.x[0], c.x[1] );
           twoSum( c.x[1], c.x[2] );
           twoSum( c.x[2], c.x[3] );
-          quickSum( c.x[0], c.x[1] );
-          quickSum( c.x[1], c.x[2] );
-          quickSum( c.x[0], c.x[1] );
         } else {
           quickSum( c.x[0], c.x[1] );
           quickSum( c.x[1], c.x[2] );
           quickSum( c.x[2], c.x[3] );
+        }
           quickSum( c.x[0], c.x[1] );
           quickSum( c.x[1], c.x[2] );
           quickSum( c.x[0], c.x[1] );
-        }
       }
   }
 

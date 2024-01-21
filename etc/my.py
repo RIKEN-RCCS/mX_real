@@ -159,6 +159,7 @@ def gen_sub ( Tc ) :
     print( '//' )
     gen_op_ow_operator_sub( Tc, description, func, op, commutable ) 
     print( '//' )
+    print( '' )
 
 
 def gen_mul ( Tc ) :

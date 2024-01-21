@@ -144,16 +144,16 @@ namespace dX_real {
     // auto one = df_Real( 1 ); // a constructor
     // one = df_Real_sloppy( one ); // LHS is a copy-assignment operator
     //
-    INLINE DX_REAL<> &operator=( int const& h )& {
+    INLINE DX_REAL<> &operator=( int const& h )_LV_ {
       x[0] = T(h); x[1] = fp<T>::zero;
       return *this;
     }
-    INLINE DX_REAL<> &operator=( T const& h )& {
+    INLINE DX_REAL<> &operator=( T const& h )_LV_ {
       x[0] = h; x[1] = fp<T>::zero;
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE DX_REAL<> &operator=( DX_REAL<_A_> const& h )& {
+    INLINE DX_REAL<> &operator=( DX_REAL<_A_> const& h )_LV_ {
       if ( A == _A_ && this == (DX_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
@@ -171,7 +171,7 @@ namespace dX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE DX_REAL<> &operator=( TX_REAL<_A_> const& h )& {
+    INLINE DX_REAL<> &operator=( TX_REAL<_A_> const& h )_LV_ {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -188,7 +188,7 @@ namespace dX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE DX_REAL<> &operator=( QX_REAL<_A_> const& h )& {
+    INLINE DX_REAL<> &operator=( QX_REAL<_A_> const& h )_LV_ {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -204,6 +204,7 @@ namespace dX_real {
       }
       return *this;
     }
+
 
     //
     // Casting to other datatypes like
@@ -301,7 +302,7 @@ namespace dX_real {
 
 
     //
-    // member constexpr functions or constatns
+    // static constexpr member functions or constatns
     // contents are always in Accurate format
     // but they follow in the Algorithm argument 'A'
     //
@@ -310,12 +311,12 @@ namespace dX_real {
     static INLINE DX_REAL<> constexpr two  () { return DX_REAL<>{ fp<T>::two  }; }
     static INLINE DX_REAL<> constexpr half () { return DX_REAL<>{ fp<T>::half }; }
 
-    static INLINE DX_REAL<> constexpr epsilon () {
-      T c = fp<T>::epsilon * fp<T>::half; c = (c * c) * 2; return DX_REAL<>{ c }; }
-
     static INLINE DX_REAL<> constexpr nan  () { T c = fp<T>::nan; return DX_REAL<>{ c,c }; }
     static INLINE DX_REAL<> constexpr inf  () { T c = fp<T>::inf; return DX_REAL<>{ c,c }; }
-
+    static INLINE DX_REAL<> constexpr epsilon () {
+      T c = fp<T>::epsilon * fp<T>::half; c = (c * c) * 2;
+      return DX_REAL<>{ c };
+    }
     static INLINE DX_REAL<> constexpr denorm_min  () {
       T c0 = fp<T>::denorm_min;
       return DX_REAL<>{ c0 };
@@ -330,13 +331,29 @@ namespace dX_real {
       return DX_REAL<>{ c0, c1 };
     }
 
-    static INLINE DX_REAL<> constexpr rand ();
+
+@@include "dx_members.hpp"
 
   };
 
 
+  // 
+  // get a new type dX_real<T,A> from TX(={m}X_real<T,A>)
+  //
+  //
+  template < typename TX, IF_T_mX<TX> >
+  struct mX_real_impl {
+    static Algorithm constexpr _A_ = TX::base_A;
+    using _T_  = typename TX::base_T;
+    using type = typename dX_real::dx_real<_T_,_A_>;
+  };
+  template < typename TX >
+  using mX_real = typename mX_real_impl<TX>::type;
+
+
   //
   // Alias names
+  //
   //
   template < typename T >
   using dX_real_accurate = dX_real::dx_real<T,Algorithm::Accurate>;
@@ -346,33 +363,11 @@ namespace dX_real {
   using dX_real_quasi    = dX_real::dx_real<T,Algorithm::Quasi>;
 
 
+@@include "dx_bits.hpp"
+
   //
-  // Bit-ops and Comparisons
+  // Comparison
   //
-  template < typename T, Algorithm Aa >
-  INLINE auto const isinf ( dX_real::dx_real<T,Aa> const& a ) {
-    return fp<T>::isinf( a.quick_Normalized() );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE auto const isnan ( dX_real::dx_real<T,Aa> const& a ) {
-    return fp<T>::isnan( a.quick_Normalized() );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE auto const signbit ( dX_real::dx_real<T,Aa> const& a ) {
-    return fp<T>::signbit( a.quick_Normalized() );
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr is_zero ( dX_real::dx_real<T,Aa> const& a ) {
-    return a.quick_Normalized() == fp<T>::zero;
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr is_positive ( dX_real::dx_real<T,Aa> const& a ) {
-    return a.quick_Normalized() > fp<T>::zero;
-  }
-  template < typename T, Algorithm Aa >
-  INLINE bool constexpr is_negative ( dX_real::dx_real<T,Aa> const& a ) {
-    return a.quick_Normalized() < fp<T>::zero;
-  }
   //
   template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
   INLINE auto const operator_eq ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {

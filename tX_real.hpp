@@ -135,65 +135,66 @@ namespace mX_real {
       //
       //
       INLINE TX_REAL<> &operator=( int const& h )& {
-                                                    x[0] = T(h); x[1] = x[2] = fp<T>::zero;
-                                                    return *this;
+        x[0] = T(h); x[1] = x[2] = fp<T>::zero;
+        return *this;
       }
       INLINE TX_REAL<> &operator=( T const& h )& {
-                                                  x[0] = h; x[1] = x[2] = fp<T>::zero;
-                                                  return *this;
+        x[0] = h; x[1] = x[2] = fp<T>::zero;
+        return *this;
       }
       template < Algorithm _A_ >
       INLINE TX_REAL<> &operator=( DX_REAL<_A_> const& h )& {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-                                                             auto const t = h.quick_Normalized();
-                                                             if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-                                                               x[0] = x[1] = x[2] = t;
-                                                             } else
+        auto const t = h.quick_Normalized();
+        if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
+          x[0] = x[1] = x[2] = t;
+        } else
 #endif
-                                                               if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-                                                                 x[0] = h.x[0]; x[1] = h.x[1]; x[2] = fp<T>::zero;
-                                                               } else {
-                                                                 auto s = h;
-                                                                 mX_real::Normalize<1>( s );
-                                                                 x[0] = s.x[0]; x[1] = s.x[1]; x[2] = fp<T>::zero;
-                                                               }
-                                                             return *this;
+          if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+            x[0] = h.x[0]; x[1] = h.x[1]; x[2] = fp<T>::zero;
+          } else {
+            auto s = h;
+            mX_real::Normalize<1>( s );
+            x[0] = s.x[0]; x[1] = s.x[1]; x[2] = fp<T>::zero;
+          }
+        return *this;
       }
       template < Algorithm _A_ >
       INLINE TX_REAL<> &operator=( TX_REAL<_A_> const& h )& {
-                                                             if ( A == _A_ && this == (TX_REAL<>*)(&h) ) { return *this; }
+        if ( A == _A_ && this == (TX_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-                                                             auto const t = h.quick_Normalized();
-                                                             if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-                                                               x[0] = x[1] = x[2] = t;
-                                                             } else
+        auto const t = h.quick_Normalized();
+        if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
+          x[0] = x[1] = x[2] = t;
+        } else
 #endif
-                                                               if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-                                                                 x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
-                                                               } else {
-                                                                 auto s = h;
-                                                                 mX_real::Normalize<1>( s );
-                                                                 x[0] = s.x[0]; x[1] = s.x[1]; x[2] = s.x[2];
-                                                               }
-                                                             return *this;
+          if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+            x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
+          } else {
+            auto s = h;
+            mX_real::Normalize<1>( s );
+            x[0] = s.x[0]; x[1] = s.x[1]; x[2] = s.x[2];
+          }
+        return *this;
       }
       template < Algorithm _A_ >
       INLINE TX_REAL<> &operator=( QX_REAL<_A_> const& h )& {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-                                                             auto const t = h.quick_Normalized();
-                                                             if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-                                                               x[0] = x[1] = x[2] = t;
-                                                             } else
+        auto const t = h.quick_Normalized();
+        if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
+          x[0] = x[1] = x[2] = t;
+        } else
 #endif
-                                                               if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-                                                                 x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
-                                                               } else {
-                                                                 auto s = h;
-                                                                 mX_real::Normalize<1>( s );
-                                                                 x[0] = s.x[0]; x[1] = s.x[1]; x[2] = s.x[2];
-                                                               }
-                                                             return *this;
+          if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+            x[0] = h.x[0]; x[1] = h.x[1]; x[2] = h.x[2];
+          } else {
+            auto s = h;
+            mX_real::Normalize<1>( s );
+            x[0] = s.x[0]; x[1] = s.x[1]; x[2] = s.x[2];
+          }
+        return *this;
       }
+
 
       //
       //
@@ -296,12 +297,12 @@ namespace mX_real {
       static INLINE TX_REAL<> constexpr two  () { return TX_REAL<>( fp<T>::two ); }
       static INLINE TX_REAL<> constexpr half () { return TX_REAL<>( fp<T>::half ); }
 
-      static INLINE TX_REAL<> constexpr epsilon () {
-        T c = fp<T>::epsilon * fp<T>::half; c = (c * c * c) * 2; return TX_REAL<>( c ); }
-
       static INLINE TX_REAL<> constexpr nan  () { T c = fp<T>::nan; return TX_REAL<>( c,c,c ); }
       static INLINE TX_REAL<> constexpr inf  () { T c = fp<T>::inf; return TX_REAL<>( c,c,c ); }
-
+      static INLINE TX_REAL<> constexpr epsilon () {
+        T c = fp<T>::epsilon * fp<T>::half; c = (c * c * c) * 2;
+        return TX_REAL<>( c );
+      }
       static INLINE TX_REAL<> constexpr denorm_min  () {
         T c0 = fp<T>::denorm_min;
         return TX_REAL<>( c0 );
@@ -317,9 +318,52 @@ namespace mX_real {
         return TX_REAL<>( c0, c1, c2 );
       }
 
+
+      //
+      // static member funtions
+      // definition is below outside of the struct definition
+      //
+      static INLINE TX_REAL<> constexpr abs ( TX_REAL<> const& a );
+      static INLINE TX_REAL<> constexpr sqrt ( TX_REAL<> const& a );
       static INLINE TX_REAL<> constexpr rand ();
+      static INLINE bool      constexpr signbit ( TX_REAL<> const& a );
+      static INLINE bool      constexpr isinf ( TX_REAL<> const& a );
+      static INLINE bool      constexpr isnan ( TX_REAL<> const& a );
+      static INLINE bool      constexpr is_zero ( TX_REAL<> const& a );
+      static INLINE bool      constexpr is_positive ( TX_REAL<> const& a );
+      static INLINE bool      constexpr is_negative ( TX_REAL<> const& a );
+      //
+
+
+      //
+      // member functions (aka methods)
+      //
+      //
+      INLINE void constexpr Normalize ()   { mX_real::Normalize( *this ); }
+      //
+      INLINE bool constexpr signbit ()     const { return TX_REAL<>::signbit( *this ); }
+      INLINE bool constexpr isinf ()       const { return TX_REAL<>::isinf( *this ); }
+      INLINE bool constexpr isnan ()       const { return TX_REAL<>::isnan( *this ); }
+      INLINE bool constexpr is_zero ()     const { return TX_REAL<>::is_zero( *this ); }
+      INLINE bool constexpr is_positive () const { return TX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr is_negative () const { return TX_REAL<>::is_negative( *this ); }
+      //
+
 
     };
+
+
+    //
+    //
+    //
+    template < typename TX, IF_T_mX<TX> >
+    struct mX_real_impl {
+      static Algorithm constexpr _A_ = TX::base_A;
+      using _T_  = typename TX::base_T;
+      using type = typename tX_real::tx_real<_T_,_A_>;
+    };
+    template < typename TX >
+    using mX_real = typename mX_real_impl<TX>::type;
 
 
     //
@@ -336,30 +380,62 @@ namespace mX_real {
     //
     // Bit-ops and Comparisons
     //
+    //
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isinf ( tX_real::tx_real<T,Aa> const& a ) {
+    INLINE auto const isinf ( tX_real::tx_real<T,Aa> const& a ) {
       return fp<T>::isinf( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isnan ( tX_real::tx_real<T,Aa> const& a ) {
+    INLINE auto const isnan ( tX_real::tx_real<T,Aa> const& a ) {
       return fp<T>::isnan( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr signbit ( tX_real::tx_real<T,Aa> const& a ) {
+    INLINE auto const signbit ( tX_real::tx_real<T,Aa> const& a ) {
       return fp<T>::signbit( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr is_zero ( tX_real::tx_real<T,Aa> const& a ) {
+    INLINE bool constexpr is_zero ( tX_real::tx_real<T,Aa> const& a ) {
       return a.quick_Normalized() == fp<T>::zero;
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr is_positive ( tX_real::tx_real<T,Aa> const& a ) {
+    INLINE bool constexpr is_positive ( tX_real::tx_real<T,Aa> const& a ) {
       return a.quick_Normalized() > fp<T>::zero;
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr is_negative ( tX_real::tx_real<T,Aa> const& a ) {
+    INLINE bool constexpr is_negative ( tX_real::tx_real<T,Aa> const& a ) {
       return a.quick_Normalized() < fp<T>::zero;
     }
+    //
+    template < typename T, Algorithm A >
+    INLINE bool constexpr tX_real::tx_real<T,A>::isinf ( tX_real::tx_real<T,A> const& a ) {
+      return tX_real::isinf ( a );
+    }
+    template < typename T, Algorithm A >
+    INLINE bool constexpr tX_real::tx_real<T,A>::isnan ( tX_real::tx_real<T,A> const& a ) {
+      return tX_real::isnan ( a );
+    }
+    template < typename T, Algorithm A >
+    INLINE bool constexpr tX_real::tx_real<T,A>::signbit ( tX_real::tx_real<T,A> const& a ) {
+      return tX_real::signbit ( a );
+    }
+    template < typename T, Algorithm A >
+    INLINE bool constexpr tX_real::tx_real<T,A>::is_zero ( tX_real::tx_real<T,A> const& a ) {
+      return tX_real::is_zero ( a );
+    }
+    template < typename T, Algorithm A >
+    INLINE bool constexpr tX_real::tx_real<T,A>::is_positive ( tX_real::tx_real<T,A> const& a ) {
+      return tX_real::is_positive ( a );
+    }
+    template < typename T, Algorithm A >
+    INLINE bool constexpr tX_real::tx_real<T,A>::is_negative ( tX_real::tx_real<T,A> const& a ) {
+      return tX_real::is_negative ( a );
+    }
+    //
+
+
+    //
+    // Comparison
+    //
     //
     template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
     INLINE auto const operator_eq ( tX_real::tx_real<T,Aa> const a, tX_real::tx_real<T,Ab> const& b ) {
@@ -610,13 +686,8 @@ namespace mX_real {
         }
         if ( fp<T>::isinf( a ) && fp<T>::isinf( b ) ) {
           auto sign = std::signbit( a ) ^ std::signbit( b );
-          if ( sign ) {
-            auto c = fp<T>::nan;
-            return TX{ c,c,c };
-          } else {
-            auto c = fp<T>::copysign( fp<T>::inf, a );
-            return TX{ c,c,c };
-          }
+          auto c = sign ? fp<T>::nan : fp<T>::copysign( fp<T>::inf, a );
+          return TX{ c,c,c };
         }
         if ( fp<T>::isinf( a ) ) {
           auto c = fp<T>::copysign( fp<T>::inf, a );
@@ -812,6 +883,7 @@ namespace mX_real {
       return a += (-b_);
     }
     //
+
     //
     // Multiplication
     //
@@ -1423,7 +1495,7 @@ namespace mX_real {
     //
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto operator_div ( TXa const& a, TXb const& b )
-      -> cond_return_TX2<(TXa::L>=TXb::L),TXa,TXb,3> {
+      -> return_TX2<TXa,TXb,3> {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = tX_real::operator_div_exception ( a, b, flag );
@@ -1431,9 +1503,9 @@ namespace mX_real {
 #endif
       return tX_real::operator_div_body ( a, b );
     }
-    template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
-    INLINE auto operator_div ( TXa const& a, TXb const& b )
-      -> cond_return_TX2<(TXa::L<TXb::L),TXa,TXb,3> {
+    template < typename TXa, typename T, IF_T_fp<T>, IF_T_mX<TXa> >
+    INLINE auto operator_div ( TXa const& a, T const& b )
+      -> return_TX<TXa,T,3> {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = tX_real::operator_div_exception ( a, b, flag );
@@ -1441,16 +1513,6 @@ namespace mX_real {
 #endif
       return tX_real::operator_div_body ( a, b );
     }
-      template < typename TXa, typename T, IF_T_fp<T>, IF_T_mX<TXa> >
-      INLINE auto operator_div ( TXa const& a, T const& b )
-        -> return_TX<TXa,T,3> {
-#if MX_REAL_USE_INF_NAN_EXCEPTION
-        bool flag;
-        auto e = tX_real::operator_div_exception ( a, b, flag );
-        if ( flag ) { return e; }
-#endif
-        return tX_real::operator_div_body ( a, b );
-      }
     template < typename T, typename TXb, IF_T_fp<T>, IF_T_mX<TXb> >
     INLINE auto operator_div ( T const& a, TXb const& b )
       -> return_TX<TXb,T,3> {
@@ -1572,9 +1634,7 @@ namespace mX_real {
     //
     template < typename TXa, IF_T_mX<TXa> >
     INLINE auto const operator_abs_body ( TXa const& a ) {
-      using T = typename TXa::base_T;
-      using TX = tX_real::tx_real<T,TXa::base_A>;
-      return TX{ is_negative( a ) ? -a : a };
+      return tX_real::mX_real<TXa>{ is_negative( a ) ? -a : a };
     }
     //
 #if MX_REAL_USE_INF_NAN_EXCEPTION
@@ -1620,6 +1680,12 @@ namespace mX_real {
     INLINE auto const abs ( T const& a ) {
       return tX_real::operator_abs<A> ( a );
     }
+    //
+    template < typename T, Algorithm A >
+    INLINE tX_real::tx_real<T,A> constexpr tX_real::tx_real<T,A>::abs ( tX_real::tx_real<T,A> const& a ) {
+      return tX_real::operator_abs ( a );
+    }
+    //
 
     //
     // Square root
@@ -1703,9 +1769,7 @@ namespace mX_real {
       auto e = tX_real::operator_sqrt_exception ( a, flag );
       if ( flag ) { return e; }
 #else
-      using T = typename TXa::base_T;
-      using TX = typename tX_real::tx_real<T,TXa::base_A>;
-      if ( fp<T>::is_zero( a.quick_Normalized() ) ) { return TX{ a }; }
+      if ( a.is_zero() ) { return tX_real::mX_real<TXa>{ a }; }
 #endif
       Algorithm constexpr A = TXa::base_A;
       if ( A != Algorithm::Quasi ) {
@@ -1721,8 +1785,7 @@ namespace mX_real {
       auto e = tX_real::operator_sqrt_exception<A> ( a, flag );
       if ( flag ) { return e; }
 #else
-      using TX = tX_real::tx_real<T,A>;
-      if ( fp<T>::is_zero( a ) ) { return TX{ a }; }
+      if ( fp<T>::is_zero( a ) ) { return tX_real::tx_real<T,A>{ a }; }
 #endif
       return tX_real::operator_sqrt_body<T,A> ( a );
     }
@@ -1734,6 +1797,11 @@ namespace mX_real {
     template < Algorithm A=Algorithm::Accurate, typename T, IF_T_fp<T> >
     INLINE auto const sqrt ( T const& a ) {
       return tX_real::operator_sqrt<A> ( a );
+    }
+    //
+    template < typename T, Algorithm A >
+    INLINE tX_real::tx_real<T,A> constexpr tX_real::tx_real<T,A>::sqrt ( tX_real::tx_real<T,A> const& a ) {
+      return tX_real::operator_sqrt ( a );
     }
     //
 

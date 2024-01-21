@@ -431,32 +431,54 @@ main(int argc, char *argv[])
     if ( N <= 0 ) break;
     
     switch ( dtype ) {
-#if 1
     case 0:
-      benchmark<FLOAT>( N );
+      std::cout << "[0]: float         : ";
+      benchmark<FLOAT>         ( N );
       break;
+
     case 1:
-      benchmark<df_Real_quasi>( N );
+      std::cout << "[1]: df_Real_quasi : ";
+      benchmark<df_Real_quasi> ( N );
       break;
     case 2:
-      benchmark<df_Real>      ( N );
+      std::cout << "[2]: df_Real_sloppy: ";
+      benchmark<df_Real_sloppy>( N );
       break;
     case 3:
-      benchmark<tf_Real_quasi>( N );
+      std::cout << "[3]: df_Real       : ";
+      benchmark<df_Real>       ( N );
       break;
+
     case 4:
-      benchmark<tf_Real>( N );
+      std::cout << "[4]: tf_Real_quasi : ";
+      benchmark<tf_Real_quasi> ( N );
       break;
     case 5:
-      benchmark<qf_Real_quasi>( N );
+      std::cout << "[5]: tf_Real_sloppy: ";
+      benchmark<tf_Real_sloppy>( N );
       break;
-#endif
     case 6:
-      benchmark<qf_Real>      ( N );
+      std::cout << "[6]: tf_Real       : ";
+      benchmark<tf_Real>       ( N );
       break;
+
+    case 7:
+      std::cout << "[7]: qf_Real_quasi : ";
+      benchmark<qf_Real_quasi> ( N );
+      break;
+    case 8:
+      std::cout << "[8]: qf_Real_sloppy: ";
+      benchmark<qf_Real_sloppy>( N );
+      break;
+    case 9:
+      std::cout << "[9]: qf_Real       : ";
+      benchmark<qf_Real>       ( N );
+      break;
+
 #if 1
     case 10:
-      benchmark<DOUBLE>( N );
+      std::cout << "[10]: double       : ";
+      benchmark<DOUBLE>        ( N );
       break;
 #endif
     }

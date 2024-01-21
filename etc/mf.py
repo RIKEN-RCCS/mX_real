@@ -8,6 +8,8 @@ def mX_suffics ( ACC, width ) :
 
 def mX_type ( width ) :
     return [ '_', 's', 'd', 't', 'q' ][width]
+def mX_Type ( width ) :
+    return [ '_', 'S', 'D', 'T', 'Q' ][width]
 
 def mX_arg ( width, var ) :
     return [ '_', '_SX_({})', '_DX_({})', '_TX_({})', '_QX_({})' ][width].format(var)
@@ -126,7 +128,7 @@ def gen_exception_sqrt( Tc, description, func, op, commutable ) :
 # ************************************************************************************************
 #
 # ************************************************************************************************
-def gen_op_stub( Tc, description, func, op, commutable ) :
+def gen_op_stub_sqrt( Tc, description, func, op, commutable ) :
 
     print( 'template < typename TXa, IF_T_mX<TXa> >' )
     print( 'INLINE auto const operator_{func} ( TXa const& a ) {{'.format( func=func ) )
@@ -135,9 +137,7 @@ def gen_op_stub( Tc, description, func, op, commutable ) :
     print( '  auto e = {m}X_real::operator_{func}_exception ( a, flag );'.format( m=mX_type(Tc), func=func ) )
     print( '  if ( flag ) { return e; }' )
     print( '#else' )
-    print( '  using T = typename TXa::base_T;' )
-    print( '  using TX = typename {m}X_real::{m}x_real<T,TXa::base_A>;'.format( m=mX_type(Tc) ) )
-    print( '  if ( fp<T>::is_zero( a.quick_Normalized() ) ) { return TX{ a }; }' )
+    print( '  if ( a.is_zero() ) {{ return {m}X_real::mX_real<TXa>{{ a }}; }}'.format( m=mX_type(Tc) ) )
     print( '#endif' )
     print( '  Algorithm constexpr A = TXa::base_A;' )
     print( '  if ( A != Algorithm::Quasi ) {' )
@@ -154,8 +154,7 @@ def gen_op_stub( Tc, description, func, op, commutable ) :
     print( '  auto e = {m}X_real::operator_{func}_exception<A> ( a, flag );'.format( m=mX_type(Tc), func=func ) )
     print( '  if ( flag ) { return e; }' )
     print( '#else' )
-    print( '  using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc) ) )
-    print( '  if ( fp<T>::is_zero( a ) ) { return TX{ a }; }' )
+    print( '  if ( fp<T>::is_zero( a ) ) {{ return {m}X_real::{m}x_real<T,A>{{ a }}; }}'.format( m=mX_type(Tc) ) )
     print( '#endif' )
     print( '  return {m}X_real::operator_{func}_body<T,A> ( a );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
@@ -175,6 +174,16 @@ def gen_op_operator( Tc, description, func, op, commutable ) :
     print( '  return {m}X_real::operator_{func}<A> ( a );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
+# ************************************************************************************************
+#
+# ************************************************************************************************
+def gen_op_member( Tc, description, func, op, commutable ) :
+
+    print( 'template < typename T, Algorithm A >' )
+    print( 'INLINE {m}X_real::{m}x_real<T,A> constexpr {m}X_real::{m}x_real<T,A>::{op} ( {m}X_real::{m}x_real<T,A> const& a ) {{'.format( m=mX_type(Tc), op=op ) )
+    print( '  return {m}X_real::operator_{func} ( a );'.format( m=mX_type(Tc), func=func ) )
+    print( '}' )
+
 
 def gen_abs ( Tc ) :
 
@@ -190,9 +199,9 @@ def gen_abs ( Tc ) :
     print( '//' )
     print( 'template < typename TXa, IF_T_mX<TXa> >' )
     print( 'INLINE auto const operator_abs_body ( TXa const& a ) {' )
-    print( '  using T = typename TXa::base_T;' )
-    print( '  using TX = {m}X_real::{m}x_real<T,TXa::base_A>;'.format( m=mX_type(Tc) ) )
-    print( '  return TX{ is_negative( a ) ? -a : a };' )
+    #print( '  using T = typename TXa::base_T;' )
+    #print( '  using TX = {m}X_real::{m}x_real<T,TXa::base_A>;'.format( m=mX_type(Tc) ) )
+    print( '  return {m}X_real::mX_real<TXa>{{ is_negative( a ) ? -a : a }};'.format( m=mX_type(Tc) ) )
     print( '}' )
     print( '//' )
     gen_exception_abs( Tc, description, func, op, commutable )
@@ -220,6 +229,9 @@ def gen_abs ( Tc ) :
     print( 'INLINE auto const abs ( T const& a ) {' )
     print( '  return {m}X_real::operator_abs<A> ( a );'.format( m=mX_type(Tc) ) )
     print( '}' )
+    print( '//' )
+    gen_op_member( Tc, description, func, op, commutable )
+    print( '//' )
     print( '' )
 
 def gen_sqrt ( Tc ) :
@@ -238,9 +250,11 @@ def gen_sqrt ( Tc ) :
     print( '//' )
     gen_exception_sqrt( Tc, description, func, op, commutable )
     print( '//' )
-    gen_op_stub( Tc, description, func, op, commutable )
+    gen_op_stub_sqrt( Tc, description, func, op, commutable )
     print( '//' )
     gen_op_operator( Tc, description, func, op, commutable )
+    print( '//' )
+    gen_op_member( Tc, description, func, op, commutable )
     print( '//' )
     print( '' )
 
@@ -424,6 +438,80 @@ def gen_prng ( Tc ) :
     print( '}' )
     print( '//' )
 
+def gen_bit ( Tc ) :
+
+    print( '//' )
+    print( '// Bit-ops and Comparisons' )
+    print( '//' )
+    print( '//' )
+    print( 'template < typename T, Algorithm Aa >' )
+    print( '  INLINE auto const isinf ( {m}X_real::{m}x_real<T,Aa> const& a ) {{'.format( m=mX_type(Tc) ) )
+    print( '    return fp<T>::isinf( a.quick_Normalized() );' )
+    print( '  }' )
+    print( '  template < typename T, Algorithm Aa >' )
+    print( '  INLINE auto const isnan ( {m}X_real::{m}x_real<T,Aa> const& a ) {{'.format( m=mX_type(Tc) ) )
+    print( '    return fp<T>::isnan( a.quick_Normalized() );' )
+    print( '  }' )
+    print( '  template < typename T, Algorithm Aa >' )
+    print( '  INLINE auto const signbit ( {m}X_real::{m}x_real<T,Aa> const& a ) {{'.format( m=mX_type(Tc) ) )
+    print( '    return fp<T>::signbit( a.quick_Normalized() );' )
+    print( '  }' )
+    print( '  template < typename T, Algorithm Aa >' )
+    print( '  INLINE bool constexpr is_zero ( {m}X_real::{m}x_real<T,Aa> const& a ) {{'.format( m=mX_type(Tc) ) )
+    print( '    return a.quick_Normalized() == fp<T>::zero;' )
+    print( '  }' )
+    print( '  template < typename T, Algorithm Aa >' )
+    print( '  INLINE bool constexpr is_positive ( {m}X_real::{m}x_real<T,Aa> const& a ) {{'.format( m=mX_type(Tc) ) )
+    print( '    return a.quick_Normalized() > fp<T>::zero;' )
+    print( '  }' )
+    print( '  template < typename T, Algorithm Aa >' )
+    print( '  INLINE bool constexpr is_negative ( {m}X_real::{m}x_real<T,Aa> const& a ) {{'.format( m=mX_type(Tc) ) )
+    print( '    return a.quick_Normalized() < fp<T>::zero;' )
+    print( '  }' )
+
+    print( '//' )
+    for func in [ 'isinf', 'isnan', 'signbit', 'is_zero', 'is_positive', 'is_negative' ] :
+        print( ' template < typename T, Algorithm A >' )
+        print( ' INLINE bool constexpr {m}X_real::{m}x_real<T,A>::{func} ( {m}X_real::{m}x_real<T,A> const& a ) {{'.format( m=mX_type(Tc), func=func ) )
+        print( ' return {m}X_real::{func} ( a );'.format( m=mX_type(Tc), func=func ) )
+        print( ' }' )
+    print( '//' )
+    print( '' )
+
+
+def gen_members ( Tc ) :
+
+    print( '//' )
+    print( '// static member funtions' )
+    print( '// definition is below outside of the struct definition' )
+    print( '//' )
+    print( 'static INLINE {m}X_REAL<> constexpr abs ( {m}X_REAL<> const& a );'.format( m=mX_Type(Tc) ) )
+    print( 'static INLINE {m}X_REAL<> constexpr sqrt ( {m}X_REAL<> const& a );'.format( m=mX_Type(Tc) ) )
+    print( 'static INLINE {m}X_REAL<> constexpr rand ();'.format( m=mX_Type(Tc) ) )
+    print( 'static INLINE bool      constexpr signbit ( {m}X_REAL<> const& a );'.format( m=mX_Type(Tc) ) )
+    print( 'static INLINE bool      constexpr isinf ( {m}X_REAL<> const& a );'.format( m=mX_Type(Tc) ) )
+    print( 'static INLINE bool      constexpr isnan ( {m}X_REAL<> const& a );'.format( m=mX_Type(Tc) ) )
+    print( 'static INLINE bool      constexpr is_zero ( {m}X_REAL<> const& a );'.format( m=mX_Type(Tc) ) )
+    print( 'static INLINE bool      constexpr is_positive ( {m}X_REAL<> const& a );'.format( m=mX_Type(Tc) ) )
+    print( 'static INLINE bool      constexpr is_negative ( {m}X_REAL<> const& a );'.format( m=mX_Type(Tc) ) )
+    print( '//' )
+    print( '' )
+    print( '' )
+    print( '//' )
+    print( '// member functions (aka methods)' )
+    print( '//' )
+    print( '//' )
+    print( 'INLINE void constexpr Normalize ()   { mX_real::Normalize( *this ); }' )
+    print( '//' )
+    print( 'INLINE bool constexpr signbit ()     const {{ return {m}X_REAL<>::signbit( *this ); }}'.format( m=mX_Type(Tc) ) )
+    print( 'INLINE bool constexpr isinf ()       const {{ return {m}X_REAL<>::isinf( *this ); }}'.format( m=mX_Type(Tc) ) )
+    print( 'INLINE bool constexpr isnan ()       const {{ return {m}X_REAL<>::isnan( *this ); }}'.format( m=mX_Type(Tc) ) )
+    print( 'INLINE bool constexpr is_zero ()     const {{ return {m}X_REAL<>::is_zero( *this ); }}'.format( m=mX_Type(Tc) ) )
+    print( 'INLINE bool constexpr is_positive () const {{ return {m}X_REAL<>::is_positive( *this ); }}'.format( m=mX_Type(Tc) ) )
+    print( 'INLINE bool constexpr is_negative () const {{ return {m}X_REAL<>::is_negative( *this ); }}'.format( m=mX_Type(Tc) ) )
+    print( '//' )
+    print( '' )
+
 
 if __name__ == '__main__' :
 
@@ -432,7 +520,7 @@ if __name__ == '__main__' :
         exit( 1 )
 
     Tc = int(args[1])
-    if Tc < 2 or Tc > 5 :
+    if Tc < 2 or Tc > 4 :
         exit( 0 )
 
     K = int(args[2])
@@ -447,4 +535,9 @@ if __name__ == '__main__' :
         gen_fmax( Tc )
     if K == 8 :
         gen_prng( Tc )
+    if K == 9 :
+        gen_bit ( Tc ) 
+    if K == 10 :
+        gen_members ( Tc ) 
+
 

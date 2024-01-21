@@ -12,3 +12,4 @@ sample.s-*
 *.awk
 Ozaki-QW/old
 *.gch
+etc/*.hpp

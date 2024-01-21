@@ -1,17 +1,23 @@
 
 all: dX_real.hpp tX_real.hpp qX_real.hpp
 
-dX_real.hpp: dX_real.hpp-templ dx_add_sub_mul_div.hpp dx_func.hpp
+dX_real.hpp: dX_real.hpp-templ dx_add_sub_mul_div.hpp dx_func.hpp dx_bits.hpp dx_members.hpp
 	python3 mm.py dX_real.hpp-templ > dX_real.hpp
 	emacs --script indent.el dX_real.hpp
+	awk '/_LV_/{ gsub(/)_LV_/,")\\&");}{ print }' dX_real.hpp > dX_real.hpp-
+	mv dX_real.hpp- dX_real.hpp
 	cp dX_real.hpp ..
-tX_real.hpp: tX_real.hpp-templ tx_add_sub_mul_div.hpp tx_func.hpp
+tX_real.hpp: tX_real.hpp-templ tx_add_sub_mul_div.hpp tx_func.hpp tx_bits.hpp tx_members.hpp
 	python3 mm.py tX_real.hpp-templ > tX_real.hpp
 	emacs --script indent.el tX_real.hpp
+	awk '/_LV_/{ gsub(/)_LV_/,")\\&");}{ print }' tX_real.hpp > tX_real.hpp-
+	mv tX_real.hpp- tX_real.hpp
 	cp tX_real.hpp ..
-qX_real.hpp: qX_real.hpp-templ qx_add_sub_mul_div.hpp qx_func.hpp 
+qX_real.hpp: qX_real.hpp-templ qx_add_sub_mul_div.hpp qx_func.hpp qx_bits.hpp qx_members.hpp
 	python3 mm.py qX_real.hpp-templ > qX_real.hpp
 	emacs --script indent.el qX_real.hpp
+	awk '/_LV_/{ gsub(/)_LV_/,")\\&");}{ print }' qX_real.hpp > qX_real.hpp-
+	mv qX_real.hpp- qX_real.hpp
 	cp qX_real.hpp ..
 
 dx_add_sub_mul_div.hpp: mx.py my.py
@@ -60,6 +66,20 @@ qx_func.hpp: mf.py
 	python3 mf.py 4 6 >> qx_func.hpp
 	python3 mf.py 4 7 >> qx_func.hpp
 	python3 mf.py 4 8 >> qx_func.hpp
+
+dx_bits.hpp: mf.py
+	python3 mf.py 2 9 > dx_bits.hpp
+tx_bits.hpp: mf.py
+	python3 mf.py 3 9 > tx_bits.hpp
+qx_bits.hpp: mf.py
+	python3 mf.py 4 9 > qx_bits.hpp
+
+dx_members.hpp: mf.py
+	python3 mf.py 2 10 > dx_members.hpp
+tx_members.hpp: mf.py
+	python3 mf.py 3 10 > tx_members.hpp
+qx_members.hpp: mf.py
+	python3 mf.py 4 10 > qx_members.hpp
 
 
 clean:
