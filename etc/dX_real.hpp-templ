@@ -34,6 +34,12 @@ namespace dX_real {
   public:
     static int constexpr L = 2;
     T x[L];
+    //
+    template < Algorithm _A_ >
+    using type_with_Algorithm = typename dX_real::dx_real<T,_A_>;
+    using type_Accurate = typename dX_real::dx_real<T,Algorithm::Accurate>;
+    using type_Sloppy   = typename dX_real::dx_real<T,Algorithm::Sloppy>;
+    using type_Quasi    = typename dX_real::dx_real<T,Algorithm::Quasi>;
 
 
     //

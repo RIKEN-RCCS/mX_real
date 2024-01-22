@@ -125,6 +125,7 @@ def gen_exception_sqrt( Tc, description, func, op, commutable ) :
     gen_exception( Tc, description, func, op, commutable )
     print( '#endif' )
 
+
 # ************************************************************************************************
 #
 # ************************************************************************************************
@@ -159,6 +160,7 @@ def gen_op_stub_sqrt( Tc, description, func, op, commutable ) :
     print( '  return {m}X_real::operator_{func}_body<T,A> ( a );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
+
 # ************************************************************************************************
 #
 # ************************************************************************************************
@@ -174,6 +176,7 @@ def gen_op_operator( Tc, description, func, op, commutable ) :
     print( '  return {m}X_real::operator_{func}<A> ( a );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
+
 # ************************************************************************************************
 #
 # ************************************************************************************************
@@ -185,6 +188,9 @@ def gen_op_member( Tc, description, func, op, commutable ) :
     print( '}' )
 
 
+# ************************************************************************************************
+#
+# ************************************************************************************************
 def gen_abs ( Tc ) :
 
     description = 'Absolute value'
@@ -199,8 +205,6 @@ def gen_abs ( Tc ) :
     print( '//' )
     print( 'template < typename TXa, IF_T_mX<TXa> >' )
     print( 'INLINE auto const operator_abs_body ( TXa const& a ) {' )
-    #print( '  using T = typename TXa::base_T;' )
-    #print( '  using TX = {m}X_real::{m}x_real<T,TXa::base_A>;'.format( m=mX_type(Tc) ) )
     print( '  return {m}X_real::mX_real<TXa>{{ is_negative( a ) ? -a : a }};'.format( m=mX_type(Tc) ) )
     print( '}' )
     print( '//' )
@@ -306,7 +310,7 @@ def gen_fmin ( Tc ) :
     print( '  if ( flag ) { return e; }' )
     print( '#endif' )
     print( '  if ( A == Algorithm::Quasi ) {' )
-    print( '    using TT = {m}X_real::{m}x_real<T,Algorithm::Accurate>;'.format( m=mX_type(Tc) ) )
+    print( '    using TT = typename  TX::type_Accurate;' )
     print( '    return TX{{ {m}X_real::operator_fmin_body( TT{{ a }}, TT{{ b }} ) }};'.format( m=mX_type(Tc) ) )
     print( '  } else {' )
     print( '    return {m}X_real::operator_fmin_body( a, b );'.format( m=mX_type(Tc) ) )
@@ -368,7 +372,7 @@ def gen_fmax ( Tc ) :
     print( '  if ( flag ) { return e; }' )
     print( '#endif' )
     print( '  if ( A == Algorithm::Quasi ) {' )
-    print( '    using TT = {m}X_real::{m}x_real<T,Algorithm::Accurate>;'.format( m=mX_type(Tc) ) )
+    print( '    using TT = typename TX::type_Accurate;' )
     print( '    return TX{{ {m}X_real::operator_fmax_body( TT{{ a }}, TT{{ b }} ) }};'.format( m=mX_type(Tc) ) )
     print( '  } else {' )
     print( '    return {m}X_real::operator_fmax_body( a, b );'.format( m=mX_type(Tc) ) )

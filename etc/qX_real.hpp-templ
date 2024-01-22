@@ -32,6 +32,12 @@ namespace qX_real {
   public:
     static int constexpr L = 4;
     T x[L];
+    //
+    template < Algorithm _A_ >
+    using type_with_Algorithm = typename qX_real::qx_real<T,_A_>;
+    using type_Accurate = typename qX_real::qx_real<T,Algorithm::Accurate>;
+    using type_Sloppy   = typename qX_real::qx_real<T,Algorithm::Sloppy>;
+    using type_Quasi    = typename qX_real::qx_real<T,Algorithm::Quasi>;
 
 
     //

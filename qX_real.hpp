@@ -32,6 +32,12 @@ namespace mX_real {
     public:
       static int constexpr L = 4;
       T x[L];
+      //
+      template < Algorithm _A_ >
+      using type_with_Algorithm = typename qX_real::qx_real<T,_A_>;
+      using type_Accurate = typename qX_real::qx_real<T,Algorithm::Accurate>;
+      using type_Sloppy   = typename qX_real::qx_real<T,Algorithm::Sloppy>;
+      using type_Quasi    = typename qX_real::qx_real<T,Algorithm::Quasi>;
 
 
       //
@@ -1851,7 +1857,7 @@ namespace mX_real {
       if ( flag ) { return e; }
 #endif
       if ( A == Algorithm::Quasi ) {
-        using TT = qX_real::qx_real<T,Algorithm::Accurate>;
+        using TT = typename  TX::type_Accurate;
         return TX{ qX_real::operator_fmin_body( TT{ a }, TT{ b } ) };
       } else {
         return qX_real::operator_fmin_body( a, b );
@@ -1904,7 +1910,7 @@ namespace mX_real {
       if ( flag ) { return e; }
 #endif
       if ( A == Algorithm::Quasi ) {
-        using TT = qX_real::qx_real<T,Algorithm::Accurate>;
+        using TT = typename TX::type_Accurate;
         return TX{ qX_real::operator_fmax_body( TT{ a }, TT{ b } ) };
       } else {
         return qX_real::operator_fmax_body( a, b );

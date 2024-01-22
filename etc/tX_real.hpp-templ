@@ -32,6 +32,12 @@ namespace tX_real {
   public:
     static int constexpr L = 3;
     T x[L];
+    //
+    template < Algorithm _A_ >
+    using type_with_Algorithm = typename tX_real::tx_real<T,_A_>;
+    using type_Accurate = typename tX_real::tx_real<T,Algorithm::Accurate>;
+    using type_Sloppy   = typename tX_real::tx_real<T,Algorithm::Sloppy>;
+    using type_Quasi    = typename tX_real::tx_real<T,Algorithm::Quasi>;
 
     //
     // A special member function utilized in constructors
