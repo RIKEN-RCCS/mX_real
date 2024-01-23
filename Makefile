@@ -8,9 +8,11 @@ ifeq (x$(CXX),x)
 endif
 ifeq ($(CXX),g++)
 	CXX = g++-11 --std=c++14
+	cxx = g++
 endif
 ifeq ($(CXX),icpx)
 	CXX = icpx --std=c++14 -fp-model strict #-fast #-qopt-report-stdout -ipo
+	cxx = icpx
 endif
 
 CCFLAGS := $(CCFLAGS) -O3 -Wall -I./ -include mX_real.hpp #-ftime-report

@@ -333,7 +333,7 @@ namespace mX_real {
       static INLINE DX_REAL<> constexpr min  () {
         T c0 = fp<T>::min;
         T c1 = c0 * ( fp<T>::epsiloni * 2 );
-        return DX_REAL<>{ c0 };
+        return DX_REAL<>{ c1 };
       }
       static INLINE DX_REAL<> constexpr max  () {
         T c0 = fp<T>::max;
