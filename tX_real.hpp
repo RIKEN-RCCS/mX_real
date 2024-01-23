@@ -35,9 +35,12 @@ namespace mX_real {
       //
       template < Algorithm _A_ >
       using type_with_Algorithm = typename tX_real::tx_real<T,_A_>;
-      using type_Accurate = typename tX_real::tx_real<T,Algorithm::Accurate>;
-      using type_Sloppy   = typename tX_real::tx_real<T,Algorithm::Sloppy>;
-      using type_Quasi    = typename tX_real::tx_real<T,Algorithm::Quasi>;
+      using type_Accurate = type_with_Algorithm<Algorithm::Accurate>;
+      using type_Sloppy   = type_with_Algorithm<Algorithm::Sloppy>;
+      using type_Quasi    = type_with_Algorithm<Algorithm::Quasi>;
+      //
+      using lower_type    = DX_REAL<>;
+      using higher_type   = QX_REAL<>;
 
       //
       // A special member function utilized in constructors
@@ -314,13 +317,15 @@ namespace mX_real {
         return TX_REAL<>( c0 );
       }
       static INLINE TX_REAL<> constexpr min  () {
-        T c0 = (fp<T>::min * 4) * fp<T>::epsiloni * fp<T>::epsiloni;
-        return TX_REAL<>( c0 );
+        T c0 = fp<T>::min;
+        T c1 = c0 * ( fp<T>::epsiloni * 2 );
+        T c2 = c1 * ( fp<T>::epsiloni * 2 );
+        return TX_REAL<>( c2 );
       }
       static INLINE TX_REAL<> constexpr max  () {
         T c0 = fp<T>::max;
-        T c1 = c0 * fp<T>::epsilon * fp<T>::half;
-        T c2 = c1 * fp<T>::epsilon * fp<T>::half;
+        T c1 = c0 * ( fp<T>::epsilon * fp<T>::half );
+        T c2 = c1 * ( fp<T>::epsilon * fp<T>::half );
         return TX_REAL<>( c0, c1, c2 );
       }
 

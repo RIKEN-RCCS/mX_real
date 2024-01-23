@@ -38,6 +38,9 @@ namespace mX_real {
       using type_Accurate = typename qX_real::qx_real<T,Algorithm::Accurate>;
       using type_Sloppy   = typename qX_real::qx_real<T,Algorithm::Sloppy>;
       using type_Quasi    = typename qX_real::qx_real<T,Algorithm::Quasi>;
+      //
+      using lower_type    = TX_REAL<>;
+      using higher_type   = QX_REAL<>;
 
 
       //
@@ -313,14 +316,17 @@ namespace mX_real {
         return QX_REAL<>( c0 );
       }
       static INLINE QX_REAL<> constexpr min  () {
-        T c0 = (fp<T>::min() * 8) * fp<T>::epsiloni * fp<T>::epsiloni * fp<T>::epsiloni;
-        return QX_REAL<>( c0 );
+        T c0 = fp<T>::min();
+        T c1 = c0 * ( fp<T>::epsiloni * 2 );
+        T c2 = c1 * ( fp<T>::epsiloni * 2 );
+        T c3 = c2 * ( fp<T>::epsiloni * 2 );
+        return QX_REAL<>( c3 );
       }
       static INLINE QX_REAL<> constexpr max  () {
         T c0 = fp<T>::max();
-        T c1 = c0 * fp<T>::epsilon * fp<T>::half;
-        T c2 = c1 * fp<T>::epsilon * fp<T>::half;
-        T c3 = c2 * fp<T>::epsilon * fp<T>::half;
+        T c1 = c0 * ( fp<T>::epsilon * fp<T>::half );
+        T c2 = c1 * ( fp<T>::epsilon * fp<T>::half );
+        T c3 = c2 * ( fp<T>::epsilon * fp<T>::half );
         return QX_REAL<>( c0, c1, c2, c3 );
       }
 

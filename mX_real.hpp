@@ -48,6 +48,18 @@ namespace mX_real {
       Algorithm::Quasi : Algorithm::Sloppy;
   };
 
+  template < Algorithm A >
+  struct accurateAlgorithm {
+    static Algorithm constexpr algorithm =
+      A == Algorithm::Quasi ? Algorithm::Sloppy : Algorithm::Accurate;
+  };
+
+  template < Algorithm A >
+  struct inaccurateAlgorithm {
+    static Algorithm constexpr algorithm =
+      A == Algorithm::Accurate ? Algorithm::Sloppy : Algorithm::Quasi;
+  };
+
   std::string toString( Algorithm A ) {
     if ( A==Algorithm::Quasi ) return "Quasi";
     if ( A==Algorithm::Sloppy ) return "Sloppy";

@@ -36,10 +36,13 @@ namespace dX_real {
     T x[L];
     //
     template < Algorithm _A_ >
-    using type_with_Algorithm = typename dX_real::dx_real<T,_A_>;
-    using type_Accurate = typename dX_real::dx_real<T,Algorithm::Accurate>;
-    using type_Sloppy   = typename dX_real::dx_real<T,Algorithm::Sloppy>;
-    using type_Quasi    = typename dX_real::dx_real<T,Algorithm::Quasi>;
+    using type_with_Algorithm = DX_REAL<_A_>;
+    using type_Accurate = type_with_Algorithm<Algorithm::Accurate>;
+    using type_Sloppy   = type_with_Algorithm<Algorithm::Sloppy>;
+    using type_Quasi    = type_with_Algorithm<Algorithm::Quasi>;
+    //
+    using lower_type    = T;
+    using higher_type   = TX_REAL<>;
 
 
     //
@@ -328,12 +331,13 @@ namespace dX_real {
       return DX_REAL<>{ c0 };
     }
     static INLINE DX_REAL<> constexpr min  () {
-      T c0 = (fp<T>::min * 2) * fp<T>::epsiloni;
+      T c0 = fp<T>::min;
+      T c1 = c0 * ( fp<T>::epsiloni * 2 );
       return DX_REAL<>{ c0 };
     }
     static INLINE DX_REAL<> constexpr max  () {
       T c0 = fp<T>::max;
-      T c1 = c0 * fp<T>::epsilon * fp<T>::half;
+      T c1 = c0 * ( fp<T>::epsilon * fp<T>::half );
       return DX_REAL<>{ c0, c1 };
     }
 
