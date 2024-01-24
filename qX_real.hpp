@@ -371,9 +371,9 @@ namespace mX_real {
     //
     template < typename TX, IF_T_mX<TX> >
     struct mX_real_impl {
-      static Algorithm constexpr _A_ = TX::base_A;
-      using _T_  = typename TX::base_T;
-      using type = typename qX_real::qx_real<_T_,_A_>;
+      static Algorithm constexpr A = TX::base_A;
+      using T    = typename TX::base_T;
+      using type = typename qX_real::qx_real<T,A>;
     };
     template < typename TX >
     using mX_real = typename mX_real_impl<TX>::type;
@@ -721,7 +721,7 @@ namespace mX_real {
     }
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto const operator_add_exception ( TXa const& a, TXb const& b, bool & flag )
-      -> return_TX2< TXa, TXb, 4 > {
+      -> return_TX2< TXa, TXb, qX_real::qx_real > {
       Algorithm constexpr A = commonAlgorithm< TXa::base_A, TXb::base_A >::algorithm;
       auto sa = a.quick_Normalized();
       auto sb = b.quick_Normalized();
@@ -729,7 +729,7 @@ namespace mX_real {
     }
     template < typename TXa, typename T, IF_T_mX<TXa>, IF_T_fp<T> >
     INLINE auto const operator_add_exception ( TXa const& a, T const& b, bool & flag )
-      -> return_TX< TXa, T, 4 > {
+      -> return_TX_T< TXa, T, qX_real::qx_real > {
       Algorithm constexpr A = TXa::base_A;
       auto sa = a.quick_Normalized();
       return qX_real::operator_add_exception<A> ( sa, b, flag );
@@ -738,7 +738,7 @@ namespace mX_real {
     //
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto operator_add ( TXa const& a, TXb const& b )
-      -> cond_return_TX2<(TXa::L>=TXb::L),TXa,TXb,4> {
+      -> cond_return_TX2<(TXa::L>=TXb::L),TXa,TXb,qX_real::qx_real> {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = qX_real::operator_add_exception ( a, b, flag );
@@ -748,12 +748,12 @@ namespace mX_real {
     }
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto operator_add ( TXa const& a, TXb const& b )
-      -> cond_return_TX2<(TXa::L<TXb::L),TXa,TXb,4> {
+      -> cond_return_TX2<(TXa::L<TXb::L),TXa,TXb,qX_real::qx_real> {
       return qX_real::operator_add ( b, a );
     }
       template < typename TXa, typename T, IF_T_fp<T>, IF_T_mX<TXa> >
       INLINE auto operator_add ( TXa const& a, T const& b )
-        -> return_TX<TXa,T,4> {
+        -> return_TX_T<TXa,T,qX_real::qx_real> {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
         bool flag;
         auto e = qX_real::operator_add_exception ( a, b, flag );
@@ -763,7 +763,7 @@ namespace mX_real {
       }
     template < typename T, typename TXb, IF_T_fp<T>, IF_T_mX<TXb> >
     INLINE auto operator_add ( T const& a, TXb const& b )
-      -> return_TX<TXb,T,4> {
+      -> return_TX_T<TXb,T,qX_real::qx_real> {
       return qX_real::operator_add ( b, a );
     }
     template < Algorithm A=Algorithm::Accurate, typename T, IF_T_fp<T> >
@@ -778,7 +778,7 @@ namespace mX_real {
     //
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto operator+ ( TXa const& a, TXb const& b )
-      -> cond_return_TX2<(TXa::L==4||TXb::L==4),TXa,TXb,4> {
+      -> cond_return_TX2<(TXa::L==4||TXb::L==4),TXa,TXb,qX_real::qx_real> {
       return qX_real::operator_add ( a, b );
     }
     template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >
@@ -837,9 +837,8 @@ namespace mX_real {
       return a;
     }
     //
-    template < typename Ta, Algorithm Aa, typename TXb, IF_T_mX<TXb> >
-    INLINE auto operator_add_ow ( qX_real::qx_real<Ta,Aa> & a, TXb const& b )
-      -> return_TXA<TXb,Ta,Aa,4> {
+    template < typename Ta, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > typename TXb, Algorithm Ab, IF_A_owAble<Aa,Ab> >
+    INLINE auto operator_add_ow ( qX_real::qx_real<Ta,Aa> & a, TXb<Ta,Ab> const& b ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = qX_real::operator_add_exception ( a, b, flag );
@@ -848,8 +847,7 @@ namespace mX_real {
       return qX_real::operator_add_ow_body ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto operator_add_ow ( qX_real::qx_real<T,A> & a, T const& b )
-      -> qX_real::qx_real<T,A> {
+    INLINE auto operator_add_ow ( qX_real::qx_real<T,A> & a, T const& b ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = qX_real::operator_add_exception ( a, b, flag );
@@ -858,9 +856,8 @@ namespace mX_real {
       return qX_real::operator_add_ow_body ( a, b );
     }
     //
-    template < typename Ta, Algorithm Aa, typename TXb, IF_T_mX<TXb> >
-    INLINE auto operator+= ( qX_real::qx_real<Ta,Aa> & a, TXb const& b )
-      -> return_TXA<TXb,Ta,Aa,4> {
+    template < typename Ta, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > typename TXb, Algorithm Ab, IF_A_owAble<Aa,Ab> >
+    INLINE auto operator+= ( qX_real::qx_real<Ta,Aa> & a, TXb<Ta,Ab> const& b ) {
       return qX_real::operator_add_ow ( a, b );
     }
     template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >
@@ -876,7 +873,7 @@ namespace mX_real {
     //
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto operator- ( TXa const& a, TXb const& b )
-      -> cond_return_TX2<(TXa::L==4||TXb::L==4),TXa,TXb,4> {
+      -> cond_return_TX2<(TXa::L==4||TXb::L==4),TXa,TXb,qX_real::qx_real> {
       return a + (-b);
     }
     template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >
@@ -890,9 +887,8 @@ namespace mX_real {
     //
 
     //
-    template < typename Ta, Algorithm Aa, typename TXb, IF_T_mX<TXb> >
-    INLINE auto operator-= ( qX_real::qx_real<Ta,Aa> & a, TXb const& b )
-      -> return_TX<TXb,Ta,4> {
+    template < typename Ta, Algorithm Aa, Algorithm Ab, template < typename _Tb_, Algorithm _Ab_ > typename TXb, IF_A_owAble<Aa,Ab> >
+    INLINE auto operator-= ( qX_real::qx_real<Ta,Aa> & a, TXb<Ta,Ab> const& b ) {
       return a += (-b);
     }
     template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >
@@ -1098,7 +1094,7 @@ namespace mX_real {
     }
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto const operator_mul_exception ( TXa const& a, TXb const& b, bool & flag )
-      -> return_TX2< TXa, TXb, 4 > {
+      -> return_TX2< TXa, TXb, qX_real::qx_real > {
       Algorithm constexpr A = commonAlgorithm< TXa::base_A, TXb::base_A >::algorithm;
       auto sa = a.quick_Normalized();
       auto sb = b.quick_Normalized();
@@ -1106,7 +1102,7 @@ namespace mX_real {
     }
     template < typename TXa, typename T, IF_T_mX<TXa>, IF_T_fp<T> >
     INLINE auto const operator_mul_exception ( TXa const& a, T const& b, bool & flag )
-      -> return_TX< TXa, T, 4 > {
+      -> return_TX_T< TXa, T, qX_real::qx_real > {
       Algorithm constexpr A = TXa::base_A;
       auto sa = a.quick_Normalized();
       return qX_real::operator_mul_exception<A> ( sa, b, flag );
@@ -1115,7 +1111,7 @@ namespace mX_real {
     //
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto operator_mul ( TXa const& a, TXb const& b )
-      -> cond_return_TX2<(TXa::L>=TXb::L),TXa,TXb,4> {
+      -> cond_return_TX2<(TXa::L>=TXb::L),TXa,TXb,qX_real::qx_real> {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = qX_real::operator_mul_exception ( a, b, flag );
@@ -1125,12 +1121,12 @@ namespace mX_real {
     }
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto operator_mul ( TXa const& a, TXb const& b )
-      -> cond_return_TX2<(TXa::L<TXb::L),TXa,TXb,4> {
+      -> cond_return_TX2<(TXa::L<TXb::L),TXa,TXb,qX_real::qx_real> {
       return qX_real::operator_mul ( b, a );
     }
       template < typename TXa, typename T, IF_T_fp<T>, IF_T_mX<TXa> >
       INLINE auto operator_mul ( TXa const& a, T const& b )
-        -> return_TX<TXa,T,4> {
+        -> return_TX_T<TXa,T,qX_real::qx_real> {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
         bool flag;
         auto e = qX_real::operator_mul_exception ( a, b, flag );
@@ -1140,7 +1136,7 @@ namespace mX_real {
       }
     template < typename T, typename TXb, IF_T_fp<T>, IF_T_mX<TXb> >
     INLINE auto operator_mul ( T const& a, TXb const& b )
-      -> return_TX<TXb,T,4> {
+      -> return_TX_T<TXb,T,qX_real::qx_real> {
       return qX_real::operator_mul ( b, a );
     }
     template < Algorithm A=Algorithm::Accurate, typename T, IF_T_fp<T> >
@@ -1155,7 +1151,7 @@ namespace mX_real {
     //
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto operator* ( TXa const& a, TXb const& b )
-      -> cond_return_TX2<(TXa::L==4||TXb::L==4),TXa,TXb,4> {
+      -> cond_return_TX2<(TXa::L==4||TXb::L==4),TXa,TXb,qX_real::qx_real> {
       return qX_real::operator_mul ( a, b );
     }
     template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >
@@ -1214,9 +1210,8 @@ namespace mX_real {
       return a;
     }
     //
-    template < typename Ta, Algorithm Aa, typename TXb, IF_T_mX<TXb> >
-    INLINE auto operator_mul_ow ( qX_real::qx_real<Ta,Aa> & a, TXb const& b )
-      -> return_TXA<TXb,Ta,Aa,4> {
+    template < typename Ta, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > typename TXb, Algorithm Ab, IF_A_owAble<Aa,Ab> >
+    INLINE auto operator_mul_ow ( qX_real::qx_real<Ta,Aa> & a, TXb<Ta,Ab> const& b ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = qX_real::operator_mul_exception ( a, b, flag );
@@ -1225,8 +1220,7 @@ namespace mX_real {
       return qX_real::operator_mul_ow_body ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto operator_mul_ow ( qX_real::qx_real<T,A> & a, T const& b )
-      -> qX_real::qx_real<T,A> {
+    INLINE auto operator_mul_ow ( qX_real::qx_real<T,A> & a, T const& b ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = qX_real::operator_mul_exception ( a, b, flag );
@@ -1235,9 +1229,8 @@ namespace mX_real {
       return qX_real::operator_mul_ow_body ( a, b );
     }
     //
-    template < typename Ta, Algorithm Aa, typename TXb, IF_T_mX<TXb> >
-    INLINE auto operator*= ( qX_real::qx_real<Ta,Aa> & a, TXb const& b )
-      -> return_TXA<TXb,Ta,Aa,4> {
+    template < typename Ta, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > typename TXb, Algorithm Ab, IF_A_owAble<Aa,Ab> >
+    INLINE auto operator*= ( qX_real::qx_real<Ta,Aa> & a, TXb<Ta,Ab> const& b ) {
       return qX_real::operator_mul_ow ( a, b );
     }
     template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >
@@ -1489,7 +1482,7 @@ namespace mX_real {
     }
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto const operator_div_exception ( TXa const& a, TXb const& b, bool & flag )
-      -> return_TX2< TXa, TXb, 4 > {
+      -> return_TX2< TXa, TXb, qX_real::qx_real > {
       Algorithm constexpr A = commonAlgorithm< TXa::base_A, TXb::base_A >::algorithm;
       auto sa = a.quick_Normalized();
       auto sb = b.quick_Normalized();
@@ -1497,14 +1490,14 @@ namespace mX_real {
     }
     template < typename TXa, typename T, IF_T_mX<TXa>, IF_T_fp<T> >
     INLINE auto const operator_div_exception ( TXa const& a, T const& b, bool & flag )
-      -> return_TX< TXa, T, 4 > {
+      -> return_TX_T< TXa, T, qX_real::qx_real > {
       Algorithm constexpr A = TXa::base_A;
       auto sa = a.quick_Normalized();
       return qX_real::operator_div_exception<A> ( sa, b, flag );
     }
     template < typename TXb, typename T, IF_T_mX<TXb>, IF_T_fp<T> >
     INLINE auto const operator_div_exception ( T const& a, TXb const& b, bool & flag )
-      -> return_TX< TXb, T, 4 > {
+      -> return_TX_T< TXb, T, qX_real::qx_real > {
       Algorithm constexpr A = TXb::base_A;
       auto sb = b.quick_Normalized();
       return qX_real::operator_div_exception<A> ( a, sb, flag );
@@ -1513,7 +1506,7 @@ namespace mX_real {
     //
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto operator_div ( TXa const& a, TXb const& b )
-      -> return_TX2<TXa,TXb,4> {
+      -> return_TX2<TXa,TXb,qX_real::qx_real> {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = qX_real::operator_div_exception ( a, b, flag );
@@ -1523,7 +1516,7 @@ namespace mX_real {
     }
     template < typename TXa, typename T, IF_T_fp<T>, IF_T_mX<TXa> >
     INLINE auto operator_div ( TXa const& a, T const& b )
-      -> return_TX<TXa,T,4> {
+      -> return_TX_T<TXa,T,qX_real::qx_real> {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = qX_real::operator_div_exception ( a, b, flag );
@@ -1533,7 +1526,7 @@ namespace mX_real {
     }
     template < typename T, typename TXb, IF_T_fp<T>, IF_T_mX<TXb> >
     INLINE auto operator_div ( T const& a, TXb const& b )
-      -> return_TX<TXb,T,4> {
+      -> return_TX_T<TXb,T,qX_real::qx_real> {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = qX_real::operator_div_exception ( a, b, flag );
@@ -1553,7 +1546,7 @@ namespace mX_real {
     //
     template < typename TXa, typename TXb, IF_T_mX2<TXa,TXb> >
     INLINE auto operator/ ( TXa const& a, TXb const& b )
-      -> cond_return_TX2<(TXa::L==4||TXb::L==4),TXa,TXb,4> {
+      -> cond_return_TX2<(TXa::L==4||TXb::L==4),TXa,TXb,qX_real::qx_real> {
       return qX_real::operator_div ( a, b );
     }
     template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >
@@ -1613,9 +1606,8 @@ namespace mX_real {
       return a;
     }
     //
-    template < typename Ta, Algorithm Aa, typename TXb, IF_T_mX<TXb> >
-    INLINE auto operator_div_ow ( qX_real::qx_real<Ta,Aa> & a, TXb const& b )
-      -> return_TXA<TXb,Ta,Aa,4> {
+    template < typename Ta, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > typename TXb, Algorithm Ab, IF_A_owAble<Aa,Ab> >
+    INLINE auto operator_div_ow ( qX_real::qx_real<Ta,Aa> & a, TXb<Ta,Ab> const& b ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = qX_real::operator_div_exception ( a, b, flag );
@@ -1624,8 +1616,7 @@ namespace mX_real {
       return qX_real::operator_div_ow_body ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto operator_div_ow ( qX_real::qx_real<T,A> & a, T const& b )
-      -> qX_real::qx_real<T,A> {
+    INLINE auto operator_div_ow ( qX_real::qx_real<T,A> & a, T const& b ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       bool flag;
       auto e = qX_real::operator_div_exception ( a, b, flag );
@@ -1634,9 +1625,8 @@ namespace mX_real {
       return qX_real::operator_div_ow_body ( a, b );
     }
     //
-    template < typename Ta, Algorithm Aa, typename TXb, IF_T_mX<TXb> >
-    INLINE auto operator/= ( qX_real::qx_real<Ta,Aa> & a, TXb const& b )
-      -> return_TXA<TXb,Ta,Aa,4> {
+    template < typename Ta, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > typename TXb, Algorithm Ab, IF_A_owAble<Aa,Ab> >
+    INLINE auto operator/= ( qX_real::qx_real<Ta,Aa> & a, TXb<Ta,Ab> const& b ) {
       return qX_real::operator_div_ow ( a, b );
     }
     template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >
@@ -1667,8 +1657,7 @@ namespace mX_real {
       flag = false; return TX::zero();
     }
     template < typename TXa, IF_T_mX<TXa> >
-    INLINE auto const operator_abs_exception ( TXa const& a, bool & flag )
-      -> return_TX2< TXa, TXa, 4 > {
+    INLINE auto const operator_abs_exception ( TXa const& a, bool & flag ) {
       Algorithm constexpr A = TXa::base_A;
       auto sa = a.quick_Normalized();
       return qX_real::operator_abs_exception<A> ( sa, flag );
@@ -1772,8 +1761,7 @@ namespace mX_real {
       flag = false; return TX::zero();
     }
     template < typename TXa, IF_T_mX<TXa> >
-    INLINE auto const operator_sqrt_exception ( TXa const& a, bool & flag )
-      -> return_TX2< TXa, TXa, 4 > {
+    INLINE auto const operator_sqrt_exception ( TXa const& a, bool & flag ) {
       Algorithm constexpr A = TXa::base_A;
       auto sa = a.quick_Normalized();
       return qX_real::operator_sqrt_exception<A> ( sa, flag );

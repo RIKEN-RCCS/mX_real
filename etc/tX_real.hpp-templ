@@ -340,9 +340,9 @@ namespace tX_real {
   //
   template < typename TX, IF_T_mX<TX> >
   struct mX_real_impl {
-    static Algorithm constexpr _A_ = TX::base_A;
-    using _T_  = typename TX::base_T;
-    using type = typename tX_real::tx_real<_T_,_A_>;
+    static Algorithm constexpr A = TX::base_A;
+    using T    = typename TX::base_T;
+    using type = typename tX_real::tx_real<T,A>;
   };
   template < typename TX >
   using mX_real = typename mX_real_impl<TX>::type;

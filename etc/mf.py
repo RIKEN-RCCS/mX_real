@@ -80,8 +80,7 @@ def gen_op_body( Tc, description, func, op, commutable ) :
 def gen_exception( Tc, description, func, op, commutable ) :
 
     print( 'template < typename TXa, IF_T_mX<TXa> >' )
-    print( 'INLINE auto const operator_{func}_exception ( TXa const& a, bool & flag )'.format( func=func ) )
-    print( '-> return_TX2< TXa, TXa, {m}X_real::{m}x_real > {{'.format( m=mX_type(Tc) ) )
+    print( 'INLINE auto const operator_{func}_exception ( TXa const& a, bool & flag ) {{'.format( func=func ) )
     print( '  Algorithm constexpr A = TXa::base_A;' )
     print( '  auto sa = a.quick_Normalized();' )
     print( '  return {m}X_real::operator_{func}_exception<A> ( sa, flag );'.format( m=mX_type(Tc), func=func ) )

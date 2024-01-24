@@ -107,7 +107,7 @@ def gen_exception( Tc, description, func, op, commutable ) :
 
     print( 'template < typename TXa, typename T, IF_T_mX<TXa>, IF_T_fp<T> >' )
     print( 'INLINE auto const operator_{func}_exception ( TXa const& a, T const& b, bool & flag )'.format( func=func ) )
-    print( '-> return_TX< TXa, T, {m}X_real::{m}x_real > {{'.format( L=Tc, m=mX_type(Tc) ) )
+    print( '-> return_TX_T< TXa, T, {m}X_real::{m}x_real > {{'.format( L=Tc, m=mX_type(Tc) ) )
     print( '  Algorithm constexpr A = TXa::base_A;' )
     print( '  auto sa = a.quick_Normalized();' )
     print( '  return {m}X_real::operator_{func}_exception<A> ( sa, b, flag );'.format( m=mX_type(Tc), func=func ) )
@@ -118,7 +118,7 @@ def gen_exception( Tc, description, func, op, commutable ) :
 
     print( 'template < typename TXb, typename T, IF_T_mX<TXb>, IF_T_fp<T> >' )
     print( 'INLINE auto const operator_{func}_exception ( T const& a, TXb const& b, bool & flag )'.format( func=func ) )
-    print( '-> return_TX< TXb, T, {m}X_real::{m}x_real > {{'.format( L=Tc, m=mX_type(Tc) ) )
+    print( '-> return_TX_T< TXb, T, {m}X_real::{m}x_real > {{'.format( L=Tc, m=mX_type(Tc) ) )
     print( '  Algorithm constexpr A = TXb::base_A;' )
     print( '  auto sb = b.quick_Normalized();' )
     print( '  return {m}X_real::operator_{func}_exception<A> ( a, sb, flag );'.format( m=mX_type(Tc), func=func ) )
@@ -278,7 +278,7 @@ def gen_op_stub( Tc, description, func, op, commutable ) :
     print( 'template < typename TXa, typename T, IF_T_fp<T>, IF_T_mX<TXa> >' )
     #print( 'INLINE auto const operator_{func} ( TXa const& a, T const& b )'.format( func=func ) )
     print( 'INLINE auto operator_{func} ( TXa const& a, T const& b )'.format( func=func ) )
-    print( '-> return_TX<TXa,T,{m}X_real::{m}x_real> {{'.format( L=Tc, m=mX_type(Tc) ) )
+    print( '-> return_TX_T<TXa,T,{m}X_real::{m}x_real> {{'.format( L=Tc, m=mX_type(Tc) ) )
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     print( '  bool flag;' )
     print( '  auto e = {m}X_real::operator_{func}_exception ( a, b, flag );'.format( m=mX_type(Tc), func=func ) )
@@ -290,7 +290,7 @@ def gen_op_stub( Tc, description, func, op, commutable ) :
     print( 'template < typename T, typename TXb, IF_T_fp<T>, IF_T_mX<TXb> >' )
     #print( 'INLINE auto const operator_{func} ( T const& a, TXb const& b )'.format( func=func ) )
     print( 'INLINE auto operator_{func} ( T const& a, TXb const& b )'.format( func=func ) )
-    print( '-> return_TX<TXb,T,{m}X_real::{m}x_real> {{'.format( L=Tc, m=mX_type(Tc) ) )
+    print( '-> return_TX_T<TXb,T,{m}X_real::{m}x_real> {{'.format( L=Tc, m=mX_type(Tc) ) )
     if commutable == 1 :
         print( '  return {m}X_real::operator_{func} ( b, a );'.format( m=mX_type(Tc), func=func ) )
     else :

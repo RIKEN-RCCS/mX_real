@@ -363,70 +363,72 @@ namespace mX_real {
 #endif
 #undef _BOOL_const_type
 
-  //
-  template < typename TXa, typename T, Algorithm A, int L >
-  struct check_TXA_impl {
-    static bool constexpr value = std::is_same< typename TXa::base_T, T >::value;
-    using type_to_be = std::conditional_t<
-      L == 2,
-      dX_real::dx_real< T, A >,
-      std::conditional_t<
-        L == 3,
-        tX_real::tx_real< T, A >,
-        std::conditional_t<
-          L == 4,
-          qX_real::qx_real< T, A >,
-          void >
-        >
-      >;
-    using type = typename std::enable_if_t< value, type_to_be >;
-  };
-  template < typename TXa, typename T, Algorithm A, int L >
-  using check_TXA = std::enable_if_t< check_TXA_impl<TXa,T,A,L>::value >;
-  template < typename TXa, typename T, Algorithm A, int L >
-  using return_TXA = std::enable_if_t< check_TXA_impl<TXa,T,A,L>::value,
-                                       typename check_TXA_impl<TXa,T,A,L>::type >;
-  template < bool F, typename TXa, typename T, Algorithm A, int L >
-  using cond_return_TXA = std::enable_if_t< F && check_TXA_impl<TXa,T,A,L>::value,
-                                            typename check_TXA_impl<TXa,T,A,L>::type >;
-  //
-  //
-  template < typename TXa, typename T, int L >
-  struct check_TX_impl {
-    static Algorithm constexpr A = TXa::base_A;
-    //
-    static bool constexpr value = check_TXA_impl<TXa,T,A,L>::value;
-    using type_to_be = typename check_TXA_impl<TXa,T,A,L>::type_to_be;
-    using type = typename std::enable_if_t< value, type_to_be >;
-  };
-  template < typename TXa, typename T, int L >
-  using check_TX = typename std::enable_if_t< check_TX_impl<TXa,T,L>::value >;
-  template < typename TXa, typename T, int L >
-  using return_TX = std::enable_if_t< check_TX_impl<TXa,T,L>::value,
-                                      typename check_TX_impl<TXa,T,L>::type >;
-  template < bool F, typename TXa, typename T, int L >
-  using cond_return_TX = std::enable_if_t< F && check_TX_impl<TXa,T,L>::value,
-                                           typename check_TX_impl<TXa,T,L>::type >;
 
   //
-  template < typename TXa, typename TXb, int L >
+  // check whether TXa ~ {m}X_real::{m}x_real<T,A> => value
+  // then if(value) TX<T,A> else nullptr_t => type
+  //
+  template < typename TXa, typename T, Algorithm A, template < typename _T_, Algorithm _A_ > typename TX >
+  struct check_TX_T_A_impl {
+    //
+    static bool constexpr value = std::is_same< typename TXa::base_T, T >::value;
+    //
+    using type_to_be = TX<T,A>;
+    using type = typename std::enable_if_t< value, type_to_be >;
+  };
+  template < typename TXa, typename T, Algorithm A, template < typename _T_, Algorithm _A_ > typename TX >
+  using check_TX_T_A = std::enable_if_t< check_TX_T_A_impl<TXa,T,A,TX>::value >;
+  template < typename TXa, typename T, Algorithm A, template < typename _T_, Algorithm _A_ > typename TX >
+  using return_TX_T_A = std::enable_if_t< check_TX_T_A_impl<TXa,T,A,TX>::value,
+                                       typename check_TX_T_A_impl<TXa,T,A,TX>::type >;
+  template < bool F, typename TXa, typename T, Algorithm A, template < typename _T_, Algorithm _A_ > typename TX >
+  using cond_return_TX_T_A = std::enable_if_t< F && check_TX_T_A_impl<TXa,T,A,TX>::value,
+                                            typename check_TX_T_A_impl<TXa,T,A,TX>::type >;
+
+  //
+  // check whether TXa ~ {m}X_real::{m}x_real<T,*> => value
+  // then if(value) TX<T,Aa> else nullptr_t = type
+  //
+  template < typename TXa, typename T, template < typename _T_, Algorithm _A_ > typename TX >
+  struct check_TX_T_impl {
+    static Algorithm constexpr A = TXa::base_A;
+    //
+    static bool constexpr value = check_TX_T_A_impl<TXa,T,A,TX>::value;
+    //
+    using type_to_be = typename check_TX_T_A_impl<TXa,T,A,TX>::type_to_be;
+    using type = typename std::enable_if_t< value, type_to_be >;
+  };
+  template < typename TXa, typename T, template < typename _T_, Algorithm _A_ > typename TX >
+  using check_TX_T = typename std::enable_if_t< check_TX_T_impl<TXa,T,TX>::value >;
+  template < typename TXa, typename T, template < typename _T_, Algorithm _A_ > typename TX >
+  using return_TX_T = std::enable_if_t< check_TX_T_impl<TXa,T,TX>::value,
+                                      typename check_TX_T_impl<TXa,T,TX>::type >;
+  template < bool F, typename TXa, typename T, template < typename _T_, Algorithm _A_ > typename TX >
+  using cond_return_TX_T = std::enable_if_t< F && check_TX_T_impl<TXa,T,TX>::value,
+                                           typename check_TX_T_impl<TXa,T,TX>::type >;
+
+  //
+  // check whether TXa ~ {m}X_real::{m}x_real<T,*> ~ TXb => value
+  // then if(value) TX<T,Aa> else nullptr_t => type
+  //
+  template < typename TXa, typename TXb, template < typename _T_, Algorithm _A_ > typename TX >
   struct check_TX2_impl {
     using T = typename TXa::base_T;
     static Algorithm constexpr A = commonAlgorithm< TXa::base_A, TXb::base_A >::algorithm;
     //
-    static bool constexpr value = check_TXA_impl<TXa,T,A,L>::value;
-    using type_to_be = typename check_TXA_impl<TXa,T,A,L>::type_to_be;
+    static bool constexpr value = check_TX_T_A_impl<TXa,T,A,TX>::value && check_TX_T_A_impl<TXa,T,A,TX>::value;
+    //
+    using type_to_be = typename check_TX_T_A_impl<TXa,T,A,TX>::type_to_be;
     using type = typename std::enable_if_t< value, type_to_be >;
   };
-  template < typename TXa, typename TXb, int L >
-  using check_TX2 = std::enable_if_t< check_TX2_impl<TXa,TXb,L>::value >;
-  template < typename TXa, typename TXb, int L >
-  using return_TX2 = std::enable_if_t< check_TX2_impl<TXa,TXb,L>::value,
-                                       typename check_TX2_impl<TXa,TXb,L>::type >;
-  template < bool F, typename TXa, typename TXb, int L >
-  using cond_return_TX2 = std::enable_if_t< F && check_TX2_impl<TXa,TXb,L>::value,
-                                            typename check_TX2_impl<TXa,TXb,L>::type >;
-  //
+  template < typename TXa, typename TXb, template < typename _T_, Algorithm _A_ > typename TX >
+  using check_TX2 = std::enable_if_t< check_TX2_impl<TXa,TXb,TX>::value >;
+  template < typename TXa, typename TXb, template < typename _T_, Algorithm _A_ > typename TX >
+  using return_TX2 = std::enable_if_t< check_TX2_impl<TXa,TXb,TX>::value,
+                                       typename check_TX2_impl<TXa,TXb,TX>::type >;
+  template < bool F, typename TXa, typename TXb, template < typename _T_, Algorithm _A_ > typename TX >
+  using cond_return_TX2 = std::enable_if_t< F && check_TX2_impl<TXa,TXb,TX>::value,
+                                            typename check_TX2_impl<TXa,TXb,TX>::type >;
 
 
 
