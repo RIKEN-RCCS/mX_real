@@ -41,8 +41,10 @@ namespace dX_real {
     using type_Sloppy   = type_with_Algorithm<Algorithm::Sloppy>;
     using type_Quasi    = type_with_Algorithm<Algorithm::Quasi>;
     //
-    using lower_type    = T;
-    using higher_type   = TX_REAL<>;
+    using accurate_type   = type_with_Algorithm<accurateAlgorithm<A>::algorithm>;
+    using inaccurate_type = type_with_Algorithm<inaccurateAlgorithm<A>::algorithm>;
+    using lower_type      = T;
+    using higher_type     = TX_REAL<>;
 
 
     //
@@ -374,90 +376,8 @@ namespace dX_real {
 
 
 @@include "dx_bits.hpp"
-
-  //
-  // Comparison
-  //
-  //
-  template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  INLINE auto const operator_eq ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    return a.x[0] == b.x[0] && a.x[1] == b.x[1];
-  }
-  template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  INLINE auto const operator== ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    if ( A == Algorithm::Quasi ) {
-      using TT = dX_real::dx_real<T,Algorithm::Accurate>;
-      return dX_real::operator_eq( TT{ a }, TT{ b } );
-    } else {
-      return dX_real::operator_eq( a, b );
-    }
-  }
-  template < typename T, Algorithm Aa, Algorithm Ab >
-  INLINE auto const operator!= ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    return !(a == b);
-  }
-  template < typename T, Algorithm Aa, Algorithm Ab >
-  INLINE auto const operator_lt ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    if ( a.x[0] != b.x[0] ) {
-      return a.x[0] < b.x[0];
-    } else {
-      return a.x[1] < b.x[1];
-    }
-  }
-  template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  INLINE auto const operator< ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    if ( A == Algorithm::Quasi ) {
-      using TT = dX_real::dx_real<T,Algorithm::Accurate>;
-      return dX_real::operator_lt( TT{ a }, TT{ b } );
-    } else {
-      return dX_real::operator_lt( a, b );
-    }
-  }
-  template < typename T, Algorithm Aa, Algorithm Ab >
-  INLINE auto const operator_gt ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    if ( a.x[0] != b.x[0] ) {
-      return a.x[0] > b.x[0];
-    } else {
-      return a.x[1] > b.x[1];
-    }
-  }
-  template < typename T, Algorithm Aa, Algorithm Ab, Algorithm A=commonAlgorithm<Aa,Ab>::algorithm >
-  INLINE auto const operator> ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    if ( A == Algorithm::Quasi ) {
-      using TT = dX_real::dx_real<T,Algorithm::Accurate>;
-      return dX_real::operator_gt( TT{ a }, TT{ b } );
-    } else {
-      return dX_real::operator_gt( a, b );
-    }
-  }
-  template < typename T, Algorithm Aa, Algorithm Ab >
-  INLINE auto const operator>= ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    return !(a < b);
-  }
-  template < typename T, Algorithm Aa, Algorithm Ab >
-  INLINE auto const operator<= ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) {
-    return !(a > b);
-  }
-
-
-  //
-  // Unitary operators
-  //
-  template < typename T, Algorithm Aa >
-  INLINE auto const reversed_sign ( dX_real::dx_real<T,Aa> const& a ) {
-    return dX_real::dx_real<T,Aa>( -a.x[0], -a.x[1] );
-  }
-  //
-  template < typename T, Algorithm Aa >
-  INLINE auto const operator+ ( dX_real::dx_real<T,Aa> const& a ) {
-    return a;
-  }
-  template < typename T, Algorithm Aa >
-  INLINE auto const operator- ( dX_real::dx_real<T,Aa> const& a ) {
-    return dX_real::reversed_sign( a );
-  }
-
-
+@@include "dx_comp.hpp"
+@@include "dx_uni.hpp"
 @@include "dx_add_sub_mul_div.hpp"
 @@include "dx_func.hpp"
 

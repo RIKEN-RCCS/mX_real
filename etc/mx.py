@@ -503,6 +503,30 @@ def gen_abs ( Tc ) :
     print( '  return {m}X_real::operator_abs<A> ( a );'.format( m=mX_type(Tc) ) )
     print( '}' )
     print( '//' )
+    print( '' )
+
+def gen_uni( Tc ) :
+
+    print( '//' )
+    print( '// Unitary operators' )
+    print( '//' )
+    print( '//' )
+    print( 'template < typename T, Algorithm Aa >' )
+    print( 'INLINE auto const reversed_sign ( {m}X_real::{m}x_real<T,Aa> const& a ) {{'.format( m=mX_type(Tc) ) )
+    print( '  return {m}X_real::{m}x_real<T,Aa>( '.format( m=mX_type(Tc) ) +
+            ','.join( [ '-a.x[{i}]'.format( i=i ) for i in range( Tc ) ] )+' );' )
+    print( '}' )
+    print( '//' )
+    print( 'template < typename T, Algorithm Aa >' )
+    print( 'INLINE auto const operator+ ( {m}X_real::{m}x_real<T,Aa> const& a ) {{'.format( m=mX_type(Tc) ) )
+    print( '  return a;' )
+    print( '}' )
+    print( 'template < typename T, Algorithm Aa >' )
+    print( 'INLINE auto const operator- ( {m}X_real::{m}x_real<T,Aa> const& a ) {{'.format( m=mX_type(Tc) ) )
+    print( '  return {m}X_real::reversed_sign( a );'.format( m=mX_type(Tc) ) )
+    print( '}' )
+    print( '//' )
+    print( '' )
 
 
 if __name__ == '__main__' :
@@ -528,4 +552,6 @@ if __name__ == '__main__' :
         gen_div( Tc )
     if K == 4 :
         gen_abs( Tc )
+    if K == 5 :
+        gen_uni( Tc )
 
