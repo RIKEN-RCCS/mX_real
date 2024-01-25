@@ -442,11 +442,14 @@ namespace mX_real {
 
   // Definition of shortcut structs
   template < Algorithm A >
-  using if_A_noQuasi = typename std::enable_if_t<A!=Algorithm::Quasi>;
+  using if_A_noQuasi = typename std::enable_if_t< A != Algorithm::Quasi >;
   template < Algorithm Aa, Algorithm Ab >
-  using if_A2_noQuasi = typename std::enable_if_t<Aa!=Algorithm::Quasi && Ab!=Algorithm::Quasi>;
+  using if_A2_noQuasi = typename std::enable_if_t< Aa != Algorithm::Quasi && Ab != Algorithm::Quasi >;
   template < Algorithm Aa, Algorithm Ab >
-  using if_A_owAble = typename std::enable_if_t<Aa==Ab || Aa!=Algorithm::Accurate>;
+  using if_A_owAble = typename std::enable_if_t<
+        ( Aa==Ab ) ||
+ 	( Aa==Algorithm::Quasi ) ||
+	( Aa==Algorithm::Sloppy && Ab!=Algorithm::Quasi ) >;
 
   //
   template < typename Ts >

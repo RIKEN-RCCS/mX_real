@@ -460,6 +460,26 @@ main(int argc, char *argv[])
     print( "add ", a + b );
     print( "addx", dX_real::operator_add(a,b) );
   }
+#if 0
+  {
+    // check ow operators with different Algorithm
+    auto a = df_Real::rand();
+    auto s = df_Real_sloppy::rand();
+    auto q = df_Real_quasi::rand();
+    a += a;
+    a += s; // error
+    a += q; // error
+    s += a;
+    s += s;
+    s += q; // error
+    q += a;
+    q += s;
+    q += q;
+    auto A = tf_Real::rand();
+    a += A;
+    A += a;
+  }
+#endif
   {
     double ss[] = { 
                    9.3493629504948217e-11,
