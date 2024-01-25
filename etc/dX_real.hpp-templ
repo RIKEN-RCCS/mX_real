@@ -35,11 +35,13 @@ namespace dX_real {
     static int constexpr L = 2;
     T x[L];
     //
+    //
     template < Algorithm _A_ >
     using type_with_Algorithm = DX_REAL<_A_>;
-    using type_Accurate = type_with_Algorithm<Algorithm::Accurate>;
-    using type_Sloppy   = type_with_Algorithm<Algorithm::Sloppy>;
-    using type_Quasi    = type_with_Algorithm<Algorithm::Quasi>;
+    //
+    using type_Accurate   = type_with_Algorithm<Algorithm::Accurate>;
+    using type_Sloppy     = type_with_Algorithm<Algorithm::Sloppy>;
+    using type_Quasi      = type_with_Algorithm<Algorithm::Quasi>;
     //
     using accurate_type   = type_with_Algorithm<accurateAlgorithm<A>::algorithm>;
     using inaccurate_type = type_with_Algorithm<inaccurateAlgorithm<A>::algorithm>;
@@ -50,12 +52,12 @@ namespace dX_real {
     //
     // A special member function utilized in constructors
     //
-    INLINE T quick_Normalized () const {
+    INLINE T constexpr quick_Normalized () const {
       T s = x[0];
       if ( A == Algorithm::Quasi ) { s += x[1]; }
       return s;
     }
-    INLINE DX_REAL<> element_rotate () const {
+    INLINE DX_REAL<> constexpr element_rotate () const {
       T y[L]; y[0] = x[0]; y[1] = x[1];
       for(int i=0; i<L-1; i++) {
         if ( ! fp<T>::is_zero( y[0] ) ) { return DX_REAL<>( y ); }
@@ -155,16 +157,16 @@ namespace dX_real {
     // auto one = df_Real( 1 ); // a constructor
     // one = df_Real_sloppy( one ); // LHS is a copy-assignment operator
     //
-    INLINE DX_REAL<> &operator=( int const& h )_LV_ {
+    INLINE DX_REAL<> constexpr &operator=( int const& h )_LV_ {
       x[0] = T(h); x[1] = fp<T>::zero;
       return *this;
     }
-    INLINE DX_REAL<> &operator=( T const& h )_LV_ {
+    INLINE DX_REAL<> constexpr &operator=( T const& h )_LV_ {
       x[0] = h; x[1] = fp<T>::zero;
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE DX_REAL<> &operator=( DX_REAL<_A_> const& h )_LV_ {
+    INLINE DX_REAL<> constexpr &operator=( DX_REAL<_A_> const& h )_LV_ {
       if ( A == _A_ && this == (DX_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
@@ -182,7 +184,7 @@ namespace dX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE DX_REAL<> &operator=( TX_REAL<_A_> const& h )_LV_ {
+    INLINE DX_REAL<> constexpr &operator=( TX_REAL<_A_> const& h )_LV_ {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -199,7 +201,7 @@ namespace dX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE DX_REAL<> &operator=( QX_REAL<_A_> const& h )_LV_ {
+    INLINE DX_REAL<> constexpr &operator=( QX_REAL<_A_> const& h )_LV_ {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -307,9 +309,6 @@ namespace dX_real {
     template < typename _T_ > auto const operator,   ( _T_ a ) = delete;
     auto const operator() (...) = delete;
     template < typename _T_ > auto const operator[]  ( _T_ a ) = delete;
-
-    //
-    template < typename _T_ > auto const operator/=  ( _T_ a ) = delete;
 
 
     //

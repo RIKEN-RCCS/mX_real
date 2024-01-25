@@ -33,11 +33,13 @@ namespace tX_real {
     static int constexpr L = 3;
     T x[L];
     //
+    //
     template < Algorithm _A_ >
     using type_with_Algorithm = typename tX_real::tx_real<T,_A_>;
-    using type_Accurate = type_with_Algorithm<Algorithm::Accurate>;
-    using type_Sloppy   = type_with_Algorithm<Algorithm::Sloppy>;
-    using type_Quasi    = type_with_Algorithm<Algorithm::Quasi>;
+    //
+    using type_Accurate   = type_with_Algorithm<Algorithm::Accurate>;
+    using type_Sloppy     = type_with_Algorithm<Algorithm::Sloppy>;
+    using type_Quasi      = type_with_Algorithm<Algorithm::Quasi>;
     //
     using accurate_type   = type_with_Algorithm<accurateAlgorithm<A>::algorithm>;
     using inaccurate_type = type_with_Algorithm<inaccurateAlgorithm<A>::algorithm>;
@@ -52,7 +54,7 @@ namespace tX_real {
       if ( A == Algorithm::Quasi ) { s += x[1] + x[2]; }
       return s;
     }
-    INLINE TX_REAL<> element_rotate () const {
+    INLINE TX_REAL<> constexpr element_rotate () const {
       T y[L]; y[0] = x[0]; y[1] = x[1]; y[2] = x[2];
       for(int i=0; i<L-1; i++) {
         if ( ! fp<T>::is_zero( y[0] ) ) { return TX_REAL<>( y ); }
@@ -145,16 +147,16 @@ namespace tX_real {
 
     //
     //
-    INLINE TX_REAL<> &operator=( int const& h )_LV_ {
+    INLINE TX_REAL<> constexpr &operator=( int const& h )_LV_ {
       x[0] = T(h); x[1] = x[2] = fp<T>::zero;
       return *this;
     }
-    INLINE TX_REAL<> &operator=( T const& h )_LV_ {
+    INLINE TX_REAL<> constexpr &operator=( T const& h )_LV_ {
       x[0] = h; x[1] = x[2] = fp<T>::zero;
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE TX_REAL<> &operator=( DX_REAL<_A_> const& h )_LV_ {
+    INLINE TX_REAL<> constexpr &operator=( DX_REAL<_A_> const& h )_LV_ {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -171,7 +173,7 @@ namespace tX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE TX_REAL<> &operator=( TX_REAL<_A_> const& h )_LV_ {
+    INLINE TX_REAL<> constexpr &operator=( TX_REAL<_A_> const& h )_LV_ {
       if ( A == _A_ && this == (TX_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
@@ -189,7 +191,7 @@ namespace tX_real {
       return *this;
     }
     template < Algorithm _A_ >
-    INLINE TX_REAL<> &operator=( QX_REAL<_A_> const& h )_LV_ {
+    INLINE TX_REAL<> constexpr &operator=( QX_REAL<_A_> const& h )_LV_ {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -294,9 +296,6 @@ namespace tX_real {
     auto const operator() (...) = delete;
     template < typename _T_ > auto const operator[]  ( _T_ a ) = delete;
 
-    //
-    template < typename _T_ > auto const operator/=  ( _T_ a ) = delete;
-
 
     //
     // member constexpr functions
@@ -338,7 +337,11 @@ namespace tX_real {
 
 
   //
-  //
+  // typename conversion
+  //   TX => tX_real::tx_real<T,A>, whose T and A are the same as TX
+  // usage is
+  //   using t = tX_real::mX_real<TX>
+  //   using t = tX_real::mX_real<qf_real_sloppy> (=tX_real<float,Algorithm::Sloppy>)
   //
   template < typename TX, IF_T_mX<TX> >
   struct mX_real_impl {

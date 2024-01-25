@@ -82,11 +82,11 @@ qx_members.hpp: mf.py
 	python3 mf.py 4 10 > qx_members.hpp
 
 dx_comp.hpp: comp.py
-	python3 comp.py 2 > dx_comp.hpp
+	python3 mc.py 2 > dx_comp.hpp
 tx_comp.hpp: comp.py
-	python3 comp.py 3 > tx_comp.hpp
+	python3 mc.py 3 > tx_comp.hpp
 qx_comp.hpp: comp.py
-	python3 comp.py 4 > qx_comp.hpp
+	python3 mc.py 4 > qx_comp.hpp
 
 dx_uni.hpp: mx.py
 	python3 mx.py 2 5 > dx_uni.hpp
