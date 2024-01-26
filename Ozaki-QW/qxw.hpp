@@ -2175,7 +2175,7 @@ div_SW_PA_PA( T const a0, T const b0, T const b1, T &c0, T &c1 )
   sub_SW_PA_PA( a0, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
-  td = e40;
+  td = b1;
   c1 = tn / td;
 }
 
@@ -2189,7 +2189,7 @@ div_SW_PA_QTW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   sub_SW_QTW_QTW( a0, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + b1;
+  td = b1;
   c2 = tn / td;
 }
 
@@ -2203,7 +2203,7 @@ div_SW_PA_QQW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   sub_SW_QQW_QQW( a0, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1;
+  td = b1;
   c3 = tn / td;
 }
 
@@ -2229,7 +2229,7 @@ div_SW_QTW_PA( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
   sub_SW_PA_PA( a0, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
-  td = e40;
+  td = b1 + b2;
   c1 = tn / td;
 }
 
@@ -2245,7 +2245,7 @@ div_SW_QTW_QTW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T 
   sub_SW_QTW_QTW( a0, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + e40;
+  td = b1 + b2;
   c2 = tn / td;
 }
 
@@ -2259,7 +2259,7 @@ div_SW_QTW_QQW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T 
   sub_SW_QQW_QQW( a0, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1 + b2;
+  td = b1 + b2;
   c3 = tn / td;
 }
 
@@ -2285,7 +2285,7 @@ div_SW_QQW_PA( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0
   sub_SW_PA_PA( a0, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
-  td = e40;
+  td = b1 + b2 + b3;
   c1 = tn / td;
 }
 
@@ -2301,7 +2301,7 @@ div_SW_QQW_QTW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c
   sub_SW_QTW_QTW( a0, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + e40;
+  td = b1 + b2 + b3;
   c2 = tn / td;
 }
 
@@ -2317,7 +2317,7 @@ div_SW_QQW_QQW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c
   sub_SW_QQW_QQW( a0, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1 + e40;
+  td = b1 + b2 + b3;
   c3 = tn / td;
 }
 
@@ -2404,7 +2404,7 @@ div_PA_PA_QTW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &
   sub_PA_QTW_QTW( a0, a1, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + b1;
+  td = b1;
   c2 = tn / td;
 }
 
@@ -2418,7 +2418,7 @@ div_PA_PA_QQW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &
   sub_PA_QQW_QQW( a0, a1, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1;
+  td = b1;
   c3 = tn / td;
 }
 
@@ -2446,7 +2446,7 @@ div_PA_QTW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0
   sub_PA_PA_PA( a0, a1, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
-  td = e41;
+  td = b1 + b2;
   c1 = tn / td;
 }
 
@@ -2462,7 +2462,7 @@ div_PA_QTW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c
   sub_PA_QTW_QTW( a0, a1, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + e40;
+  td = b1 + b2;
   c2 = tn / td;
 }
 
@@ -2476,7 +2476,7 @@ div_PA_QTW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c
   sub_PA_QQW_QQW( a0, a1, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1 + b2;
+  td = b1 + b2;
   c3 = tn / td;
 }
 
@@ -2504,7 +2504,7 @@ div_PA_QQW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T con
   sub_PA_PA_PA( a0, a1, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
-  td = e41;
+  td = b1 + b2 + b3;
   c1 = tn / td;
 }
 
@@ -2520,7 +2520,7 @@ div_PA_QQW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T co
   sub_PA_QTW_QTW( a0, a1, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + e40;
+  td = b1 + b2 + b3;
   c2 = tn / td;
 }
 
@@ -2536,7 +2536,7 @@ div_PA_QQW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T co
   sub_PA_QQW_QQW( a0, a1, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1 + e40;
+  td = b1 + b2 + b3;
   c3 = tn / td;
 }
 
@@ -2620,7 +2620,7 @@ div_QTW_PA_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0
   sub_QTW_PA_PA( a0, a1, a2, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
-  td = e41;
+  td = b1;
   c1 = tn / td;
 }
 
@@ -2636,7 +2636,7 @@ div_QTW_PA_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c
   sub_QTW_QTW_QTW( a0, a1, a2, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + b1;
+  td = b1;
   c2 = tn / td;
 }
 
@@ -2650,7 +2650,7 @@ div_QTW_PA_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c
   sub_QTW_QQW_QQW( a0, a1, a2, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1;
+  td = b1;
   c3 = tn / td;
 }
 
@@ -2678,7 +2678,7 @@ div_QTW_QTW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T co
   sub_QTW_PA_PA( a0, a1, a2, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
-  td = e41;
+  td = b1 + b2;
   c1 = tn / td;
 }
 
@@ -2696,7 +2696,7 @@ div_QTW_QTW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
   sub_QTW_QTW_QTW( a0, a1, a2, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + e41;
+  td = b1 + b2;
   c2 = tn / td;
 }
 
@@ -2710,7 +2710,7 @@ div_QTW_QTW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
   sub_QTW_QQW_QQW( a0, a1, a2, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1 + b2;
+  td = b1 + b2;
   c3 = tn / td;
 }
 
@@ -2738,7 +2738,7 @@ div_QTW_QQW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T co
   sub_QTW_PA_PA( a0, a1, a2, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
-  td = e41;
+  td = b1 + b2 + b3;
   c1 = tn / td;
 }
 
@@ -2756,7 +2756,7 @@ div_QTW_QQW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
   sub_QTW_QTW_QTW( a0, a1, a2, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + e41;
+  td = b1 + b2 + b3;
   c2 = tn / td;
 }
 
@@ -2772,7 +2772,7 @@ div_QTW_QQW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T c
   sub_QTW_QQW_QQW( a0, a1, a2, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1 + e40;
+  td = b1 + b2 + b3;
   c3 = tn / td;
 }
 
@@ -2858,7 +2858,7 @@ div_QQW_PA_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T con
   sub_QQW_PA_PA( a0, a1, a2, a3, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
-  td = e41;
+  td = b1;
   c1 = tn / td;
 }
 
@@ -2874,7 +2874,7 @@ div_QQW_PA_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   sub_QQW_QTW_QTW( a0, a1, a2, a3, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + b1;
+  td = b1;
   c2 = tn / td;
 }
 
@@ -2890,7 +2890,7 @@ div_QQW_PA_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   sub_QQW_QQW_QQW( a0, a1, a2, a3, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1;
+  td = b1;
   c3 = tn / td;
 }
 
@@ -2918,7 +2918,7 @@ div_QQW_QTW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   sub_QQW_PA_PA( a0, a1, a2, a3, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
-  td = e41;
+  td = b1 + b2;
   c1 = tn / td;
 }
 
@@ -2936,7 +2936,7 @@ div_QQW_QTW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T c
   sub_QQW_QTW_QTW( a0, a1, a2, a3, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + e41;
+  td = b1 + b2;
   c2 = tn / td;
 }
 
@@ -2952,7 +2952,7 @@ div_QQW_QTW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T c
   sub_QQW_QQW_QQW( a0, a1, a2, a3, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1 + b2;
+  td = b1 + b2;
   c3 = tn / td;
 }
 
@@ -2980,7 +2980,7 @@ div_QQW_QQW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T co
   sub_QQW_PA_PA( a0, a1, a2, a3, t0, t1, t0, t1 );
   T tn, td;
   tn = t0 + t1;
-  td = e41;
+  td = b1 + b2 + b3;
   c1 = tn / td;
 }
 
@@ -2998,7 +2998,7 @@ div_QQW_QQW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T c
   sub_QQW_QTW_QTW( a0, a1, a2, a3, t0, t1, t2, t0, t1, t2 );
   T tn, td;
   tn = t0 + t1 + t2;
-  td = b0 + e41;
+  td = b1 + b2 + b3;
   c2 = tn / td;
 }
 
@@ -3016,7 +3016,7 @@ div_QQW_QQW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T c
   sub_QQW_QQW_QQW( a0, a1, a2, a3, t0, t1, t2, t3, t0, t1, t2, t3 );
   T tn, td;
   tn = t0 + t1 + t2 + t3;
-  td = b0 + b1 + e41;
+  td = b1 + b2 + b3;
   c3 = tn / td;
 }
 

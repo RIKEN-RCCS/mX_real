@@ -1591,6 +1591,11 @@ def gen_div( NA, NB, NC, ACC ) :
                     + ( ' e{}'.format( e_list[1] ) if NB > NCC else '' )
             vc_list = ' '.join( [ 'c{}'.format( i ) for i in range( NC-1 ) ] )
 
+            if NB == 1 :
+                vk_list = 'b0'
+            else :
+                vk_list = 'b1 b2 b3'
+
             line[LineCount] = 'div {} {} {} {} {} {} {}'.format( NAA, NBB, NCC, ACC, va_list, vb_list, vc_list )
             LineCount = LineCount + 1
             line[LineCount] = 'mul {} {} {} {} {} {} {}'.format( NCC, NB, NC, ACC, vc_list, vB_list, vt_list )
@@ -1601,7 +1606,7 @@ def gen_div( NA, NB, NC, ACC ) :
             LineCount = LineCount + 1
             line[LineCount] = 'SUM {} tn {}'.format( NC, vt_list )
             LineCount = LineCount + 1
-            line[LineCount] = 'SUM {} td {}'.format( NBB, vb_list )
+            line[LineCount] = 'SUM {} td {}'.format( max(1,NB-1), vk_list )
             LineCount = LineCount + 1
             line[LineCount] = 'DIV c{} tn td'.format( NC-1 )
 
