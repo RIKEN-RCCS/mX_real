@@ -1591,10 +1591,7 @@ def gen_div( NA, NB, NC, ACC ) :
                     + ( ' e{}'.format( e_list[1] ) if NB > NCC else '' )
             vc_list = ' '.join( [ 'c{}'.format( i ) for i in range( NC-1 ) ] )
 
-            if NB == 1 :
-                vk_list = 'b0'
-            else :
-                vk_list = 'b1 b2 b3'
+            vk_list = 'b0 b1 b2 b3'
 
             line[LineCount] = 'div {} {} {} {} {} {} {}'.format( NAA, NBB, NCC, ACC, va_list, vb_list, vc_list )
             LineCount = LineCount + 1
