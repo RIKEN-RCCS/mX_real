@@ -1,8 +1,6 @@
 #ifndef	DX_REAL_H
 #define	DX_REAL_H
 
-#include <x86intrin.h>
-
 #include "mX_real.hpp"
 
 
