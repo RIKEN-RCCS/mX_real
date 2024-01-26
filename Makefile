@@ -54,5 +54,5 @@ mpreal:
 
 
 clean:
-	\rm *.o a.out *.s sample.exe sample.exe-* *.gch
+	\rm *.o a.out *.s sample.exe sample.exe-* *.gch *.tmp
 
