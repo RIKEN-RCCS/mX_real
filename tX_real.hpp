@@ -201,7 +201,7 @@ namespace mX_real {
       }
       template < Algorithm _A_ >
       INLINE TX_REAL<> constexpr &operator=( DX_REAL<_A_> const& h )& {
-        if ( A == _A_ && std::is_same<TX_REAL<>,DX_REAL<_A_>>::value &&
+        if ( std::is_same< TX_REAL<A>, DX_REAL<_A_> >::value &&
              this == (TX_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
         auto const t = h.quick_Normalized();
@@ -231,7 +231,7 @@ namespace mX_real {
       }
       template < Algorithm _A_ >
       INLINE TX_REAL<> constexpr &operator=( TX_REAL<_A_> const& h )& {
-        if ( A == _A_ && std::is_same<TX_REAL<>,TX_REAL<_A_>>::value &&
+        if ( std::is_same< TX_REAL<A>, TX_REAL<_A_> >::value &&
              this == (TX_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
         auto const t = h.quick_Normalized();
@@ -261,7 +261,7 @@ namespace mX_real {
       }
       template < Algorithm _A_ >
       INLINE TX_REAL<> constexpr &operator=( QX_REAL<_A_> const& h )& {
-        if ( A == _A_ && std::is_same<TX_REAL<>,QX_REAL<_A_>>::value &&
+        if ( std::is_same< TX_REAL<>, QX_REAL<_A_> >::value &&
              this == (TX_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
         auto const t = h.quick_Normalized();
