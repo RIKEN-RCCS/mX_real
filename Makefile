@@ -14,7 +14,7 @@ ifeq (x$(CXX),xicpx)
 	CXX = icpx -fp-model strict #-fast #-qopt-report-stdout -ipo
 	cxx = icpx
 endif
-ifneq (x$(shell which $(CXX) |& grep 'which'),x)
+ifneq (x$(shell which $(CXX) 2>&1 | grep 'which'),x)
 	CXX = g++
 endif
 
