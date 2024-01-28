@@ -14,7 +14,7 @@ done
 for cxx in g++ icpx; do
 	OPT=$cxx
 	i=0
-	for MX in SW PA DW QTW TW QQW QW; do
+	for MX in SW PA DWS DWA QTW TWS TWA QQW QWS QWA; do
 		numactl --physcpubind=0-$G ./sample.exe-$cxx $i < IN | tee log-$MX-$OPT-$HOST
 		i=`expr $i + 1`
 	done
