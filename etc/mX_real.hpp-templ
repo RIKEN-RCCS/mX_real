@@ -439,8 +439,8 @@ namespace @{m}@X_real {
     static INLINE @{M}@X_REAL<> constexpr two  () { return @{M}@X_REAL<>{ fp<T>::two  }; }
     static INLINE @{M}@X_REAL<> constexpr half () { return @{M}@X_REAL<>{ fp<T>::half }; }
 
-    static INLINE @{M}@X_REAL<> constexpr nan  () { T c = fp<T>::nan; return @{M}@X_REAL<>{ c,c }; }
-    static INLINE @{M}@X_REAL<> constexpr inf  () { T c = fp<T>::inf; return @{M}@X_REAL<>{ c,c }; }
+    static INLINE @{M}@X_REAL<> constexpr nan  () { T c = fp<T>::nan; return @{M}@X_REAL<>{ c@@{, c}@@ }; }
+    static INLINE @{M}@X_REAL<> constexpr inf  () { T c = fp<T>::inf; return @{M}@X_REAL<>{ c@@{, c}@@ }; }
     static INLINE @{M}@X_REAL<> constexpr epsilon () {
       T c = fp<T>::epsilon * fp<T>::half; c = (c * c) * 2;
       return @{M}@X_REAL<>{ c };

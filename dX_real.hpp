@@ -439,8 +439,8 @@ namespace mX_real {
       static INLINE DX_REAL<> constexpr two  () { return DX_REAL<>{ fp<T>::two  }; }
       static INLINE DX_REAL<> constexpr half () { return DX_REAL<>{ fp<T>::half }; }
 
-      static INLINE DX_REAL<> constexpr nan  () { T c = fp<T>::nan; return DX_REAL<>{ c,c }; }
-      static INLINE DX_REAL<> constexpr inf  () { T c = fp<T>::inf; return DX_REAL<>{ c,c }; }
+      static INLINE DX_REAL<> constexpr nan  () { T c = fp<T>::nan; return DX_REAL<>{ c, c }; }
+      static INLINE DX_REAL<> constexpr inf  () { T c = fp<T>::inf; return DX_REAL<>{ c, c }; }
       static INLINE DX_REAL<> constexpr epsilon () {
         T c = fp<T>::epsilon * fp<T>::half; c = (c * c) * 2;
         return DX_REAL<>{ c };
@@ -466,15 +466,15 @@ namespace mX_real {
       // static member funtions
       // definition is below outside of the struct definition block
       //
-      static INLINE DX_REAL<> constexpr sqrt ( DX_REAL<> const& a );
       static INLINE DX_REAL<> constexpr abs ( DX_REAL<> const& a );
+      static INLINE DX_REAL<> constexpr sqrt ( DX_REAL<> const& a );
       static INLINE DX_REAL<> constexpr rand ();
-      static INLINE bool constexpr signbit ( DX_REAL<> const& a );
-      static INLINE bool constexpr isinf ( DX_REAL<> const& a );
       static INLINE bool constexpr is_negative ( DX_REAL<> const& a );
       static INLINE bool constexpr isnan ( DX_REAL<> const& a );
       static INLINE bool constexpr is_positive ( DX_REAL<> const& a );
+      static INLINE bool constexpr isinf ( DX_REAL<> const& a );
       static INLINE bool constexpr is_zero ( DX_REAL<> const& a );
+      static INLINE bool constexpr signbit ( DX_REAL<> const& a );
       //
 
 
@@ -484,12 +484,12 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () { mX_real::Normalize( *this ); }
       //
-      INLINE bool constexpr signbit () const { return DX_REAL<>::signbit( *this ); }
-      INLINE bool constexpr isinf () const { return DX_REAL<>::isinf( *this ); }
       INLINE bool constexpr is_negative () const { return DX_REAL<>::is_negative( *this ); }
       INLINE bool constexpr isnan () const { return DX_REAL<>::isnan( *this ); }
       INLINE bool constexpr is_positive () const { return DX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr isinf () const { return DX_REAL<>::isinf( *this ); }
       INLINE bool constexpr is_zero () const { return DX_REAL<>::is_zero( *this ); }
+      INLINE bool constexpr signbit () const { return DX_REAL<>::signbit( *this ); }
       //
 
 
@@ -527,6 +527,10 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa >
+    INLINE auto constexpr isinf ( dX_real::dx_real<T,Aa> const& a ) {
+      return fp<T>::isinf( a.quick_Normalized() );
+    }
+    template < typename T, Algorithm Aa >
     INLINE auto constexpr signbit ( dX_real::dx_real<T,Aa> const& a ) {
       return fp<T>::signbit( a.quick_Normalized() );
     }
@@ -535,16 +539,12 @@ namespace mX_real {
       return fp<T>::isnan( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isinf ( dX_real::dx_real<T,Aa> const& a ) {
-      return fp<T>::isinf( a.quick_Normalized() );
+    INLINE bool constexpr is_negative ( dX_real::dx_real<T,Aa> const& a ) {
+      return a.quick_Normalized() < fp<T>::zero;
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_positive ( dX_real::dx_real<T,Aa> const& a ) {
       return a.quick_Normalized() > fp<T>::zero;
-    }
-    template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_negative ( dX_real::dx_real<T,Aa> const& a ) {
-      return a.quick_Normalized() < fp<T>::zero;
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_zero ( dX_real::dx_real<T,Aa> const& a ) {
