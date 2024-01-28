@@ -15,11 +15,13 @@ namespace mX_real {
 
       //
       //
+      //
       using base_T = T;
       static Algorithm constexpr base_A = A;
 
       //
       // {DX,TX,QX}_REAL are shortcut type only within qx_real
+      //
       //
     private:
       template < Algorithm _A_=A >
@@ -31,10 +33,12 @@ namespace mX_real {
 
       //
       //
+      //
     public:
       static int constexpr L = 4;
       T x[L];
 
+      //
       //
       //
       template < Algorithm _A_ >
@@ -50,6 +54,7 @@ namespace mX_real {
 
       //
       // A special member function utilized in constructors
+      //
       //
       INLINE T constexpr quick_Normalized () const {
         T s = x[0];
@@ -68,6 +73,7 @@ namespace mX_real {
 
       //
       // Simple constructors
+      //
       //
       INLINE qx_real() {
         for(int i=0; i<L; i++) { x[i] = fp<T>::zero; }
@@ -99,6 +105,7 @@ namespace mX_real {
       // Copy constructor with (or without) any Algorithm switch
       // auto zero_accurate = df_Real( 0 ); // constructor
       // auto zero_sloppy = df_Real_sloppy( zero_accurate ); // copy constructor
+      //
       //
       INLINE qx_real( T const& h ) { // constructor
         x[0] = h; for(int i=1; i<L; i++) { x[i] = fp<T>::zero; }
@@ -196,6 +203,7 @@ namespace mX_real {
       // Copy-assignment operator
       // auto one = df_Real( 1 ); // a constructor with Accurate
       // one = df_Real_sloppy( one ); // LHS is a copy-assignment S->A operator, while RHS A->S.
+      //
       //
       INLINE QX_REAL<> constexpr &operator=( int const& h )& {
         x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero; }
@@ -308,6 +316,7 @@ namespace mX_real {
       // auto one = df_Real( 1 ); // constructor with an argument
       // auto one_ = (sf_Real_quasi)one; // RHS is datacast while LHS is a copy constructor
       //
+      //
       explicit
       INLINE operator T() const noexcept {
         if ( A == Algorithm::Quasi ) {
@@ -414,6 +423,7 @@ namespace mX_real {
       //
       // unneccessary operators are invalidaded
       //
+      //
       auto const operator!  () = delete;
       auto const operator~  () = delete;
       auto const operator++ () = delete;
@@ -433,6 +443,7 @@ namespace mX_real {
       // static constexpr member functions or constatns
       // contents are always in Accurate format
       // but they follow in the Algorithm argument 'A'
+      //
       //
       static INLINE QX_REAL<> constexpr zero () { return QX_REAL<>{ fp<T>::zero }; }
       static INLINE QX_REAL<> constexpr one  () { return QX_REAL<>{ fp<T>::one  }; }
@@ -2101,12 +2112,13 @@ namespace mX_real {
 
     //
     //
+    //
     template < typename T, Algorithm Aa >
     INLINE std::ostream& operator<< ( std::ostream& stream, qX_real::qx_real<T,Aa> const& a ) {
       int constexpr LL = qX_real::qx_real<T,Aa>::L;
       stream << std::to_string(a.x[0]);
       for(int i=1; i<LL; i++) {
-        stream << " " << std::to_string(a.x[1]);
+        stream << " " << std::to_string(a.x[i]);
       }
       return stream;
     }
