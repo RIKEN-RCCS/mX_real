@@ -111,22 +111,24 @@ namespace @{m}@X_real {
         for(int i=0; i<L; i++) { x[i] = t; }
       } else
 #endif
-      int constexpr LL = DX_REAL<>::L;
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+      {
+        int constexpr LL = DX_REAL<>::L;
+        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         } else {
-          for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-        }
-      } else {
-        auto s = h;
-	mX_real::Normalize<1>( s );
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-        } else {
-          for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          auto s = h;
+          mX_real::Normalize<1>( s );
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         }
       }
     }
@@ -138,22 +140,24 @@ namespace @{m}@X_real {
         for(int i=0; i<L; i++) { x[i] = t; }
       } else
 #endif
-      int constexpr LL = TX_REAL<>::L;
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+      {
+        int constexpr LL = TX_REAL<>::L;
+        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         } else {
-          for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-        }
-      } else {
-        auto s = h;
-	mX_real::Normalize<1>( s );
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-        } else {
-          for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          auto s = h;
+          mX_real::Normalize<1>( s );
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         }
       }
     }
@@ -165,22 +169,24 @@ namespace @{m}@X_real {
         for(int i=0; i<L; i++) { x[i] = t; }
       } else
 #endif
-      int constexpr LL = QX_REAL<>::L;
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+      {
+        int constexpr LL = QX_REAL<>::L;
+        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         } else {
-          for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-        }
-      } else {
-        auto s = h;
-	mX_real::Normalize<1>( s );
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-        } else {
-          for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          auto s = h;
+          mX_real::Normalize<1>( s );
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         }
       }
     }
@@ -209,22 +215,24 @@ namespace @{m}@X_real {
         for(int i=0; i<L; i++) { x[i] = t; }
       } else
 #endif
-      int constexpr LL = @{M}@X_REAL<>::L;
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+      {
+        int constexpr LL = @{M}@X_REAL<>::L;
+        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         } else {
-          for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-        }
-      } else {
-        auto s = h;
-	mX_real::Normalize<1>( s );
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-        } else {
-          for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          auto s = h;
+          mX_real::Normalize<1>( s );
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         }
       }
       return *this;
@@ -239,29 +247,31 @@ namespace @{m}@X_real {
         for(int i=0; i<L; i++) { x[i] = t; }
       } else
 #endif
-      int constexpr LL = @{M}@X_REAL<>::L;
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+      {
+        int constexpr LL = @{M}@X_REAL<>::L;
+        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         } else {
-          for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-        }
-      } else {
-        auto s = h;
-	mX_real::Normalize<1>( s );
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-        } else {
-          for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          auto s = h;
+          mX_real::Normalize<1>( s );
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         }
       }
       return *this;
     }
     template < Algorithm _A_ >
     INLINE @{M}@X_REAL<> constexpr &operator=( QX_REAL<_A_> const& h )_LV_ {
-      if ( std::is_same< @{M}@X_REAL<>, QX_REAL<_A_> >::value &&
+      if ( std::is_same< @{M}@X_REAL<A>, QX_REAL<_A_> >::value &&
         this == (@{M}@X_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
@@ -269,22 +279,24 @@ namespace @{m}@X_real {
         for(int i=0; i<L; i++) { x[i] = t; }
       } else
 #endif
-      int constexpr LL = @{M}@X_REAL<>::L;
-      if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+      {
+        int constexpr LL = @{M}@X_REAL<>::L;
+        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         } else {
-          for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-        }
-      } else {
-        auto s = h;
-	mX_real::Normalize<1>( s );
-        if ( L <= LL ) {
-          for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-        } else {
-          for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-          for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          auto s = h;
+          mX_real::Normalize<1>( s );
+          if ( L <= LL ) {
+            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
+          } else {
+            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
+            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
+          }
         }
       }
       return *this;
