@@ -11,7 +11,7 @@ ifeq (x$(CXX),xg++)
 	cxx = g++
 endif
 ifeq (x$(CXX),xicpx)
-	CXX = icpx -fp-model strict #-fast #-qopt-report-stdout -ipo
+	CXX = icpx
 	cxx = icpx
 endif
 ifneq (x$(shell which $(CXX) 2>&1 | grep 'which'),x)
@@ -19,6 +19,10 @@ ifneq (x$(shell which $(CXX) 2>&1 | grep 'which'),x)
 endif
 
 CXX := $(CXX) --std=c++14
+ifeq (x$(cxx),xicpx)
+        CXX := $(CXX) -fp-model strict #-fast #-qopt-report-stdout -ipo
+endif
+
 
 CCFLAGS := $(CCFLAGS) -O3 -Wall -I./ -include mX_real.hpp #-ftime-report
 LDFLAGS = -fopenmp -lquadmath -lm
