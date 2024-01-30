@@ -7,3 +7,6 @@ qxw.hpp: gen_code.py s.py
 clean:
 	\rm qxw.hpp sqrt.hpp
 
+distclean:
+	make clean
+

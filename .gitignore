@@ -14,3 +14,6 @@ Ozaki-QW/old
 *.gch
 etc/*.hpp
 etc/old-src
+etc/qd-*
+etc/qd_real
+qd_real

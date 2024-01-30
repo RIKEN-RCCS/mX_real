@@ -97,5 +97,11 @@ qx_uni.hpp: mx.py
 
 
 clean:
-	\rm *.hpp
+	-\rm *.hpp
+distclean:
+	-make clean
+	-\rm -rf mpreal
+	-\rm qd-2.3.24.tar.gz
+	-\rm -rf qd-2.3.24
+	-\rm qd_real
 
