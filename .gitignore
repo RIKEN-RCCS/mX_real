@@ -1,5 +1,8 @@
 *.o
 *.s
+dX_real.hpp
+tX_real.hpp
+qX_real.hpp
 a.out
 log*
 Log*
@@ -10,6 +13,7 @@ sample.s-*
 *.tmp
 *.swp
 *.awk
+Ozaki-QW/qxw.hpp
 Ozaki-QW/old
 *.gch
 etc/*.hpp
