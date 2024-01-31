@@ -11,7 +11,12 @@ case "$yn" in
   [yY]*)ok=1;;
 esac
 if [ $ok -eq 0 ]; then
-	exit 0
+	echo 'Benchmark code needs the latest qd library.'
+        echo 'Please install it by yourself appropleately.'
+	echo 'Technical details are on https://www.davidhbailey.com/dhbsoftware/'
+	echo 'If you already have installed on your system, link the qd directory to qd_real.'
+	echo 'For example, ln -s (qd-directory) ./qd_real'
+	exit 1
 fi
 
 
@@ -26,7 +31,7 @@ if [ -f qd-2.3.24 ]; then
 fi
 tar zxvf qd-2.3.24.tar.gz
 cd qd-2.3.24
-./configure
+./configure --enable-ieee-add --disable-sloppy-mul --disable-sloppy-div
 make
 cd ..
 

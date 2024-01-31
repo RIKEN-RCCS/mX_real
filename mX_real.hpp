@@ -133,13 +133,16 @@ namespace mX_real {
       return std::rand();
     }
 
-    static INLINE float ulp( float const a ) {
+    static INLINE auto hbit( float const a ) {
       return QxW::fp_const<float>::ulp( a );
     }
-    static INLINE float exponent( float const a ) {
+    static INLINE auto ulp( float const a ) {
+      return QxW::fp_const<float>::ulp( a );
+    }
+    static INLINE auto exponent( float const a ) {
       return QxW::fp_const<float>::exponent( a );
     }
-    static INLINE float exponenti( float const a ) {
+    static INLINE auto exponenti( float const a ) {
       return QxW::fp_const<float>::exponenti( a );
     }
   };
@@ -195,13 +198,16 @@ namespace mX_real {
       return std::rand();
     }
 
-    static INLINE double ulp( double const a ) {
+    static INLINE auto hbit( double const a ) {
       return QxW::fp_const<double>::ulp( a );
     }
-    static INLINE double exponent( double const a ) {
+    static INLINE auto ulp( double const a ) {
+      return QxW::fp_const<double>::ulp( a );
+    }
+    static INLINE auto exponent( double const a ) {
       return QxW::fp_const<double>::exponent( a );
     }
-    static INLINE double exponenti( double const a ) {
+    static INLINE auto exponenti( double const a ) {
       return QxW::fp_const<double>::exponenti( a );
     }
   };
@@ -238,28 +244,39 @@ namespace mX_real {
   // common operation functions
   //
   template < typename T >
-  INLINE void twoSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
+  INLINE auto twoSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
     QxW::TwoSum( a, b, s, e );
   }
   template < typename T >
-  INLINE void twoSum ( T & __restrict__ a, T & __restrict__ b ) {
+  INLINE auto twoSum ( T & __restrict__ a, T & __restrict__ b ) {
     twoSum( a, b, a, b );
   }
 
   //
   template < typename T >
-  INLINE void quickSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
+  INLINE auto quickSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
     QxW::FastTwoSum( a, b, s, e );
   }
   template < typename T >
-  INLINE void quickSum ( T & __restrict__ a, T & __restrict__ b ) {
+  INLINE auto quickSum ( T & __restrict__ a, T & __restrict__ b ) {
     quickSum( a, b, a, b );
   }
 
   //
   template < typename T >
-  INLINE void twoProdFMA ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
+  INLINE auto twoProdFMA ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
     QxW::TwoProductFMA( a, b, s, e );
+  }
+
+  //
+  template < typename T >
+  INLINE auto constexpr copy_with_rounding( T * __restrict__ dest, T const * __restrict__ src, int const L, int const LL ) {
+    if ( L <= LL ) {
+      for(int i=0; i<L; i++) { dest[i] = src[i]; }
+    } else {
+      for(int i=0; i<LL; i++) { dest[i] = src[i]; }
+      for(int i=LL; i<L; i++) { dest[i] = fp<T>::zero; }
+    }
   }
 
 
@@ -277,7 +294,7 @@ namespace mX_real {
   //       : >1 => Quasi
   //
   template < int N_accuracy = 0, typename T, Algorithm A >
-  INLINE void Normalize( dX_real::dx_real<T,A> & c ) {
+  INLINE auto Normalize( dX_real::dx_real<T,A> & c ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     auto t = c.x[0] + c.x[1];
     if ( std::isnan( t ) || std::isinf( t ) ) {
@@ -294,7 +311,7 @@ namespace mX_real {
   }
   //
   template < int N_accuracy = 0, typename T, Algorithm A >
-  INLINE void Normalize( tX_real::tx_real<T,A> & c ) {
+  INLINE auto Normalize( tX_real::tx_real<T,A> & c ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     auto t = c.x[0] + c.x[1] + c.x[2];
     if ( std::isnan( t ) || std::isinf( t ) ) {
@@ -318,7 +335,7 @@ namespace mX_real {
   }
   //
   template < int N_accuracy = 0, typename T, Algorithm A >
-  INLINE void Normalize( qX_real::qx_real<T,A> & c ) {
+  INLINE auto Normalize( qX_real::qx_real<T,A> & c ) {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     auto t = c.x[0] + c.x[1] + c.x[2] + c.x[3];
     if ( std::isnan( t ) || std::isinf( t ) ) {

@@ -42,15 +42,15 @@ QD_LDFLAGS = ./etc/qd_real/src/.libs/libqd.a
 MPFR_CCFLAGS = -I./mpreal/
 MPFR_LDFLAGS = -lmpfr -lgmp
 
-all: a.out sample.exe mX_real.hpp.gch
+all: mX_real.hpp.gch a.out sample.exe
 
 a.out: main.o
 	$(CXX) -o a.out main.o $(LDFLAGS) $(QD_LDFLAGS) $(MPFR_LDFLAGS)
-main.o: main.cpp mpreal mX_real.hpp.gch qd_real
+main.o: mpreal qd_real main.cpp mX_real.hpp.gch
 	$(CXX) -S main.cpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
 	$(CXX) -c main.cpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
 
-sample.exe: sample.cpp mpreal mX_real.hpp.gch
+sample.exe: mpreal sample.cpp mX_real.hpp.gch
 	$(CXX) -S            sample.cpp $(CCFLAGS)
 	$(CXX) -o sample.exe sample.cpp $(CCFLAGS)
 

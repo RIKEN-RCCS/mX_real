@@ -48,7 +48,14 @@ template <> struct fp_const<float> {
     return x.a;
   }
 
-  static INLINE float ulp( float const a ) {
+  static INLINE auto hbit( double const a ) {
+    auto e = fp2uint( a );
+    auto s = e & SBIT;
+    e &= MASK;
+    e |= s;
+    return uint2fp( e );
+  }
+  static INLINE auto ulp( float const a ) {
     if ( a == zero() ) return a;
     auto e = fp2uint( a );
     auto s = e & SBIT;
@@ -93,7 +100,14 @@ template <> struct fp_const<double> {
     return x.a;
   }
 
-  static INLINE double ulp( double const a ) {
+  static INLINE auto hbit( double const a ) {
+    auto e = fp2uint( a );
+    auto s = e & SBIT;
+    e &= MASK;
+    e |= s;
+    return uint2fp( e );
+  }
+  static INLINE auto ulp( double const a ) {
     if ( a == zero() ) return a;
     auto e = fp2uint( a );
     auto s = e & SBIT;

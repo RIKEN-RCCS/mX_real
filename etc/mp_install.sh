@@ -10,9 +10,15 @@ case "$yn" in
   [yY]*)ok=1;;
 esac
 if [ $ok -eq 0 ]; then
-	exit 0
+	echo 'Benchmark code needs mpreal class.'
+	echo 'Please install it by yourself appropleately (default directory is mpreal).'
+	echo 'Technical details are on https://github.com/advanpix/mpreal'
+	exit 1
 fi
 
+if [ -e mpreal ]; then
+	\rm -rf mpreal
+fi
 mkdir mpreal
 git clone https://github.com/advanpix/mpreal.git
 

@@ -110,8 +110,9 @@ namespace @{m}@X_real {
     INLINE @{m}@x_real( T const& h ) { // constructor
       x[0] = h; for(int i=1; i<L; i++) { x[i] = fp<T>::zero; }
     }
-    template < Algorithm _A_ >
-    INLINE @{m}@x_real( DX_REAL<_A_> const& h ) {
+    template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, IF_T_mX<_TX_<T,_A_>> >
+    INLINE @{m}@x_real( _TX_<T,_A_> const& h ) {
+      using TX = _TX_<T,_A_>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -119,81 +120,13 @@ namespace @{m}@X_real {
       } else
 #endif
       {
-        int constexpr LL = DX_REAL<>::L;
+        int constexpr LL = TX::L;
         if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
+          copy_with_rounding( x, h.x, L, LL );
         } else {
           auto s = h;
           mX_real::Normalize<1>( s );
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
-        }
-      }
-    }
-    template < Algorithm _A_ >
-    INLINE @{m}@x_real( TX_REAL<_A_> const& h ) {
-#if MX_REAL_USE_INF_NAN_EXCEPTION
-      auto const t = h.quick_Normalized();
-      if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-        for(int i=0; i<L; i++) { x[i] = t; }
-      } else
-#endif
-      {
-        int constexpr LL = TX_REAL<>::L;
-        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
-        } else {
-          auto s = h;
-          mX_real::Normalize<1>( s );
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
-        }
-      }
-    }
-    template < Algorithm _A_ >
-    INLINE @{m}@x_real( QX_REAL<_A_> const& h ) {
-#if MX_REAL_USE_INF_NAN_EXCEPTION
-      auto const t = h.quick_Normalized();
-      if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-        for(int i=0; i<L; i++) { x[i] = t; }
-      } else
-#endif
-      {
-        int constexpr LL = QX_REAL<>::L;
-        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
-        } else {
-          auto s = h;
-          mX_real::Normalize<1>( s );
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
+          copy_with_rounding( x, s.x, L, LL );
         }
       }
     }
@@ -213,9 +146,9 @@ namespace @{m}@X_real {
       x[0] = h; for(int i=1; i<L; i++) { x[i] = fp<T>::zero; }
       return *this;
     }
-    template < Algorithm _A_ >
-    INLINE @{M}@X_REAL<> constexpr &operator=( DX_REAL<_A_> const& h )_LV_ {
-      if ( std::is_same< @{M}@X_REAL<A>, DX_REAL<_A_> >::value &&
+    template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, IF_T_mX<_TX_<T,_A_>> >
+    INLINE @{M}@X_REAL<> constexpr &operator=( _TX_<T,_A_> const& h )_LV_ {
+      if ( std::is_same< @{M}@X_REAL<A>, _TX_<T,_A_> >::value &&
         this == (@{M}@X_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
@@ -226,85 +159,11 @@ namespace @{m}@X_real {
       {
         int constexpr LL = @{M}@X_REAL<>::L;
         if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
+          copy_with_rounding( x, h.x, L, LL );
         } else {
           auto s = h;
           mX_real::Normalize<1>( s );
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
-        }
-      }
-      return *this;
-    }
-    template < Algorithm _A_ >
-    INLINE @{M}@X_REAL<> constexpr &operator=( TX_REAL<_A_> const& h )_LV_ {
-      if ( std::is_same< @{M}@X_REAL<A>, TX_REAL<_A_> >::value &&
-        this == (@{M}@X_REAL<>*)(&h) ) { return *this; }
-#if MX_REAL_USE_INF_NAN_EXCEPTION
-      auto const t = h.quick_Normalized();
-      if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-        for(int i=0; i<L; i++) { x[i] = t; }
-      } else
-#endif
-      {
-        int constexpr LL = @{M}@X_REAL<>::L;
-        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
-        } else {
-          auto s = h;
-          mX_real::Normalize<1>( s );
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
-        }
-      }
-      return *this;
-    }
-    template < Algorithm _A_ >
-    INLINE @{M}@X_REAL<> constexpr &operator=( QX_REAL<_A_> const& h )_LV_ {
-      if ( std::is_same< @{M}@X_REAL<A>, QX_REAL<_A_> >::value &&
-        this == (@{M}@X_REAL<>*)(&h) ) { return *this; }
-#if MX_REAL_USE_INF_NAN_EXCEPTION
-      auto const t = h.quick_Normalized();
-      if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-        for(int i=0; i<L; i++) { x[i] = t; }
-      } else
-#endif
-      {
-        int constexpr LL = @{M}@X_REAL<>::L;
-        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = h.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = h.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
-        } else {
-          auto s = h;
-          mX_real::Normalize<1>( s );
-          if ( L <= LL ) {
-            for(int i=0; i<L; i++) { x[i] = s.x[i]; }
-          } else {
-            for(int i=0; i<LL; i++) { x[i] = s.x[i]; }
-            for(int i=LL; i<L; i++) { x[i] = fp<T>::zero; }
-          }
+          copy_with_rounding( x, s.x, L, LL );
         }
       }
       return *this;
@@ -325,10 +184,10 @@ namespace @{m}@X_real {
         return x[0];
       }
     }
-    template < Algorithm _A_ >
+    template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, IF_T_mX<_TX_<T,_A_>> >
     explicit
-    INLINE operator DX_REAL<_A_>() const noexcept {
-      using TX = DX_REAL<_A_>;
+    INLINE operator _TX_<T,_A_>() const noexcept {
+      using TX = _TX_<T,_A_>;
       TX c;
       int constexpr LL = TX::L;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
@@ -340,81 +199,9 @@ namespace @{m}@X_real {
       if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
         auto s = *this;
 	mX_real::Normalize<1>( s );
-        if ( L >= LL ) {
-          for(int i=0; i<LL; i++) { c.x[i] = s.x[i]; }
-        } else {
-          for(int i=0; i<L; i++) { c.x[i] = s.x[i]; }
-          for(int i=L; i<LL; i++) { c.x[i] = fp<T>::zero; }
-        }
+        copy_with_rounding( c.x, x, L, LL );
       } else {
-        if ( L >= LL ) {
-          for(int i=0; i<LL; i++) { c.x[i] = x[i]; }
-        } else {
-          for(int i=0; i<L; i++) { c.x[i] = x[i]; }
-          for(int i=L; i<LL; i++) { c.x[i] = fp<T>::zero; }
-        }
-      }
-      return c;
-    }
-    template < Algorithm _A_ >
-    explicit
-    INLINE operator TX_REAL<_A_>() const noexcept {
-      using TX = TX_REAL<_A_>;
-      TX c;
-      int constexpr LL = TX::L;
-#if MX_REAL_USE_INF_NAN_EXCEPTION
-      auto const t = this->quick_Normalized();
-      if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-        for(int i=0; i<LL; i++) { c.x[i] = t; }
-      } else
-#endif
-      if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
-        auto s = *this;
-	mX_real::Normalize<1>( s );
-        if ( L >= LL ) {
-          for(int i=0; i<LL; i++) { c.x[i] = s.x[i]; }
-        } else {
-          for(int i=0; i<L; i++) { c.x[i] = s.x[i]; }
-          for(int i=L; i<LL; i++) { c.x[i] = fp<T>::zero; }
-        }
-      } else {
-        if ( L >= LL ) {
-          for(int i=0; i<LL; i++) { c.x[i] = x[i]; }
-        } else {
-          for(int i=0; i<L; i++) { c.x[i] = x[i]; }
-          for(int i=L; i<LL; i++) { c.x[i] = fp<T>::zero; }
-        }
-      }
-      return c;
-    }
-    template < Algorithm _A_ >
-    explicit
-    INLINE operator QX_REAL<_A_>() const noexcept {
-      using TX = QX_REAL<_A_>;
-      TX c;
-      int constexpr LL = TX::L;
-#if MX_REAL_USE_INF_NAN_EXCEPTION
-      auto const t = this->quick_Normalized();
-      if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-        for(int i=0; i<LL; i++) { c.x[i] = t; }
-      } else
-#endif
-      if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
-        auto s = *this;
-	mX_real::Normalize<1>( s );
-        if ( L >= LL ) {
-          for(int i=0; i<LL; i++) { c.x[i] = s.x[i]; }
-        } else {
-          for(int i=0; i<L; i++) { c.x[i] = s.x[i]; }
-          for(int i=L; i<LL; i++) { c.x[i] = fp<T>::zero; }
-        }
-      } else {
-        if ( L >= LL ) {
-          for(int i=0; i<LL; i++) { c.x[i] = x[i]; }
-        } else {
-          for(int i=0; i<L; i++) { c.x[i] = x[i]; }
-          for(int i=L; i<LL; i++) { c.x[i] = fp<T>::zero; }
-        }
+        copy_with_rounding( c.x, x, L, LL );
       }
       return c;
     }
