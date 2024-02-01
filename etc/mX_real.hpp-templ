@@ -44,9 +44,9 @@ namespace @{m}@X_real {
     template < Algorithm _A_ >
     using type_with_Algorithm = @{M}@X_REAL<_A_>;
     //
-    using type_Accurate   = type_with_Algorithm<Algorithm::Accurate>;
-    using type_Sloppy     = type_with_Algorithm<Algorithm::Sloppy>;
-    using type_Quasi      = type_with_Algorithm<Algorithm::Quasi>;
+@@@{ A Accurate Sloppy Quasi
+    using type_@{A}@   = type_with_Algorithm<Algorithm::@{A}@>;
+}@@@
     //
     using accurate_type   = type_with_Algorithm<accurateAlgorithm<A>::algorithm>;
     using inaccurate_type = type_with_Algorithm<inaccurateAlgorithm<A>::algorithm>;
@@ -87,7 +87,8 @@ namespace @{m}@X_real {
 #endif
       { x[0] = x0;@@{ x[@{i}@] = x@{i}@;}@@ }
     }
-    INLINE @{m}@x_real( int const &h ) {
+    template < typename Ts, IF_T_scalar<Ts> >
+    INLINE @{m}@x_real( Ts const &h ) {
       { x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero; } }
     }
     INLINE @{m}@x_real( T const *d ) {
@@ -103,13 +104,8 @@ namespace @{m}@X_real {
 
     //
     // Copy constructor with (or without) any Algorithm switch
-    // auto zero_accurate = df_Real( 0 ); // constructor
-    // auto zero_sloppy = df_Real_sloppy( zero_accurate ); // copy constructor
     //
     //
-    INLINE @{m}@x_real( T const& h ) { // constructor
-      x[0] = h; for(int i=1; i<L; i++) { x[i] = fp<T>::zero; }
-    }
     template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, IF_T_mX<_TX_<T,_A_>> >
     INLINE @{m}@x_real( _TX_<T,_A_> const& h ) {
       using TX = _TX_<T,_A_>;
@@ -134,16 +130,11 @@ namespace @{m}@X_real {
 
     //
     // Copy-assignment operator
-    // auto one = df_Real( 1 ); // a constructor with Accurate
-    // one = df_Real_sloppy( one ); // LHS is a copy-assignment S->A operator, while RHS A->S.
     //
     //
-    INLINE @{M}@X_REAL<> constexpr &operator=( int const& h )_LV_ {
+    template < typename Ts, IF_T_scalar<Ts> >
+    INLINE @{M}@X_REAL<> constexpr &operator=( Ts const& h )_LV_ {
       x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero; }
-      return *this;
-    }
-    INLINE @{M}@X_REAL<> constexpr &operator=( T const& h )_LV_ {
-      x[0] = h; for(int i=1; i<L; i++) { x[i] = fp<T>::zero; }
       return *this;
     }
     template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, IF_T_mX<_TX_<T,_A_>> >
@@ -172,8 +163,6 @@ namespace @{m}@X_real {
 
     //
     // Casting to other datatypes like
-    // auto one = df_Real( 1 ); // constructor with an argument
-    // auto one_ = (sf_Real_quasi)one; // RHS is datacast while LHS is a copy constructor
     //
     //
     explicit
@@ -211,19 +200,13 @@ namespace @{m}@X_real {
     // unneccessary operators are invalidaded
     //
     //
-    auto const operator!  () = delete;
-    auto const operator~  () = delete;
-    auto const operator++ () = delete;
-    auto const operator-- () = delete;
-    template < typename _T_ > auto const operator&&  ( _T_ a ) = delete;
-    template < typename _T_ > auto const operator||  ( _T_ a ) = delete;
-    template < typename _T_ > auto const operator&=  ( _T_ a ) = delete;
-    template < typename _T_ > auto const operator^=  ( _T_ a ) = delete;
-    template < typename _T_ > auto const operator<<= ( _T_ a ) = delete;
-    template < typename _T_ > auto const operator>>= ( _T_ a ) = delete;
-    template < typename _T_ > auto const operator,   ( _T_ a ) = delete;
+@@@{ op ! ~ ++ --
+    auto const operator@{op}@ () = delete;
+}@@@
+@@@{ op && || &= ^= <<= >>= , []
+    template < typename _T_ > auto const operator@{op}@  ( _T_ a ) = delete;
+}@@@
     auto const operator() (...) = delete;
-    template < typename _T_ > auto const operator[]  ( _T_ a ) = delete;
 
 
     //
@@ -232,13 +215,12 @@ namespace @{m}@X_real {
     // but they follow in the Algorithm argument 'A'
     //
     //
-    static INLINE @{M}@X_REAL<> constexpr zero () { return @{M}@X_REAL<>{ fp<T>::zero }; }
-    static INLINE @{M}@X_REAL<> constexpr one  () { return @{M}@X_REAL<>{ fp<T>::one  }; }
-    static INLINE @{M}@X_REAL<> constexpr two  () { return @{M}@X_REAL<>{ fp<T>::two  }; }
-    static INLINE @{M}@X_REAL<> constexpr half () { return @{M}@X_REAL<>{ fp<T>::half }; }
-
-    static INLINE @{M}@X_REAL<> constexpr nan  () { T c = fp<T>::nan; return @{M}@X_REAL<>{ c@@{, c}@@ }; }
-    static INLINE @{M}@X_REAL<> constexpr inf  () { T c = fp<T>::inf; return @{M}@X_REAL<>{ c@@{, c}@@ }; }
+@@@{ func zero one two half
+    static INLINE @{M}@X_REAL<> constexpr @{func}@ () { return @{M}@X_REAL<>{ fp<T>::@{func}@ }; }
+}@@@
+@@@{ func nan inf
+    static INLINE @{M}@X_REAL<> constexpr @{func}@ () { T c = fp<T>::@{func}@; return @{M}@X_REAL<>{ c@@{, c}@@ }; }
+}@@@
     static INLINE @{M}@X_REAL<> constexpr epsilon () {
       T c = fp<T>::epsilon * fp<T>::half; c = (c * c) * 2;
       return @{M}@X_REAL<>{ c };

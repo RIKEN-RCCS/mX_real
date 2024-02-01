@@ -17,11 +17,11 @@ def all_replace( line, Tc, m_pattern, M_pattern ) :
         fmt = line
         fmt = re.sub( '.*@@{', '', fmt )
         fmt = re.sub( '}@@.*', '', fmt )
-        s = ''
+        s_pattern = ''
         for i in range( 1, Tc ) :
-                s = s + fmt.replace( '@{i}@', str(i) )
+                s_pattern = s_pattern + fmt.replace( '@{i}@', str(i) )
         fmt = '@@{' + fmt + '}@@'
-        line = line.replace( fmt, s )
+        line = line.replace( fmt, s_pattern )
     return line
 
 
@@ -36,10 +36,9 @@ def Read_Data( infile, Tc ) :
             if not line :
                 break
             line = line.rstrip('\n')
-            line = all_replace( line, Tc, m_pattern, M_pattern )
 
-            if '@@@[' in line :
-                line = line.replace( '@@@[','' )
+            if '@@@{' in line :
+                line = line.replace( '@@@{','' )
                 a_list = line.split()
                 pattern = '@{{{M}}}@'.format( M=a_list[0] )
                 data = {}
@@ -47,7 +46,7 @@ def Read_Data( infile, Tc ) :
                 while True :
                     line = file.readline()
                     line = line.rstrip('\n')
-                    if ']@@@' in line :
+                    if '}@@@' in line :
                         break
                     data[i] = line
                     i = i + 1
@@ -59,16 +58,17 @@ def Read_Data( infile, Tc ) :
                             line = line.replace( pattern, c_pattern )
                         line = all_replace( line, Tc, m_pattern, M_pattern )
                         print( line )
+                continue
+
+            line = all_replace( line, Tc, m_pattern, M_pattern )
 
             if '@@include' in line :
-
                 a_list = line.split()
                 infile2 = a_list[1].replace('"','')
                 Read_Data( infile2, Tc )
+                continue
 
-            else :
-
-                print( line )
+            print( line )
 
 
 if __name__ == '__main__' :
