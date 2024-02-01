@@ -29,14 +29,12 @@ LDFLAGS = -fopenmp -lquadmath -lm
 
 # Optimizations
 CCFLAGS := $(CCFLAGS) -mfma -mavx2
-#-mavx512f
+#CCFLAGS := $(CCFLAGS) -mfma -mavx2 -mavx512f
 CCFLAGS := $(CCFLAGS) -fopenmp
 
 # QD
-#QD_CCFLAGS = -I../tm_blas/others/qd-2.3.23/include/
-#QD_LDFLAGS = ../tm_blas/others/qd-2.3.23/src/.libs/libqd.a
-QD_CCFLAGS = -I./etc/qd_real/include/
-QD_LDFLAGS = ./etc/qd_real/src/.libs/libqd.a
+QD_CCFLAGS = -I./qd_real/include/
+QD_LDFLAGS = ./qd_real/src/.libs/libqd.a
 
 # MPFR/MPREAL
 MPFR_CCFLAGS = -I./mpreal/
