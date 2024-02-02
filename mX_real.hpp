@@ -271,7 +271,17 @@ namespace mX_real {
   //
   template < typename T >
   INLINE auto constexpr copy_with_rounding( T * __restrict__ dest, T const * __restrict__ src, int const L, int const LL ) {
-    if ( L <= LL ) {
+    if ( L < LL ) {
+      for(int i=0; i<L; i++) { dest[i] = src[i]; }
+
+      if ( src[L] == fp<T>::zero ) return;
+      if ( signbit( src[L-1] ) ^ signbit( src[L] ) ) return;
+      if ( ( 0x1 & QxW::fp_const<T>::fp2uint( src[L-1] ) ) == 0 ) return;
+
+      auto const a = QxW::fp_const<T>::ulp( src[L-1] );
+      auto const b = QxW::fp_const<T>::hbit( src[L] ) * 2;
+      if ( a == b ) { dest[L-1] += a; }
+    } else if ( L == LL ) {
       for(int i=0; i<L; i++) { dest[i] = src[i]; }
     } else {
       for(int i=0; i<LL; i++) { dest[i] = src[i]; }

@@ -117,12 +117,15 @@ namespace @{m}@X_real {
 #endif
       {
         int constexpr LL = TX::L;
-        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-          copy_with_rounding( x, h.x, L, LL );
-        } else {
+        if ( ( L < LL || A != Algorithm::Quasi ) && _A_ == Algorithm::Quasi ) {
           auto s = h;
           mX_real::Normalize<1>( s );
           copy_with_rounding( x, s.x, L, LL );
+        } else {
+          copy_with_rounding( x, h.x, L, LL );
+        }
+        if ( L < LL ) {
+          mX_real::Normalize<0>( *this );
         }
       }
     }
@@ -149,12 +152,15 @@ namespace @{m}@X_real {
 #endif
       {
         int constexpr LL = @{M}@X_REAL<>::L;
-        if ( A == Algorithm::Quasi || _A_ != Algorithm::Quasi ) {
-          copy_with_rounding( x, h.x, L, LL );
-        } else {
+        if ( ( L < LL || A != Algorithm::Quasi ) && _A_ == Algorithm::Quasi ) {
           auto s = h;
           mX_real::Normalize<1>( s );
           copy_with_rounding( x, s.x, L, LL );
+        } else {
+          copy_with_rounding( x, h.x, L, LL );
+        }
+        if ( L < LL ) {
+          mX_real::Normalize<0>( *this );
         }
       }
       return *this;
@@ -185,12 +191,15 @@ namespace @{m}@X_real {
         for(int i=0; i<LL; i++) { c.x[i] = t; }
       } else
 #endif
-      if ( A == Algorithm::Quasi && _A_ != Algorithm::Quasi ) {
+      if ( ( LL < L || _A_ != Algorithm::Quasi ) && A == Algorithm::Quasi ) {
         auto s = *this;
-	mX_real::Normalize<1>( s );
-        copy_with_rounding( c.x, x, L, LL );
+        mX_real::Normalize<1>( s );
+        copy_with_rounding( c.x, s.x, LL, L );
       } else {
-        copy_with_rounding( c.x, x, L, LL );
+        copy_with_rounding( c.x, x, LL, L );
+      }
+      if ( LL < L ) {
+        mX_real::Normalize<0>( c );
       }
       return c;
     }
