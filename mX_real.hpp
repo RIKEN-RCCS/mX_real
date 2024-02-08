@@ -137,7 +137,7 @@ namespace mX_real {
     }
 
     static INLINE auto constexpr hbit( float const a ) {
-      return QxW::fp_const<float>::ulp( a );
+      return QxW::fp_const<float>::hbit( a );
     }
     static INLINE auto constexpr ulp( float const a ) {
       return QxW::fp_const<float>::ulp( a );
@@ -201,7 +201,7 @@ namespace mX_real {
     }
 
     static INLINE auto constexpr hbit( double const a ) {
-      return QxW::fp_const<double>::ulp( a );
+      return QxW::fp_const<double>::hbit( a );
     }
     static INLINE auto constexpr ulp( double const a ) {
       return QxW::fp_const<double>::ulp( a );

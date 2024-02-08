@@ -82,4 +82,5 @@ distclean:
 	-\rm qd_real
 	-\rm dX_real.hpp tX_real.hpp qX_real.hpp
 	-\rm mX_real.hpp
+	make
 

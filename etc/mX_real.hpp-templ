@@ -138,7 +138,7 @@ namespace mX_real {
     }
 
     static INLINE auto constexpr hbit( @{X}@ const a ) {
-      return QxW::fp_const<@{X}@>::ulp( a );
+      return QxW::fp_const<@{X}@>::hbit( a );
     }
     static INLINE auto constexpr ulp( @{X}@ const a ) {
       return QxW::fp_const<@{X}@>::ulp( a );
