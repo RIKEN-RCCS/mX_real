@@ -276,7 +276,7 @@ def gen_op_stub( Tc, description, func, op, commutable ) :
     print( '}' )
 
     if commutable == 1 :
-        print( 'template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && TXa::L < TXb::L) >' )
+        print( 'template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && TXa::L < TXb::L ) >' )
         print( 'INLINE auto constexpr operator_{func} ( TXa const& a, TXb const& b ) {{'.format( func=func ) )
         print( '  return {m}X_real::operator_{func} ( b, a );'.format( m=mX_type(Tc), func=func ) )
         print( '}' )
@@ -316,7 +316,7 @@ def gen_op_stub( Tc, description, func, op, commutable ) :
 
 def gen_op_operator( Tc, description, func, op, commutable ) :
 
-    print( 'template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && ( TXa::L=={L} || TXb::L=={L} ) ) >'.format( L=Tc ) )
+    print( 'template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && std::max( TXa::L, TXb::L ) == {L} ) >'.format( L=Tc ) )
     print( 'INLINE auto constexpr operator{op} ( TXa const& a, TXb const& b ) {{'.format( op=op ) )
     print( '  return {m}X_real::operator_{func} ( a, b );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
@@ -338,7 +338,7 @@ def gen_op_operator( Tc, description, func, op, commutable ) :
 
 def gen_op_operator_sub( Tc, description, func, op, commutable ) :
 
-    print( 'template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && ( TXa::L=={L} || TXb::L=={L} ) ) >'.format( L=Tc ) )
+    print( 'template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && std::max( TXa::L, TXb::L ) =={L} ) >'.format( L=Tc ) )
     print( 'INLINE auto constexpr operator- ( TXa const& a, TXb const& b ) {' )
     print( '  return a + (-b);' )
     print( '}' )

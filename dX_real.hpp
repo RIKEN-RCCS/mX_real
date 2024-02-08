@@ -262,15 +262,15 @@ namespace mX_real {
       // static member funtions
       // definition is below outside of the struct definition block
       //
-      static INLINE DX_REAL<> constexpr sqrt ( DX_REAL<> const& a );
       static INLINE DX_REAL<> constexpr abs ( DX_REAL<> const& a );
+      static INLINE DX_REAL<> constexpr sqrt ( DX_REAL<> const& a );
       static INLINE DX_REAL<> constexpr rand ();
-      static INLINE bool constexpr is_negative ( DX_REAL<> const& a );
       static INLINE bool constexpr signbit ( DX_REAL<> const& a );
-      static INLINE bool constexpr isinf ( DX_REAL<> const& a );
-      static INLINE bool constexpr isnan ( DX_REAL<> const& a );
       static INLINE bool constexpr is_positive ( DX_REAL<> const& a );
+      static INLINE bool constexpr isnan ( DX_REAL<> const& a );
+      static INLINE bool constexpr is_negative ( DX_REAL<> const& a );
       static INLINE bool constexpr is_zero ( DX_REAL<> const& a );
+      static INLINE bool constexpr isinf ( DX_REAL<> const& a );
       //
 
 
@@ -280,12 +280,12 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () { mX_real::Normalize( *this ); }
       //
-      INLINE bool constexpr is_negative () const { return DX_REAL<>::is_negative( *this ); }
       INLINE bool constexpr signbit () const { return DX_REAL<>::signbit( *this ); }
-      INLINE bool constexpr isinf () const { return DX_REAL<>::isinf( *this ); }
-      INLINE bool constexpr isnan () const { return DX_REAL<>::isnan( *this ); }
       INLINE bool constexpr is_positive () const { return DX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr isnan () const { return DX_REAL<>::isnan( *this ); }
+      INLINE bool constexpr is_negative () const { return DX_REAL<>::is_negative( *this ); }
       INLINE bool constexpr is_zero () const { return DX_REAL<>::is_zero( *this ); }
+      INLINE bool constexpr isinf () const { return DX_REAL<>::isinf( *this ); }
       //
 
 
@@ -327,6 +327,10 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa >
+    INLINE auto constexpr isinf ( dX_real::dx_real<T,Aa> const& a ) {
+      return fp<T>::isinf( a.quick_Normalized() );
+    }
+    template < typename T, Algorithm Aa >
     INLINE auto constexpr isnan ( dX_real::dx_real<T,Aa> const& a ) {
       return fp<T>::isnan( a.quick_Normalized() );
     }
@@ -335,16 +339,12 @@ namespace mX_real {
       return fp<T>::signbit( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isinf ( dX_real::dx_real<T,Aa> const& a ) {
-      return fp<T>::isinf( a.quick_Normalized() );
+    INLINE bool constexpr is_negative ( dX_real::dx_real<T,Aa> const& a ) {
+      return a.quick_Normalized() < fp<T>::zero;
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_zero ( dX_real::dx_real<T,Aa> const& a ) {
       return a.quick_Normalized() == fp<T>::zero;
-    }
-    template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_negative ( dX_real::dx_real<T,Aa> const& a ) {
-      return a.quick_Normalized() < fp<T>::zero;
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_positive ( dX_real::dx_real<T,Aa> const& a ) {
@@ -706,7 +706,7 @@ namespace mX_real {
       return dX_real::operator_add_body<T,A> ( a, b );
     }
     //
-    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && ( TXa::L==2 || TXb::L==2 ) ) >
+    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && std::max( TXa::L, TXb::L ) == 2 ) >
     INLINE auto constexpr operator+ ( TXa const& a, TXb const& b ) {
       return dX_real::operator_add ( a, b );
     }
@@ -800,7 +800,7 @@ namespace mX_real {
     // Substraction
     //
     //
-    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && ( TXa::L==2 || TXb::L==2 ) ) >
+    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && std::max( TXa::L, TXb::L ) ==2 ) >
     INLINE auto constexpr operator- ( TXa const& a, TXb const& b ) {
       return a + (-b);
     }
@@ -1103,7 +1103,7 @@ namespace mX_real {
       return dX_real::operator_mul_body<T,A> ( a, b );
     }
     //
-    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && ( TXa::L==2 || TXb::L==2 ) ) >
+    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && std::max( TXa::L, TXb::L ) == 2 ) >
     INLINE auto constexpr operator* ( TXa const& a, TXb const& b ) {
       return dX_real::operator_mul ( a, b );
     }
@@ -1491,7 +1491,7 @@ namespace mX_real {
       return dX_real::operator_div_body<T,A> ( a, b );
     }
     //
-    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && ( TXa::L==2 || TXb::L==2 ) ) >
+    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && std::max( TXa::L, TXb::L ) == 2 ) >
     INLINE auto constexpr operator/ ( TXa const& a, TXb const& b ) {
       return dX_real::operator_div ( a, b );
     }

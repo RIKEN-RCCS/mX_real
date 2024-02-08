@@ -302,6 +302,38 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
 }
 
 
+template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T, typename TXb::base_T>::value ) >
+void check_mul()
+{
+  auto eps0 = TXa::epsilon();
+  auto eps1 = TXb::epsilon();
+  auto eps  = ( TXa::L > TXb::L ? convert( eps0 ) : convert( eps1 ) ) * 1.5;
+
+  for(int i=1;i<10000;i++){
+    auto a = TXa::rand();
+    auto b = TXb::rand();
+    auto c = a * b;
+
+    auto a_ = convert( a );
+    auto b_ = convert( b );
+    auto c_ = a_ * b_;
+
+    auto e_ = fabs( c_ - convert( c ) );
+
+    auto f = c.x[0];
+    for(int j=1; j< std::max(TXa::L,TXb::L); j++) f += c.x[j];
+    auto f_ = double( std::abs(f) ) * eps;
+
+    if ( e_ > f_ ) {
+      std::cout << a_ << " * " << b_ << " = " << c_ << " / " << e_ << " . " << f_ << "\n";
+      exit(1);
+    }
+  }
+  char sa[64]; TYPE_name<TXa>( sa );
+  char sb[64]; TYPE_name<TXb>( sb );
+  std::cout << "PASS: " << std::string( sa ) << " * " << std::string( sb ) << "\n";
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -317,6 +349,79 @@ main(int argc, char *argv[])
   
   auto alpha = sqrt( mp_real(2) );
   
+  check_mul<df_Real,df_Real>();
+  check_mul<df_Real,df_Real_quasi>();
+  check_mul<df_Real,df_Real_sloppy>();
+
+  check_mul<df_Real_quasi,df_Real>();
+  check_mul<df_Real_quasi,df_Real_quasi>();
+  check_mul<df_Real_quasi,df_Real_sloppy>();
+
+  check_mul<df_Real_sloppy,df_Real>();
+  check_mul<df_Real_sloppy,df_Real_quasi>();
+  check_mul<df_Real_sloppy,df_Real_sloppy>();
+
+  check_mul<tf_Real,df_Real>();
+  check_mul<tf_Real,df_Real_quasi>();
+  check_mul<tf_Real,df_Real_sloppy>();
+
+  check_mul<tf_Real_quasi,df_Real>();
+  check_mul<tf_Real_quasi,df_Real_quasi>();
+  check_mul<tf_Real_quasi,df_Real_sloppy>();
+
+  check_mul<tf_Real_sloppy,df_Real>();
+  check_mul<tf_Real_sloppy,df_Real_quasi>();
+  check_mul<tf_Real_sloppy,df_Real_sloppy>();
+
+  check_mul<tf_Real,tf_Real>();
+  check_mul<tf_Real,tf_Real_quasi>();
+  check_mul<tf_Real,tf_Real_sloppy>();
+
+  check_mul<tf_Real_quasi,tf_Real>();
+  check_mul<tf_Real_quasi,tf_Real_quasi>();
+  check_mul<tf_Real_quasi,tf_Real_sloppy>();
+
+  check_mul<tf_Real_sloppy,tf_Real>();
+  check_mul<tf_Real_sloppy,tf_Real_quasi>();
+  check_mul<tf_Real_sloppy,tf_Real_sloppy>();
+
+  check_mul<qf_Real,df_Real>();
+  check_mul<qf_Real,df_Real_quasi>();
+  check_mul<qf_Real,df_Real_sloppy>();
+
+  check_mul<qf_Real_quasi,df_Real>();
+  check_mul<qf_Real_quasi,df_Real_quasi>();
+  check_mul<qf_Real_quasi,df_Real_sloppy>();
+
+  check_mul<qf_Real_sloppy,df_Real>();
+  check_mul<qf_Real_sloppy,df_Real_quasi>();
+  check_mul<qf_Real_sloppy,df_Real_sloppy>();
+
+  check_mul<qf_Real,tf_Real>();
+  check_mul<qf_Real,tf_Real_quasi>();
+  check_mul<qf_Real,tf_Real_sloppy>();
+
+  check_mul<qf_Real_quasi,tf_Real>();
+  check_mul<qf_Real_quasi,tf_Real_quasi>();
+  check_mul<qf_Real_quasi,tf_Real_sloppy>();
+
+  check_mul<qf_Real_sloppy,tf_Real>();
+  check_mul<qf_Real_sloppy,tf_Real_quasi>();
+  check_mul<qf_Real_sloppy,tf_Real_sloppy>();
+
+  check_mul<qf_Real,qf_Real>();
+  check_mul<qf_Real,qf_Real_quasi>();
+  check_mul<qf_Real,qf_Real_sloppy>();
+
+  check_mul<qf_Real_quasi,qf_Real>();
+  check_mul<qf_Real_quasi,qf_Real_quasi>();
+  check_mul<qf_Real_quasi,qf_Real_sloppy>();
+
+  check_mul<qf_Real_sloppy,qf_Real>();
+  check_mul<qf_Real_sloppy,qf_Real_quasi>();
+  check_mul<qf_Real_sloppy,qf_Real_sloppy>();
+
+
   {
     auto cp = df_Real_quasi( 1); cp.x[1] = fp<float>::epsilon/4;
     auto cn = df_Real_quasi(-1); cn.x[1] = fp<float>::epsilon/4;
