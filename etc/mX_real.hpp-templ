@@ -150,6 +150,7 @@ namespace mX_real {
       return QxW::fp_const<@{X}@>::exponenti( a );
     }
   };
+  //
 }@@@
   //
 #undef STATIC_VAR
@@ -167,6 +168,7 @@ namespace mX_real {
   @{X}@  constexpr fp<@{X}@>::denorm_min;
   @{X}@  constexpr fp<@{X}@>::min;
   @{X}@  constexpr fp<@{X}@>::max;
+  //
 }@@@
 #endif
 #endif

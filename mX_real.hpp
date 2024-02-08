@@ -149,6 +149,7 @@ namespace mX_real {
       return QxW::fp_const<float>::exponenti( a );
     }
   };
+  //
   template <>
   struct fp<double> {
     static bool   constexpr value = true;
@@ -214,6 +215,7 @@ namespace mX_real {
     }
   };
   //
+  //
 #undef STATIC_VAR
   //
 #ifndef __INTEL_COMPILER
@@ -228,6 +230,7 @@ namespace mX_real {
   float  constexpr fp<float>::denorm_min;
   float  constexpr fp<float>::min;
   float  constexpr fp<float>::max;
+  //
   double  constexpr fp<double>::zero;
   double  constexpr fp<double>::one;
   double  constexpr fp<double>::two;
@@ -238,6 +241,7 @@ namespace mX_real {
   double  constexpr fp<double>::denorm_min;
   double  constexpr fp<double>::min;
   double  constexpr fp<double>::max;
+  //
 #endif
 #endif
   //

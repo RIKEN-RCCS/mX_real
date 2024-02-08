@@ -30,45 +30,62 @@ def Read_Data( infile, Tc ) :
     m_pattern = mX_type( Tc )
     M_pattern = mX_Type( Tc )
 
+    data = {}
+    i = 0
     with open( infile, mode = 'r' ) as file :
         while True :
             line = file.readline()
             if not line :
                 break
-            line = line.rstrip('\n')
+            data[i] = line.rstrip('\n')
+            i = i + 1
 
-            if '@@@{' in line :
-                line = line.replace( '@@@{','' )
-                a_list = line.split()
-                pattern = '@{{{M}}}@'.format( M=a_list[0] )
-                data = {}
-                i = 0
-                while True :
-                    line = file.readline()
-                    line = line.rstrip('\n')
-                    if '}@@@' in line :
-                        break
-                    data[i] = line
-                    i = i + 1
-                for itr in range(1, len(a_list) ) :
-                    c_pattern = a_list[itr]
-                    for i in range( len(data) ) :
-                        line = data[i]
-                        if pattern in line :
-                            line = line.replace( pattern, c_pattern )
-                        line = all_replace( line, Tc, m_pattern, M_pattern )
-                        print( line )
-                continue
+    i = 0
+    while i < len(data) :
 
-            line = all_replace( line, Tc, m_pattern, M_pattern )
+        line = data[i]
 
-            if '@@include' in line :
-                a_list = line.split()
-                infile2 = a_list[1].replace('"','')
-                Read_Data( infile2, Tc )
-                continue
+        if '@@@{' in line :
+            line = line.replace( '@@@{','' )
+            a_list = line.split()
+            pattern = '@{{{M}}}@'.format( M=a_list[0] )
 
-            print( line )
+            i = i + 1
+            local_data = {}
+            j = 0
+            while True :
+                line = data[i+j]
+                if '}@@@' in line :
+                    break
+                local_data[j] = line
+                j = j + 1
+
+            for itr in range(1, len(a_list) ) :
+                c_pattern = a_list[itr]
+                j = 0
+                while j < len(local_data) :
+                    line = local_data[j]
+                    if pattern in line :
+                        line = line.replace( pattern, c_pattern )
+                    line = all_replace( line, Tc, m_pattern, M_pattern )
+
+                    print( line )
+                    j = j + 1
+
+            i = i + 1 + len(local_data)
+            continue
+
+        line = all_replace( line, Tc, m_pattern, M_pattern )
+
+        if '@@include' in line :
+            a_list = line.split()
+            infile2 = a_list[1].replace('"','')
+            Read_Data( infile2, Tc )
+            i = i + 1
+            continue
+
+        print( line )
+        i = i + 1
 
 
 if __name__ == '__main__' :
