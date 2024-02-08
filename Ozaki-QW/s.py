@@ -127,7 +127,7 @@ def def_head ( Func, NA, NB, NC, ACC, va, vb, vc ) :
         print( '// {}: {}-{}-{}'.format( Func, NA, NB, NC ) )
     else :
         print( '// {}: {}-{}'.format( Func, NA, NC ) )
-    print( 'template < typename T > __always_inline void' )
+    print( 'template < typename T > __always_inline void constexpr' )
     fname( Func, NA, NB, NC, ACC )
     va_list = ','.join( [ ' T const {}{}'.format( va, i ) for i in range( NA ) ] )
     vb_list = ','.join( [ ' T const {}{}'.format( vb, i ) for i in range( NB ) ] )
@@ -1112,6 +1112,12 @@ def gen_sqrt( NA, NC, ACC ) :
         
 if __name__ == '__main__' :
 
+    print (
+'''
+// ------------------------
+// Square Root Operations
+// ------------------------
+''' )
     for ACC in range( 2 ) :
 
         for NA in range(1,4+1) :

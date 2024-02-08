@@ -32,12 +32,10 @@ def caller_head ( Func, NA, NC, ACC, va, vc ) :
     return line
 
 def template( Ta ) :
-    line = 'template < typename T'
-    if Ta > 1 :
-        line = line + ', Algorithm A'
     if Ta == 1 :
-        line = line + ', Algorithm A, IF_T_fp<T>'
-    line = line + ' >'
+        line = 'template < Algorithm A, typename T, T_fp(T) >'
+    else :
+        line = 'template < typename T, Algorithm A >'
     return line
 
 def arg_list( Ta ) :
@@ -59,7 +57,7 @@ def gen_op_body( Tc, description, func, op, commutable ) :
             #    continue
 
             print( template( Ta ) )
-            print( 'INLINE auto const operator_{}_body '.format( func ) + arg_list( Ta ) )
+            print( 'INLINE auto constexpr operator_{}_body '.format( func ) + arg_list( Ta ) )
 
             line = '  using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc) )
             print( line )
@@ -79,8 +77,8 @@ def gen_op_body( Tc, description, func, op, commutable ) :
 # ************************************************************************************************
 def gen_exception( Tc, description, func, op, commutable ) :
 
-    print( 'template < typename TXa, IF_T_mX<TXa> >' )
-    print( 'INLINE auto const operator_{func}_exception ( TXa const& a, bool & flag ) {{'.format( func=func ) )
+    print( 'template < typename TXa, T_mX(TXa) >' )
+    print( 'INLINE auto constexpr operator_{func}_exception ( TXa const& a, bool & flag ) {{'.format( func=func ) )
     print( '  Algorithm constexpr A = TXa::base_A;' )
     print( '  auto sa = a.quick_Normalized();' )
     print( '  return {m}X_real::operator_{func}_exception<A> ( sa, flag );'.format( m=mX_type(Tc), func=func ) )
@@ -91,8 +89,8 @@ def gen_exception_abs( Tc, description, func, op, commutable ) :
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     ARG = ','.join( [ 'c' for i in range( Tc ) ] )
 
-    print( 'template < Algorithm A, typename T, IF_T_fp<T> >' )
-    print( 'INLINE auto const operator_abs_exception ( T const& a, bool & flag ) {' )
+    print( 'template < Algorithm A, typename T, T_fp(T) >' )
+    print( 'INLINE auto constexpr operator_abs_exception ( T const& a, bool & flag ) {' )
     print( '  using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc) ) )
     print( '  flag = true; {' )
     print( '    if ( fp<T>::isnan( a ) ) { TX::nan(); }' )
@@ -109,8 +107,8 @@ def gen_exception_sqrt( Tc, description, func, op, commutable ) :
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     ARG = ','.join( [ 'c' for i in range( Tc ) ] )
 
-    print( 'template < Algorithm A, typename T, IF_T_fp<T> >' )
-    print( 'INLINE auto const operator_sqrt_exception ( T const& a, bool & flag ) {' )
+    print( 'template < Algorithm A, typename T, T_fp(T) >' )
+    print( 'INLINE auto constexpr operator_sqrt_exception ( T const& a, bool & flag ) {' )
     print( '  using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc) ) )
     print( '  flag = true; {' )
     print( '    if ( fp<T>::isnan( a ) ) { auto c=a; return TX{ '+ARG+' }; }' )
@@ -130,8 +128,8 @@ def gen_exception_sqrt( Tc, description, func, op, commutable ) :
 # ************************************************************************************************
 def gen_op_stub_sqrt( Tc, description, func, op, commutable ) :
 
-    print( 'template < typename TXa, IF_T_mX<TXa> >' )
-    print( 'INLINE auto const operator_{func} ( TXa const& a ) {{'.format( func=func ) )
+    print( 'template < typename TXa, T_mX(TXa) >' )
+    print( 'INLINE auto constexpr operator_{func} ( TXa const& a ) {{'.format( func=func ) )
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     print( '  bool flag = false;' )
     print( '  auto e = {m}X_real::operator_{func}_exception ( a, flag );'.format( m=mX_type(Tc), func=func ) )
@@ -147,8 +145,8 @@ def gen_op_stub_sqrt( Tc, description, func, op, commutable ) :
     print( '  }' )
     print( '}' )
 
-    print( 'template < Algorithm A=Algorithm::Accurate, typename T, IF_T_fp<T> >' )
-    print( 'INLINE auto const operator_{func} ( T const& a ) {{'.format( func=func ) )
+    print( 'template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >' )
+    print( 'INLINE auto constexpr operator_{func} ( T const& a ) {{'.format( func=func ) )
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     print( '  bool flag = false;' )
     print( '  auto e = {m}X_real::operator_{func}_exception<A> ( a, flag );'.format( m=mX_type(Tc), func=func ) )
@@ -156,7 +154,7 @@ def gen_op_stub_sqrt( Tc, description, func, op, commutable ) :
     print( '#else' )
     print( '  if ( fp<T>::is_zero( a ) ) {{ return {m}X_real::{m}x_real<T,A>{{ a }}; }}'.format( m=mX_type(Tc) ) )
     print( '#endif' )
-    print( '  return {m}X_real::operator_{func}_body<T,A> ( a );'.format( m=mX_type(Tc), func=func ) )
+    print( '  return {m}X_real::operator_{func}_body<A> ( a );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
 
@@ -165,13 +163,13 @@ def gen_op_stub_sqrt( Tc, description, func, op, commutable ) :
 # ************************************************************************************************
 def gen_op_operator( Tc, description, func, op, commutable ) :
 
-    print( 'template < typename TXa, IF_T_mX<TXa> >' )
-    print( 'INLINE auto const {op} ( TXa const& a ) {{'.format( op=op ) )
+    print( 'template < typename TXa, T_mX(TXa) >' )
+    print( 'INLINE auto constexpr {op} ( TXa const& a ) {{'.format( op=op ) )
     print( '  return {m}X_real::operator_{func} ( a );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
-    print( 'template < Algorithm A=Algorithm::Accurate, typename T, IF_T_fp<T> >' )
-    print( 'INLINE auto const {op} ( T const& a ) {{'.format( op=op ) )
+    print( 'template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >' )
+    print( 'INLINE auto constexpr {op} ( T const& a ) {{'.format( op=op ) )
     print( '  return {m}X_real::operator_{func}<A> ( a );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
@@ -202,14 +200,14 @@ def gen_abs ( Tc ) :
     print( '//' )
 
     print( '//' )
-    print( 'template < typename TXa, IF_T_mX<TXa> >' )
+    print( 'template < typename TXa, T_mX(TXa) >' )
     print( 'INLINE auto constexpr operator_abs_body ( TXa const& a ) {' )
     print( '  return {m}X_real::mX_real<TXa>{{ is_negative( a ) ? -a : a }};'.format( m=mX_type(Tc) ) )
     print( '}' )
     print( '//' )
     gen_exception_abs( Tc, description, func, op, commutable )
     print( '//' )
-    print( 'template < typename TXa, IF_T_mX<TXa> >' )
+    print( 'template < typename TXa, T_mX(TXa) >' )
     print( 'INLINE auto constexpr operator_abs ( TXa const& a ) {' )
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     print( '  bool flag = false;' )
@@ -218,17 +216,17 @@ def gen_abs ( Tc ) :
     print( '#endif' )
     print( '  return {m}X_real::operator_abs_body ( a );'.format( m=mX_type(Tc) ) )
     print( '}' )
-    print( 'template < Algorithm A=Algorithm::Accurate, typename T, IF_T_fp<T> >' )
+    print( 'template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >' )
     print( 'INLINE auto constexpr operator_abs ( T const& a ) {' )
     print( '  using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc) ) )
     print( '  return TX{ std::abs( a ) };' )
     print( '}' )
     print( '//' )
-    print( 'template < typename TXa, IF_T_mX<TXa> >' )
+    print( 'template < typename TXa, T_mX(TXa) >' )
     print( 'INLINE auto constexpr abs ( TXa const& a ) {' )
     print( '  return {m}X_real::operator_abs ( a );'.format( m=mX_type(Tc) ) )
     print( '}' )
-    print( 'template < Algorithm A=Algorithm::Accurate, typename T, IF_T_fp<T> >' )
+    print( 'template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >' )
     print( 'INLINE auto constexpr abs ( T const& a ) {' )
     print( '  return {m}X_real::operator_abs<A> ( a );'.format( m=mX_type(Tc) ) )
     print( '}' )
@@ -273,7 +271,7 @@ def gen_fmin ( Tc ) :
     print( '//' )
 
     print( '//' )
-    print( 'template < typename T, Algorithm Aa, Algorithm Ab, IF_A2_noQuasi<Aa,Ab> >' )
+    print( 'template < typename T, Algorithm Aa, Algorithm Ab, A_noQuasi(Aa), A_noQuasi(Ab) >' )
     print( 'INLINE auto constexpr operator_fmin_body ( {m}X_real::{m}x_real<T,Aa> const& a, {m}X_real::{m}x_real<T,Ab> const &b ) {{'.format( m=mX_type(Tc) ) )
     print( '  Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;' )
     print( '  using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc) ) )
@@ -335,7 +333,7 @@ def gen_fmax ( Tc ) :
     print( '//' )
 
     print( '//' )
-    print( 'template < typename T, Algorithm Aa, Algorithm Ab, IF_A2_noQuasi<Aa,Ab> >' )
+    print( 'template < typename T, Algorithm Aa, Algorithm Ab, A_noQuasi(Aa), A_noQuasi(Ab) >' )
     print( 'INLINE auto constexpr operator_fmax_body ( {m}X_real::{m}x_real<T,Aa> const& a, {m}X_real::{m}x_real<T,Ab> const &b ) {{'.format( m=mX_type(Tc) ) )
     print( '  Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;' )
     print( '  using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc) ) )
@@ -397,8 +395,8 @@ def gen_prng ( Tc ) :
     print( '//' )
 
     print( '//' )
-    print( 'template < typename T, Algorithm A >' )
-    print( 'INLINE auto constexpr rand () -> if_T_double<T,{m}X_real::{m}x_real<T,A>> {{'.format( m=mX_type(Tc) ) )
+    print( 'template < typename T, Algorithm A, T_fp(T) >' )
+    print( 'INLINE auto const rand () {' )
     print( '  using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc) ) )
     print( '  auto constexpr f = fp<T>::half / (1 << 30);' )
     print( '  auto g = f;' )
@@ -406,35 +404,24 @@ def gen_prng ( Tc ) :
     print( '  auto constexpr bits = std::numeric_limits<TX>::digits;' )
     print( '  auto constexpr rand_bits = std::numeric_limits<int>::digits - 1;' )
     print( '  for(int i=0; i<bits; i+=rand_bits ) {' )
-    print( '    auto b_ = fp<T>::rand();' )
-    print( '    auto b = T (b_ );' )
-    print( '    auto c = b * g;' )
-    print( '         r = r + TX{ c };' )
-    print( '         g = g * f;' )
-    print( '  }' )
-    print( '  return r;' )
-    print( '}' )
-    print( 'template < typename T, Algorithm A >' )
-    print( 'INLINE auto constexpr rand () -> if_T_float<T,{m}X_real::{m}x_real<T,A>> {{'.format( m=mX_type(Tc) ) )
-    print( '  using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc) ) )
-    print( '  auto constexpr f = fp<T>::half / (1 << 30);' )
-    print( '  auto g = f;' )
-    print( '  auto r = TX::zero();' )
-    print( '  auto constexpr bits = std::numeric_limits<TX>::digits;' )
-    print( '  auto constexpr rand_bits = std::numeric_limits<int>::digits - 1;' )
-    print( '  for(int i=0; i<bits; i+=rand_bits ) {' )
-    print( '    auto b_ = fp<T>::rand();' )
-    print( '    auto b = T( ( b_ & 0x7fff0000 ) >> 16 ) * (1 << 16);' )
-    print( '    auto c = b * g;' )
+    print( '    auto b_ = fp<T>::rand() & 0x7fffffff;' )
+    print( '    T b, c;' )
+    print( '    if ( std::is_same<T,float>::value ) {' )
+    print( '         b = T( ( b_ & 0x7fff0000 ) >> 16 ) * (1 << 16);' )
+    print( '    } else {' )
+    print( '         b = T( b_ );' )
+    print( '    }' )
+    print( '    if ( std::is_same<T,float>::value ) {' )
+    print( '         c = b * g;' )
     print( '         r = r + TX{ c };' )
     print( '         b = T( b_ & 0x0000ffff );' )
+    print( '    }' )
     print( '         c = b * g;' )
     print( '         r = r + TX{ c };' )
     print( '         g = g * f;' )
     print( '  }' )
     print( '  return r;' )
     print( '}' )
-    print( '//' )
     print( 'template < typename T, Algorithm A >' )
     print( 'INLINE {m}X_real::{m}x_real<T,A> constexpr {m}X_real::{m}x_real<T,A>::rand () {{'.format( m=mX_type(Tc) ) )
     print( '  return {m}X_real::rand<T,A>();'.format( m=mX_type(Tc) ) )

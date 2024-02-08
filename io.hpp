@@ -6,14 +6,39 @@
 #include <iomanip>
 #include <quadmath.h>
 
-#include <qd/dd_real.h>
-#include <qd/qd_real.h>
 #include "mX_real.hpp"
 
 
 namespace mX_real {
-  //
-  //
+
+  template < typename TX, T_assert( check_mX_real<TX>::value ) >
+  inline auto TYPE_name ( char * x ) {
+    using T = typename TX::base_T;
+    Algorithm constexpr A = TX::base_A;
+    int constexpr L = TX::L;
+    std::string X = "_SDTQ";
+    x[0] = toString(A)[0];
+    x[1] = X[L];
+    x[2] = 0;
+    if ( std::is_same<T,double>::value ) { x[2] = 'D'; }
+    if ( std::is_same<T,float>::value ) { x[2] = 'F'; }
+    x[3] = 0;
+  }
+  template < typename T, T_assert( fp<T>::value ) >
+  inline auto TYPE_name ( char * x ) {
+    strcpy( x, "___" );
+    if ( std::is_same<T,float>::value ) strcpy( x, "_SF" );
+    if ( std::is_same<T,double>::value ) strcpy( x, "_SD" );
+  }
+#ifdef  _QD_DD_REAL_H
+  template < typename T, T_assert( std::is_same<T, dd_real>::value ) >
+  inline auto TYPE_name ( char * x ) { strcpy( x, "_DD" ); }
+#endif
+#ifdef  _QD_QD_REAL_H
+  template < typename T, T_assert( std::is_same<T, qd_real>::value ) >
+  inline auto TYPE_name ( char * x ) { strcpy( x, "_QD" ); }
+#endif
+    
   template < typename T, Algorithm A >
   inline auto debug_print ( std::string message, dX_real::dx_real<T,A> const &x, bool const flag = false )
     -> std::enable_if_t< std::is_same< T, float >::value, void > {
@@ -213,14 +238,19 @@ namespace mX_real {
 
 
 template < typename T >
-auto print( std::string message, T const &x, bool const flag = false )
-  -> std::enable_if_t< check_mX_real<T>::value,void> {
+auto print ( std::string message, T const &x, bool const flag = false )
+ -> std::enable_if_t< check_mX_real<T>::value, void > {
   mX_real::debug_print<typename T::base_T>( message, x, flag );
 }
 
-void print( std::string message, mpfr::mpreal const &x, bool const flag = false ) { }
 
-void print( std::string message, float const &x, bool const flag = false ) {
+template < typename T >
+auto print ( std::string message, T const &x, bool const flag = false )
+ -> std::enable_if_t< std::is_same<T, mpfr::mpreal>::value, void > { }
+
+template < typename T >
+auto print ( std::string message, T const &x, bool const flag = false )
+ -> std::enable_if_t< std::is_same<T, float>::value, void > {
   unsigned int * d = (unsigned int *)&x;
 #if 0
   long double xx = (long double)x;
@@ -243,7 +273,9 @@ void print( std::string message, float const &x, bool const flag = false ) {
   }
 }
 
-void print( std::string message, double const &x, bool const flag = false ) {
+template < typename T >
+auto print ( std::string message, T const &x, bool const flag = false )
+ -> std::enable_if_t< std::is_same<T, double>::value, void > {
   unsigned long * d = (unsigned long *)&x;
   long double xx = (long double)x;
   std::cout << message;
@@ -276,7 +308,9 @@ void print( std::string message, double const &x, bool const flag = false ) {
 }
 
 #ifdef  _QD_DD_REAL_H
-void print( std::string message, dd_real const &x, bool const flag = false ) {
+template < typename T >
+auto print ( std::string message, T const &x, bool const flag = false )
+ -> std::enable_if_t< std::is_same<T, dd_real>::value, void > {
   unsigned long * d = (unsigned long *)&x;
 #if 0
   long double xx = (long double)x.x[0] + (long double)x.x[1];
@@ -293,7 +327,9 @@ void print( std::string message, dd_real const &x, bool const flag = false ) {
 #endif
 
 #ifdef  _QD_QD_REAL_H
-void print( std::string message, qd_real const &x, bool const flag = false ) {
+template < typename T >
+auto print ( std::string message, T const &x, bool const flag = false )
+ -> std::enable_if_t< std::is_same<T, qd_real>::value, void > {
   unsigned long * d = (unsigned long *)&x;
 #if 0
   long double xx = (long double)x.x[0] + (long double)x.x[1] + (long double)x.x[2] + (long double)x.x[3];
@@ -310,3 +346,4 @@ void print( std::string message, qd_real const &x, bool const flag = false ) {
 #endif
 
 #endif
+

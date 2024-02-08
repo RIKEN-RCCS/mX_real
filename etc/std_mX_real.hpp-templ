@@ -1,0 +1,32 @@
+namespace std {
+  
+  template < typename T, mX_real::Algorithm A >
+  class numeric_limits<mX_real::@{m}@X_real::@{m}@x_real<T,A>> {
+    using TX = mX_real::@{m}@X_real::@{m}@x_real<T,A>;
+  public:
+@@@{ F epsilon denorm_min min max
+    inline static TX constexpr @{F}@ () { return TX::@{F}@ (); }
+}@@@
+    inline static TX constexpr infinity() { return TX::inf(); }
+    inline static TX constexpr quiet_NaN() { return TX::nan(); }
+    
+@@@{ F digits digits10 max_digits10
+    static int constexpr @{F}@ = numeric_limits<T>::@{F}@ * TX::L;
+}@@@
+  };
+  
+@@@{ F isinf isnan signbit
+  template < typename T, mX_real::Algorithm A >
+  bool constexpr @{F}@ ( mX_real::@{m}@X_real::@{m}@x_real<T,A> const& x ) {
+    return mX_real::@{m}@X_real::@{F}@ (x);
+  }
+}@@@
+@@@{ F abs fmin fmax sqrt
+  template < typename T, mX_real::Algorithm A >
+  mX_real::@{m}@X_real::@{m}@x_real<T,A> constexpr @{F}@ ( mX_real::@{m}@X_real::@{m}@x_real<T,A> const& x ) {
+    return mX_real::@{m}@X_real::@{F}@ (x);
+  }
+}@@@
+  
+}
+

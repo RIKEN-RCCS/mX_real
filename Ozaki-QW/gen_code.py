@@ -37,25 +37,23 @@ template <> struct fp_const<float> {
   static uint32_t constexpr RINF = 0x7f000000;
   static uint32_t constexpr XONE = 0x0b800000;
 
-  static inline auto const fp2uint( float const a ) {
-    union { float a; uint32_t e; } x;
-    x.a = a;
+  static inline auto constexpr fp2uint( float const a ) {
+    union { float a; uint32_t e; } x = { .a = a };
     return x.e;
   }
-  static inline auto const uint2fp( uint32_t const e ) {
-    union { float a; uint32_t e; } x;
-    x.e = e;
+  static inline auto constexpr uint2fp( uint32_t const e ) {
+    union { float a; uint32_t e; } x = { .e = e };
     return x.a;
   }
 
-  static INLINE auto hbit( double const a ) {
+  static INLINE auto constexpr hbit( double const a ) {
     auto e = fp2uint( a );
     auto s = e & SBIT;
     e &= MASK;
     e |= s;
     return uint2fp( e );
   }
-  static INLINE auto ulp( float const a ) {
+  static INLINE auto constexpr ulp( float const a ) {
     if ( a == zero() ) return a;
     auto e = fp2uint( a );
     auto s = e & SBIT;
@@ -66,7 +64,7 @@ template <> struct fp_const<float> {
     return uint2fp( e );
   }
   template < bool inverse = false >
-  static inline auto exponent( float const a ) {
+  static inline auto constexpr exponent( float const a ) {
     if ( a == zero() ) return one();
     auto e = fp2uint( a );
     e &= MASK;
@@ -74,7 +72,7 @@ template <> struct fp_const<float> {
     if ( inverse ) e = RINF - e;
     return uint2fp( e );
   }
-  static inline auto exponenti( float const a ) {
+  static inline auto constexpr exponenti( float const a ) {
     return exponent<true>( a );
   }
 };
@@ -89,25 +87,23 @@ template <> struct fp_const<double> {
   static uint64_t constexpr RINF = 0x7fe0000000000000;
   static uint64_t constexpr XONE = 0x0340000000000000;
 
-  static inline auto const fp2uint( double const a ) {
-    union { double a; uint64_t e; } x;
-    x.a = a;
+  static inline auto constexpr fp2uint( double const a ) {
+    union { double a; uint64_t e; } x = { .a = a };
     return x.e;
   }
-  static inline auto const uint2fp( uint64_t const e ) {
-    union { double a; uint64_t e; } x;
-    x.e = e;
+  static inline auto constexpr uint2fp( uint64_t const e ) {
+    union { double a; uint64_t e; } x = { .e = e };
     return x.a;
   }
 
-  static INLINE auto hbit( double const a ) {
+  static INLINE auto constexpr hbit( double const a ) {
     auto e = fp2uint( a );
     auto s = e & SBIT;
     e &= MASK;
     e |= s;
     return uint2fp( e );
   }
-  static INLINE auto ulp( double const a ) {
+  static INLINE auto constexpr ulp( double const a ) {
     if ( a == zero() ) return a;
     auto e = fp2uint( a );
     auto s = e & SBIT;
@@ -118,7 +114,7 @@ template <> struct fp_const<double> {
     return uint2fp( e );
   }
   template < bool inverse = false >
-  static inline auto exponent( double const a ) {
+  static inline auto constexpr exponent( double const a ) {
     if ( a == zero() ) return one();
     auto e = fp2uint( a );
     e &= MASK;
@@ -126,17 +122,17 @@ template <> struct fp_const<double> {
     if ( inverse ) e = RINF - e;
     return uint2fp( e );
   }
-  static inline auto exponenti( double const a ) {
+  static inline auto constexpr exponenti( double const a ) {
     return exponent<true>( a );
   }
 };
 
 
 // ------------------------
-// Basic Part
+// Basic EFT Part
 // ------------------------
 
-template < typename T > __always_inline void
+template < typename T > __always_inline void constexpr
 TwoSum ( T const a, T const b, T &x, T &y )
 {
   T z;
@@ -145,14 +141,14 @@ TwoSum ( T const a, T const b, T &x, T &y )
   y = (a - (x - z)) + (b - z);
 }
 
-template < typename T > __always_inline void
+template < typename T > __always_inline void constexpr
 FastTwoSum ( T const a, T const b, T &x, T &y )
 {
   x = a + b;
   y = (a - x) + b;
 }
 
-template < typename T > __always_inline void
+template < typename T > __always_inline void constexpr
 TwoProductFMA ( T const a, T const b, T &x, T &y )
 {
   x = a * b;
@@ -176,7 +172,7 @@ def def_head ( Func, NA, NB, NC, ACC, va, vb, vc ) :
         print( '// {}: {}-{}-{}'.format( Func, NA, NB, NC ) )
     else :
         print( '// {}: {}-{}'.format( Func, NA, NC ) )
-    print( 'template < typename T > __always_inline void' )
+    print( 'template < typename T > __always_inline void constexpr' )
     fname( Func, NA, NB, NC, ACC )
     va_list = ','.join( [ ' T const {}{}'.format( va, i ) for i in range( NA ) ] )
     vb_list = ','.join( [ ' T const {}{}'.format( vb, i ) for i in range( NB ) ] )
@@ -1420,9 +1416,10 @@ def gen_sqr( NA, NC, ACC ) :
         line[4] = 'TWO c1 e1 c1 e1' # (c1)(c2,e1)
 
         if ACC == 0 :
-            line[5] = 'MAD c2 e0 a2 c2' # (c1)(c2,e1)
-            line[6] = 'MAD c2 a1 a1 c2' # (c1)(c2,e1)
-            line[7] = 'ADD c2 c2 e1' # (c1)(c2)
+            line[5] = 'ADD e2 a2 a3' # (c1)(c2,e1)
+            line[6] = 'MAD c2 e0 e2 c2' # (c1)(c2,e1)
+            line[7] = 'MAD c2 a1 a1 c2' # (c1)(c2,e1)
+            line[8] = 'ADD c2 c2 e1' # (c1)(c2)
         else :
             line[5] = 'QQQ c0 c1 c0 c1' if NA > 1 else '!'
             line[6] = 'FMA e0 a2 e3 e4' # (c1)(c2,e1,e3)(e4)
@@ -1449,47 +1446,49 @@ def gen_sqr( NA, NC, ACC ) :
         line[1] = 'FMA a0 a0 c0 c1' # (c1)
 
         line[2] = 'ADD e0 a0 a0' # if NA > 1 else 'ZER e0'
-        line[3] = 'FMA e0 a1 e1 c2' # (c1,e1)(c2)
-        line[4] = 'TWO c1 e1 c1 e1' # (c1)(c2,e1)
+        line[3] = 'FMA e0 a1 c2 c3' # (c1,c2)(c3)
+        line[4] = 'TWO c1 c2 c1 c2' # (c1)(c2,c3)
         line[5] = 'QQQ c0 c1 c0 c1' if NA > 1 and ACC > 0 else '!'
 
-        line[6] = 'TWO c2 e1 c2 e1' # (c1)(c2)(e1)
+        line[6] = 'TWO c2 c3 c2 c3' # (c1)(c2)(c3)
         line[7] = 'QQQ c1 c2 c1 c2' if NA > 1 and ACC > 0 else '!'
-        line[8] = 'FMA e0 a2 e6 c3' # (c1)(c2,e6)(c3,e1)
+
+        line[8] = 'FMA e0 a2 e2 e3' # (c1)(c2,e2)(c3,e3)
         line[9] = 'QQQ c2 c3 c2 c3' if NA > 1 and ACC > 0 else '!'
 
-        line[10] = 'FMA a1 a1 e3 e4' # (c1)(c2,e6,e3)(c3,e1,e4)
-        line[11] = 'TWO c2 e6 c2 e6' # (c1)(c2,e3)(c3,e1,e6,e4)
-        line[12] = 'TWO c2 e3 c2 e3' # (c1)(c2)(c3,e1,e6,e3,e4)
+        line[10] = 'FMA a1 a1 e4 e5' # (c1)(c2,e2,e4)(c3,e3,e5)
+        line[11] = 'TWO c2 e2 c2 e2' # (c1)(c2,e4)(c3,e2,e3,e5)
+        line[12] = 'TWO c2 e4 c2 e4' # (c1)(c2)(c3,e2,e3,e4,e5)
         line[13] = 'QQQ c2 c3 c2 c3' if NA > 1 and ACC > 0 else '!'
 
-        line[14] = 'ADD e2 a1 a1' # if NA > 2 else 'ZER e2' # (c1)(c2)(c3,e1,e6,e3.e4)
+        line[14] = 'ADD e1 a1 a1' # if NA > 2 else 'ZER e1' # (c1)(c2)(c3,e2,e3,e4,e5)
         if ACC == 0 :
-            line[15] = 'MAD c3 e2 a2 c3' # (c1)(c2)(c3,e1,e6,e3.e4)
-            line[16] = 'MAD c3 a3 e0 c3' # (c1)(c2)(c3,e1,e6,e3.e4)
-            line[17] = 'SUM 4 c3 c3 e6 e3 e4' # (c1)(c2)(c3)
+            line[15] = 'SUM 5 c3 c3 e2 e3 e4 e5' # (c1)(c2)(c3)
+            line[16] = 'MAD c3 e0 a3 c3' # (c1)(c2)(c3)
+            line[17] = 'MAD c3 e1 a2 c3' # (c1)(c2)(c3)
         else :
-            line[15] = 'FMA e2 a2 e7 e8' # (c1)(c2)(c3,e1,e6,e3.e4,e7)(e8)
-            line[16] = 'FMA a3 e0 e9 e10' # (c1)(c2)(c3,e1,e6,e3.e4,e7,e9)(e8,e10)
-            line[17] = 'TWO e7 e9 e7 e9' # (c1)(c2)(c3,e6,e3.e4,e7)(e1,e8,e10,e9)
-            line[18] = 'TWO c3 e6 c3 e6' # (c1)(c2)(c3,e3.e4,e7)(e6,e1,e8,e10,e9)
-            line[19] = 'TWO c3 e3 c3 e3' # (c1)(c2)(c3,e4,e7)(e3,e6,e1,e8,e10,e9)
-            line[20] = 'TWO c3 e4 c3 e4' # (c1)(c2)(c3,e7)(e4,e3,e6,e1,e8,e10,e9)
-            line[21] = 'TWO c3 e7 c3 e7' # (c1)(c2)(c3)(e7,e4,e3,e6,e1,e8,e10,e9)
-            line[22] = 'QQQ c2 c3 c2 c3'
+            line[15] = 'FMA e1 a2 e7 e8' # (c1)(c2)(c3,e2,e3,e4.e5,e7)(e8)
+            line[16] = 'FMA a3 e0 e9 e10' # (c1)(c2)(c3,e2,e3,e4.e5,e7,e9)(e8,e10)
+            line[17] = 'TWO e7 e9 e7 e9' # (c1)(c2)(c3,e2,e3.e4,e5,e7)(e8,e9,e10)
+            line[18] = 'TWO c3 e2 c3 e2' # (c1)(c2)(c3,e3,e4,e5,e7)(e2,e8,e9,e10)
+            line[19] = 'TWO c3 e3 c3 e3' # (c1)(c2)(c3,e4,e5,e7)(e2,e3,e8,e9,e10)
+            line[20] = 'TWO c3 e4 c3 e4' # (c1)(c2)(c3,e5,e7)(e2,e3,e4,e8,e9,e10)
+            line[21] = 'TWO c3 e7 c3 e7' # (c1)(c2)(c3,e5)(e2,e3,e4,e7,e8,e9,e10)
+            line[22] = 'TWO c3 e5 c3 e5' # (c1)(c2)(c3)(e2,e3,e4,e5,e7,e8,e9,e10)
+            line[23] = 'QQQ c2 c3 c2 c3'
 
-            line[23] = 'SUM 8 e1 e1 e3 e4 e6 e7 e8 e9 e10' # (c1)(c2)(c3)(e1)
-            line[24] = 'MAD e1 a3 e2 e1'
-            line[25] = 'MAD e1 a2 a2 e1'
+            line[24] = 'SUM 8 e2 e2 e3 e4 e5 e7 e8 e9 e10' # (c1)(c2)(c3)(e1)
+            line[25] = 'MAD e2 a3 e1 e2'
+            line[26] = 'MAD e2 a2 a2 e2'
 
-            line[26] = 'ADD c3 c3 e1'
+            line[27] = 'ADD c3 c3 e2'
 
-            line[27] = 'QQQ c0 c1 c0 c1'
-            line[28] = 'QQQ c1 c2 c1 c2'
-            line[29] = 'QQQ c2 c3 c2 c3'
-            line[30] = 'QQQ c0 c1 c0 c1'
-            line[31] = 'QQQ c1 c2 c1 c2'
-            line[32] = 'QQQ c0 c1 c0 c1'
+            line[28] = 'QQQ c0 c1 c0 c1'
+            line[29] = 'QQQ c1 c2 c1 c2'
+            line[30] = 'QQQ c2 c3 c2 c3'
+            line[31] = 'QQQ c0 c1 c0 c1'
+            line[32] = 'QQQ c1 c2 c1 c2'
+            line[33] = 'QQQ c0 c1 c0 c1'
 
 
     line = INIT_propagate( line, NA, NB, NC )
@@ -1672,6 +1671,21 @@ if __name__ == '__main__' :
     init()
 
     for ACC in range( 2 ) :
+
+        if  ACC == 0 :
+             print(
+'''
+// ------------------------
+// PA/Quasi Arithmetic Part
+// ------------------------
+''' )
+        else :
+             print(
+'''
+// ------------------------
+// Accurate Arithmetic Part
+// ------------------------
+''' )
 
         for NA in range(1,4+1) :
             for NB in range(1,4+1) :

@@ -39,7 +39,7 @@ def template( Ta, Tb ) :
     if Tb > 1 :
         line = line + ', Algorithm Ab'
     if Ta == 1 and Tb == 1 :
-        line = line + ', Algorithm A, IF_T_fp<T>'
+        line = line + ', Algorithm A, T_fp(T)'
     line = line + ' >'
     return line
 
@@ -77,7 +77,7 @@ def gen_op_ow_body( Tc, description, func, op, commutable ) :
 
 def gen_op_ow_stub( Tc, description, func, op, commutable ) :
 
-    print( 'template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, IF_T_mX<TXb<T,Ab>>, IF_A_owAble<Aa,Ab> >' )
+    print( 'template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >' )
     print( 'INLINE auto constexpr operator_{func}_ow ( {m}X_real::{m}x_real<T,Aa> & a, TXb<T,Ab> const& b ) {{'.format( func=func, m=mX_type(Tc) ) )
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     print( '  bool flag = false;' )
@@ -99,12 +99,12 @@ def gen_op_ow_stub( Tc, description, func, op, commutable ) :
 
 def gen_op_ow_operator( Tc, description, func, op, commutable ) :
 
-    print( 'template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, IF_T_mX<TXb<T,Ab>>, IF_A_owAble<Aa,Ab> >' )
+    print( 'template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >' )
     print( 'INLINE auto constexpr operator{op}= ( {m}X_real::{m}x_real<T,Aa> & a, TXb<T,Ab> const& b ) {{'.format( m=mX_type(Tc), op=op ) )
     print( '  return {m}X_real::operator_{func}_ow ( a, b );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
-    print( 'template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >' )
+    print( 'template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >' )
     print( 'INLINE auto constexpr operator{op}= ( {m}X_real::{m}x_real<T,A> & a, Ts const& b ) {{'.format( m=mX_type(Tc), op=op ) )
     print( '  auto const b_ = T(b);' )
     print( '  return {m}X_real::operator_{func}_ow ( a, b_ );'.format( m=mX_type(Tc), func=func ) )
@@ -112,11 +112,11 @@ def gen_op_ow_operator( Tc, description, func, op, commutable ) :
 
 def gen_op_ow_operator_sub( Tc, description, func, op, commutable ) :
 
-    print( 'template < typename T, Algorithm Aa, Algorithm Ab, template < typename _Tb_, Algorithm _Ab_ > class TXb, IF_T_mX<TXb<T,Ab>>, IF_A_owAble<Aa,Ab> >' )
+    print( 'template < typename T, Algorithm Aa, Algorithm Ab, template < typename _Tb_, Algorithm _Ab_ > class TXb, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >' )
     print( 'INLINE auto constexpr operator-= ( {m}X_real::{m}x_real<T,Aa> & a, TXb<T,Ab> const& b ) {{'.format( m=mX_type(Tc) ) )
     print( '  return a += (-b);' )
     print( '}' )
-    print( 'template < typename T, Algorithm A, typename Ts, IF_T_scalar<Ts> >' )
+    print( 'template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >' )
     print( 'INLINE auto constexpr operator-= ( {m}X_real::{m}x_real<T,A> & a, Ts const& b ) {{'.format( m=mX_type(Tc) ) )
     print( '  auto const b_ = T(b);' )
     print( '  return a += (-b_);' )

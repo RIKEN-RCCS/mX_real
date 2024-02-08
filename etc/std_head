@@ -1,0 +1,9 @@
+#ifndef	MX_REAL_STD_H
+#define	MX_REAL_STD_H
+
+#include "mX_real.hpp"
+
+//
+// std:: compatibility of the constant numbers and math-fuctions
+//
+

@@ -25,8 +25,10 @@ using mp_real = mpfr::mpreal;
 // has to be availabel for the only developper purpose.
 //
 #include <boost/type_index.hpp>
+template < typename T > auto getTYPE( void ) {
+  return boost::typeindex::type_id_with_cvr<T>().pretty_name(); }
 template < typename T > void printTYPE( void ) {
-  std::cout << boost::typeindex::type_id_with_cvr<T>().pretty_name(); }
+  std::cout << getTYPE<T>(); }
 #endif
 
 
@@ -156,7 +158,17 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
   }
   T const alpha = convert<T>( Alpha );
   
-  
+
+  char s[64]; TYPE_name<T>( s );
+  std::cout << std::left
+            << std::setw(10)
+	    << "Type = "
+            << std::string(s) << "\n";
+
+  auto o_prec = std::cout.precision();
+  std::cout << std::scientific
+            << std::setprecision(32);
+
   {
     auto * w = new T[ITR];
     
@@ -167,8 +179,9 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
     double te = omp_get_wtime();
     
     printf("  %le[s] : ",(te-ts)/ITR);
-    auto ans = convert<T>( abs( ( convert(w[0]) - Z[0] ) / Z[0] ) );
-    print( "dot  ", ans );
+    auto ans = abs( ( convert(w[0]) - Z[0] ) / Z[0] );
+    std::cout << std::setw(5) << "dot  ";
+    std::cout << std::setw(40) << ans << " " << abs(w[0]) << "\n";
     
     delete [] w;
   }
@@ -184,8 +197,9 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
     double te = omp_get_wtime();
     
     printf("  %le[s] : ",(te-ts)/ITR);
-    auto ans = convert<T>( abs( ( convert(w[0]) - Z[1] ) / Z[1] ) );
-    print( "nrm2 ", ans );
+    auto ans = abs( ( convert(w[0]) - Z[1] ) / Z[1] );
+    std::cout << std::setw(5) << "nrm2 ";
+    std::cout << std::setw(40) << ans << " " << w[0] << "\n";
     
     delete [] w;
   }
@@ -201,8 +215,9 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
     double te = omp_get_wtime();
     
     printf("  %le[s] : ",(te-ts)/ITR);
-    auto ans = convert<T>( abs( ( convert(w[0]) - Z[2] ) / Z[2] ) );
-    print( "asum ", ans );
+    auto ans = abs( ( convert(w[0]) - Z[2] ) / Z[2] );
+    std::cout << std::setw(5) << "asum ";
+    std::cout << std::setw(40) << ans << " " << w[0] << "\n";
     
     delete [] w;
   }
@@ -223,8 +238,9 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
     double te = omp_get_wtime();
     
     printf("  %le[s] : ",(te-ts)/ITR);
-    auto ans = convert<T>( r/Z[3] );
-    print( "axpy ", ans );
+    auto ans = r/Z[3];
+    std::cout << std::setw(5) << "axpy ";
+    std::cout << std::setw(40) << ans << " " << r << "\n";
   }
   
   {
@@ -250,8 +266,9 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
     double te = omp_get_wtime();
     
     printf("  %le[s] : ",(te-ts)/ITR);
-    auto ans = convert<T>( r/Z[4] );
-    print( "gemv ", ans );
+    auto ans = r/Z[4];
+    std::cout << std::setw(5) << "gemv ";
+    std::cout << std::setw(40) << ans << " " << r << "\n";
     
     delete [] w;
   }
@@ -264,15 +281,6 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
     auto x = T(0);
     //while ( true ) {
     for(int i=0; i<=400; i++) {
-#if 0
-      x = x + T(1);
-      auto x2 = x * x;
-      auto x4 = x2 * x2;
-      auto z = T(1) / x4;
-      auto y0= y;
-      y = y + z;
-      if ( abs(y0-y) == T(0) ) break;
-#else
       auto s1 = double(2) / (4*x+double(1));
       auto s2 = double(2) / (4*x+double(2));
       auto s3 = double(1) / (4*x+double(3));
@@ -281,28 +289,16 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
       if ( z == T(0) ) break; // uderflow
       y += z;
       x += double(1);
-#endif
     }
+    auto ans = convert( y );
+    std::cout << "pi.appx                    " << ans << "\n";
     auto pi = mpfr::const_pi();
-    auto pai = convert<T>( mpfr::const_pi() );
-    
-    //    auto ans = sqrt( sqrt( y*90 ) );
-    auto ans = y;
-#if 0
-    print( "pai by sqrt(sqrt(90*sum 1/k^4)) ", ans );
-    
-    auto pai4 = convert<T>( pi*pi*pi*pi );
-    
-    print( "pi.appx^4                    =  ", y*90 );
-    print( "pi[mpfr::const_pi]^4         =  ", pai4 );
-    print( "pi[mpfr::const_pi]           =  ", pai );
-    print( "pi[mpfr::const_pi] - pi.appx =  ", pai - ans );
-#else
-    print( "pi.appx                      =  ", ans );
-    print( "pi[mpfr::const_pi]           =  ", pai );
-    print( "pi[mpfr::const_pi] - pi.appx =  ", pai - ans );
-#endif
+    std::cout << "pi[mpfr::const_pi]         " << pi << "\n";
+    ans -= pi;
+    std::cout << "pi[mpfr::const_pi]-pi.appx " << ans << "\n";
   }
+
+  std::cout << std::setprecision( o_prec );
 }
 
 
@@ -563,7 +559,7 @@ main(int argc, char *argv[])
   
   std::cout << " BLAS1  : Vector length    = " << L <<"\n",
     std::cout << " BLAS2&3: Matrix dimension = " << M << " x " << M << "\n",
-    std::cout << " - elapsed time - : func mode : ----- Relative Error in binary & long double format ----- \n";
+    std::cout << " - elapsed time - : func : - Relative Error in binary & EXP compounded format in [DS]P - \n";
   
 #if 1
   verify<float>         ( L, alpha, x, y, z );

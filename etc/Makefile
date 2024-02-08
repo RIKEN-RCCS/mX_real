@@ -1,24 +1,38 @@
 
-all: dX_real.hpp tX_real.hpp qX_real.hpp
+all: mX_real.hpp dX_real.hpp tX_real.hpp qX_real.hpp std_mX_real.hpp
 
-dX_real.hpp: mX_real.hpp-templ dx_add_sub_mul_div.hpp dx_func.hpp dx_bits.hpp dx_members.hpp dx_comp.hpp dx_uni.hpp
-	python3 mm.py mX_real.hpp-templ 2 > dX_real.hpp
+mX_real.hpp: mX_real.hpp-templ
+	python3 mm.py mX_real.hpp-templ 0 > mX_real.hpp
+	emacs --script indent.el mX_real.hpp
+	cp mX_real.hpp ..
+dX_real.hpp: xX_real.hpp-templ dx_add_sub_mul_div.hpp dx_func.hpp dx_bits.hpp dx_members.hpp dx_comp.hpp dx_uni.hpp
+	python3 mm.py xX_real.hpp-templ 2 > dX_real.hpp
 	emacs --script indent.el dX_real.hpp
 	awk '/_LV_/{ gsub(/)_LV_/,")\\&");}{ print }' dX_real.hpp > dX_real.hpp-
 	mv dX_real.hpp- dX_real.hpp
 	cp dX_real.hpp ..
-tX_real.hpp: mX_real.hpp-templ tx_add_sub_mul_div.hpp tx_func.hpp tx_bits.hpp tx_members.hpp tx_comp.hpp tx_uni.hpp
-	python3 mm.py mX_real.hpp-templ 3 > tX_real.hpp
+tX_real.hpp: xX_real.hpp-templ tx_add_sub_mul_div.hpp tx_func.hpp tx_bits.hpp tx_members.hpp tx_comp.hpp tx_uni.hpp
+	python3 mm.py xX_real.hpp-templ 3 > tX_real.hpp
 	emacs --script indent.el tX_real.hpp
 	awk '/_LV_/{ gsub(/)_LV_/,")\\&");}{ print }' tX_real.hpp > tX_real.hpp-
 	mv tX_real.hpp- tX_real.hpp
 	cp tX_real.hpp ..
-qX_real.hpp: mX_real.hpp-templ qx_add_sub_mul_div.hpp qx_func.hpp qx_bits.hpp qx_members.hpp qx_comp.hpp qx_uni.hpp
-	python3 mm.py mX_real.hpp-templ 4 > qX_real.hpp
+qX_real.hpp: xX_real.hpp-templ qx_add_sub_mul_div.hpp qx_func.hpp qx_bits.hpp qx_members.hpp qx_comp.hpp qx_uni.hpp
+	python3 mm.py xX_real.hpp-templ 4 > qX_real.hpp
 	emacs --script indent.el qX_real.hpp
 	awk '/_LV_/{ gsub(/)_LV_/,")\\&");}{ print }' qX_real.hpp > qX_real.hpp-
 	mv qX_real.hpp- qX_real.hpp
 	cp qX_real.hpp ..
+std_mX_real.hpp: std_mX_real.hpp-templ std_head
+	cat std_head > std_mX_real.hpp
+	python3 mm.py std_mX_real.hpp-templ 2 >> std_mX_real.hpp
+	python3 mm.py std_mX_real.hpp-templ 3 >> std_mX_real.hpp
+	python3 mm.py std_mX_real.hpp-templ 4 >> std_mX_real.hpp
+	echo '#endif' >> std_mX_real.hpp
+	emacs --script indent.el std_mX_real.hpp
+	awk '/_LV_/{ gsub(/)_LV_/,")\\&");}{ print }' std_mX_real.hpp > std_mX_real.hpp-
+	mv std_mX_real.hpp- std_mX_real.hpp
+	cp std_mX_real.hpp ..
 
 dx_add_sub_mul_div.hpp: mx.py my.py
 	python3 mx.py 2 0 >  dx_add_sub_mul_div.hpp
