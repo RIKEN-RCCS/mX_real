@@ -265,12 +265,12 @@ namespace mX_real {
       static INLINE QX_REAL<> constexpr abs ( QX_REAL<> const& a );
       static INLINE QX_REAL<> constexpr sqrt ( QX_REAL<> const& a );
       static INLINE QX_REAL<> constexpr rand ();
+      static INLINE bool constexpr is_negative ( QX_REAL<> const& a );
       static INLINE bool constexpr is_zero ( QX_REAL<> const& a );
+      static INLINE bool constexpr isnan ( QX_REAL<> const& a );
+      static INLINE bool constexpr is_positive ( QX_REAL<> const& a );
       static INLINE bool constexpr isinf ( QX_REAL<> const& a );
       static INLINE bool constexpr signbit ( QX_REAL<> const& a );
-      static INLINE bool constexpr is_positive ( QX_REAL<> const& a );
-      static INLINE bool constexpr isnan ( QX_REAL<> const& a );
-      static INLINE bool constexpr is_negative ( QX_REAL<> const& a );
       //
 
 
@@ -280,12 +280,12 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () { mX_real::Normalize( *this ); }
       //
+      INLINE bool constexpr is_negative () const { return QX_REAL<>::is_negative( *this ); }
       INLINE bool constexpr is_zero () const { return QX_REAL<>::is_zero( *this ); }
+      INLINE bool constexpr isnan () const { return QX_REAL<>::isnan( *this ); }
+      INLINE bool constexpr is_positive () const { return QX_REAL<>::is_positive( *this ); }
       INLINE bool constexpr isinf () const { return QX_REAL<>::isinf( *this ); }
       INLINE bool constexpr signbit () const { return QX_REAL<>::signbit( *this ); }
-      INLINE bool constexpr is_positive () const { return QX_REAL<>::is_positive( *this ); }
-      INLINE bool constexpr isnan () const { return QX_REAL<>::isnan( *this ); }
-      INLINE bool constexpr is_negative () const { return QX_REAL<>::is_negative( *this ); }
       //
 
 
@@ -331,16 +331,12 @@ namespace mX_real {
       return fp<T>::isnan( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isinf ( qX_real::qx_real<T,Aa> const& a ) {
-      return fp<T>::isinf( a.quick_Normalized() );
-    }
-    template < typename T, Algorithm Aa >
     INLINE auto constexpr signbit ( qX_real::qx_real<T,Aa> const& a ) {
       return fp<T>::signbit( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_zero ( qX_real::qx_real<T,Aa> const& a ) {
-      return a.quick_Normalized() == fp<T>::zero;
+    INLINE auto constexpr isinf ( qX_real::qx_real<T,Aa> const& a ) {
+      return fp<T>::isinf( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_positive ( qX_real::qx_real<T,Aa> const& a ) {
@@ -349,6 +345,10 @@ namespace mX_real {
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_negative ( qX_real::qx_real<T,Aa> const& a ) {
       return a.quick_Normalized() < fp<T>::zero;
+    }
+    template < typename T, Algorithm Aa >
+    INLINE bool constexpr is_zero ( qX_real::qx_real<T,Aa> const& a ) {
+      return a.quick_Normalized() == fp<T>::zero;
     }
     //
     template < typename T, Algorithm A >
@@ -679,7 +679,7 @@ namespace mX_real {
 #endif
       return qX_real::operator_add_body ( a, b );
     }
-    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && TXa::L < TXb::L) >
+    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && TXa::L < TXb::L ) >
     INLINE auto constexpr operator_add ( TXa const& a, TXb const& b ) {
       return qX_real::operator_add ( b, a );
     }
@@ -712,8 +712,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator+ ( qX_real::qx_real<T,A> const& a, Ts const& b ) {
-      auto const b_ = T(b);
-      return qX_real::operator_add ( a, b_ );
+      return qX_real::operator_add ( a, T(b) );
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator+ ( Ts const& a, qX_real::qx_real<T,A> const& b ) {
@@ -791,8 +790,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator+= ( qX_real::qx_real<T,A> & a, Ts const& b ) {
-      auto const b_ = T(b);
-      return qX_real::operator_add_ow ( a, b_ );
+      return qX_real::operator_add_ow ( a, T(b) );
     }
     //
 
@@ -821,8 +819,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator-= ( qX_real::qx_real<T,A> & a, Ts const& b ) {
-      auto const b_ = T(b);
-      return a += (-b_);
+      return a += (-b);
     }
     //
 
@@ -1076,7 +1073,7 @@ namespace mX_real {
 #endif
       return qX_real::operator_mul_body ( a, b );
     }
-    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && TXa::L < TXb::L) >
+    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && TXa::L < TXb::L ) >
     INLINE auto constexpr operator_mul ( TXa const& a, TXb const& b ) {
       return qX_real::operator_mul ( b, a );
     }
@@ -1109,8 +1106,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator* ( qX_real::qx_real<T,A> const& a, Ts const& b ) {
-      auto const b_ = T(b);
-      return qX_real::operator_mul ( a, b_ );
+      return qX_real::operator_mul ( a, T(b) );
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator* ( Ts const& a, qX_real::qx_real<T,A> const& b ) {
@@ -1188,8 +1184,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator*= ( qX_real::qx_real<T,A> & a, Ts const& b ) {
-      auto const b_ = T(b);
-      return qX_real::operator_mul_ow ( a, b_ );
+      return qX_real::operator_mul_ow ( a, T(b) );
     }
     //
 
@@ -1497,13 +1492,11 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator/ ( qX_real::qx_real<T,A> const& a, Ts const& b ) {
-      auto const b_ = T(b);
-      return qX_real::operator_div ( a, b_ );
+      return qX_real::operator_div ( a, T(b) );
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator/ ( Ts const& a, qX_real::qx_real<T,A> const& b ) {
-      auto const a_ = T(a);
-      return qX_real::operator_div ( a_, b );
+      return qX_real::operator_div ( T(a), b );
     }
     //
 
@@ -1577,8 +1570,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator/= ( qX_real::qx_real<T,A> & a, Ts const& b ) {
-      auto const b_ = T(b);
-      return qX_real::operator_div_ow ( a, b_ );
+      return qX_real::operator_div_ow ( a, T(b) );
     }
     //
 

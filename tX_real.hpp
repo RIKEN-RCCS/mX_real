@@ -262,15 +262,15 @@ namespace mX_real {
       // static member funtions
       // definition is below outside of the struct definition block
       //
-      static INLINE TX_REAL<> constexpr abs ( TX_REAL<> const& a );
       static INLINE TX_REAL<> constexpr sqrt ( TX_REAL<> const& a );
+      static INLINE TX_REAL<> constexpr abs ( TX_REAL<> const& a );
       static INLINE TX_REAL<> constexpr rand ();
-      static INLINE bool constexpr is_positive ( TX_REAL<> const& a );
-      static INLINE bool constexpr is_zero ( TX_REAL<> const& a );
-      static INLINE bool constexpr isinf ( TX_REAL<> const& a );
-      static INLINE bool constexpr isnan ( TX_REAL<> const& a );
-      static INLINE bool constexpr signbit ( TX_REAL<> const& a );
       static INLINE bool constexpr is_negative ( TX_REAL<> const& a );
+      static INLINE bool constexpr is_zero ( TX_REAL<> const& a );
+      static INLINE bool constexpr is_positive ( TX_REAL<> const& a );
+      static INLINE bool constexpr isinf ( TX_REAL<> const& a );
+      static INLINE bool constexpr signbit ( TX_REAL<> const& a );
+      static INLINE bool constexpr isnan ( TX_REAL<> const& a );
       //
 
 
@@ -280,12 +280,12 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () { mX_real::Normalize( *this ); }
       //
-      INLINE bool constexpr is_positive () const { return TX_REAL<>::is_positive( *this ); }
-      INLINE bool constexpr is_zero () const { return TX_REAL<>::is_zero( *this ); }
-      INLINE bool constexpr isinf () const { return TX_REAL<>::isinf( *this ); }
-      INLINE bool constexpr isnan () const { return TX_REAL<>::isnan( *this ); }
-      INLINE bool constexpr signbit () const { return TX_REAL<>::signbit( *this ); }
       INLINE bool constexpr is_negative () const { return TX_REAL<>::is_negative( *this ); }
+      INLINE bool constexpr is_zero () const { return TX_REAL<>::is_zero( *this ); }
+      INLINE bool constexpr is_positive () const { return TX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr isinf () const { return TX_REAL<>::isinf( *this ); }
+      INLINE bool constexpr signbit () const { return TX_REAL<>::signbit( *this ); }
+      INLINE bool constexpr isnan () const { return TX_REAL<>::isnan( *this ); }
       //
 
 
@@ -679,7 +679,7 @@ namespace mX_real {
 #endif
       return tX_real::operator_add_body ( a, b );
     }
-    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && TXa::L < TXb::L) >
+    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && TXa::L < TXb::L ) >
     INLINE auto constexpr operator_add ( TXa const& a, TXb const& b ) {
       return tX_real::operator_add ( b, a );
     }
@@ -712,8 +712,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator+ ( tX_real::tx_real<T,A> const& a, Ts const& b ) {
-      auto const b_ = T(b);
-      return tX_real::operator_add ( a, b_ );
+      return tX_real::operator_add ( a, T(b) );
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator+ ( Ts const& a, tX_real::tx_real<T,A> const& b ) {
@@ -791,8 +790,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator+= ( tX_real::tx_real<T,A> & a, Ts const& b ) {
-      auto const b_ = T(b);
-      return tX_real::operator_add_ow ( a, b_ );
+      return tX_real::operator_add_ow ( a, T(b) );
     }
     //
 
@@ -821,8 +819,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator-= ( tX_real::tx_real<T,A> & a, Ts const& b ) {
-      auto const b_ = T(b);
-      return a += (-b_);
+      return a += (-b);
     }
     //
 
@@ -1076,7 +1073,7 @@ namespace mX_real {
 #endif
       return tX_real::operator_mul_body ( a, b );
     }
-    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && TXa::L < TXb::L) >
+    template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T,typename TXb::base_T>::value && TXa::L < TXb::L ) >
     INLINE auto constexpr operator_mul ( TXa const& a, TXb const& b ) {
       return tX_real::operator_mul ( b, a );
     }
@@ -1109,8 +1106,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator* ( tX_real::tx_real<T,A> const& a, Ts const& b ) {
-      auto const b_ = T(b);
-      return tX_real::operator_mul ( a, b_ );
+      return tX_real::operator_mul ( a, T(b) );
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator* ( Ts const& a, tX_real::tx_real<T,A> const& b ) {
@@ -1188,8 +1184,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator*= ( tX_real::tx_real<T,A> & a, Ts const& b ) {
-      auto const b_ = T(b);
-      return tX_real::operator_mul_ow ( a, b_ );
+      return tX_real::operator_mul_ow ( a, T(b) );
     }
     //
 
@@ -1497,13 +1492,11 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator/ ( tX_real::tx_real<T,A> const& a, Ts const& b ) {
-      auto const b_ = T(b);
-      return tX_real::operator_div ( a, b_ );
+      return tX_real::operator_div ( a, T(b) );
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator/ ( Ts const& a, tX_real::tx_real<T,A> const& b ) {
-      auto const a_ = T(a);
-      return tX_real::operator_div ( a_, b );
+      return tX_real::operator_div ( T(a), b );
     }
     //
 
@@ -1577,8 +1570,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
     INLINE auto constexpr operator/= ( tX_real::tx_real<T,A> & a, Ts const& b ) {
-      auto const b_ = T(b);
-      return tX_real::operator_div_ow ( a, b_ );
+      return tX_real::operator_div_ow ( a, T(b) );
     }
     //
 

@@ -323,8 +323,7 @@ def gen_op_operator( Tc, description, func, op, commutable ) :
 
     print( 'template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >' )
     print( 'INLINE auto constexpr operator{op} ( {m}X_real::{m}x_real<T,A> const& a, Ts const& b ) {{'.format( op=op, m=mX_type(Tc) ) )
-    print( '  auto const b_ = T(b);' )
-    print( '  return {m}X_real::operator_{func} ( a, b_ );'.format( m=mX_type(Tc), func=func ) )
+    print( '  return {m}X_real::operator_{func} ( a, T(b) );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
     print( 'template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >' )
@@ -332,8 +331,7 @@ def gen_op_operator( Tc, description, func, op, commutable ) :
     if commutable == 1 :
         print( '  return b {op} a;'.format( op=op ) )
     else :
-        print( '  auto const a_ = T(a);' )
-        print( '  return {m}X_real::operator_{func} ( a_, b );'.format( m=mX_type(Tc), func=func ) )
+        print( '  return {m}X_real::operator_{func} ( T(a), b );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
 def gen_op_operator_sub( Tc, description, func, op, commutable ) :

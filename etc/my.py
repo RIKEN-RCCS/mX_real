@@ -106,8 +106,7 @@ def gen_op_ow_operator( Tc, description, func, op, commutable ) :
 
     print( 'template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >' )
     print( 'INLINE auto constexpr operator{op}= ( {m}X_real::{m}x_real<T,A> & a, Ts const& b ) {{'.format( m=mX_type(Tc), op=op ) )
-    print( '  auto const b_ = T(b);' )
-    print( '  return {m}X_real::operator_{func}_ow ( a, b_ );'.format( m=mX_type(Tc), func=func ) )
+    print( '  return {m}X_real::operator_{func}_ow ( a, T(b) );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
 def gen_op_ow_operator_sub( Tc, description, func, op, commutable ) :
@@ -118,8 +117,7 @@ def gen_op_ow_operator_sub( Tc, description, func, op, commutable ) :
     print( '}' )
     print( 'template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >' )
     print( 'INLINE auto constexpr operator-= ( {m}X_real::{m}x_real<T,A> & a, Ts const& b ) {{'.format( m=mX_type(Tc) ) )
-    print( '  auto const b_ = T(b);' )
-    print( '  return a += (-b_);' )
+    print( '  return a += (-b);' )
     print( '}' )
 
 def gen_add ( Tc ) :
