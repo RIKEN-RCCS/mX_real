@@ -3092,10 +3092,10 @@ namespace QxW {
     T t0, t1;
     TwoProductFMA( a0, a0, c0, c1 );
     t0 = a0 + a0;
-    TwoProductFMA( t0, a1, t1, c2 );
-    TwoSum( c1, t1, c1, t1 );
-    c2 = std::fma ( a1, a1, c2 );
+    TwoProductFMA( t0, a1, c2, t1 );
+    TwoSum( c1, c2, c1, c2 );
     c2 = c2 + t1;
+    c2 = std::fma ( a1, a1, c2 );
   }
 
   // sqr: 2-4
@@ -3140,11 +3140,11 @@ namespace QxW {
     T t0, t1;
     TwoProductFMA( a0, a0, c0, c1 );
     t0 = a0 + a0;
-    TwoProductFMA( t0, a1, t1, c2 );
-    TwoSum( c1, t1, c1, t1 );
+    TwoProductFMA( t0, a1, c2, t1 );
+    TwoSum( c1, c2, c1, c2 );
+    c2 = c2 + t1;
     c2 = std::fma ( t0, a2, c2 );
     c2 = std::fma ( a1, a1, c2 );
-    c2 = c2 + t1;
   }
 
   // sqr: 3-4
@@ -3193,12 +3193,12 @@ namespace QxW {
     T t0, t1, t2;
     TwoProductFMA( a0, a0, c0, c1 );
     t0 = a0 + a0;
-    TwoProductFMA( t0, a1, t1, c2 );
-    TwoSum( c1, t1, c1, t1 );
+    TwoProductFMA( t0, a1, c2, t1 );
+    TwoSum( c1, c2, c1, c2 );
+    c2 = c2 + t1;
     t2 = a2 + a3;
     c2 = std::fma ( t0, t2, c2 );
     c2 = std::fma ( a1, a1, c2 );
-    c2 = c2 + t1;
   }
 
   // sqr: 4-4
@@ -7241,8 +7241,8 @@ namespace QxW {
     T t0, t1, t2, t3;
     TwoProductFMA( a0, a0, c0, c1 );
     t0 = a0 + a0;
-    TwoProductFMA( t0, a1, t1, c2 );
-    TwoSum( c1, t1, c1, t1 );
+    TwoProductFMA( t0, a1, c2, t1 );
+    TwoSum( c1, c2, c1, c2 );
     FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a1, a1, t2, t3 );
     TwoSum( c2, t1, c2, t1 );
@@ -7319,8 +7319,8 @@ namespace QxW {
     T t0, t1, t2, t3, t4, t5, t6;
     TwoProductFMA( a0, a0, c0, c1 );
     t0 = a0 + a0;
-    TwoProductFMA( t0, a1, t1, c2 );
-    TwoSum( c1, t1, c1, t1 );
+    TwoProductFMA( t0, a1, c2, t1 );
+    TwoSum( c1, c2, c1, c2 );
     FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( t0, a2, t2, t3 );
     TwoProductFMA( a1, a1, t4, t5 );
@@ -7409,8 +7409,8 @@ namespace QxW {
     T t0, t1, t2, t3, t4, t5, t6;
     TwoProductFMA( a0, a0, c0, c1 );
     t0 = a0 + a0;
-    TwoProductFMA( t0, a1, t1, c2 );
-    TwoSum( c1, t1, c1, t1 );
+    TwoProductFMA( t0, a1, c2, t1 );
+    TwoSum( c1, c2, c1, c2 );
     FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( t0, a2, t2, t3 );
     TwoProductFMA( a1, a1, t4, t5 );
@@ -7650,20 +7650,24 @@ namespace QxW {
   sqrt_SW_DW ( T const a0, T &c0, T &c1 )
   {
     T const as = std::sqrt( a0 );
-    T const e  = fp_const<T>::exponent ( as );
+    T const e  = fp_const<T>::exponent( as );
+    T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const b0 = ( a0 * ex ) * ex;
-
-    T const x  = e / as;
-    T const ax = b0 * x;
+    T const ex2 = ex * fp_const<T>::half();
+    T const ax0 = (a0 * ex) * ex2;
+    T const h0 = 3*fp_const<T>::half();
+    T t0, t1;
     T r0, r1;
+    r0 = e / as;
 
-    TwoProductFMA( ax, ax, r0, r1 );
-    sub_SW_DW_SW( b0, r0, r1, c0 );
-    TwoSum( ax, c0 * ( x * fp_const<T>::half() ), c0, c1 );
+    sqr_SW_DW ( r0, t0, t1 );
+    mul_SW_DW_DW ( ax0, t0, t1, t0, t1 );
+    sub_SW_DW_DW ( h0, t0, t1, t0, t1 );
+    mul_DW_SW_DW ( t0, t1, r0, r0, r1 );
 
-    c0 = c0 * e;
-    c1 = c1 * e;
+    mul_SW_DW_DW ( ax0, r0, r1, r0, r1 );
+    c0 = r0 * e2;
+    c1 = r1 * e2;
   }
 
   // sqrt: 1-3
@@ -7760,21 +7764,25 @@ namespace QxW {
   sqrt_DW_DW ( T const a0, T const a1, T &c0, T &c1 )
   {
     T const as = std::sqrt( a0 );
-    T const e  = fp_const<T>::exponent ( as );
+    T const e  = fp_const<T>::exponent( as );
+    T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const b0 = ( a0 * ex ) * ex;
-    T const b1 = ( a1 * ex ) * ex;
-
-    T const x  = e / as;
-    T const ax = b0 * x;
+    T const ex2 = ex * fp_const<T>::half();
+    T const ax0 = (a0 * ex) * ex2;
+    T const ax1 = (a1 * ex) * ex2;
+    T const h0 = 3*fp_const<T>::half();
+    T t0, t1;
     T r0, r1;
+    r0 = e / as;
 
-    TwoProductFMA( ax, ax, r0, r1 );
-    sub_DW_DW_SW( b0, b1, r0, r1, c0 );
-    TwoSum( ax, c0 * ( x * fp_const<T>::half() ), c0, c1 );
+    sqr_SW_DW ( r0, t0, t1 );
+    mul_DW_DW_DW ( ax0, ax1, t0, t1, t0, t1 );
+    sub_SW_DW_DW ( h0, t0, t1, t0, t1 );
+    mul_DW_SW_DW ( t0, t1, r0, r0, r1 );
 
-    c0 = c0 * e;
-    c1 = c1 * e;
+    mul_DW_DW_DW ( ax0, ax1, r0, r1, r0, r1 );
+    c0 = r0 * e2;
+    c1 = r1 * e2;
   }
 
   // sqrt: 2-3
@@ -7874,22 +7882,26 @@ namespace QxW {
   sqrt_TW_DW ( T const a0, T const a1, T const a2, T &c0, T &c1 )
   {
     T const as = std::sqrt( a0 );
-    T const e  = fp_const<T>::exponent ( as );
+    T const e  = fp_const<T>::exponent( as );
+    T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const b0 = ( a0 * ex ) * ex;
-    T const b1 = ( a1 * ex ) * ex;
-    T const b2 = ( a2 * ex ) * ex;
+    T const ex2 = ex * fp_const<T>::half();
+    T const ax0 = (a0 * ex) * ex2;
+    T const ax1 = (a1 * ex) * ex2;
+    T const ax2 = (a2 * ex) * ex2;
+    T const h0 = 3*fp_const<T>::half();
+    T t0, t1, t2;
+    T r0, r1, r2;
+    r0 = e / as;
 
-    T const x  = e / as;
-    T const ax = b0 * x;
-    T r0, r1;
+    sqr_SW_DW ( r0, t0, t1 );
+    mul_TW_DW_TW ( ax0, ax1, ax2, t0, t1, t0, t1, t2 );
+    sub_SW_TW_TW ( h0, t0, t1, t2, t0, t1, t2 );
+    mul_TW_SW_DW ( t0, t1, t2, r0, r0, r1 );
 
-    TwoProductFMA( ax, ax, r0, r1 );
-    sub_TW_DW_SW( b0, b1, b2, r0, r1, c0 );
-    TwoSum( ax, c0 * ( x * fp_const<T>::half() ), c0, c1 );
-
-    c0 = c0 * e;
-    c1 = c1 * e;
+    mul_TW_DW_DW ( ax0, ax1, ax2, r0, r1, r0, r1 );
+    c0 = r0 * e2;
+    c1 = r1 * e2;
   }
 
   // sqrt: 3-3
@@ -7992,23 +8004,27 @@ namespace QxW {
   sqrt_QW_DW ( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1 )
   {
     T const as = std::sqrt( a0 );
-    T const e  = fp_const<T>::exponent ( as );
+    T const e  = fp_const<T>::exponent( as );
+    T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const b0 = ( a0 * ex ) * ex;
-    T const b1 = ( a1 * ex ) * ex;
-    T const b2 = ( a2 * ex ) * ex;
-    T const b3 = ( a3 * ex ) * ex;
+    T const ex2 = ex * fp_const<T>::half();
+    T const ax0 = (a0 * ex) * ex2;
+    T const ax1 = (a1 * ex) * ex2;
+    T const ax2 = (a2 * ex) * ex2;
+    T const ax3 = (a3 * ex) * ex2;
+    T const h0 = 3*fp_const<T>::half();
+    T t0, t1, t2, t3;
+    T r0, r1, r2, r3;
+    r0 = e / as;
 
-    T const x  = e / as;
-    T const ax = b0 * x;
-    T r0, r1;
+    sqr_SW_DW ( r0, t0, t1 );
+    mul_QW_DW_QW ( ax0, ax1, ax2, ax3, t0, t1, t0, t1, t2, t3 );
+    sub_SW_QW_QW ( h0, t0, t1, t2, t3, t0, t1, t2, t3 );
+    mul_QW_SW_DW ( t0, t1, t2, t3, r0, r0, r1 );
 
-    TwoProductFMA( ax, ax, r0, r1 );
-    sub_QW_DW_SW( b0, b1, b2, b3, r0, r1, c0 );
-    TwoSum( ax, c0 * ( x * fp_const<T>::half() ), c0, c1 );
-
-    c0 = c0 * e;
-    c1 = c1 * e;
+    mul_QW_DW_DW ( ax0, ax1, ax2, ax3, r0, r1, r0, r1 );
+    c0 = r0 * e2;
+    c1 = r1 * e2;
   }
 
   // sqrt: 4-3

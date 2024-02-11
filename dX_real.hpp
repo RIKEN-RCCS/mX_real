@@ -250,6 +250,18 @@ namespace mX_real {
         for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
         return DX_REAL<>{ c };
       }
+      static INLINE DX_REAL<> constexpr safe_min  () {
+        T c = fp<T>::min;
+        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+        c = std::sqrt( c );
+        return DX_REAL<>{ c };
+      }
+      static INLINE DX_REAL<> constexpr critical_min  () {
+        T c = fp<T>::denorm_min;
+        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+        c = std::sqrt( c );
+        return DX_REAL<>{ c };
+      }
       static INLINE DX_REAL<> constexpr max  () {
         T c[L];
         c[0] = fp<T>::max;

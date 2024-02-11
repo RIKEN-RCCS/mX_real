@@ -238,7 +238,7 @@ namespace mX_real {
       static INLINE TX_REAL<> constexpr nan () { T c = fp<T>::nan; return TX_REAL<>{ c, c, c }; }
       static INLINE TX_REAL<> constexpr inf () { T c = fp<T>::inf; return TX_REAL<>{ c, c, c }; }
       static INLINE TX_REAL<> constexpr epsilon () {
-        T c = fp<T>::epsilon * fp<T>::half; c = (c * c) * 2;
+        T c = fp<T>::epsilon * fp<T>::half; c = (c * c* c) * 2;
         return TX_REAL<>{ c };
       }
       static INLINE TX_REAL<> constexpr denorm_min  () {
@@ -248,6 +248,18 @@ namespace mX_real {
       static INLINE TX_REAL<> constexpr min  () {
         T c = fp<T>::min;
         for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+        return TX_REAL<>{ c };
+      }
+      static INLINE TX_REAL<> constexpr safe_min  () {
+        T c = fp<T>::min;
+        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+        c = std::sqrt( c );
+        return TX_REAL<>{ c };
+      }
+      static INLINE TX_REAL<> constexpr critical_min  () {
+        T c = fp<T>::denorm_min;
+        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+        c = std::sqrt( c );
         return TX_REAL<>{ c };
       }
       static INLINE TX_REAL<> constexpr max  () {

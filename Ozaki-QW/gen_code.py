@@ -1412,14 +1412,14 @@ def gen_sqr( NA, NC, ACC ) :
         line[1] = 'FMA a0 a0 c0 c1' # (c1)
 
         line[2] = 'ADD e0 a0 a0' # if NA > 1 else 'ZER e0'
-        line[3] = 'FMA e0 a1 e1 c2' # (c1,e1)(c2)
-        line[4] = 'TWO c1 e1 c1 e1' # (c1)(c2,e1)
+        line[3] = 'FMA e0 a1 c2 e1' # (c1,c2)(e1)
+        line[4] = 'TWO c1 c2 c1 c2' # (c1)(c2,e1)
 
         if ACC == 0 :
-            line[5] = 'ADD e2 a2 a3' # (c1)(c2,e1)
-            line[6] = 'MAD c2 e0 e2 c2' # (c1)(c2,e1)
-            line[7] = 'MAD c2 a1 a1 c2' # (c1)(c2,e1)
-            line[8] = 'ADD c2 c2 e1' # (c1)(c2)
+            line[5] = 'ADD c2 c2 e1' # (c1)(c2)
+            line[6] = 'ADD e2 a2 a3' # (c1)(c2,e1)
+            line[7] = 'MAD c2 e0 e2 c2' # (c1)(c2,e1)
+            line[8] = 'MAD c2 a1 a1 c2' # (c1)(c2,e1)
         else :
             line[5] = 'QQQ c0 c1 c0 c1' if NA > 1 else '!'
             line[6] = 'FMA e0 a2 e3 e4' # (c1)(c2,e1,e3)(e4)

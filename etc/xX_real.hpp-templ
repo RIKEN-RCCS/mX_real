@@ -232,7 +232,7 @@ namespace @{m}@X_real {
     static INLINE @{M}@X_REAL<> constexpr @{func}@ () { T c = fp<T>::@{func}@; return @{M}@X_REAL<>{ c@@{, c}@@ }; }
 }@@@
     static INLINE @{M}@X_REAL<> constexpr epsilon () {
-      T c = fp<T>::epsilon * fp<T>::half; c = (c * c) * 2;
+      T c = fp<T>::epsilon * fp<T>::half; c = (c @@{* c}@@) * 2;
       return @{M}@X_REAL<>{ c };
     }
     static INLINE @{M}@X_REAL<> constexpr denorm_min  () {
@@ -242,6 +242,18 @@ namespace @{m}@X_real {
     static INLINE @{M}@X_REAL<> constexpr min  () {
       T c = fp<T>::min;
       for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+      return @{M}@X_REAL<>{ c };
+    }
+    static INLINE @{M}@X_REAL<> constexpr safe_min  () {
+      T c = fp<T>::min;
+      for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+      c = std::sqrt( c );
+      return @{M}@X_REAL<>{ c };
+    }
+    static INLINE @{M}@X_REAL<> constexpr critical_min  () {
+      T c = fp<T>::denorm_min;
+      for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+      c = std::sqrt( c );
       return @{M}@X_REAL<>{ c };
     }
     static INLINE @{M}@X_REAL<> constexpr max  () {

@@ -302,16 +302,102 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
 }
 
 
-template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T, typename TXb::base_T>::value ) >
-void check_mul()
-{
-  auto eps0 = TXa::epsilon();
-  auto eps1 = TXb::epsilon();
-  auto eps  = ( TXa::L > TXb::L ? convert( eps0 ) : convert( eps1 ) ) * 1.5;
+template < template < class... > class TestFunc, class... Tlist_base >
+struct For {
+private:
+  // inner loop
+  template < typename dummy> static void run0_impl () { }
+  template < typename dummy, typename T0, class... Tlist >
+  static void run0_impl () {
+    TestFunc < T0 >:: run ();
+    if ( sizeof...(Tlist) ) run0_impl < dummy, Tlist... > ();
+  }
+public:
+  static void run () { run0_impl < void, Tlist_base... > (); }
+};
 
+template < template < class... > class TestFunc, class... Tlist_base >
+struct ForFor {
+private:
+  // inner loop
+  template < typename T0> static void run1_impl () { }
+  template < typename T0, typename T1, class... Tlist >
+  static void run1_impl () {
+    TestFunc < T0, T1 >:: run ();
+    if ( sizeof...(Tlist) ) run1_impl < T0, Tlist... > ();
+  };
+
+  // outer loop
+  template < typename dummy > static void run0_impl () { }
+  template < typename dummy, typename T0, class... Tlist >
+  static void run0_impl () {
+    run1_impl < T0, Tlist_base... > ();
+    if ( sizeof...(Tlist) ) run0_impl < dummy, Tlist... > ();
+  }
+public:
+  static void run () { run0_impl < void, Tlist_base... > (); }
+};
+
+
+template < typename TXa, typename TXb >
+struct Test_add
+{
+  template < T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T, typename TXb::base_T>::value ) >
+  static void run()
+  {
+  using TXc = largeType<TXa,TXb>;
+  using T   = typename TXc::base_T;
+  auto eps = convert( largeType<TXa,TXb>::epsilon() );
+  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon ) ) );
+
+  unsigned int seed = 1;
+  srand( seed );
+
+  auto res = -eps;
   for(int i=1;i<10000;i++){
-    auto a = TXa::rand();
-    auto b = TXb::rand();
+    auto a = (2*TXa::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
+    auto b = (2*TXb::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
+    auto c = a + b;
+
+    auto a_ = convert( a );
+    auto b_ = convert( b );
+    auto c_ = a_ + b_;
+
+    auto e_ = fabs( c_ - convert( c ) );
+    auto f_ = fabs( c_ ) * eps;
+    auto g_ = e_/f_;
+
+    res = fmax( res, g_ );
+  }
+
+  char sa[64]; TYPE_name<TXa>( sa );
+  char sb[64]; TYPE_name<TXb>( sb );
+  char sc[64]; TYPE_name<TXc>( sc );
+  std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
+          << " : ADD " << std::string( sa ) << " + " << std::string( sb ) << " => " << std::string( sc )
+	  << " :: " << res << " " << eps << " " << tol << " "
+	  << std::numeric_limits<T>::max_digits10 << "\n";
+  }
+};
+
+template < typename TXa, typename TXb >
+struct Test_mul
+{
+  template < T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T, typename TXb::base_T>::value ) >
+  static void run()
+  {
+  using TXc = largeType<TXa,TXb>;
+  using T   = typename TXc::base_T;
+  auto eps = convert( largeType<TXa,TXb>::epsilon() );
+  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon ) ) );
+
+  unsigned int seed = 1;
+  srand( seed );
+
+  auto res = -eps;
+  for(int i=1;i<10000;i++){
+    auto a = (2*TXa::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
+    auto b = (2*TXb::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
     auto c = a * b;
 
     auto a_ = convert( a );
@@ -319,20 +405,140 @@ void check_mul()
     auto c_ = a_ * b_;
 
     auto e_ = fabs( c_ - convert( c ) );
+    auto f_ = fabs( c_ ) * eps;
+    auto g_ = e_/f_;
 
-    auto f = c.x[0];
-    for(int j=1; j< std::max(TXa::L,TXb::L); j++) f += c.x[j];
-    auto f_ = double( std::abs(f) ) * eps;
-
-    if ( e_ > f_ ) {
-      std::cout << a_ << " * " << b_ << " = " << c_ << " / " << e_ << " . " << f_ << "\n";
-      exit(1);
-    }
+    res = fmax( res, g_ );
   }
+
   char sa[64]; TYPE_name<TXa>( sa );
   char sb[64]; TYPE_name<TXb>( sb );
-  std::cout << "PASS: " << std::string( sa ) << " * " << std::string( sb ) << "\n";
-}
+  char sc[64]; TYPE_name<TXc>( sc );
+  std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
+          << " : MUL " << std::string( sa ) << " * " << std::string( sb ) << " => " << std::string( sc )
+	  << " :: " << res << " " << eps << " " << tol << " "
+	  << std::numeric_limits<T>::max_digits10 << "\n";
+  }
+};
+
+template < typename TXa, typename TXb >
+struct Test_div
+{
+  template < T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T, typename TXb::base_T>::value ) >
+  static void run()
+  {
+  using TXc = largeType<TXa,TXb>;
+  using T   = typename TXc::base_T;
+  auto eps = convert( smallType<TXa,TXb>::epsilon() );
+  auto tol = convert( 31*double(1.0) / double( fp<T>::epsilon ) );
+
+  unsigned int seed = 1;
+  srand( seed );
+
+  auto res = -eps;
+  for(int i=1;i<10000;i++){
+    auto a = (2*TXa::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
+    auto b = (2*TXb::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
+    auto c = a / b;
+
+    auto a_ = convert( a );
+    auto b_ = convert( b );
+    auto c_ = a_ / b_;
+
+    auto e_ = fabs( c_ - convert( c ) );
+    auto f_ = fabs( c_ ) * eps;
+    auto g_ = e_/f_;
+
+    res = fmax( res, g_ );
+  }
+
+  char sa[64]; TYPE_name<TXa>( sa );
+  char sb[64]; TYPE_name<TXb>( sb );
+  char sc[64]; TYPE_name<TXc>( sc );
+  std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
+          << " : DIV " << std::string( sa ) << " / " << std::string( sb ) << " => " << std::string( sc )
+	  << " :: " << res << " " << eps << " " << tol << " "
+	  << std::numeric_limits<T>::max_digits10 << "\n";
+  }
+};
+
+template < typename TXa >
+struct Test_sqr
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+  using TXc = TXa;
+  using T   = typename TXc::base_T;
+  auto eps = convert( TXa::epsilon() );
+  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon ) ) );
+
+  unsigned int seed = 1;
+  srand( seed );
+
+  auto res = -eps;
+  for(int i=1;i<10000;i++){
+    auto a = TXa::rand() * std::pow(2.0,double(rand()%60)-30.0);
+    auto c = a * a;
+
+    auto a_ = convert( a );
+    auto c_ = a_ * a_;
+
+    auto e_ = fabs( c_ - convert( c ) );
+    auto f_ = fabs( c_ ) * eps;
+    auto g_ = e_/f_;
+
+    if ( fabs(a_) > convert( TXa::safe_min() / 4 ) ) {
+      res = fmax( res, g_ );
+    }
+  }
+
+  char sa[64]; TYPE_name<TXa>( sa );
+  char sc[64]; TYPE_name<TXc>( sc );
+  std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
+	  << " : SQR  " << std::string( sa ) << " => " << std::string( sc )
+	  << " :: " << res << " " << eps << " " << tol << " "
+	  << std::numeric_limits<T>::max_digits10 << "\n";
+  }
+};
+
+template < typename TXa >
+struct Test_sqrt
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+  using TXc = TXa;
+  using T   = typename TXc::base_T;
+  auto eps = convert( TXa::epsilon() );
+  auto tol = convert( 31*double(1.0) / double( fp<T>::epsilon ) );
+
+  unsigned int seed = 1;
+  srand( seed );
+
+  auto res = -eps;
+  for(int i=1;i<10000;i++){
+    auto a = TXa::rand() * std::pow(2.0,double(rand()%60)-30.0);
+    auto c = sqrt( a );
+
+    auto a_ = convert( a );
+    auto c_ = sqrt( a_ );
+
+    auto e_ = fabs( c_ - convert( c ) );
+    auto f_ = fabs( c_ ) * eps;
+    auto g_ = e_/f_;
+
+    res = fmax( res, g_ );
+  }
+  char sa[64]; TYPE_name<TXa>( sa );
+  char sc[64]; TYPE_name<TXc>( sc );
+  std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
+	  << " : SQRT " << std::string( sa ) << " => " << std::string( sc )
+	  << " :: " << res << " " << eps << " " << tol << " "
+	  << std::numeric_limits<T>::max_digits10 << "\n";
+  }
+};
+
 
 int
 main(int argc, char *argv[])
@@ -349,77 +555,55 @@ main(int argc, char *argv[])
   
   auto alpha = sqrt( mp_real(2) );
   
-  check_mul<df_Real,df_Real>();
-  check_mul<df_Real,df_Real_quasi>();
-  check_mul<df_Real,df_Real_sloppy>();
+  ForFor < Test_add,
+	 df_Real_quasi, df_Real_sloppy, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-  check_mul<df_Real_quasi,df_Real>();
-  check_mul<df_Real_quasi,df_Real_quasi>();
-  check_mul<df_Real_quasi,df_Real_sloppy>();
+  ForFor < Test_add,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-  check_mul<df_Real_sloppy,df_Real>();
-  check_mul<df_Real_sloppy,df_Real_quasi>();
-  check_mul<df_Real_sloppy,df_Real_sloppy>();
+  ForFor < Test_mul,
+	 df_Real_quasi, df_Real_sloppy, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-  check_mul<tf_Real,df_Real>();
-  check_mul<tf_Real,df_Real_quasi>();
-  check_mul<tf_Real,df_Real_sloppy>();
+  ForFor < Test_mul,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-  check_mul<tf_Real_quasi,df_Real>();
-  check_mul<tf_Real_quasi,df_Real_quasi>();
-  check_mul<tf_Real_quasi,df_Real_sloppy>();
+  ForFor < Test_div,
+	 df_Real_quasi, df_Real_sloppy, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-  check_mul<tf_Real_sloppy,df_Real>();
-  check_mul<tf_Real_sloppy,df_Real_quasi>();
-  check_mul<tf_Real_sloppy,df_Real_sloppy>();
+  ForFor < Test_div,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-  check_mul<tf_Real,tf_Real>();
-  check_mul<tf_Real,tf_Real_quasi>();
-  check_mul<tf_Real,tf_Real_sloppy>();
+  For    < Test_sqr,
+	 df_Real_quasi, df_Real_sloppy, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-  check_mul<tf_Real_quasi,tf_Real>();
-  check_mul<tf_Real_quasi,tf_Real_quasi>();
-  check_mul<tf_Real_quasi,tf_Real_sloppy>();
+  For    < Test_sqr,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-  check_mul<tf_Real_sloppy,tf_Real>();
-  check_mul<tf_Real_sloppy,tf_Real_quasi>();
-  check_mul<tf_Real_sloppy,tf_Real_sloppy>();
+  For    < Test_sqrt,
+	 df_Real_quasi, df_Real_sloppy, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-  check_mul<qf_Real,df_Real>();
-  check_mul<qf_Real,df_Real_quasi>();
-  check_mul<qf_Real,df_Real_sloppy>();
-
-  check_mul<qf_Real_quasi,df_Real>();
-  check_mul<qf_Real_quasi,df_Real_quasi>();
-  check_mul<qf_Real_quasi,df_Real_sloppy>();
-
-  check_mul<qf_Real_sloppy,df_Real>();
-  check_mul<qf_Real_sloppy,df_Real_quasi>();
-  check_mul<qf_Real_sloppy,df_Real_sloppy>();
-
-  check_mul<qf_Real,tf_Real>();
-  check_mul<qf_Real,tf_Real_quasi>();
-  check_mul<qf_Real,tf_Real_sloppy>();
-
-  check_mul<qf_Real_quasi,tf_Real>();
-  check_mul<qf_Real_quasi,tf_Real_quasi>();
-  check_mul<qf_Real_quasi,tf_Real_sloppy>();
-
-  check_mul<qf_Real_sloppy,tf_Real>();
-  check_mul<qf_Real_sloppy,tf_Real_quasi>();
-  check_mul<qf_Real_sloppy,tf_Real_sloppy>();
-
-  check_mul<qf_Real,qf_Real>();
-  check_mul<qf_Real,qf_Real_quasi>();
-  check_mul<qf_Real,qf_Real_sloppy>();
-
-  check_mul<qf_Real_quasi,qf_Real>();
-  check_mul<qf_Real_quasi,qf_Real_quasi>();
-  check_mul<qf_Real_quasi,qf_Real_sloppy>();
-
-  check_mul<qf_Real_sloppy,qf_Real>();
-  check_mul<qf_Real_sloppy,qf_Real_quasi>();
-  check_mul<qf_Real_sloppy,qf_Real_sloppy>();
+  For    < Test_sqrt,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
 
   {

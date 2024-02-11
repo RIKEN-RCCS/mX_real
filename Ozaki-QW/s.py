@@ -986,14 +986,18 @@ def gen_sqrt( NA, NC, ACC ) :
             print( '  c1 = ( std::fma( -c0, c0, a0 ){} ) / (c0 + c0);'.format( va_list ) )
             print( '}\n' )
             return
-        if ACC == 1 :
+        if False and ACC == 1 :
             def_head( 'sqrt', NA, 0, NC, ACC, 'a', 'b', 'c' )
             print( '{' )
 
             # sqrt(a) = sqrt( a * ex*ex / (ex*ex) ) = sqrt(a') / ex = sqrt(a') * e
             # 1/sqrt(a') = e/sqrt(a)
 
-            print( '  T const as = std::sqrt( a0 );' )
+            if NA == 2 :
+                print( '  sqrt_PA_PA( a0, a1, c0, c1 );' )
+                print( '  T const as = c0 + c1;' )
+            else :
+                print( '  T const as = std::sqrt( a0 );' )
             print( '  T const e  = fp_const<T>::exponent ( as );' )
             print( '  T const ex = fp_const<T>::exponenti( as );' )
             [ print( '  T const b{} = ( a{} * ex ) * ex;'.format( i, i ) ) for i in range( NA ) ]

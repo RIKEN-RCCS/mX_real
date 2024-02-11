@@ -457,6 +457,22 @@ namespace mX_real {
 
 namespace mX_real {
 
+  template < typename TXa, typename TXb >
+  struct largeType_impl {
+    using type = decltype( std::declval<TXa>() * std::declval<TXb>() );
+  };
+  template < typename TXa, typename TXb >
+  using largeType = typename largeType_impl<TXa,TXb>::type;
+
+  template < typename TXa, typename TXb >
+  struct smallType_impl {
+    using type = typename std::conditional< ( TXa::L < TXb::L ), TXa, TXb >::type;
+  };
+  template < typename TXa, typename TXb >
+  using smallType = typename smallType_impl<TXa,TXb>::type;
+
+  template < typename TXa, typename TXb >
+  using commonType = largeType<TXa,TXb>;
 
   //
   // APIs for common constatnt number functions
