@@ -36,6 +36,7 @@ template <> struct fp_const<float> {
   static uint32_t constexpr MASK = 0x7f800000;
   static uint32_t constexpr RINF = 0x7f000000;
   static uint32_t constexpr XONE = 0x0b800000;
+  static uint32_t constexpr EONE = 0x00800000;
 
   static inline auto constexpr fp2uint( float const a ) {
     union { float a; uint32_t e; } x = { .a = a };
@@ -46,12 +47,17 @@ template <> struct fp_const<float> {
     return x.a;
   }
 
-  static INLINE auto constexpr hbit( double const a ) {
+  template < bool doubled = false >
+  static INLINE auto constexpr hbit( float const a ) {
     auto e = fp2uint( a );
     auto s = e & SBIT;
     e &= MASK;
+    if ( doubled ) e += EONE;
     e |= s;
     return uint2fp( e );
+  }
+  static INLINE auto constexpr hbit2( float const a ) {
+    return hbit<true>( a );
   }
   static INLINE auto constexpr ulp( float const a ) {
     if ( a == zero() ) return a;
@@ -86,6 +92,7 @@ template <> struct fp_const<double> {
   static uint64_t constexpr MASK = 0x7ff0000000000000;
   static uint64_t constexpr RINF = 0x7fe0000000000000;
   static uint64_t constexpr XONE = 0x0340000000000000;
+  static uint64_t constexpr EONE = 0x0010000000000000;
 
   static inline auto constexpr fp2uint( double const a ) {
     union { double a; uint64_t e; } x = { .a = a };
@@ -96,12 +103,17 @@ template <> struct fp_const<double> {
     return x.a;
   }
 
+  template < bool doubled = false >
   static INLINE auto constexpr hbit( double const a ) {
     auto e = fp2uint( a );
     auto s = e & SBIT;
     e &= MASK;
+    if ( doubled ) e += EONE;
     e |= s;
     return uint2fp( e );
+  }
+  static INLINE auto constexpr hbit2( double const a ) {
+    return hbit<true>( a );
   }
   static INLINE auto constexpr ulp( double const a ) {
     if ( a == zero() ) return a;

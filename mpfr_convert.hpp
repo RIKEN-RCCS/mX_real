@@ -52,7 +52,7 @@ namespace mX_real {
       mpfr::mpreal S = (double)s;
       if ( std::is_same<T,float>::value ) {
         if ( (s > 0 && S > x) || (s < 0 && S < x) ) { // to avoid double rounding
-          s = s - fp<T>::ulp( s );
+          s = s - QxW::fp_const<T>::ulp( s );
         }
       }
     }
@@ -69,8 +69,8 @@ namespace mX_real {
 
       if ( i<T::L-1 && s != zero<_T>() ) {
 
-        auto e  = fp<_T>::exponent( s );
-        auto ex = fp<_T>::exponenti( s );
+        auto e  = QxW::fp_const<_T>::exponent( s );
+        auto ex = QxW::fp_const<_T>::exponenti( s );
 
 	//
 	// exponent-shift arround one
@@ -84,7 +84,7 @@ namespace mX_real {
 	// if done, we must do rounding back to avoid a double-rounding
 	//
         if ( (s > 0 && S > X) || (s < 0 && S < X) ) {
-          s = s - fp<_T>::ulp( s );
+          s = s - QxW::fp_const<_T>::ulp( s );
         }
 
 	//
@@ -111,7 +111,7 @@ namespace mX_real {
       mpfr::mpreal S = s;
       if ( i<NX-1 ) {
         if ( (X > 0 && S > X) || (X < 0 && S < X) ) {
-           s = s - fp<double>::ulp( s );
+           s = s - QxW::fp_const<double>::ulp( s );
         }
         X = X - (double)s;
       }
@@ -131,7 +131,7 @@ namespace mX_real {
       mpfr::mpreal S = s;
       if ( i<NX-1 ) {
         if ( (X > 0 && S > X) || (X < 0 && S < X) ) {
-           s = s - fp<double>::ulp( s );
+           s = s - QxW::fp_const<double>::ulp( s );
         }
         X = X - (double)s;
       }

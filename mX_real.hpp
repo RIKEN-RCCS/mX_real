@@ -136,18 +136,6 @@ namespace mX_real {
       return std::rand();
     }
 
-    static INLINE auto constexpr hbit( float const a ) {
-      return QxW::fp_const<float>::hbit( a );
-    }
-    static INLINE auto constexpr ulp( float const a ) {
-      return QxW::fp_const<float>::ulp( a );
-    }
-    static INLINE auto constexpr exponent( float const a ) {
-      return QxW::fp_const<float>::exponent( a );
-    }
-    static INLINE auto constexpr exponenti( float const a ) {
-      return QxW::fp_const<float>::exponenti( a );
-    }
   };
   //
   template <>
@@ -201,18 +189,6 @@ namespace mX_real {
       return std::rand();
     }
 
-    static INLINE auto constexpr hbit( double const a ) {
-      return QxW::fp_const<double>::hbit( a );
-    }
-    static INLINE auto constexpr ulp( double const a ) {
-      return QxW::fp_const<double>::ulp( a );
-    }
-    static INLINE auto constexpr exponent( double const a ) {
-      return QxW::fp_const<double>::exponent( a );
-    }
-    static INLINE auto constexpr exponenti( double const a ) {
-      return QxW::fp_const<double>::exponenti( a );
-    }
   };
   //
   //
@@ -285,7 +261,7 @@ namespace mX_real {
       if ( ( 0x1 & QxW::fp_const<T>::fp2uint( src[L-1] ) ) != 0x1 ) return;
 
       auto const a =  QxW::fp_const<T>::ulp( src[L-1] );
-      auto const b =  QxW::fp_const<T>::hbit( src[L] ) * 2;
+      auto const b =  QxW::fp_const<T>::hbit2( src[L] );
       if ( signbit( src[L-1] ) ^ signbit( src[L] ) ) {
         // +11.0/-.1 -> +10.1 -> + 10 ---
         // +10.0/-.1 -> +01.1 -> + 10
@@ -457,14 +433,14 @@ namespace mX_real {
 
 namespace mX_real {
 
-  template < typename TXa, typename TXb >
+  template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same< typename TXa::base_T, typename TXb::base_T >::value ) >
   struct largeType_impl {
-    using type = decltype( std::declval<TXa>() * std::declval<TXb>() );
+    using type = typename std::conditional< ( TXa::L > TXb::L ), TXa, TXb >::type;
   };
   template < typename TXa, typename TXb >
   using largeType = typename largeType_impl<TXa,TXb>::type;
 
-  template < typename TXa, typename TXb >
+  template < typename TXa, typename TXb, T_mX(TXa), T_mX(TXb), T_assert( std::is_same< typename TXa::base_T, typename TXb::base_T >::value ) >
   struct smallType_impl {
     using type = typename std::conditional< ( TXa::L < TXb::L ), TXa, TXb >::type;
   };
@@ -473,6 +449,7 @@ namespace mX_real {
 
   template < typename TXa, typename TXb >
   using commonType = largeType<TXa,TXb>;
+
 
   //
   // APIs for common constatnt number functions
