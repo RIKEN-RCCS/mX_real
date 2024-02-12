@@ -2417,8 +2417,7 @@ namespace QxW {
   div_PA_PA_PA( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
   {
     c0 = a0 / (b0 + b1);
-    c1 = std::fma( -b0, c0, a0 ) + a1;
-    c1 = std::fma( -b1, c0, c1 ) / (b0 + b1);
+    c1 = (std::fma(-b0, c0, a0 ) + std::fma(-b1, c0, a1 )) / (b0 + b1);
   }
 
   // div: 2-2-3
@@ -6065,10 +6064,10 @@ namespace QxW {
   div_SW_DW_SW( T const a0, T const b0, T const b1, T &c0 )
   {
     T t0, t1;
-    T r0;
+    T r0, r1;
     c0 = a0 / b0;
     mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_SW_DW_SW( a0, t0, t1, r0 );
+    sub_SW_DW_DW( a0, t0, t1, r0, r1 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6078,13 +6077,13 @@ namespace QxW {
   div_SW_DW_DW( T const a0, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1;
-    T r0;
+    T r0, r1;
     c0 = a0 / b0;
     mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_SW_DW_SW( a0, t0, t1, r0 );
+    sub_SW_DW_DW( a0, t0, t1, r0, r1 );
     c1 = r0 / b0;
     mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_SW_DW_SW( r0, t0, t1, r0 );
+    sub_DW_DW_DW( r0, r1, t0, t1, r0, r1 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6094,17 +6093,17 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_SW_DW_TW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
-    T t0, t1;
-    T r0;
+    T t0, t1, t2;
+    T r0, r1, r2;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_SW_DW_SW( a0, t0, t1, r0 );
+    mul_DW_SW_TW( b0, b1, c0, t0, t1, t2 );
+    sub_SW_TW_TW( a0, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_SW_DW_SW( r0, t0, t1, r0 );
+    mul_DW_SW_TW( b0, b1, c1, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c2, t0, t1 );
-    sub_SW_DW_SW( r0, t0, t1, r0 );
+    mul_DW_SW_TW( b0, b1, c2, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6115,20 +6114,20 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_SW_DW_QW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
-    T t0, t1;
-    T r0;
+    T t0, t1, t2, t3;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_SW_DW_SW( a0, t0, t1, r0 );
+    mul_DW_SW_QW( b0, b1, c0, t0, t1, t2, t3 );
+    sub_SW_QW_QW( a0, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_SW_DW_SW( r0, t0, t1, r0 );
+    mul_DW_SW_QW( b0, b1, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c2, t0, t1 );
-    sub_SW_DW_SW( r0, t0, t1, r0 );
+    mul_DW_SW_QW( b0, b1, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c3, t0, t1 );
-    sub_SW_DW_SW( r0, t0, t1, r0 );
+    mul_DW_SW_QW( b0, b1, c3, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6141,10 +6140,10 @@ namespace QxW {
   div_SW_TW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1, t2;
-    T r0;
+    T r0, r1, r2;
     c0 = a0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_SW_TW_SW( a0, t0, t1, t2, r0 );
+    sub_SW_TW_TW( a0, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6154,13 +6153,13 @@ namespace QxW {
   div_SW_TW_DW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1, t2;
-    T r0;
+    T r0, r1, r2;
     c0 = a0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_SW_TW_SW( a0, t0, t1, t2, r0 );
+    sub_SW_TW_TW( a0, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_SW_TW_SW( r0, t0, t1, t2, r0 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6171,16 +6170,16 @@ namespace QxW {
   div_SW_TW_TW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
-    T r0;
+    T r0, r1, r2;
     c0 = a0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_SW_TW_SW( a0, t0, t1, t2, r0 );
+    sub_SW_TW_TW( a0, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_SW_TW_SW( r0, t0, t1, t2, r0 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c2, t0, t1, t2 );
-    sub_SW_TW_SW( r0, t0, t1, t2, r0 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6191,20 +6190,20 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_SW_TW_QW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
-    T t0, t1, t2;
-    T r0;
+    T t0, t1, t2, t3;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_SW_TW_SW( a0, t0, t1, t2, r0 );
+    mul_TW_SW_QW( b0, b1, b2, c0, t0, t1, t2, t3 );
+    sub_SW_QW_QW( a0, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_SW_TW_SW( r0, t0, t1, t2, r0 );
+    mul_TW_SW_QW( b0, b1, b2, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c2, t0, t1, t2 );
-    sub_SW_TW_SW( r0, t0, t1, t2, r0 );
+    mul_TW_SW_QW( b0, b1, b2, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c3, t0, t1, t2 );
-    sub_SW_TW_SW( r0, t0, t1, t2, r0 );
+    mul_TW_SW_QW( b0, b1, b2, c3, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6217,10 +6216,10 @@ namespace QxW {
   div_SW_QW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1, t2, t3;
-    T r0;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_SW_QW_SW( a0, t0, t1, t2, t3, r0 );
+    sub_SW_QW_QW( a0, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6230,13 +6229,13 @@ namespace QxW {
   div_SW_QW_DW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
-    T r0;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_SW_QW_SW( a0, t0, t1, t2, t3, r0 );
+    sub_SW_QW_QW( a0, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_SW_QW_SW( r0, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6247,16 +6246,16 @@ namespace QxW {
   div_SW_QW_TW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
-    T r0;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_SW_QW_SW( a0, t0, t1, t2, t3, r0 );
+    sub_SW_QW_QW( a0, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_SW_QW_SW( r0, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
-    sub_SW_QW_SW( r0, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6268,19 +6267,19 @@ namespace QxW {
   div_SW_QW_QW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
-    T r0;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_SW_QW_SW( a0, t0, t1, t2, t3, r0 );
+    sub_SW_QW_QW( a0, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_SW_QW_SW( r0, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
-    sub_SW_QW_SW( r0, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
-    sub_SW_QW_SW( r0, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6292,11 +6291,11 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_DW_SW_SW( T const a0, T const a1, T const b0, T &c0 )
   {
-    T t0;
+    T t0, t1;
     T r0, r1;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_DW_SW_SW( a0, a1, t0, r0 );
+    mul_SW_SW_DW( b0, c0, t0, t1 );
+    sub_DW_DW_DW( a0, a1, t0, t1, r0, r1 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6305,14 +6304,14 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_DW_SW_DW( T const a0, T const a1, T const b0, T &c0, T &c1 )
   {
-    T t0;
+    T t0, t1;
     T r0, r1;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_DW_SW_DW( a0, a1, t0, r0, r1 );
+    mul_SW_SW_DW( b0, c0, t0, t1 );
+    sub_DW_DW_DW( a0, a1, t0, t1, r0, r1 );
     c1 = r0 / b0;
-    mul_SW_SW_SW( b0, c1, t0 );
-    sub_DW_SW_SW( r0, r1, t0, r0 );
+    mul_SW_SW_DW( b0, c1, t0, t1 );
+    sub_DW_DW_DW( r0, r1, t0, t1, r0, r1 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6322,17 +6321,17 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_DW_SW_TW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   {
-    T t0;
-    T r0, r1;
+    T t0, t1, t2;
+    T r0, r1, r2;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_DW_SW_DW( a0, a1, t0, r0, r1 );
+    mul_SW_SW_TW( b0, c0, t0, t1, t2 );
+    sub_DW_TW_TW( a0, a1, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
-    mul_SW_SW_SW( b0, c1, t0 );
-    sub_DW_SW_DW( r0, r1, t0, r0, r1 );
+    mul_SW_SW_TW( b0, c1, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
-    mul_SW_SW_SW( b0, c2, t0 );
-    sub_DW_SW_SW( r0, r1, t0, r0 );
+    mul_SW_SW_TW( b0, c2, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6343,20 +6342,20 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_DW_SW_QW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
-    T t0;
-    T r0, r1;
+    T t0, t1, t2, t3;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_DW_SW_DW( a0, a1, t0, r0, r1 );
+    mul_SW_SW_QW( b0, c0, t0, t1, t2, t3 );
+    sub_DW_QW_QW( a0, a1, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_SW_SW_SW( b0, c1, t0 );
-    sub_DW_SW_DW( r0, r1, t0, r0, r1 );
+    mul_SW_SW_QW( b0, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_SW_SW_SW( b0, c2, t0 );
-    sub_DW_SW_DW( r0, r1, t0, r0, r1 );
+    mul_SW_SW_QW( b0, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
-    mul_SW_SW_SW( b0, c3, t0 );
-    sub_DW_SW_SW( r0, r1, t0, r0 );
+    mul_SW_SW_QW( b0, c3, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6372,7 +6371,7 @@ namespace QxW {
     T r0, r1;
     c0 = a0 / b0;
     mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_DW_DW_SW( a0, a1, t0, t1, r0 );
+    sub_DW_DW_DW( a0, a1, t0, t1, r0, r1 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6382,25 +6381,24 @@ namespace QxW {
   div_DW_DW_DW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
   {
     c0 = a0 / (b0 + b1);
-    c1 = std::fma( -b0, c0, a0 ) + a1;
-    c1 = std::fma( -b1, c0, c1 ) / (b0 + b1);
+    c1 = (std::fma(-b0, c0, a0 ) + std::fma(-b1, c0, a1 )) / (b0 + b1);
   }
 
   // div: 2-2-3
   template < typename T > __always_inline void constexpr
   div_DW_DW_TW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
-    T t0, t1;
-    T r0, r1;
+    T t0, t1, t2;
+    T r0, r1, r2;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_DW_DW_DW( a0, a1, t0, t1, r0, r1 );
+    mul_DW_SW_TW( b0, b1, c0, t0, t1, t2 );
+    sub_DW_TW_TW( a0, a1, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_DW_DW_DW( r0, r1, t0, t1, r0, r1 );
+    mul_DW_SW_TW( b0, b1, c1, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c2, t0, t1 );
-    sub_DW_DW_SW( r0, r1, t0, t1, r0 );
+    mul_DW_SW_TW( b0, b1, c2, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6411,20 +6409,20 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_DW_DW_QW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
-    T t0, t1;
-    T r0, r1;
+    T t0, t1, t2, t3;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_DW_DW_DW( a0, a1, t0, t1, r0, r1 );
+    mul_DW_SW_QW( b0, b1, c0, t0, t1, t2, t3 );
+    sub_DW_QW_QW( a0, a1, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_DW_DW_DW( r0, r1, t0, t1, r0, r1 );
+    mul_DW_SW_QW( b0, b1, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c2, t0, t1 );
-    sub_DW_DW_DW( r0, r1, t0, t1, r0, r1 );
+    mul_DW_SW_QW( b0, b1, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c3, t0, t1 );
-    sub_DW_DW_SW( r0, r1, t0, t1, r0 );
+    mul_DW_SW_QW( b0, b1, c3, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6437,10 +6435,10 @@ namespace QxW {
   div_DW_TW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1, t2;
-    T r0, r1;
+    T r0, r1, r2;
     c0 = a0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_DW_TW_SW( a0, a1, t0, t1, t2, r0 );
+    sub_DW_TW_TW( a0, a1, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6450,13 +6448,13 @@ namespace QxW {
   div_DW_TW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1, t2;
-    T r0, r1;
+    T r0, r1, r2;
     c0 = a0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_DW_TW_DW( a0, a1, t0, t1, t2, r0, r1 );
+    sub_DW_TW_TW( a0, a1, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_DW_TW_SW( r0, r1, t0, t1, t2, r0 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6467,16 +6465,16 @@ namespace QxW {
   div_DW_TW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
-    T r0, r1;
+    T r0, r1, r2;
     c0 = a0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_DW_TW_DW( a0, a1, t0, t1, t2, r0, r1 );
+    sub_DW_TW_TW( a0, a1, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_DW_TW_DW( r0, r1, t0, t1, t2, r0, r1 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c2, t0, t1, t2 );
-    sub_DW_TW_SW( r0, r1, t0, t1, t2, r0 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6487,20 +6485,20 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_DW_TW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
-    T t0, t1, t2;
-    T r0, r1;
+    T t0, t1, t2, t3;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_DW_TW_DW( a0, a1, t0, t1, t2, r0, r1 );
+    mul_TW_SW_QW( b0, b1, b2, c0, t0, t1, t2, t3 );
+    sub_DW_QW_QW( a0, a1, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_DW_TW_DW( r0, r1, t0, t1, t2, r0, r1 );
+    mul_TW_SW_QW( b0, b1, b2, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c2, t0, t1, t2 );
-    sub_DW_TW_DW( r0, r1, t0, t1, t2, r0, r1 );
+    mul_TW_SW_QW( b0, b1, b2, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c3, t0, t1, t2 );
-    sub_DW_TW_SW( r0, r1, t0, t1, t2, r0 );
+    mul_TW_SW_QW( b0, b1, b2, c3, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6513,10 +6511,10 @@ namespace QxW {
   div_DW_QW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1, t2, t3;
-    T r0, r1;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_DW_QW_SW( a0, a1, t0, t1, t2, t3, r0 );
+    sub_DW_QW_QW( a0, a1, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6526,13 +6524,13 @@ namespace QxW {
   div_DW_QW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
-    T r0, r1;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_DW_QW_DW( a0, a1, t0, t1, t2, t3, r0, r1 );
+    sub_DW_QW_QW( a0, a1, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_DW_QW_SW( r0, r1, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6543,16 +6541,16 @@ namespace QxW {
   div_DW_QW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
-    T r0, r1;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_DW_QW_DW( a0, a1, t0, t1, t2, t3, r0, r1 );
+    sub_DW_QW_QW( a0, a1, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_DW_QW_DW( r0, r1, t0, t1, t2, t3, r0, r1 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
-    sub_DW_QW_SW( r0, r1, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6564,19 +6562,19 @@ namespace QxW {
   div_DW_QW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
-    T r0, r1;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_DW_QW_DW( a0, a1, t0, t1, t2, t3, r0, r1 );
+    sub_DW_QW_QW( a0, a1, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_DW_QW_DW( r0, r1, t0, t1, t2, t3, r0, r1 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
-    sub_DW_QW_DW( r0, r1, t0, t1, t2, t3, r0, r1 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
-    sub_DW_QW_SW( r0, r1, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6588,11 +6586,11 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_TW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
   {
-    T t0;
+    T t0, t1, t2;
     T r0, r1, r2;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_TW_SW_SW( a0, a1, a2, t0, r0 );
+    mul_SW_SW_TW( b0, c0, t0, t1, t2 );
+    sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6601,14 +6599,14 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_TW_SW_DW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
   {
-    T t0;
+    T t0, t1, t2;
     T r0, r1, r2;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_TW_SW_TW( a0, a1, a2, t0, r0, r1, r2 );
+    mul_SW_SW_TW( b0, c0, t0, t1, t2 );
+    sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
-    mul_SW_SW_SW( b0, c1, t0 );
-    sub_TW_SW_SW( r0, r1, r2, t0, r0 );
+    mul_SW_SW_TW( b0, c1, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6618,17 +6616,17 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_TW_SW_TW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2 )
   {
-    T t0;
+    T t0, t1, t2;
     T r0, r1, r2;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_TW_SW_TW( a0, a1, a2, t0, r0, r1, r2 );
+    mul_SW_SW_TW( b0, c0, t0, t1, t2 );
+    sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
-    mul_SW_SW_SW( b0, c1, t0 );
-    sub_TW_SW_TW( r0, r1, r2, t0, r0, r1, r2 );
+    mul_SW_SW_TW( b0, c1, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
-    mul_SW_SW_SW( b0, c2, t0 );
-    sub_TW_SW_SW( r0, r1, r2, t0, r0 );
+    mul_SW_SW_TW( b0, c2, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6639,20 +6637,20 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_TW_SW_QW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
-    T t0;
-    T r0, r1, r2;
+    T t0, t1, t2, t3;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_TW_SW_TW( a0, a1, a2, t0, r0, r1, r2 );
+    mul_SW_SW_QW( b0, c0, t0, t1, t2, t3 );
+    sub_TW_QW_QW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_SW_SW_SW( b0, c1, t0 );
-    sub_TW_SW_TW( r0, r1, r2, t0, r0, r1, r2 );
+    mul_SW_SW_QW( b0, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_SW_SW_SW( b0, c2, t0 );
-    sub_TW_SW_TW( r0, r1, r2, t0, r0, r1, r2 );
+    mul_SW_SW_QW( b0, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
-    mul_SW_SW_SW( b0, c3, t0 );
-    sub_TW_SW_SW( r0, r1, r2, t0, r0 );
+    mul_SW_SW_QW( b0, c3, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6664,11 +6662,11 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_TW_DW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0 )
   {
-    T t0, t1;
+    T t0, t1, t2;
     T r0, r1, r2;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_TW_DW_SW( a0, a1, a2, t0, t1, r0 );
+    mul_DW_SW_TW( b0, b1, c0, t0, t1, t2 );
+    sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6677,14 +6675,14 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_TW_DW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1 )
   {
-    T t0, t1;
+    T t0, t1, t2;
     T r0, r1, r2;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_TW_DW_TW( a0, a1, a2, t0, t1, r0, r1, r2 );
+    mul_DW_SW_TW( b0, b1, c0, t0, t1, t2 );
+    sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_TW_DW_SW( r0, r1, r2, t0, t1, r0 );
+    mul_DW_SW_TW( b0, b1, c1, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6694,17 +6692,17 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_TW_DW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
-    T t0, t1;
+    T t0, t1, t2;
     T r0, r1, r2;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_TW_DW_TW( a0, a1, a2, t0, t1, r0, r1, r2 );
+    mul_DW_SW_TW( b0, b1, c0, t0, t1, t2 );
+    sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_TW_DW_TW( r0, r1, r2, t0, t1, r0, r1, r2 );
+    mul_DW_SW_TW( b0, b1, c1, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c2, t0, t1 );
-    sub_TW_DW_SW( r0, r1, r2, t0, t1, r0 );
+    mul_DW_SW_TW( b0, b1, c2, t0, t1, t2 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6715,20 +6713,20 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_TW_DW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
-    T t0, t1;
-    T r0, r1, r2;
+    T t0, t1, t2, t3;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_TW_DW_TW( a0, a1, a2, t0, t1, r0, r1, r2 );
+    mul_DW_SW_QW( b0, b1, c0, t0, t1, t2, t3 );
+    sub_TW_QW_QW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_TW_DW_TW( r0, r1, r2, t0, t1, r0, r1, r2 );
+    mul_DW_SW_QW( b0, b1, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c2, t0, t1 );
-    sub_TW_DW_TW( r0, r1, r2, t0, t1, r0, r1, r2 );
+    mul_DW_SW_QW( b0, b1, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c3, t0, t1 );
-    sub_TW_DW_SW( r0, r1, r2, t0, t1, r0 );
+    mul_DW_SW_QW( b0, b1, c3, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6744,7 +6742,7 @@ namespace QxW {
     T r0, r1, r2;
     c0 = a0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_TW_TW_SW( a0, a1, a2, t0, t1, t2, r0 );
+    sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6760,7 +6758,7 @@ namespace QxW {
     sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6780,7 +6778,7 @@ namespace QxW {
     sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c2, t0, t1, t2 );
-    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
+    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6791,20 +6789,20 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_TW_TW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
-    T t0, t1, t2;
-    T r0, r1, r2;
+    T t0, t1, t2, t3;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
+    mul_TW_SW_QW( b0, b1, b2, c0, t0, t1, t2, t3 );
+    sub_TW_QW_QW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    mul_TW_SW_QW( b0, b1, b2, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c2, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    mul_TW_SW_QW( b0, b1, b2, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c3, t0, t1, t2 );
-    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
+    mul_TW_SW_QW( b0, b1, b2, c3, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6817,10 +6815,10 @@ namespace QxW {
   div_TW_QW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1, t2, t3;
-    T r0, r1, r2;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_TW_QW_SW( a0, a1, a2, t0, t1, t2, t3, r0 );
+    sub_TW_QW_QW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6830,13 +6828,13 @@ namespace QxW {
   div_TW_QW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
-    T r0, r1, r2;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_TW_QW_TW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2 );
+    sub_TW_QW_QW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_TW_QW_SW( r0, r1, r2, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6847,16 +6845,16 @@ namespace QxW {
   div_TW_QW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
-    T r0, r1, r2;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_TW_QW_TW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2 );
+    sub_TW_QW_QW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_TW_QW_TW( r0, r1, r2, t0, t1, t2, t3, r0, r1, r2 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
-    sub_TW_QW_SW( r0, r1, r2, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6868,19 +6866,19 @@ namespace QxW {
   div_TW_QW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
-    T r0, r1, r2;
+    T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_TW_QW_TW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2 );
+    sub_TW_QW_QW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_TW_QW_TW( r0, r1, r2, t0, t1, t2, t3, r0, r1, r2 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
-    sub_TW_QW_TW( r0, r1, r2, t0, t1, t2, t3, r0, r1, r2 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
-    sub_TW_QW_SW( r0, r1, r2, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6892,11 +6890,11 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
   {
-    T t0;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_QW_SW_SW( a0, a1, a2, a3, t0, r0 );
+    mul_SW_SW_QW( b0, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6905,14 +6903,14 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_SW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1 )
   {
-    T t0;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_QW_SW_QW( a0, a1, a2, a3, t0, r0, r1, r2, r3 );
+    mul_SW_SW_QW( b0, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_SW_SW_SW( b0, c1, t0 );
-    sub_QW_SW_SW( r0, r1, r2, r3, t0, r0 );
+    mul_SW_SW_QW( b0, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6922,17 +6920,17 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_SW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2 )
   {
-    T t0;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_QW_SW_QW( a0, a1, a2, a3, t0, r0, r1, r2, r3 );
+    mul_SW_SW_QW( b0, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_SW_SW_SW( b0, c1, t0 );
-    sub_QW_SW_QW( r0, r1, r2, r3, t0, r0, r1, r2, r3 );
+    mul_SW_SW_QW( b0, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_SW_SW_SW( b0, c2, t0 );
-    sub_QW_SW_SW( r0, r1, r2, r3, t0, r0 );
+    mul_SW_SW_QW( b0, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6943,20 +6941,20 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_SW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
-    T t0;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_SW_SW_SW( b0, c0, t0 );
-    sub_QW_SW_QW( a0, a1, a2, a3, t0, r0, r1, r2, r3 );
+    mul_SW_SW_QW( b0, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_SW_SW_SW( b0, c1, t0 );
-    sub_QW_SW_QW( r0, r1, r2, r3, t0, r0, r1, r2, r3 );
+    mul_SW_SW_QW( b0, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_SW_SW_SW( b0, c2, t0 );
-    sub_QW_SW_QW( r0, r1, r2, r3, t0, r0, r1, r2, r3 );
+    mul_SW_SW_QW( b0, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
-    mul_SW_SW_SW( b0, c3, t0 );
-    sub_QW_SW_SW( r0, r1, r2, r3, t0, r0 );
+    mul_SW_SW_QW( b0, c3, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6968,11 +6966,11 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_DW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0 )
   {
-    T t0, t1;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_QW_DW_SW( a0, a1, a2, a3, t0, t1, r0 );
+    mul_DW_SW_QW( b0, b1, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6981,14 +6979,14 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_DW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1 )
   {
-    T t0, t1;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_QW_DW_QW( a0, a1, a2, a3, t0, t1, r0, r1, r2, r3 );
+    mul_DW_SW_QW( b0, b1, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_QW_DW_SW( r0, r1, r2, r3, t0, t1, r0 );
+    mul_DW_SW_QW( b0, b1, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6998,17 +6996,17 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_DW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
-    T t0, t1;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_QW_DW_QW( a0, a1, a2, a3, t0, t1, r0, r1, r2, r3 );
+    mul_DW_SW_QW( b0, b1, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_QW_DW_QW( r0, r1, r2, r3, t0, t1, r0, r1, r2, r3 );
+    mul_DW_SW_QW( b0, b1, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c2, t0, t1 );
-    sub_QW_DW_SW( r0, r1, r2, r3, t0, t1, r0 );
+    mul_DW_SW_QW( b0, b1, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -7019,20 +7017,20 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_DW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
-    T t0, t1;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_QW_DW_QW( a0, a1, a2, a3, t0, t1, r0, r1, r2, r3 );
+    mul_DW_SW_QW( b0, b1, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_QW_DW_QW( r0, r1, r2, r3, t0, t1, r0, r1, r2, r3 );
+    mul_DW_SW_QW( b0, b1, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c2, t0, t1 );
-    sub_QW_DW_QW( r0, r1, r2, r3, t0, t1, r0, r1, r2, r3 );
+    mul_DW_SW_QW( b0, b1, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
-    mul_DW_SW_DW( b0, b1, c3, t0, t1 );
-    sub_QW_DW_SW( r0, r1, r2, r3, t0, t1, r0 );
+    mul_DW_SW_QW( b0, b1, c3, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -7044,11 +7042,11 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_TW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0 )
   {
-    T t0, t1, t2;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_QW_TW_SW( a0, a1, a2, a3, t0, t1, t2, r0 );
+    mul_TW_SW_QW( b0, b1, b2, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -7057,14 +7055,14 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_TW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
-    T t0, t1, t2;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_QW_TW_QW( a0, a1, a2, a3, t0, t1, t2, r0, r1, r2, r3 );
+    mul_TW_SW_QW( b0, b1, b2, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_QW_TW_SW( r0, r1, r2, r3, t0, t1, t2, r0 );
+    mul_TW_SW_QW( b0, b1, b2, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -7074,17 +7072,17 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_TW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
-    T t0, t1, t2;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_QW_TW_QW( a0, a1, a2, a3, t0, t1, t2, r0, r1, r2, r3 );
+    mul_TW_SW_QW( b0, b1, b2, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_QW_TW_QW( r0, r1, r2, r3, t0, t1, t2, r0, r1, r2, r3 );
+    mul_TW_SW_QW( b0, b1, b2, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c2, t0, t1, t2 );
-    sub_QW_TW_SW( r0, r1, r2, r3, t0, t1, t2, r0 );
+    mul_TW_SW_QW( b0, b1, b2, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -7095,20 +7093,20 @@ namespace QxW {
   template < typename T > __always_inline void constexpr
   div_QW_TW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
-    T t0, t1, t2;
+    T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     c0 = a0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_QW_TW_QW( a0, a1, a2, a3, t0, t1, t2, r0, r1, r2, r3 );
+    mul_TW_SW_QW( b0, b1, b2, c0, t0, t1, t2, t3 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_QW_TW_QW( r0, r1, r2, r3, t0, t1, t2, r0, r1, r2, r3 );
+    mul_TW_SW_QW( b0, b1, b2, c1, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c2, t0, t1, t2 );
-    sub_QW_TW_QW( r0, r1, r2, r3, t0, t1, t2, r0, r1, r2, r3 );
+    mul_TW_SW_QW( b0, b1, b2, c2, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
-    mul_TW_SW_TW( b0, b1, b2, c3, t0, t1, t2 );
-    sub_QW_TW_SW( r0, r1, r2, r3, t0, t1, t2, r0 );
+    mul_TW_SW_QW( b0, b1, b2, c3, t0, t1, t2, t3 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -7124,7 +7122,7 @@ namespace QxW {
     T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_QW_QW_SW( a0, a1, a2, a3, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -7140,7 +7138,7 @@ namespace QxW {
     sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -7160,7 +7158,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
-    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -7184,7 +7182,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
-    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
+    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );

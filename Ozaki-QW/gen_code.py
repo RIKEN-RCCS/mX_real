@@ -1556,8 +1556,7 @@ def gen_div( NA, NB, NC, ACC ) :
         print( '{' )
         # print( '  c0 = a0 / b0;' )
         print( '  c0 = a0 / (b0 + b1);' )
-        print( '  c1 = std::fma( -b0, c0, a0 ) + a1;' )
-        print( '  c1 = std::fma( -b1, c0, c1 ) / (b0 + b1);' )
+        print( '  c1 = (std::fma(-b0, c0, a0 ) + std::fma(-b1, c0, a1 )) / (b0 + b1);' )
         print( '}\n' )
         return
 
@@ -1634,34 +1633,38 @@ def gen_div( NA, NB, NC, ACC ) :
 
     else :
 
-        line[LineCount] = 'DEF {}'.format( NB )
-        for i in range( NB ) :
+        NUM_T = max(NA,NB,NC)
+        NUM_R = max(NA,NB,NC)
+
+        line[LineCount] = 'DEF {}'.format( NUM_T )
+        for i in range( NUM_T ) :
             line[LineCount] = '{} t{}'.format( line[LineCount], i )
         LineCount = LineCount + 1
 
-        line[LineCount] = 'DEF {}'.format( NA )
-        for i in range( NA ) :
+        line[LineCount] = 'DEF {}'.format( NUM_R )
+        for i in range( NUM_R ) :
             line[LineCount] = '{} r{}'.format( line[LineCount], i )
         LineCount = LineCount + 1
 
         va = ''
-        vr = ''
         for i in range( NA ) :
             va = '{} a{}'.format( va, i )
-            vr = '{} r{}'.format( vr, i )
         vb = ''
-        vt = ''
         for i in range( NB ) :
             vb = '{} b{}'.format( vb, i )
+        vr = ''
+        for i in range( NUM_R ) :
+            vr = '{} r{}'.format( vr, i )
+        vt = ''
+        for i in range( NUM_T ) :
             vt = '{} t{}'.format( vt, i )
 
         for i in range( NC ) :
             line[LineCount] = 'DIV c{} {}0 b0'.format( i, 'a' if i==0 else 'r' )
             LineCount = LineCount + 1
-            line[LineCount] = 'mul {} {} {} {} {} c{} {}'.format( NB, 1, NB, ACC, vb, i, vt )
+            line[LineCount] = 'mul {} {} {} {} {} c{} {}'.format( NB, 1, NUM_T, ACC, vb, i, vt )
             LineCount = LineCount + 1
-            NAX = ( 1 if i==NC-1 else NA )
-            line[LineCount] = 'sub {} {} {} {} {} {} {}'.format( NA, NB, NAX, ACC, va if i==0 else vr, vt, 'r0' if i==NC-1 else vr )
+            line[LineCount] = 'sub {} {} {} {} {} {} {}'.format( NA if i==0 else NUM_R, NUM_T, 1 if i==NC-1 else NUM_R, ACC, va if i==0 else vr, vt, 'r0' if i==NC-1 else vr )
             LineCount = LineCount + 1
 
         line[LineCount] = 'DIV r0 r0 b0'

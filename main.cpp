@@ -429,7 +429,7 @@ struct Test_div
   {
   using TXc = largeType<TXa,TXb>;
   using T   = typename TXc::base_T;
-  auto eps = convert( smallType<TXa,TXb>::epsilon() );
+  auto eps = convert( largeType<TXa,TXb>::epsilon() );
   auto tol = convert( 31*double(1.0) / double( fp<T>::epsilon ) );
 
   unsigned int seed = 1;
