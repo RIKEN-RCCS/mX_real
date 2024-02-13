@@ -320,6 +320,22 @@ namespace mX_real {
     };
     template < typename TX >
     using mX_real = typename mX_real_impl<TX>::type;
+    //
+    //
+    //
+    template < typename TX, Algorithm A, T_mX(TX) >
+    struct type_with_Algorithm_impl {
+      using type = typename tX_real::tx_real<typename TX::base_T,A>;
+    };
+    template < typename TX, Algorithm A >
+    using type_with_Algorithm = typename type_with_Algorithm_impl<TX,A>::type;
+    //
+    template < typename TX >
+    using type_Accurate = type_with_Algorithm_impl<TX, Algorithm::Accurate>;
+    template < typename TX >
+    using type_Sloppy   = type_with_Algorithm_impl<TX, Algorithm::Sloppy>;
+    template < typename TX >
+    using type_Quasi    = type_with_Algorithm_impl<TX, Algorithm::Quasi>;
 
 
     //

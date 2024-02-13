@@ -2202,7 +2202,7 @@ namespace QxW {
     sub_SW_PA_PA( a0, t0, t1, t0, t1 );
     T tn, td;
     tn = t0 + t1;
-    td = b0;
+    td = b0 + b1;
     c1 = tn / td;
   }
 
@@ -2216,7 +2216,7 @@ namespace QxW {
     sub_SW_QTW_QTW( a0, t0, t1, t2, t0, t1, t2 );
     T tn, td;
     tn = t0 + t1 + t2;
-    td = b0;
+    td = b0 + b1;
     c2 = tn / td;
   }
 
@@ -2230,7 +2230,7 @@ namespace QxW {
     sub_SW_QQW_QQW( a0, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0;
+    td = b0 + b1;
     c3 = tn / td;
   }
 
@@ -2256,7 +2256,7 @@ namespace QxW {
     sub_SW_PA_PA( a0, t0, t1, t0, t1 );
     T tn, td;
     tn = t0 + t1;
-    td = b0 + b1;
+    td = b0 + b1 + b2;
     c1 = tn / td;
   }
 
@@ -2272,7 +2272,7 @@ namespace QxW {
     sub_SW_QTW_QTW( a0, t0, t1, t2, t0, t1, t2 );
     T tn, td;
     tn = t0 + t1 + t2;
-    td = b0 + b1;
+    td = b0 + b1 + b2;
     c2 = tn / td;
   }
 
@@ -2286,7 +2286,7 @@ namespace QxW {
     sub_SW_QQW_QQW( a0, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0 + b1;
+    td = b0 + b1 + b2;
     c3 = tn / td;
   }
 
@@ -2312,7 +2312,7 @@ namespace QxW {
     sub_SW_PA_PA( a0, t0, t1, t0, t1 );
     T tn, td;
     tn = t0 + t1;
-    td = b0 + b1 + b2;
+    td = b0 + b1 + b2 + b3;
     c1 = tn / td;
   }
 
@@ -2328,7 +2328,7 @@ namespace QxW {
     sub_SW_QTW_QTW( a0, t0, t1, t2, t0, t1, t2 );
     T tn, td;
     tn = t0 + t1 + t2;
-    td = b0 + b1 + b2;
+    td = b0 + b1 + b2 + b3;
     c2 = tn / td;
   }
 
@@ -2344,7 +2344,7 @@ namespace QxW {
     sub_SW_QQW_QQW( a0, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0 + b1 + b2;
+    td = b0 + b1 + b2 + b3;
     c3 = tn / td;
   }
 
@@ -2430,7 +2430,7 @@ namespace QxW {
     sub_PA_QTW_QTW( a0, a1, t0, t1, t2, t0, t1, t2 );
     T tn, td;
     tn = t0 + t1 + t2;
-    td = b0;
+    td = b0 + b1;
     c2 = tn / td;
   }
 
@@ -2444,7 +2444,7 @@ namespace QxW {
     sub_PA_QQW_QQW( a0, a1, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0;
+    td = b0 + b1;
     c3 = tn / td;
   }
 
@@ -2464,16 +2464,9 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    e40 = a0 + a1;
     T e41;
-    e41 = b0 + b1 + b2;
-    div_SW_SW_SW( e40, e41, c0 );
-    mul_SW_QTW_PA( c0, b0, b1, b2, t0, t1 );
-    sub_PA_PA_PA( a0, a1, t0, t1, t0, t1 );
-    T tn, td;
-    tn = t0 + t1;
-    td = b0 + b1;
-    c1 = tn / td;
+    e41 = b1 + b2;
+    div_PA_PA_PA( a0, a1, b0, e41, c0, c1 );
   }
 
   // div: 2-3-3
@@ -2488,7 +2481,7 @@ namespace QxW {
     sub_PA_QTW_QTW( a0, a1, t0, t1, t2, t0, t1, t2 );
     T tn, td;
     tn = t0 + t1 + t2;
-    td = b0 + b1;
+    td = b0 + b1 + b2;
     c2 = tn / td;
   }
 
@@ -2502,7 +2495,7 @@ namespace QxW {
     sub_PA_QQW_QQW( a0, a1, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0 + b1;
+    td = b0 + b1 + b2;
     c3 = tn / td;
   }
 
@@ -2522,16 +2515,9 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    e40 = a0 + a1;
     T e41;
-    e41 = b0 + b1 + b2 + b3;
-    div_SW_SW_SW( e40, e41, c0 );
-    mul_SW_QQW_PA( c0, b0, b1, b2, b3, t0, t1 );
-    sub_PA_PA_PA( a0, a1, t0, t1, t0, t1 );
-    T tn, td;
-    tn = t0 + t1;
-    td = b0 + b1 + b2;
-    c1 = tn / td;
+    e41 = b1 + b2 + b3;
+    div_PA_PA_PA( a0, a1, b0, e41, c0, c1 );
   }
 
   // div: 2-4-3
@@ -2546,7 +2532,7 @@ namespace QxW {
     sub_PA_QTW_QTW( a0, a1, t0, t1, t2, t0, t1, t2 );
     T tn, td;
     tn = t0 + t1 + t2;
-    td = b0 + b1 + b2;
+    td = b0 + b1 + b2 + b3;
     c2 = tn / td;
   }
 
@@ -2562,7 +2548,7 @@ namespace QxW {
     sub_PA_QQW_QQW( a0, a1, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0 + b1 + b2;
+    td = b0 + b1 + b2 + b3;
     c3 = tn / td;
   }
 
@@ -2638,16 +2624,9 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    e40 = a0 + a1 + a2;
     T e41;
-    e41 = b0 + b1;
-    div_SW_SW_SW( e40, e41, c0 );
-    mul_SW_PA_PA( c0, b0, b1, t0, t1 );
-    sub_QTW_PA_PA( a0, a1, a2, t0, t1, t0, t1 );
-    T tn, td;
-    tn = t0 + t1;
-    td = b0;
-    c1 = tn / td;
+    e40 = a1 + a2;
+    div_PA_PA_PA( a0, e40, b0, b1, c0, c1 );
   }
 
   // div: 3-2-3
@@ -2662,7 +2641,7 @@ namespace QxW {
     sub_QTW_QTW_QTW( a0, a1, a2, t0, t1, t2, t0, t1, t2 );
     T tn, td;
     tn = t0 + t1 + t2;
-    td = b0;
+    td = b0 + b1;
     c2 = tn / td;
   }
 
@@ -2676,7 +2655,7 @@ namespace QxW {
     sub_QTW_QQW_QQW( a0, a1, a2, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0;
+    td = b0 + b1;
     c3 = tn / td;
   }
 
@@ -2696,16 +2675,10 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    e40 = a0 + a1 + a2;
     T e41;
-    e41 = b0 + b1 + b2;
-    div_SW_SW_SW( e40, e41, c0 );
-    mul_SW_QTW_PA( c0, b0, b1, b2, t0, t1 );
-    sub_QTW_PA_PA( a0, a1, a2, t0, t1, t0, t1 );
-    T tn, td;
-    tn = t0 + t1;
-    td = b0 + b1;
-    c1 = tn / td;
+    e40 = a1 + a2;
+    e41 = b1 + b2;
+    div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
   }
 
   // div: 3-3-3
@@ -2714,15 +2687,15 @@ namespace QxW {
   {
     T t0, t1, t2;
     T e40;
-    e40 = a1 + a2;
     T e41;
+    e40 = a1 + a2;
     e41 = b1 + b2;
     div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
     mul_PA_QTW_QTW( c0, c1, b0, b1, b2, t0, t1, t2 );
     sub_QTW_QTW_QTW( a0, a1, a2, t0, t1, t2, t0, t1, t2 );
     T tn, td;
     tn = t0 + t1 + t2;
-    td = b0 + b1;
+    td = b0 + b1 + b2;
     c2 = tn / td;
   }
 
@@ -2736,7 +2709,7 @@ namespace QxW {
     sub_QTW_QQW_QQW( a0, a1, a2, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0 + b1;
+    td = b0 + b1 + b2;
     c3 = tn / td;
   }
 
@@ -2756,16 +2729,10 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    e40 = a0 + a1 + a2;
     T e41;
-    e41 = b0 + b1 + b2 + b3;
-    div_SW_SW_SW( e40, e41, c0 );
-    mul_SW_QQW_PA( c0, b0, b1, b2, b3, t0, t1 );
-    sub_QTW_PA_PA( a0, a1, a2, t0, t1, t0, t1 );
-    T tn, td;
-    tn = t0 + t1;
-    td = b0 + b1 + b2;
-    c1 = tn / td;
+    e40 = a1 + a2;
+    e41 = b1 + b2 + b3;
+    div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
   }
 
   // div: 3-4-3
@@ -2774,16 +2741,9 @@ namespace QxW {
   {
     T t0, t1, t2;
     T e40;
-    e40 = a1 + a2;
     T e41;
-    e41 = b1 + b2 + b3;
-    div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
-    mul_PA_QQW_QTW( c0, c1, b0, b1, b2, b3, t0, t1, t2 );
-    sub_QTW_QTW_QTW( a0, a1, a2, t0, t1, t2, t0, t1, t2 );
-    T tn, td;
-    tn = t0 + t1 + t2;
-    td = b0 + b1 + b2;
-    c2 = tn / td;
+    e41 = b2 + b3;
+    div_QTW_QTW_QTW( a0, a1, a2, b0, b1, e41, c0, c1, c2 );
   }
 
   // div: 3-4-4
@@ -2798,7 +2758,7 @@ namespace QxW {
     sub_QTW_QQW_QQW( a0, a1, a2, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0 + b1 + b2;
+    td = b0 + b1 + b2 + b3;
     c3 = tn / td;
   }
 
@@ -2876,16 +2836,9 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    e40 = a0 + a1 + a2 + a3;
     T e41;
-    e41 = b0 + b1;
-    div_SW_SW_SW( e40, e41, c0 );
-    mul_SW_PA_PA( c0, b0, b1, t0, t1 );
-    sub_QQW_PA_PA( a0, a1, a2, a3, t0, t1, t0, t1 );
-    T tn, td;
-    tn = t0 + t1;
-    td = b0;
-    c1 = tn / td;
+    e40 = a1 + a2 + a3;
+    div_PA_PA_PA( a0, e40, b0, b1, c0, c1 );
   }
 
   // div: 4-2-3
@@ -2900,7 +2853,7 @@ namespace QxW {
     sub_QQW_QTW_QTW( a0, a1, a2, a3, t0, t1, t2, t0, t1, t2 );
     T tn, td;
     tn = t0 + t1 + t2;
-    td = b0;
+    td = b0 + b1;
     c2 = tn / td;
   }
 
@@ -2916,7 +2869,7 @@ namespace QxW {
     sub_QQW_QQW_QQW( a0, a1, a2, a3, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0;
+    td = b0 + b1;
     c3 = tn / td;
   }
 
@@ -2936,16 +2889,10 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    e40 = a0 + a1 + a2 + a3;
     T e41;
-    e41 = b0 + b1 + b2;
-    div_SW_SW_SW( e40, e41, c0 );
-    mul_SW_QTW_PA( c0, b0, b1, b2, t0, t1 );
-    sub_QQW_PA_PA( a0, a1, a2, a3, t0, t1, t0, t1 );
-    T tn, td;
-    tn = t0 + t1;
-    td = b0 + b1;
-    c1 = tn / td;
+    e40 = a1 + a2 + a3;
+    e41 = b1 + b2;
+    div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
   }
 
   // div: 4-3-3
@@ -2954,16 +2901,9 @@ namespace QxW {
   {
     T t0, t1, t2;
     T e40;
-    e40 = a1 + a2 + a3;
     T e41;
-    e41 = b1 + b2;
-    div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
-    mul_PA_QTW_QTW( c0, c1, b0, b1, b2, t0, t1, t2 );
-    sub_QQW_QTW_QTW( a0, a1, a2, a3, t0, t1, t2, t0, t1, t2 );
-    T tn, td;
-    tn = t0 + t1 + t2;
-    td = b0 + b1;
-    c2 = tn / td;
+    e40 = a2 + a3;
+    div_QTW_QTW_QTW( a0, a1, e40, b0, b1, b2, c0, c1, c2 );
   }
 
   // div: 4-3-4
@@ -2978,7 +2918,7 @@ namespace QxW {
     sub_QQW_QQW_QQW( a0, a1, a2, a3, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0 + b1;
+    td = b0 + b1 + b2;
     c3 = tn / td;
   }
 
@@ -2998,16 +2938,10 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    e40 = a0 + a1 + a2 + a3;
     T e41;
-    e41 = b0 + b1 + b2 + b3;
-    div_SW_SW_SW( e40, e41, c0 );
-    mul_SW_QQW_PA( c0, b0, b1, b2, b3, t0, t1 );
-    sub_QQW_PA_PA( a0, a1, a2, a3, t0, t1, t0, t1 );
-    T tn, td;
-    tn = t0 + t1;
-    td = b0 + b1 + b2;
-    c1 = tn / td;
+    e40 = a1 + a2 + a3;
+    e41 = b1 + b2 + b3;
+    div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
   }
 
   // div: 4-4-3
@@ -3016,16 +2950,10 @@ namespace QxW {
   {
     T t0, t1, t2;
     T e40;
-    e40 = a1 + a2 + a3;
     T e41;
-    e41 = b1 + b2 + b3;
-    div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
-    mul_PA_QQW_QTW( c0, c1, b0, b1, b2, b3, t0, t1, t2 );
-    sub_QQW_QTW_QTW( a0, a1, a2, a3, t0, t1, t2, t0, t1, t2 );
-    T tn, td;
-    tn = t0 + t1 + t2;
-    td = b0 + b1 + b2;
-    c2 = tn / td;
+    e40 = a2 + a3;
+    e41 = b2 + b3;
+    div_QTW_QTW_QTW( a0, a1, e40, b0, b1, e41, c0, c1, c2 );
   }
 
   // div: 4-4-4
@@ -3034,15 +2962,15 @@ namespace QxW {
   {
     T t0, t1, t2, t3;
     T e40;
-    e40 = a2 + a3;
     T e41;
+    e40 = a2 + a3;
     e41 = b2 + b3;
     div_QTW_QTW_QTW( a0, a1, e40, b0, b1, e41, c0, c1, c2 );
     mul_QTW_QQW_QQW( c0, c1, c2, b0, b1, b2, b3, t0, t1, t2, t3 );
     sub_QQW_QQW_QQW( a0, a1, a2, a3, t0, t1, t2, t3, t0, t1, t2, t3 );
     T tn, td;
     tn = t0 + t1 + t2 + t3;
-    td = b0 + b1 + b2;
+    td = b0 + b1 + b2 + b3;
     c3 = tn / td;
   }
 
@@ -6067,7 +5995,7 @@ namespace QxW {
     T r0, r1;
     c0 = a0 / b0;
     mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_SW_DW_DW( a0, t0, t1, r0, r1 );
+    sub_SW_DW_SW( a0, t0, t1, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6083,7 +6011,7 @@ namespace QxW {
     sub_SW_DW_DW( a0, t0, t1, r0, r1 );
     c1 = r0 / b0;
     mul_DW_SW_DW( b0, b1, c1, t0, t1 );
-    sub_DW_DW_DW( r0, r1, t0, t1, r0, r1 );
+    sub_DW_DW_SW( r0, r1, t0, t1, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6103,7 +6031,7 @@ namespace QxW {
     sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
     mul_DW_SW_TW( b0, b1, c2, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6127,7 +6055,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_DW_SW_QW( b0, b1, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6143,7 +6071,7 @@ namespace QxW {
     T r0, r1, r2;
     c0 = a0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_SW_TW_TW( a0, t0, t1, t2, r0, r1, r2 );
+    sub_SW_TW_SW( a0, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6159,7 +6087,7 @@ namespace QxW {
     sub_SW_TW_TW( a0, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6179,7 +6107,7 @@ namespace QxW {
     sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c2, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6203,7 +6131,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_TW_SW_QW( b0, b1, b2, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6219,7 +6147,7 @@ namespace QxW {
     T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_SW_QW_QW( a0, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_SW_QW_SW( a0, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6235,7 +6163,7 @@ namespace QxW {
     sub_SW_QW_QW( a0, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6255,7 +6183,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6279,7 +6207,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6295,7 +6223,7 @@ namespace QxW {
     T r0, r1;
     c0 = a0 / b0;
     mul_SW_SW_DW( b0, c0, t0, t1 );
-    sub_DW_DW_DW( a0, a1, t0, t1, r0, r1 );
+    sub_DW_DW_SW( a0, a1, t0, t1, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6311,7 +6239,7 @@ namespace QxW {
     sub_DW_DW_DW( a0, a1, t0, t1, r0, r1 );
     c1 = r0 / b0;
     mul_SW_SW_DW( b0, c1, t0, t1 );
-    sub_DW_DW_DW( r0, r1, t0, t1, r0, r1 );
+    sub_DW_DW_SW( r0, r1, t0, t1, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6331,7 +6259,7 @@ namespace QxW {
     sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
     mul_SW_SW_TW( b0, c2, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6355,7 +6283,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_SW_SW_QW( b0, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6371,7 +6299,7 @@ namespace QxW {
     T r0, r1;
     c0 = a0 / b0;
     mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_DW_DW_DW( a0, a1, t0, t1, r0, r1 );
+    sub_DW_DW_SW( a0, a1, t0, t1, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6398,7 +6326,7 @@ namespace QxW {
     sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
     mul_DW_SW_TW( b0, b1, c2, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6422,7 +6350,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_DW_SW_QW( b0, b1, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6438,7 +6366,7 @@ namespace QxW {
     T r0, r1, r2;
     c0 = a0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_DW_TW_TW( a0, a1, t0, t1, t2, r0, r1, r2 );
+    sub_DW_TW_SW( a0, a1, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6454,7 +6382,7 @@ namespace QxW {
     sub_DW_TW_TW( a0, a1, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6474,7 +6402,7 @@ namespace QxW {
     sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c2, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6498,7 +6426,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_TW_SW_QW( b0, b1, b2, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6514,7 +6442,7 @@ namespace QxW {
     T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_DW_QW_QW( a0, a1, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_DW_QW_SW( a0, a1, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6530,7 +6458,7 @@ namespace QxW {
     sub_DW_QW_QW( a0, a1, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6550,7 +6478,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6574,7 +6502,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6590,7 +6518,7 @@ namespace QxW {
     T r0, r1, r2;
     c0 = a0 / b0;
     mul_SW_SW_TW( b0, c0, t0, t1, t2 );
-    sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( a0, a1, a2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6606,7 +6534,7 @@ namespace QxW {
     sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
     mul_SW_SW_TW( b0, c1, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6626,7 +6554,7 @@ namespace QxW {
     sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
     mul_SW_SW_TW( b0, c2, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6650,7 +6578,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_SW_SW_QW( b0, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6666,7 +6594,7 @@ namespace QxW {
     T r0, r1, r2;
     c0 = a0 / b0;
     mul_DW_SW_TW( b0, b1, c0, t0, t1, t2 );
-    sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( a0, a1, a2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6682,7 +6610,7 @@ namespace QxW {
     sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
     mul_DW_SW_TW( b0, b1, c1, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6702,7 +6630,7 @@ namespace QxW {
     sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
     mul_DW_SW_TW( b0, b1, c2, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6726,7 +6654,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_DW_SW_QW( b0, b1, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6742,7 +6670,7 @@ namespace QxW {
     T r0, r1, r2;
     c0 = a0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c0, t0, t1, t2 );
-    sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( a0, a1, a2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6758,7 +6686,7 @@ namespace QxW {
     sub_TW_TW_TW( a0, a1, a2, t0, t1, t2, r0, r1, r2 );
     c1 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c1, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6778,7 +6706,7 @@ namespace QxW {
     sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
     c2 = r0 / b0;
     mul_TW_SW_TW( b0, b1, b2, c2, t0, t1, t2 );
-    sub_TW_TW_TW( r0, r1, r2, t0, t1, t2, r0, r1, r2 );
+    sub_TW_TW_SW( r0, r1, r2, t0, t1, t2, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6802,7 +6730,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_TW_SW_QW( b0, b1, b2, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6818,7 +6746,7 @@ namespace QxW {
     T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_TW_QW_QW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_TW_QW_SW( a0, a1, a2, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6834,7 +6762,7 @@ namespace QxW {
     sub_TW_QW_QW( a0, a1, a2, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6854,7 +6782,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6878,7 +6806,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6894,7 +6822,7 @@ namespace QxW {
     T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_SW_SW_QW( b0, c0, t0, t1, t2, t3 );
-    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( a0, a1, a2, a3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6910,7 +6838,7 @@ namespace QxW {
     sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_SW_SW_QW( b0, c1, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -6930,7 +6858,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_SW_SW_QW( b0, c2, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -6954,7 +6882,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_SW_SW_QW( b0, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -6970,7 +6898,7 @@ namespace QxW {
     T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_DW_SW_QW( b0, b1, c0, t0, t1, t2, t3 );
-    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( a0, a1, a2, a3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -6986,7 +6914,7 @@ namespace QxW {
     sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_DW_SW_QW( b0, b1, c1, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -7006,7 +6934,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_DW_SW_QW( b0, b1, c2, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -7030,7 +6958,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_DW_SW_QW( b0, b1, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -7046,7 +6974,7 @@ namespace QxW {
     T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_TW_SW_QW( b0, b1, b2, c0, t0, t1, t2, t3 );
-    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( a0, a1, a2, a3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -7062,7 +6990,7 @@ namespace QxW {
     sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_TW_SW_QW( b0, b1, b2, c1, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -7082,7 +7010,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_TW_SW_QW( b0, b1, b2, c2, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -7106,7 +7034,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_TW_SW_QW( b0, b1, b2, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );
@@ -7122,7 +7050,7 @@ namespace QxW {
     T r0, r1, r2, r3;
     c0 = a0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c0, t0, t1, t2, t3 );
-    sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( a0, a1, a2, a3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c0 = c0 + r0;
   }
@@ -7138,7 +7066,7 @@ namespace QxW {
     sub_QW_QW_QW( a0, a1, a2, a3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c1 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c1, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c1 = c1 + r0;
     FastTwoSum( c0, c1, c0, c1 );
@@ -7158,7 +7086,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c2 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c2, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c2 = c2 + r0;
     FastTwoSum( c1, c2, c1, c2 );
@@ -7182,7 +7110,7 @@ namespace QxW {
     sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
     c3 = r0 / b0;
     mul_QW_SW_QW( b0, b1, b2, b3, c3, t0, t1, t2, t3 );
-    sub_QW_QW_QW( r0, r1, r2, r3, t0, t1, t2, t3, r0, r1, r2, r3 );
+    sub_QW_QW_SW( r0, r1, r2, r3, t0, t1, t2, t3, r0 );
     r0 = r0 / b0;
     c3 = c3 + r0;
     FastTwoSum( c2, c3, c2, c3 );

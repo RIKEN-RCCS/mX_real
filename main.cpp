@@ -32,6 +32,44 @@ template < typename T > void printTYPE( void ) {
 #endif
 
 
+template < template < class... > class TestFunc, class... Tlist_base >
+struct For {
+private:
+  // inner loop
+  template < typename dummy> static void run0_impl (...) { }
+  template < typename dummy, typename T0, class... Tlist >
+  static void run0_impl (...) {
+    TestFunc < T0 >:: run ();
+    if ( sizeof...(Tlist) ) run0_impl < dummy, Tlist... > ();
+  }
+public:
+  static void run (...) { run0_impl < void, Tlist_base... > (); }
+};
+
+template < template < class... > class TestFunc, class... Tlist_base >
+struct ForFor {
+private:
+  // inner loop
+  template < typename T0> static void run1_impl (...) { }
+  template < typename T0, typename T1, class... Tlist >
+  static void run1_impl (...) {
+    TestFunc < T0, T1 >:: run ();
+    if ( sizeof...(Tlist) ) run1_impl < T0, Tlist... > ();
+  };
+
+  // outer loop
+  template < typename dummy > static void run0_impl (...) { }
+  template < typename dummy, typename T0, class... Tlist >
+  static void run0_impl (...) {
+    run1_impl < T0, Tlist_base... > ();
+    if ( sizeof...(Tlist) ) run0_impl < dummy, Tlist... > ();
+  }
+public:
+  static void run (...) { run0_impl < void, Tlist_base... > (); }
+};
+
+
+
 template < typename T >
 T nrm2( int const& L, T const* x ) {
   T z = 0;
@@ -302,48 +340,11 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
 }
 
 
-template < template < class... > class TestFunc, class... Tlist_base >
-struct For {
-private:
-  // inner loop
-  template < typename dummy> static void run0_impl () { }
-  template < typename dummy, typename T0, class... Tlist >
-  static void run0_impl () {
-    TestFunc < T0 >:: run ();
-    if ( sizeof...(Tlist) ) run0_impl < dummy, Tlist... > ();
-  }
-public:
-  static void run () { run0_impl < void, Tlist_base... > (); }
-};
-
-template < template < class... > class TestFunc, class... Tlist_base >
-struct ForFor {
-private:
-  // inner loop
-  template < typename T0> static void run1_impl () { }
-  template < typename T0, typename T1, class... Tlist >
-  static void run1_impl () {
-    TestFunc < T0, T1 >:: run ();
-    if ( sizeof...(Tlist) ) run1_impl < T0, Tlist... > ();
-  };
-
-  // outer loop
-  template < typename dummy > static void run0_impl () { }
-  template < typename dummy, typename T0, class... Tlist >
-  static void run0_impl () {
-    run1_impl < T0, Tlist_base... > ();
-    if ( sizeof...(Tlist) ) run0_impl < dummy, Tlist... > ();
-  }
-public:
-  static void run () { run0_impl < void, Tlist_base... > (); }
-};
-
-
 template < typename TXa, typename TXb >
 struct Test_add
 {
   template < T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T, typename TXb::base_T>::value ) >
-  static void run()
+  static void run(...)
   {
   using TXc = largeType<TXa,TXb>;
   using T   = typename TXc::base_T;
@@ -384,7 +385,7 @@ template < typename TXa, typename TXb >
 struct Test_mul
 {
   template < T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T, typename TXb::base_T>::value ) >
-  static void run()
+  static void run(...)
   {
   using TXc = largeType<TXa,TXb>;
   using T   = typename TXc::base_T;
@@ -425,7 +426,7 @@ template < typename TXa, typename TXb >
 struct Test_div
 {
   template < T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T, typename TXb::base_T>::value ) >
-  static void run()
+  static void run(...)
   {
   using TXc = largeType<TXa,TXb>;
   using T   = typename TXc::base_T;
@@ -466,7 +467,7 @@ template < typename TXa >
 struct Test_sqr
 {
   template < T_mX(TXa) >
-  static void run()
+  static void run(...)
   {
   using TXc = TXa;
   using T   = typename TXc::base_T;
@@ -506,7 +507,7 @@ template < typename TXa >
 struct Test_sqrt
 {
   template < T_mX(TXa) >
-  static void run()
+  static void run(...)
   {
   using TXc = TXa;
   using T   = typename TXc::base_T;

@@ -405,9 +405,12 @@ namespace mX_real {
 
   // Trick to define MACROs for enabler in the template header part
 #define T_assert(...)	std::enable_if_t< __VA_ARGS__, std::nullptr_t > = nullptr
-#define T_scalar(...)	T_assert( std::is_arithmetic< __VA_ARGS__ >::value )
-#define T_fp(...)	T_assert( fp< __VA_ARGS__ >::value )
-#define T_mX(...)	T_assert( check_mX_real< __VA_ARGS__ >::value )
+#define IF_scalar(...)	( std::is_arithmetic< __VA_ARGS__ >::value )
+#define IF_fp(...)	( fp< __VA_ARGS__ >::value )
+#define IF_mX(...)	( check_mX_real< __VA_ARGS__ >::value )
+#define T_scalar(...)	T_assert( IF_scalar( __VA_ARGS__ ) )
+#define T_fp(...)	T_assert( IF_fp( __VA_ARGS__ ) )
+#define T_mX(...)	T_assert( IF_mX( __VA_ARGS__ ) )
 #define A_noQuasi(...)	T_assert( if_A_noQuasi< __VA_ARGS__ >::value )
 #define A_owAble(A,...)	T_assert( if_A_owAble< A,__VA_ARGS__ >::value )
 

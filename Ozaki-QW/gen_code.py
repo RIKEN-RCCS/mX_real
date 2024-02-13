@@ -1592,44 +1592,77 @@ def gen_div( NA, NB, NC, ACC ) :
             if NA > NCC :
                 line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
                 LineCount = LineCount + 1
-                va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NCC-1, NA ) ] )
-                line[LineCount] = 'SUM {} e{} {}'.format( NA-NCC+1, RegCounter, va_list )
-                LineCount = LineCount + 1
                 e_list[0] = RegCounter
                 RegCounter = RegCounter + 1
 
             if NB > NCC :
                 line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
                 LineCount = LineCount + 1
-                vb_list = ' '.join( [ 'b{}'.format( i ) for i in range( NCC-1, NB ) ] )
-                line[LineCount] = 'SUM {} e{} {}'.format( NB-NCC+1, RegCounter, vb_list )
-                LineCount = LineCount + 1
                 e_list[1] = RegCounter
                 RegCounter = RegCounter + 1
 
-            vA_list = ' '.join( [ 'a{}'.format( i ) for i in range( NA ) ] )
-            vB_list = ' '.join( [ 'b{}'.format( i ) for i in range( NB ) ] )
-            va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NCC-1 if NCC < NA else NA ) ] ) \
+            if ( NA >= NC and NB > NC ) or ( NA > NC and NB >= NC ):
+                
+                if NA > NC :
+                    vv = ' '.join( [ 'a{}'.format(i) for i in range( NC-1, NA ) ] )
+                    line[LineCount] = 'SUM {} e{} {}'.format( NA-NC+1, e_list[0], vv )
+                    LineCount = LineCount + 1
+                if NB > NC :
+                    vv = ' '.join( [ 'b{}'.format(i) for i in range( NC-1, NB ) ] )
+                    line[LineCount] = 'SUM {} e{} {}'.format( NB-NC+1, e_list[1], vv )
+                    LineCount = LineCount + 1
+
+                va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NC-1 ) ] )
+                vb_list = ' '.join( [ 'b{}'.format( i ) for i in range( NC-1 ) ] )
+                vc_list = ' '.join( [ 'c{}'.format( i ) for i in range( NC ) ] )
+                if NA > NC :
+                    va_list = va_list + ' ' + 'e{}'.format( e_list[0] );
+                else :
+                    va_list = va_list + ' ' + 'a{}'.format( NC-1 );
+                if NB > NC :
+                    vb_list = vb_list + ' ' + 'e{}'.format( e_list[1] );
+                else :
+                    vb_list = vb_list + ' ' + 'b{}'.format( NC-1 );
+
+                line[LineCount] = 'div {} {} {} {} {} {} {}'.format( min(NA, NC), min(NB,NC), NC, ACC, va_list, vb_list, vc_list )
+                LineCount = LineCount + 1
+
+            else :
+
+                if NA > NCC :
+                    va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NCC-1, NA ) ] )
+                    line[LineCount] = 'SUM {} e{} {}'.format( NA-NCC+1, e_list[0], va_list )
+                    LineCount = LineCount + 1
+
+                if NB > NCC :
+                    vb_list = ' '.join( [ 'b{}'.format( i ) for i in range( NCC-1, NB ) ] )
+                    line[LineCount] = 'SUM {} e{} {}'.format( NB-NCC+1, e_list[1], vb_list )
+                    LineCount = LineCount + 1
+
+                vA_list = ' '.join( [ 'a{}'.format( i ) for i in range( NA ) ] )
+                vB_list = ' '.join( [ 'b{}'.format( i ) for i in range( NB ) ] )
+                va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NCC-1 if NCC < NA else NA ) ] ) \
                     + ( ' e{}'.format( e_list[0] ) if NA > NCC else '' )
-            vb_list = ' '.join( [ 'b{}'.format( i ) for i in range( NCC-1 if NCC < NB else NB ) ] ) \
+                vb_list = ' '.join( [ 'b{}'.format( i ) for i in range( NCC-1 if NCC < NB else NB ) ] ) \
                     + ( ' e{}'.format( e_list[1] ) if NB > NCC else '' )
-            vc_list = ' '.join( [ 'c{}'.format( i ) for i in range( NC-1 ) ] )
+                vc_list = ' '.join( [ 'c{}'.format( i ) for i in range( NC-1 ) ] )
 
-            vk_list = 'b0 b1 b2 b3'
+                vk_list = 'b0 b1 b2 b3'
 
-            line[LineCount] = 'div {} {} {} {} {} {} {}'.format( NAA, NBB, NCC, ACC, va_list, vb_list, vc_list )
-            LineCount = LineCount + 1
-            line[LineCount] = 'mul {} {} {} {} {} {} {}'.format( NCC, NB, NC, ACC, vc_list, vB_list, vt_list )
-            LineCount = LineCount + 1
-            line[LineCount] = 'sub {} {} {} {} {} {} {}'.format( NA, NC, NC, ACC, vA_list, vt_list, vt_list )
-            LineCount = LineCount + 1
-            line[LineCount] = 'DEF 2 tn td'
-            LineCount = LineCount + 1
-            line[LineCount] = 'SUM {} tn {}'.format( NC, vt_list )
-            LineCount = LineCount + 1
-            line[LineCount] = 'SUM {} td {}'.format( max(1,NB-1), vk_list )
-            LineCount = LineCount + 1
-            line[LineCount] = 'DIV c{} tn td'.format( NC-1 )
+                line[LineCount] = 'div {} {} {} {} {} {} {}'.format( NAA, NBB, NCC, ACC, va_list, vb_list, vc_list )
+                LineCount = LineCount + 1
+                line[LineCount] = 'mul {} {} {} {} {} {} {}'.format( NCC, NB, NC, ACC, vc_list, vB_list, vt_list )
+                LineCount = LineCount + 1
+                line[LineCount] = 'sub {} {} {} {} {} {} {}'.format( NA, NC, NC, ACC, vA_list, vt_list, vt_list )
+                LineCount = LineCount + 1
+                line[LineCount] = 'DEF 2 tn td'
+                LineCount = LineCount + 1
+                line[LineCount] = 'SUM {} tn {}'.format( NC, vt_list )
+                LineCount = LineCount + 1
+                #line[LineCount] = 'SUM {} td {}'.format( max(1,NB-1), vk_list )
+                line[LineCount] = 'SUM {} td {}'.format( NB, vk_list )
+                LineCount = LineCount + 1
+                line[LineCount] = 'DIV c{} tn td'.format( NC-1 )
 
     else :
 
