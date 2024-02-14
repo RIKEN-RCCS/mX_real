@@ -1589,25 +1589,21 @@ def gen_div( NA, NB, NC, ACC ) :
                 vt_list = '{} t{}'.format( vt_list, i )
             LineCount = LineCount + 1
 
-            if NA > NCC :
-                line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
-                LineCount = LineCount + 1
-                e_list[0] = RegCounter
-                RegCounter = RegCounter + 1
-
-            if NB > NCC :
-                line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
-                LineCount = LineCount + 1
-                e_list[1] = RegCounter
-                RegCounter = RegCounter + 1
-
             if ( NA >= NC and NB > NC ) or ( NA > NC and NB >= NC ):
                 
                 if NA > NC :
+                    line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
+                    LineCount = LineCount + 1
+                    e_list[0] = RegCounter
+                    RegCounter = RegCounter + 1
                     vv = ' '.join( [ 'a{}'.format(i) for i in range( NC-1, NA ) ] )
                     line[LineCount] = 'SUM {} e{} {}'.format( NA-NC+1, e_list[0], vv )
                     LineCount = LineCount + 1
                 if NB > NC :
+                    line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
+                    LineCount = LineCount + 1
+                    e_list[1] = RegCounter
+                    RegCounter = RegCounter + 1
                     vv = ' '.join( [ 'b{}'.format(i) for i in range( NC-1, NB ) ] )
                     line[LineCount] = 'SUM {} e{} {}'.format( NB-NC+1, e_list[1], vv )
                     LineCount = LineCount + 1
@@ -1630,11 +1626,19 @@ def gen_div( NA, NB, NC, ACC ) :
             else :
 
                 if NA > NCC :
+                    line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
+                    LineCount = LineCount + 1
+                    e_list[0] = RegCounter
+                    RegCounter = RegCounter + 1
                     va_list = ' '.join( [ 'a{}'.format( i ) for i in range( NCC-1, NA ) ] )
                     line[LineCount] = 'SUM {} e{} {}'.format( NA-NCC+1, e_list[0], va_list )
                     LineCount = LineCount + 1
 
                 if NB > NCC :
+                    line[LineCount] = 'DEF 1 e{}'.format( RegCounter )
+                    LineCount = LineCount + 1
+                    e_list[1] = RegCounter
+                    RegCounter = RegCounter + 1
                     vb_list = ' '.join( [ 'b{}'.format( i ) for i in range( NCC-1, NB ) ] )
                     line[LineCount] = 'SUM {} e{} {}'.format( NB-NCC+1, e_list[1], vb_list )
                     LineCount = LineCount + 1

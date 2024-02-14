@@ -2464,9 +2464,8 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    T e41;
-    e41 = b1 + b2;
-    div_PA_PA_PA( a0, a1, b0, e41, c0, c1 );
+    e40 = b1 + b2;
+    div_PA_PA_PA( a0, a1, b0, e40, c0, c1 );
   }
 
   // div: 2-3-3
@@ -2515,9 +2514,8 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    T e41;
-    e41 = b1 + b2 + b3;
-    div_PA_PA_PA( a0, a1, b0, e41, c0, c1 );
+    e40 = b1 + b2 + b3;
+    div_PA_PA_PA( a0, a1, b0, e40, c0, c1 );
   }
 
   // div: 2-4-3
@@ -2624,7 +2622,6 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    T e41;
     e40 = a1 + a2;
     div_PA_PA_PA( a0, e40, b0, b1, c0, c1 );
   }
@@ -2675,8 +2672,8 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    T e41;
     e40 = a1 + a2;
+    T e41;
     e41 = b1 + b2;
     div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
   }
@@ -2687,8 +2684,8 @@ namespace QxW {
   {
     T t0, t1, t2;
     T e40;
-    T e41;
     e40 = a1 + a2;
+    T e41;
     e41 = b1 + b2;
     div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
     mul_PA_QTW_QTW( c0, c1, b0, b1, b2, t0, t1, t2 );
@@ -2729,8 +2726,8 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    T e41;
     e40 = a1 + a2;
+    T e41;
     e41 = b1 + b2 + b3;
     div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
   }
@@ -2741,9 +2738,8 @@ namespace QxW {
   {
     T t0, t1, t2;
     T e40;
-    T e41;
-    e41 = b2 + b3;
-    div_QTW_QTW_QTW( a0, a1, a2, b0, b1, e41, c0, c1, c2 );
+    e40 = b2 + b3;
+    div_QTW_QTW_QTW( a0, a1, a2, b0, b1, e40, c0, c1, c2 );
   }
 
   // div: 3-4-4
@@ -2836,7 +2832,6 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    T e41;
     e40 = a1 + a2 + a3;
     div_PA_PA_PA( a0, e40, b0, b1, c0, c1 );
   }
@@ -2889,8 +2884,8 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    T e41;
     e40 = a1 + a2 + a3;
+    T e41;
     e41 = b1 + b2;
     div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
   }
@@ -2901,7 +2896,6 @@ namespace QxW {
   {
     T t0, t1, t2;
     T e40;
-    T e41;
     e40 = a2 + a3;
     div_QTW_QTW_QTW( a0, a1, e40, b0, b1, b2, c0, c1, c2 );
   }
@@ -2938,8 +2932,8 @@ namespace QxW {
   {
     T t0, t1;
     T e40;
-    T e41;
     e40 = a1 + a2 + a3;
+    T e41;
     e41 = b1 + b2 + b3;
     div_PA_PA_PA( a0, e40, b0, e41, c0, c1 );
   }
@@ -2950,8 +2944,8 @@ namespace QxW {
   {
     T t0, t1, t2;
     T e40;
-    T e41;
     e40 = a2 + a3;
+    T e41;
     e41 = b2 + b3;
     div_QTW_QTW_QTW( a0, a1, e40, b0, b1, e41, c0, c1, c2 );
   }
@@ -2962,8 +2956,8 @@ namespace QxW {
   {
     T t0, t1, t2, t3;
     T e40;
-    T e41;
     e40 = a2 + a3;
+    T e41;
     e41 = b2 + b3;
     div_QTW_QTW_QTW( a0, a1, e40, b0, b1, e41, c0, c1, c2 );
     mul_QTW_QQW_QQW( c0, c1, c2, b0, b1, b2, b3, t0, t1, t2, t3 );
