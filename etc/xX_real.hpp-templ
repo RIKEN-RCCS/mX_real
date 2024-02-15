@@ -211,12 +211,12 @@ namespace @{m}@X_real {
     //
     //
 @@@{ op ! ~ ++ --
-    auto const operator@{op}@ () = delete;
+    auto operator@{op}@ () = delete;
 }@@@
 @@@{ op && || &= ^= <<= >>= , []
-    template < typename _T_ > auto const operator@{op}@  ( _T_ a ) = delete;
+    template < typename _T_ > auto operator@{op}@  ( _T_ a ) = delete;
 }@@@
-    auto const operator() (...) = delete;
+    auto operator() (...) = delete;
 
 
     //

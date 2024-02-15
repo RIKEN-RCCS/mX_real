@@ -132,7 +132,7 @@ namespace mX_real {
     static INLINE auto constexpr fma ( float const a, float const b, float const c ) {
       return std::fma( a, b, c );
     }
-    static INLINE auto const rand () {
+    static INLINE auto rand () {
       return std::rand();
     }
 
@@ -185,7 +185,7 @@ namespace mX_real {
     static INLINE auto constexpr fma ( double const a, double const b, double const c ) {
       return std::fma( a, b, c );
     }
-    static INLINE auto const rand () {
+    static INLINE auto rand () {
       return std::rand();
     }
 
@@ -405,12 +405,9 @@ namespace mX_real {
 
   // Trick to define MACROs for enabler in the template header part
 #define T_assert(...)	std::enable_if_t< __VA_ARGS__, std::nullptr_t > = nullptr
-#define IF_scalar(...)	( std::is_arithmetic< __VA_ARGS__ >::value )
-#define IF_fp(...)	( fp< __VA_ARGS__ >::value )
-#define IF_mX(...)	( check_mX_real< __VA_ARGS__ >::value )
-#define T_scalar(...)	T_assert( IF_scalar( __VA_ARGS__ ) )
-#define T_fp(...)	T_assert( IF_fp( __VA_ARGS__ ) )
-#define T_mX(...)	T_assert( IF_mX( __VA_ARGS__ ) )
+#define T_scalar(...)	T_assert( std::is_arithmetic< __VA_ARGS__ >::value )
+#define T_fp(...)	T_assert( fp< __VA_ARGS__ >::value )
+#define T_mX(...)	T_assert( check_mX_real< __VA_ARGS__ >::value )
 #define A_noQuasi(...)	T_assert( if_A_noQuasi< __VA_ARGS__ >::value )
 #define A_owAble(A,...)	T_assert( if_A_owAble< A,__VA_ARGS__ >::value )
 
@@ -489,9 +486,9 @@ namespace mX_real {
 
 #ifdef __MPREAL_H__
 #define T_mpreal(...)   T_assert( std::is_same< mpfr::mpreal, __VA_ARGS__ >::value )
-  template < typename T, T_mpreal(T) > static INLINE auto const epsilon() { return mpfr::machine_epsilon(); }
-  template < typename T, T_mpreal(T) > static INLINE auto const inf() { return mpfr::const_infinity(); }
-  template < typename T, T_mpreal(T) > static INLINE auto const nan() { return mpfr::mpreal().setNan(); }
+  template < typename T, T_mpreal(T) > static INLINE auto epsilon() { return mpfr::machine_epsilon(); }
+  template < typename T, T_mpreal(T) > static INLINE auto inf() { return mpfr::const_infinity(); }
+  template < typename T, T_mpreal(T) > static INLINE auto nan() { return mpfr::mpreal().setNan(); }
 #undef T_mpreal
 #endif
 #ifdef  _QD_DD_REAL_H

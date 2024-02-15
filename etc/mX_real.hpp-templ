@@ -133,7 +133,7 @@ namespace mX_real {
     static INLINE auto constexpr fma ( @{X}@ const a, @{X}@ const b, @{X}@ const c ) {
       return std::fma( a, b, c );
     }
-    static INLINE auto const rand () {
+    static INLINE auto rand () {
       return std::rand();
     }
 
@@ -426,9 +426,9 @@ namespace mX_real {
 
 #ifdef __MPREAL_H__
 #define T_mpreal(...)   T_assert( std::is_same< mpfr::mpreal, __VA_ARGS__ >::value )
-  template < typename T, T_mpreal(T) > static INLINE auto const epsilon() { return mpfr::machine_epsilon(); }
-  template < typename T, T_mpreal(T) > static INLINE auto const inf() { return mpfr::const_infinity(); }
-  template < typename T, T_mpreal(T) > static INLINE auto const nan() { return mpfr::mpreal().setNan(); }
+  template < typename T, T_mpreal(T) > static INLINE auto epsilon() { return mpfr::machine_epsilon(); }
+  template < typename T, T_mpreal(T) > static INLINE auto inf() { return mpfr::const_infinity(); }
+  template < typename T, T_mpreal(T) > static INLINE auto nan() { return mpfr::mpreal().setNan(); }
 #undef T_mpreal
 #endif
 #ifdef  _QD_DD_REAL_H

@@ -210,19 +210,19 @@ namespace mX_real {
       // unneccessary operators are invalidaded
       //
       //
-      auto const operator! () = delete;
-      auto const operator~ () = delete;
-      auto const operator++ () = delete;
-      auto const operator-- () = delete;
-      template < typename _T_ > auto const operator&&  ( _T_ a ) = delete;
-      template < typename _T_ > auto const operator||  ( _T_ a ) = delete;
-      template < typename _T_ > auto const operator&=  ( _T_ a ) = delete;
-      template < typename _T_ > auto const operator^=  ( _T_ a ) = delete;
-      template < typename _T_ > auto const operator<<=  ( _T_ a ) = delete;
-      template < typename _T_ > auto const operator>>=  ( _T_ a ) = delete;
-      template < typename _T_ > auto const operator,  ( _T_ a ) = delete;
-      template < typename _T_ > auto const operator[]  ( _T_ a ) = delete;
-      auto const operator() (...) = delete;
+      auto operator! () = delete;
+      auto operator~ () = delete;
+      auto operator++ () = delete;
+      auto operator-- () = delete;
+      template < typename _T_ > auto operator&&  ( _T_ a ) = delete;
+      template < typename _T_ > auto operator||  ( _T_ a ) = delete;
+      template < typename _T_ > auto operator&=  ( _T_ a ) = delete;
+      template < typename _T_ > auto operator^=  ( _T_ a ) = delete;
+      template < typename _T_ > auto operator<<=  ( _T_ a ) = delete;
+      template < typename _T_ > auto operator>>=  ( _T_ a ) = delete;
+      template < typename _T_ > auto operator,  ( _T_ a ) = delete;
+      template < typename _T_ > auto operator[]  ( _T_ a ) = delete;
+      auto operator() (...) = delete;
 
 
       //
@@ -274,14 +274,14 @@ namespace mX_real {
       // static member funtions
       // definition is below outside of the struct definition block
       //
-      static INLINE QX_REAL<> constexpr abs ( QX_REAL<> const& a );
       static INLINE QX_REAL<> constexpr sqrt ( QX_REAL<> const& a );
+      static INLINE QX_REAL<> constexpr abs ( QX_REAL<> const& a );
       static INLINE QX_REAL<> constexpr rand ();
       static INLINE bool constexpr is_zero ( QX_REAL<> const& a );
-      static INLINE bool constexpr is_negative ( QX_REAL<> const& a );
       static INLINE bool constexpr isinf ( QX_REAL<> const& a );
-      static INLINE bool constexpr is_positive ( QX_REAL<> const& a );
       static INLINE bool constexpr isnan ( QX_REAL<> const& a );
+      static INLINE bool constexpr is_negative ( QX_REAL<> const& a );
+      static INLINE bool constexpr is_positive ( QX_REAL<> const& a );
       static INLINE bool constexpr signbit ( QX_REAL<> const& a );
       //
 
@@ -293,10 +293,10 @@ namespace mX_real {
       INLINE void constexpr Normalize () { mX_real::Normalize( *this ); }
       //
       INLINE bool constexpr is_zero () const { return QX_REAL<>::is_zero( *this ); }
-      INLINE bool constexpr is_negative () const { return QX_REAL<>::is_negative( *this ); }
       INLINE bool constexpr isinf () const { return QX_REAL<>::isinf( *this ); }
-      INLINE bool constexpr is_positive () const { return QX_REAL<>::is_positive( *this ); }
       INLINE bool constexpr isnan () const { return QX_REAL<>::isnan( *this ); }
+      INLINE bool constexpr is_negative () const { return QX_REAL<>::is_negative( *this ); }
+      INLINE bool constexpr is_positive () const { return QX_REAL<>::is_positive( *this ); }
       INLINE bool constexpr signbit () const { return QX_REAL<>::signbit( *this ); }
       //
 
@@ -359,24 +359,24 @@ namespace mX_real {
       return fp<T>::isinf( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isnan ( qX_real::qx_real<T,Aa> const& a ) {
-      return fp<T>::isnan( a.quick_Normalized() );
-    }
-    template < typename T, Algorithm Aa >
     INLINE auto constexpr signbit ( qX_real::qx_real<T,Aa> const& a ) {
       return fp<T>::signbit( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_positive ( qX_real::qx_real<T,Aa> const& a ) {
-      return a.quick_Normalized() > fp<T>::zero;
+    INLINE auto constexpr isnan ( qX_real::qx_real<T,Aa> const& a ) {
+      return fp<T>::isnan( a.quick_Normalized() );
+    }
+    template < typename T, Algorithm Aa >
+    INLINE bool constexpr is_zero ( qX_real::qx_real<T,Aa> const& a ) {
+      return a.quick_Normalized() == fp<T>::zero;
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_negative ( qX_real::qx_real<T,Aa> const& a ) {
       return a.quick_Normalized() < fp<T>::zero;
     }
     template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_zero ( qX_real::qx_real<T,Aa> const& a ) {
-      return a.quick_Normalized() == fp<T>::zero;
+    INLINE bool constexpr is_positive ( qX_real::qx_real<T,Aa> const& a ) {
+      return a.quick_Normalized() > fp<T>::zero;
     }
     //
     template < typename T, Algorithm A >
@@ -1888,7 +1888,7 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm A, T_fp(T) >
-    INLINE auto const rand () {
+    INLINE auto rand () {
       using TX = qX_real::qx_real<T,A>;
       auto constexpr f = fp<T>::half / (1 << 30);
       auto g = f;

@@ -396,7 +396,7 @@ def gen_prng ( Tc ) :
 
     print( '//' )
     print( 'template < typename T, Algorithm A, T_fp(T) >' )
-    print( 'INLINE auto const rand () {' )
+    print( 'INLINE auto rand () {' )
     print( '  using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc) ) )
     print( '  auto constexpr f = fp<T>::half / (1 << 30);' )
     print( '  auto g = f;' )
