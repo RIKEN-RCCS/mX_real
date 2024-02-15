@@ -465,7 +465,7 @@ def gen_members ( Tc ) :
     print( '//' )
     for func in { 'abs', 'sqrt' } :
         print( 'static INLINE {m}X_REAL<> constexpr {func} ( {m}X_REAL<> const& a );'.format( m=mX_Type(Tc), func=func ) )
-    print( 'static INLINE {m}X_REAL<> constexpr rand ();'.format( m=mX_Type(Tc) ) )
+    print( 'static INLINE {m}X_REAL<> rand ();'.format( m=mX_Type(Tc) ) )
     for func in { 'signbit', 'isinf', 'isnan', 'is_zero', 'is_positive', 'is_negative' } :
         print( 'static INLINE bool constexpr {func} ( {m}X_REAL<> const& a );'.format( m=mX_Type(Tc), func=func ) )
     print( '//' )
