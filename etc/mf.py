@@ -423,7 +423,7 @@ def gen_prng ( Tc ) :
     print( '  return r;' )
     print( '}' )
     print( 'template < typename T, Algorithm A >' )
-    print( 'INLINE {m}X_real::{m}x_real<T,A> constexpr {m}X_real::{m}x_real<T,A>::rand () {{'.format( m=mX_type(Tc) ) )
+    print( 'INLINE {m}X_real::{m}x_real<T,A> {m}X_real::{m}x_real<T,A>::rand () {{'.format( m=mX_type(Tc) ) )
     print( '  return {m}X_real::rand<T,A>();'.format( m=mX_type(Tc) ) )
     print( '}' )
     print( '//' )
