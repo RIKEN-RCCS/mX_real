@@ -18,6 +18,8 @@ ifeq (x$(cxx),xicpx)
         CXX := $(CXX) -fp-model strict
 endif
 
+NVCC = nvcc
+
 
 CCFLAGS := $(CCFLAGS) -O3 -Wall -I./ -include mX_real.hpp
 LDFLAGS = -fopenmp -lquadmath -lm
@@ -49,6 +51,9 @@ main.o: mpreal qd_real main.cpp mX_real.hpp.gch
 sample.exe: mpreal sample.cpp mX_real.hpp.gch
 	$(CXX) -S            sample.cpp $(CCFLAGS) $(MPFR_CCFLAGS)
 	$(CXX) -o sample.exe sample.cpp $(CCFLAGS) $(MPFR_LDFLAGS)
+test.o: test.cu mX_real.hpp
+	$(NVCC) -I./ --ptx test.cu
+	$(NVCC) -I./ -c test.cu
 
 
 mX_real.hpp.gch: mX_real.hpp Ozaki-QW/qxw.hpp dX_real.hpp tX_real.hpp qX_real.hpp

@@ -27,10 +27,10 @@ namespace QxW {
 
 template < typename T > struct fp_const {};
 template <> struct fp_const<float> {
-  static inline auto constexpr zero() { return 0.0f; }
-  static inline auto constexpr one()  { return 1.0f; }
-  static inline auto constexpr two()  { return 2.0f; }
-  static inline auto constexpr half() { return 0.5f; }
+  static INLINE auto constexpr zero() { return 0.0f; }
+  static INLINE auto constexpr one()  { return 1.0f; }
+  static INLINE auto constexpr two()  { return 2.0f; }
+  static INLINE auto constexpr half() { return 0.5f; }
 
   static uint32_t constexpr SBIT = 0x80000000;
   static uint32_t constexpr MASK = 0x7f800000;
@@ -38,11 +38,11 @@ template <> struct fp_const<float> {
   static uint32_t constexpr XONE = 0x0b800000;
   static uint32_t constexpr EONE = 0x00800000;
 
-  static inline auto constexpr fp2uint( float const a ) {
+  static INLINE auto constexpr fp2uint( float const a ) {
     union { float a; uint32_t e; } x = { .a = a };
     return x.e;
   }
-  static inline auto constexpr uint2fp( uint32_t const e ) {
+  static INLINE auto constexpr uint2fp( uint32_t const e ) {
     union { float a; uint32_t e; } x = { .e = e };
     return x.a;
   }
@@ -70,7 +70,7 @@ template <> struct fp_const<float> {
     return uint2fp( e );
   }
   template < bool inverse = false >
-  static inline auto constexpr exponent( float const a ) {
+  static INLINE auto constexpr exponent( float const a ) {
     if ( a == zero() ) return one();
     auto e = fp2uint( a );
     e &= MASK;
@@ -78,15 +78,15 @@ template <> struct fp_const<float> {
     if ( inverse ) e = RINF - e;
     return uint2fp( e );
   }
-  static inline auto constexpr exponenti( float const a ) {
+  static INLINE auto constexpr exponenti( float const a ) {
     return exponent<true>( a );
   }
 };
 template <> struct fp_const<double> {
-  static inline auto constexpr zero() { return 0.0; }
-  static inline auto constexpr one()  { return 1.0; }
-  static inline auto constexpr two()  { return 2.0; }
-  static inline auto constexpr half() { return 0.5; }
+  static INLINE auto constexpr zero() { return 0.0; }
+  static INLINE auto constexpr one()  { return 1.0; }
+  static INLINE auto constexpr two()  { return 2.0; }
+  static INLINE auto constexpr half() { return 0.5; }
 
   static uint64_t constexpr SBIT = 0x8000000000000000;
   static uint64_t constexpr MASK = 0x7ff0000000000000;
@@ -94,11 +94,11 @@ template <> struct fp_const<double> {
   static uint64_t constexpr XONE = 0x0340000000000000;
   static uint64_t constexpr EONE = 0x0010000000000000;
 
-  static inline auto constexpr fp2uint( double const a ) {
+  static INLINE auto constexpr fp2uint( double const a ) {
     union { double a; uint64_t e; } x = { .a = a };
     return x.e;
   }
-  static inline auto constexpr uint2fp( uint64_t const e ) {
+  static INLINE auto constexpr uint2fp( uint64_t const e ) {
     union { double a; uint64_t e; } x = { .e = e };
     return x.a;
   }
@@ -126,7 +126,7 @@ template <> struct fp_const<double> {
     return uint2fp( e );
   }
   template < bool inverse = false >
-  static inline auto constexpr exponent( double const a ) {
+  static INLINE auto constexpr exponent( double const a ) {
     if ( a == zero() ) return one();
     auto e = fp2uint( a );
     e &= MASK;
@@ -134,7 +134,7 @@ template <> struct fp_const<double> {
     if ( inverse ) e = RINF - e;
     return uint2fp( e );
   }
-  static inline auto constexpr exponenti( double const a ) {
+  static INLINE auto constexpr exponenti( double const a ) {
     return exponent<true>( a );
   }
 };
@@ -144,7 +144,7 @@ template <> struct fp_const<double> {
 // Basic EFT Part
 // ------------------------
 
-template < typename T > __always_inline void constexpr
+template < typename T > INLINE void constexpr
 TwoSum ( T const a, T const b, T &x, T &y )
 {
   T z;
@@ -153,14 +153,14 @@ TwoSum ( T const a, T const b, T &x, T &y )
   y = (a - (x - z)) + (b - z);
 }
 
-template < typename T > __always_inline void constexpr
+template < typename T > INLINE void constexpr
 FastTwoSum ( T const a, T const b, T &x, T &y )
 {
   x = a + b;
   y = (a - x) + b;
 }
 
-template < typename T > __always_inline void constexpr
+template < typename T > INLINE void constexpr
 TwoProductFMA ( T const a, T const b, T &x, T &y )
 {
   x = a * b;
@@ -184,7 +184,7 @@ def def_head ( Func, NA, NB, NC, ACC, va, vb, vc ) :
         print( '// {}: {}-{}-{}'.format( Func, NA, NB, NC ) )
     else :
         print( '// {}: {}-{}'.format( Func, NA, NC ) )
-    print( 'template < typename T > __always_inline void constexpr' )
+    print( 'template < typename T > INLINE void constexpr' )
     fname( Func, NA, NB, NC, ACC )
     va_list = ','.join( [ ' T const {}{}'.format( va, i ) for i in range( NA ) ] )
     vb_list = ','.join( [ ' T const {}{}'.format( vb, i ) for i in range( NB ) ] )

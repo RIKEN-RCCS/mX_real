@@ -25,10 +25,10 @@ namespace QxW {
 
   template < typename T > struct fp_const {};
   template <> struct fp_const<float> {
-    static inline auto constexpr zero() { return 0.0f; }
-    static inline auto constexpr one()  { return 1.0f; }
-    static inline auto constexpr two()  { return 2.0f; }
-    static inline auto constexpr half() { return 0.5f; }
+    static INLINE auto constexpr zero() { return 0.0f; }
+    static INLINE auto constexpr one()  { return 1.0f; }
+    static INLINE auto constexpr two()  { return 2.0f; }
+    static INLINE auto constexpr half() { return 0.5f; }
 
     static uint32_t constexpr SBIT = 0x80000000;
     static uint32_t constexpr MASK = 0x7f800000;
@@ -36,11 +36,11 @@ namespace QxW {
     static uint32_t constexpr XONE = 0x0b800000;
     static uint32_t constexpr EONE = 0x00800000;
 
-    static inline auto constexpr fp2uint( float const a ) {
+    static INLINE auto constexpr fp2uint( float const a ) {
       union { float a; uint32_t e; } x = { .a = a };
       return x.e;
     }
-    static inline auto constexpr uint2fp( uint32_t const e ) {
+    static INLINE auto constexpr uint2fp( uint32_t const e ) {
       union { float a; uint32_t e; } x = { .e = e };
       return x.a;
     }
@@ -68,7 +68,7 @@ namespace QxW {
       return uint2fp( e );
     }
     template < bool inverse = false >
-    static inline auto constexpr exponent( float const a ) {
+    static INLINE auto constexpr exponent( float const a ) {
       if ( a == zero() ) return one();
       auto e = fp2uint( a );
       e &= MASK;
@@ -76,15 +76,15 @@ namespace QxW {
       if ( inverse ) e = RINF - e;
       return uint2fp( e );
     }
-    static inline auto constexpr exponenti( float const a ) {
+    static INLINE auto constexpr exponenti( float const a ) {
       return exponent<true>( a );
     }
   };
   template <> struct fp_const<double> {
-    static inline auto constexpr zero() { return 0.0; }
-    static inline auto constexpr one()  { return 1.0; }
-    static inline auto constexpr two()  { return 2.0; }
-    static inline auto constexpr half() { return 0.5; }
+    static INLINE auto constexpr zero() { return 0.0; }
+    static INLINE auto constexpr one()  { return 1.0; }
+    static INLINE auto constexpr two()  { return 2.0; }
+    static INLINE auto constexpr half() { return 0.5; }
 
     static uint64_t constexpr SBIT = 0x8000000000000000;
     static uint64_t constexpr MASK = 0x7ff0000000000000;
@@ -92,11 +92,11 @@ namespace QxW {
     static uint64_t constexpr XONE = 0x0340000000000000;
     static uint64_t constexpr EONE = 0x0010000000000000;
 
-    static inline auto constexpr fp2uint( double const a ) {
+    static INLINE auto constexpr fp2uint( double const a ) {
       union { double a; uint64_t e; } x = { .a = a };
       return x.e;
     }
-    static inline auto constexpr uint2fp( uint64_t const e ) {
+    static INLINE auto constexpr uint2fp( uint64_t const e ) {
       union { double a; uint64_t e; } x = { .e = e };
       return x.a;
     }
@@ -124,7 +124,7 @@ namespace QxW {
       return uint2fp( e );
     }
     template < bool inverse = false >
-    static inline auto constexpr exponent( double const a ) {
+    static INLINE auto constexpr exponent( double const a ) {
       if ( a == zero() ) return one();
       auto e = fp2uint( a );
       e &= MASK;
@@ -132,7 +132,7 @@ namespace QxW {
       if ( inverse ) e = RINF - e;
       return uint2fp( e );
     }
-    static inline auto constexpr exponenti( double const a ) {
+    static INLINE auto constexpr exponenti( double const a ) {
       return exponent<true>( a );
     }
   };
@@ -142,7 +142,7 @@ namespace QxW {
   // Basic EFT Part
   // ------------------------
 
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   TwoSum ( T const a, T const b, T &x, T &y )
   {
     T z;
@@ -151,14 +151,14 @@ namespace QxW {
     y = (a - (x - z)) + (b - z);
   }
 
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   FastTwoSum ( T const a, T const b, T &x, T &y )
   {
     x = a + b;
     y = (a - x) + b;
   }
 
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   TwoProductFMA ( T const a, T const b, T &x, T &y )
   {
     x = a * b;
@@ -171,21 +171,21 @@ namespace QxW {
   // ------------------------
 
   // add: 1-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_SW_SW( T const a0, T const b0, T &c0 )
   {
     c0 = a0 + b0;
   }
 
   // add: 1-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_SW_PA( T const a0, T const b0, T &c0, T &c1 )
   {
     TwoSum( a0, b0, c0, c1 );
   }
 
   // add: 1-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_SW_QTW( T const a0, T const b0, T &c0, T &c1, T &c2 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -193,7 +193,7 @@ namespace QxW {
   }
 
   // add: 1-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_SW_QQW( T const a0, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -202,7 +202,7 @@ namespace QxW {
   }
 
   // add: 1-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_PA_SW( T const a0, T const b0, T const b1, T &c0 )
   {
     c0 = a0 + b0;
@@ -210,7 +210,7 @@ namespace QxW {
   }
 
   // add: 1-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_PA_PA( T const a0, T const b0, T const b1, T &c0, T &c1 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -218,7 +218,7 @@ namespace QxW {
   }
 
   // add: 1-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_PA_QTW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -226,7 +226,7 @@ namespace QxW {
   }
 
   // add: 1-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_PA_QQW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -235,7 +235,7 @@ namespace QxW {
   }
 
   // add: 1-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QTW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0;
@@ -245,7 +245,7 @@ namespace QxW {
   }
 
   // add: 1-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QTW_PA( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0;
@@ -255,7 +255,7 @@ namespace QxW {
   }
 
   // add: 1-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QTW_QTW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -265,7 +265,7 @@ namespace QxW {
   }
 
   // add: 1-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QTW_QQW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0;
@@ -275,7 +275,7 @@ namespace QxW {
   }
 
   // add: 1-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QQW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0;
@@ -285,7 +285,7 @@ namespace QxW {
   }
 
   // add: 1-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QQW_PA( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0;
@@ -295,7 +295,7 @@ namespace QxW {
   }
 
   // add: 1-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QQW_QTW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -305,7 +305,7 @@ namespace QxW {
   }
 
   // add: 1-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QQW_QQW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -316,7 +316,7 @@ namespace QxW {
   }
 
   // add: 2-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_SW_SW( T const a0, T const a1, T const b0, T &c0 )
   {
     c0 = a0 + b0;
@@ -324,7 +324,7 @@ namespace QxW {
   }
 
   // add: 2-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_SW_PA( T const a0, T const a1, T const b0, T &c0, T &c1 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -332,7 +332,7 @@ namespace QxW {
   }
 
   // add: 2-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_SW_QTW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -340,7 +340,7 @@ namespace QxW {
   }
 
   // add: 2-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_SW_QQW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -349,7 +349,7 @@ namespace QxW {
   }
 
   // add: 2-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_PA_SW( T const a0, T const a1, T const b0, T const b1, T &c0 )
   {
     T t0;
@@ -359,7 +359,7 @@ namespace QxW {
   }
 
   // add: 2-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_PA_PA( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0;
@@ -369,7 +369,7 @@ namespace QxW {
   }
 
   // add: 2-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_PA_QTW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -380,7 +380,7 @@ namespace QxW {
   }
 
   // add: 2-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_PA_QQW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -390,7 +390,7 @@ namespace QxW {
   }
 
   // add: 2-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_QTW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0;
@@ -401,7 +401,7 @@ namespace QxW {
   }
 
   // add: 2-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_QTW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0;
@@ -412,7 +412,7 @@ namespace QxW {
   }
 
   // add: 2-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_QTW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -423,7 +423,7 @@ namespace QxW {
   }
 
   // add: 2-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_QTW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -436,7 +436,7 @@ namespace QxW {
   }
 
   // add: 2-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_QQW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0;
@@ -447,7 +447,7 @@ namespace QxW {
   }
 
   // add: 2-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_QQW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0;
@@ -458,7 +458,7 @@ namespace QxW {
   }
 
   // add: 2-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_QQW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -469,7 +469,7 @@ namespace QxW {
   }
 
   // add: 2-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_PA_QQW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -482,7 +482,7 @@ namespace QxW {
   }
 
   // add: 3-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
   {
     T t0;
@@ -492,7 +492,7 @@ namespace QxW {
   }
 
   // add: 3-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_SW_PA( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
   {
     T t0;
@@ -502,7 +502,7 @@ namespace QxW {
   }
 
   // add: 3-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_SW_QTW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -512,7 +512,7 @@ namespace QxW {
   }
 
   // add: 3-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_SW_QQW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0;
@@ -522,7 +522,7 @@ namespace QxW {
   }
 
   // add: 3-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_PA_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0 )
   {
     T t0;
@@ -533,7 +533,7 @@ namespace QxW {
   }
 
   // add: 3-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_PA_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0;
@@ -544,7 +544,7 @@ namespace QxW {
   }
 
   // add: 3-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_PA_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -555,7 +555,7 @@ namespace QxW {
   }
 
   // add: 3-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_PA_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -568,7 +568,7 @@ namespace QxW {
   }
 
   // add: 3-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_QTW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1;
@@ -580,7 +580,7 @@ namespace QxW {
   }
 
   // add: 3-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_QTW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1;
@@ -592,7 +592,7 @@ namespace QxW {
   }
 
   // add: 3-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_QTW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -604,7 +604,7 @@ namespace QxW {
   }
 
   // add: 3-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_QTW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -618,7 +618,7 @@ namespace QxW {
   }
 
   // add: 3-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_QQW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1;
@@ -630,7 +630,7 @@ namespace QxW {
   }
 
   // add: 3-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_QQW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1;
@@ -642,7 +642,7 @@ namespace QxW {
   }
 
   // add: 3-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_QQW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -654,7 +654,7 @@ namespace QxW {
   }
 
   // add: 3-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QTW_QQW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -668,7 +668,7 @@ namespace QxW {
   }
 
   // add: 4-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
   {
     T t0;
@@ -678,7 +678,7 @@ namespace QxW {
   }
 
   // add: 4-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_SW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1 )
   {
     T t0;
@@ -688,7 +688,7 @@ namespace QxW {
   }
 
   // add: 4-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_SW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -698,7 +698,7 @@ namespace QxW {
   }
 
   // add: 4-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_SW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -709,7 +709,7 @@ namespace QxW {
   }
 
   // add: 4-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_PA_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0 )
   {
     T t0;
@@ -720,7 +720,7 @@ namespace QxW {
   }
 
   // add: 4-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_PA_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0;
@@ -731,7 +731,7 @@ namespace QxW {
   }
 
   // add: 4-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_PA_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -742,7 +742,7 @@ namespace QxW {
   }
 
   // add: 4-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_PA_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -755,7 +755,7 @@ namespace QxW {
   }
 
   // add: 4-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_QTW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1;
@@ -767,7 +767,7 @@ namespace QxW {
   }
 
   // add: 4-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_QTW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1;
@@ -779,7 +779,7 @@ namespace QxW {
   }
 
   // add: 4-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_QTW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -791,7 +791,7 @@ namespace QxW {
   }
 
   // add: 4-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_QTW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -805,7 +805,7 @@ namespace QxW {
   }
 
   // add: 4-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_QQW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1, t2;
@@ -818,7 +818,7 @@ namespace QxW {
   }
 
   // add: 4-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_QQW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -831,7 +831,7 @@ namespace QxW {
   }
 
   // add: 4-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_QQW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -844,7 +844,7 @@ namespace QxW {
   }
 
   // add: 4-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QQW_QQW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2;
@@ -859,469 +859,469 @@ namespace QxW {
   }
 
   // sub: 1-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_SW_SW( T const a0, T const b0, T &c0 )
   {
     add_SW_SW_SW( a0, -b0, c0 );
   }
 
   // sub: 1-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_SW_PA( T const a0, T const b0, T &c0, T &c1 )
   {
     add_SW_SW_PA( a0, -b0, c0, c1 );
   }
 
   // sub: 1-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_SW_QTW( T const a0, T const b0, T &c0, T &c1, T &c2 )
   {
     add_SW_SW_QTW( a0, -b0, c0, c1, c2 );
   }
 
   // sub: 1-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_SW_QQW( T const a0, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     add_SW_SW_QQW( a0, -b0, c0, c1, c2, c3 );
   }
 
   // sub: 1-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_PA_SW( T const a0, T const b0, T const b1, T &c0 )
   {
     add_SW_PA_SW( a0, -b0, -b1, c0 );
   }
 
   // sub: 1-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_PA_PA( T const a0, T const b0, T const b1, T &c0, T &c1 )
   {
     add_SW_PA_PA( a0, -b0, -b1, c0, c1 );
   }
 
   // sub: 1-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_PA_QTW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     add_SW_PA_QTW( a0, -b0, -b1, c0, c1, c2 );
   }
 
   // sub: 1-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_PA_QQW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     add_SW_PA_QQW( a0, -b0, -b1, c0, c1, c2, c3 );
   }
 
   // sub: 1-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QTW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
   {
     add_SW_QTW_SW( a0, -b0, -b1, -b2, c0 );
   }
 
   // sub: 1-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QTW_PA( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     add_SW_QTW_PA( a0, -b0, -b1, -b2, c0, c1 );
   }
 
   // sub: 1-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QTW_QTW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     add_SW_QTW_QTW( a0, -b0, -b1, -b2, c0, c1, c2 );
   }
 
   // sub: 1-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QTW_QQW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     add_SW_QTW_QQW( a0, -b0, -b1, -b2, c0, c1, c2, c3 );
   }
 
   // sub: 1-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QQW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     add_SW_QQW_SW( a0, -b0, -b1, -b2, -b3, c0 );
   }
 
   // sub: 1-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QQW_PA( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     add_SW_QQW_PA( a0, -b0, -b1, -b2, -b3, c0, c1 );
   }
 
   // sub: 1-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QQW_QTW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     add_SW_QQW_QTW( a0, -b0, -b1, -b2, -b3, c0, c1, c2 );
   }
 
   // sub: 1-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QQW_QQW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     add_SW_QQW_QQW( a0, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
   }
 
   // sub: 2-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_SW_SW( T const a0, T const a1, T const b0, T &c0 )
   {
     add_PA_SW_SW( a0, a1, -b0, c0 );
   }
 
   // sub: 2-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_SW_PA( T const a0, T const a1, T const b0, T &c0, T &c1 )
   {
     add_PA_SW_PA( a0, a1, -b0, c0, c1 );
   }
 
   // sub: 2-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_SW_QTW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   {
     add_PA_SW_QTW( a0, a1, -b0, c0, c1, c2 );
   }
 
   // sub: 2-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_SW_QQW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     add_PA_SW_QQW( a0, a1, -b0, c0, c1, c2, c3 );
   }
 
   // sub: 2-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_PA_SW( T const a0, T const a1, T const b0, T const b1, T &c0 )
   {
     add_PA_PA_SW( a0, a1, -b0, -b1, c0 );
   }
 
   // sub: 2-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_PA_PA( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
   {
     add_PA_PA_PA( a0, a1, -b0, -b1, c0, c1 );
   }
 
   // sub: 2-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_PA_QTW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     add_PA_PA_QTW( a0, a1, -b0, -b1, c0, c1, c2 );
   }
 
   // sub: 2-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_PA_QQW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     add_PA_PA_QQW( a0, a1, -b0, -b1, c0, c1, c2, c3 );
   }
 
   // sub: 2-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_QTW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0 )
   {
     add_PA_QTW_SW( a0, a1, -b0, -b1, -b2, c0 );
   }
 
   // sub: 2-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_QTW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     add_PA_QTW_PA( a0, a1, -b0, -b1, -b2, c0, c1 );
   }
 
   // sub: 2-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_QTW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     add_PA_QTW_QTW( a0, a1, -b0, -b1, -b2, c0, c1, c2 );
   }
 
   // sub: 2-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_QTW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     add_PA_QTW_QQW( a0, a1, -b0, -b1, -b2, c0, c1, c2, c3 );
   }
 
   // sub: 2-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_QQW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     add_PA_QQW_SW( a0, a1, -b0, -b1, -b2, -b3, c0 );
   }
 
   // sub: 2-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_QQW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     add_PA_QQW_PA( a0, a1, -b0, -b1, -b2, -b3, c0, c1 );
   }
 
   // sub: 2-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_QQW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     add_PA_QQW_QTW( a0, a1, -b0, -b1, -b2, -b3, c0, c1, c2 );
   }
 
   // sub: 2-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_PA_QQW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     add_PA_QQW_QQW( a0, a1, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
   }
 
   // sub: 3-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
   {
     add_QTW_SW_SW( a0, a1, a2, -b0, c0 );
   }
 
   // sub: 3-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_SW_PA( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
   {
     add_QTW_SW_PA( a0, a1, a2, -b0, c0, c1 );
   }
 
   // sub: 3-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_SW_QTW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2 )
   {
     add_QTW_SW_QTW( a0, a1, a2, -b0, c0, c1, c2 );
   }
 
   // sub: 3-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_SW_QQW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QTW_SW_QQW( a0, a1, a2, -b0, c0, c1, c2, c3 );
   }
 
   // sub: 3-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_PA_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0 )
   {
     add_QTW_PA_SW( a0, a1, a2, -b0, -b1, c0 );
   }
 
   // sub: 3-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_PA_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1 )
   {
     add_QTW_PA_PA( a0, a1, a2, -b0, -b1, c0, c1 );
   }
 
   // sub: 3-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_PA_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     add_QTW_PA_QTW( a0, a1, a2, -b0, -b1, c0, c1, c2 );
   }
 
   // sub: 3-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_PA_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QTW_PA_QQW( a0, a1, a2, -b0, -b1, c0, c1, c2, c3 );
   }
 
   // sub: 3-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_QTW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0 )
   {
     add_QTW_QTW_SW( a0, a1, a2, -b0, -b1, -b2, c0 );
   }
 
   // sub: 3-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_QTW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     add_QTW_QTW_PA( a0, a1, a2, -b0, -b1, -b2, c0, c1 );
   }
 
   // sub: 3-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_QTW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     add_QTW_QTW_QTW( a0, a1, a2, -b0, -b1, -b2, c0, c1, c2 );
   }
 
   // sub: 3-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_QTW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QTW_QTW_QQW( a0, a1, a2, -b0, -b1, -b2, c0, c1, c2, c3 );
   }
 
   // sub: 3-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_QQW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     add_QTW_QQW_SW( a0, a1, a2, -b0, -b1, -b2, -b3, c0 );
   }
 
   // sub: 3-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_QQW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     add_QTW_QQW_PA( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1 );
   }
 
   // sub: 3-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_QQW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     add_QTW_QQW_QTW( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1, c2 );
   }
 
   // sub: 3-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QTW_QQW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QTW_QQW_QQW( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
   }
 
   // sub: 4-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
   {
     add_QQW_SW_SW( a0, a1, a2, a3, -b0, c0 );
   }
 
   // sub: 4-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_SW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1 )
   {
     add_QQW_SW_PA( a0, a1, a2, a3, -b0, c0, c1 );
   }
 
   // sub: 4-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_SW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2 )
   {
     add_QQW_SW_QTW( a0, a1, a2, a3, -b0, c0, c1, c2 );
   }
 
   // sub: 4-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_SW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QQW_SW_QQW( a0, a1, a2, a3, -b0, c0, c1, c2, c3 );
   }
 
   // sub: 4-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_PA_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0 )
   {
     add_QQW_PA_SW( a0, a1, a2, a3, -b0, -b1, c0 );
   }
 
   // sub: 4-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_PA_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1 )
   {
     add_QQW_PA_PA( a0, a1, a2, a3, -b0, -b1, c0, c1 );
   }
 
   // sub: 4-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_PA_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     add_QQW_PA_QTW( a0, a1, a2, a3, -b0, -b1, c0, c1, c2 );
   }
 
   // sub: 4-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_PA_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QQW_PA_QQW( a0, a1, a2, a3, -b0, -b1, c0, c1, c2, c3 );
   }
 
   // sub: 4-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_QTW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0 )
   {
     add_QQW_QTW_SW( a0, a1, a2, a3, -b0, -b1, -b2, c0 );
   }
 
   // sub: 4-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_QTW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     add_QQW_QTW_PA( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1 );
   }
 
   // sub: 4-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_QTW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     add_QQW_QTW_QTW( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1, c2 );
   }
 
   // sub: 4-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_QTW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QQW_QTW_QQW( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1, c2, c3 );
   }
 
   // sub: 4-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_QQW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     add_QQW_QQW_SW( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0 );
   }
 
   // sub: 4-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_QQW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     add_QQW_QQW_PA( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1 );
   }
 
   // sub: 4-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_QQW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     add_QQW_QQW_QTW( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1, c2 );
   }
 
   // sub: 4-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QQW_QQW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QQW_QQW_QQW( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
   }
 
   // mul: 1-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_SW_SW( T const a0, T const b0, T &c0 )
   {
     c0 = a0 * b0;
   }
 
   // mul: 1-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_SW_PA( T const a0, T const b0, T &c0, T &c1 )
   {
     TwoProductFMA( a0, b0, c0, c1 );
   }
 
   // mul: 1-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_SW_QTW( T const a0, T const b0, T &c0, T &c1, T &c2 )
   {
     TwoProductFMA( a0, b0, c0, c1 );
@@ -1329,7 +1329,7 @@ namespace QxW {
   }
 
   // mul: 1-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_SW_QQW( T const a0, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoProductFMA( a0, b0, c0, c1 );
@@ -1338,7 +1338,7 @@ namespace QxW {
   }
 
   // mul: 1-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_PA_SW( T const a0, T const b0, T const b1, T &c0 )
   {
     T t0;
@@ -1347,7 +1347,7 @@ namespace QxW {
   }
 
   // mul: 1-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_PA_PA( T const a0, T const b0, T const b1, T &c0, T &c1 )
   {
     TwoProductFMA( a0, b0, c0, c1 );
@@ -1355,7 +1355,7 @@ namespace QxW {
   }
 
   // mul: 1-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_PA_QTW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -1366,7 +1366,7 @@ namespace QxW {
   }
 
   // mul: 1-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_PA_QQW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoProductFMA( a0, b0, c0, c1 );
@@ -1376,7 +1376,7 @@ namespace QxW {
   }
 
   // mul: 1-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QTW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0;
@@ -1385,7 +1385,7 @@ namespace QxW {
   }
 
   // mul: 1-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QTW_PA( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0;
@@ -1395,7 +1395,7 @@ namespace QxW {
   }
 
   // mul: 1-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QTW_QTW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -1407,7 +1407,7 @@ namespace QxW {
   }
 
   // mul: 1-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QTW_QQW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -1421,7 +1421,7 @@ namespace QxW {
   }
 
   // mul: 1-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QQW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0;
@@ -1430,7 +1430,7 @@ namespace QxW {
   }
 
   // mul: 1-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QQW_PA( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0;
@@ -1440,7 +1440,7 @@ namespace QxW {
   }
 
   // mul: 1-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QQW_QTW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -1453,7 +1453,7 @@ namespace QxW {
   }
 
   // mul: 1-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QQW_QQW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -1468,7 +1468,7 @@ namespace QxW {
   }
 
   // mul: 2-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_SW_SW( T const a0, T const a1, T const b0, T &c0 )
   {
     T t0;
@@ -1477,7 +1477,7 @@ namespace QxW {
   }
 
   // mul: 2-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_SW_PA( T const a0, T const a1, T const b0, T &c0, T &c1 )
   {
     TwoProductFMA( a0, b0, c0, c1 );
@@ -1485,7 +1485,7 @@ namespace QxW {
   }
 
   // mul: 2-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_SW_QTW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -1496,7 +1496,7 @@ namespace QxW {
   }
 
   // mul: 2-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_SW_QQW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0;
@@ -1507,7 +1507,7 @@ namespace QxW {
   }
 
   // mul: 2-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_PA_SW( T const a0, T const a1, T const b0, T const b1, T &c0 )
   {
     T t0, t1;
@@ -1517,7 +1517,7 @@ namespace QxW {
   }
 
   // mul: 2-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_PA_PA( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
   {
     TwoProductFMA( a0, b0, c0, c1 );
@@ -1526,7 +1526,7 @@ namespace QxW {
   }
 
   // mul: 2-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_PA_QTW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -1540,7 +1540,7 @@ namespace QxW {
   }
 
   // mul: 2-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_PA_QQW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -1558,7 +1558,7 @@ namespace QxW {
   }
 
   // mul: 2-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_QTW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1;
@@ -1568,7 +1568,7 @@ namespace QxW {
   }
 
   // mul: 2-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_QTW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0;
@@ -1579,7 +1579,7 @@ namespace QxW {
   }
 
   // mul: 2-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_QTW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -1594,7 +1594,7 @@ namespace QxW {
   }
 
   // mul: 2-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_QTW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5;
@@ -1615,7 +1615,7 @@ namespace QxW {
   }
 
   // mul: 2-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_QQW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1;
@@ -1625,7 +1625,7 @@ namespace QxW {
   }
 
   // mul: 2-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_QQW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0;
@@ -1636,7 +1636,7 @@ namespace QxW {
   }
 
   // mul: 2-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_QQW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -1652,7 +1652,7 @@ namespace QxW {
   }
 
   // mul: 2-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_PA_QQW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5;
@@ -1674,7 +1674,7 @@ namespace QxW {
   }
 
   // mul: 3-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
   {
     T t0;
@@ -1683,7 +1683,7 @@ namespace QxW {
   }
 
   // mul: 3-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_SW_PA( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
   {
     T t0;
@@ -1693,7 +1693,7 @@ namespace QxW {
   }
 
   // mul: 3-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_SW_QTW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -1705,7 +1705,7 @@ namespace QxW {
   }
 
   // mul: 3-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_SW_QQW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -1719,7 +1719,7 @@ namespace QxW {
   }
 
   // mul: 3-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_PA_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0 )
   {
     T t0, t1;
@@ -1729,7 +1729,7 @@ namespace QxW {
   }
 
   // mul: 3-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_PA_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0;
@@ -1740,7 +1740,7 @@ namespace QxW {
   }
 
   // mul: 3-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_PA_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -1755,7 +1755,7 @@ namespace QxW {
   }
 
   // mul: 3-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_PA_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5;
@@ -1776,7 +1776,7 @@ namespace QxW {
   }
 
   // mul: 3-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_QTW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1;
@@ -1786,7 +1786,7 @@ namespace QxW {
   }
 
   // mul: 3-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_QTW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1;
@@ -1798,7 +1798,7 @@ namespace QxW {
   }
 
   // mul: 3-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_QTW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -1814,7 +1814,7 @@ namespace QxW {
   }
 
   // mul: 3-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_QTW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7;
@@ -1838,7 +1838,7 @@ namespace QxW {
   }
 
   // mul: 3-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_QQW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1;
@@ -1848,7 +1848,7 @@ namespace QxW {
   }
 
   // mul: 3-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_QQW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1;
@@ -1860,7 +1860,7 @@ namespace QxW {
   }
 
   // mul: 3-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_QQW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -1877,7 +1877,7 @@ namespace QxW {
   }
 
   // mul: 3-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QTW_QQW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7;
@@ -1902,7 +1902,7 @@ namespace QxW {
   }
 
   // mul: 4-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
   {
     T t0;
@@ -1911,7 +1911,7 @@ namespace QxW {
   }
 
   // mul: 4-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_SW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1 )
   {
     T t0;
@@ -1921,7 +1921,7 @@ namespace QxW {
   }
 
   // mul: 4-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_SW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -1934,7 +1934,7 @@ namespace QxW {
   }
 
   // mul: 4-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_SW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -1949,7 +1949,7 @@ namespace QxW {
   }
 
   // mul: 4-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_PA_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0 )
   {
     T t0, t1;
@@ -1959,7 +1959,7 @@ namespace QxW {
   }
 
   // mul: 4-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_PA_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0;
@@ -1970,7 +1970,7 @@ namespace QxW {
   }
 
   // mul: 4-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_PA_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -1986,7 +1986,7 @@ namespace QxW {
   }
 
   // mul: 4-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_PA_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5;
@@ -2008,7 +2008,7 @@ namespace QxW {
   }
 
   // mul: 4-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_QTW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1;
@@ -2018,7 +2018,7 @@ namespace QxW {
   }
 
   // mul: 4-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_QTW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2030,7 +2030,7 @@ namespace QxW {
   }
 
   // mul: 4-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_QTW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -2047,7 +2047,7 @@ namespace QxW {
   }
 
   // mul: 4-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_QTW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7;
@@ -2072,7 +2072,7 @@ namespace QxW {
   }
 
   // mul: 4-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_QQW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1;
@@ -2082,7 +2082,7 @@ namespace QxW {
   }
 
   // mul: 4-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_QQW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2094,7 +2094,7 @@ namespace QxW {
   }
 
   // mul: 4-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_QQW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4;
@@ -2112,7 +2112,7 @@ namespace QxW {
   }
 
   // mul: 4-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QQW_QQW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7;
@@ -2138,14 +2138,14 @@ namespace QxW {
   }
 
   // div: 1-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_SW_SW( T const a0, T const b0, T &c0 )
   {
     c0 = a0 / b0;
   }
 
   // div: 1-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_SW_PA( T const a0, T const b0, T &c0, T &c1 )
   {
     T r = a0;
@@ -2155,7 +2155,7 @@ namespace QxW {
   }
 
   // div: 1-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_SW_QTW( T const a0, T const b0, T &c0, T &c1, T &c2 )
   {
     T r = a0;
@@ -2167,7 +2167,7 @@ namespace QxW {
   }
 
   // div: 1-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_SW_QQW( T const a0, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T r = a0;
@@ -2181,7 +2181,7 @@ namespace QxW {
   }
 
   // div: 1-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_PA_SW( T const a0, T const b0, T const b1, T &c0 )
   {
     T e40, e41;
@@ -2191,7 +2191,7 @@ namespace QxW {
   }
 
   // div: 1-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_PA_PA( T const a0, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2207,7 +2207,7 @@ namespace QxW {
   }
 
   // div: 1-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_PA_QTW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2221,7 +2221,7 @@ namespace QxW {
   }
 
   // div: 1-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_PA_QQW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2235,7 +2235,7 @@ namespace QxW {
   }
 
   // div: 1-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QTW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
   {
     T e40, e41;
@@ -2245,7 +2245,7 @@ namespace QxW {
   }
 
   // div: 1-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QTW_PA( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2261,7 +2261,7 @@ namespace QxW {
   }
 
   // div: 1-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QTW_QTW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2277,7 +2277,7 @@ namespace QxW {
   }
 
   // div: 1-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QTW_QQW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2291,7 +2291,7 @@ namespace QxW {
   }
 
   // div: 1-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QQW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T e40, e41;
@@ -2301,7 +2301,7 @@ namespace QxW {
   }
 
   // div: 1-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QQW_PA( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2317,7 +2317,7 @@ namespace QxW {
   }
 
   // div: 1-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QQW_QTW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2333,7 +2333,7 @@ namespace QxW {
   }
 
   // div: 1-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QQW_QQW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2349,7 +2349,7 @@ namespace QxW {
   }
 
   // div: 2-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_SW_SW( T const a0, T const a1, T const b0, T &c0 )
   {
     T e40, e41;
@@ -2359,7 +2359,7 @@ namespace QxW {
   }
 
   // div: 2-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_SW_PA( T const a0, T const a1, T const b0, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2375,7 +2375,7 @@ namespace QxW {
   }
 
   // div: 2-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_SW_QTW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2389,7 +2389,7 @@ namespace QxW {
   }
 
   // div: 2-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_SW_QQW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2403,7 +2403,7 @@ namespace QxW {
   }
 
   // div: 2-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_PA_SW( T const a0, T const a1, T const b0, T const b1, T &c0 )
   {
     T e40, e41;
@@ -2413,7 +2413,7 @@ namespace QxW {
   }
 
   // div: 2-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_PA_PA( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
   {
     c0 = a0 / (b0 + b1);
@@ -2421,7 +2421,7 @@ namespace QxW {
   }
 
   // div: 2-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_PA_QTW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2435,7 +2435,7 @@ namespace QxW {
   }
 
   // div: 2-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_PA_QQW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2449,7 +2449,7 @@ namespace QxW {
   }
 
   // div: 2-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_QTW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0 )
   {
     T e40, e41;
@@ -2459,7 +2459,7 @@ namespace QxW {
   }
 
   // div: 2-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_QTW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2469,7 +2469,7 @@ namespace QxW {
   }
 
   // div: 2-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_QTW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2485,7 +2485,7 @@ namespace QxW {
   }
 
   // div: 2-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_QTW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2499,7 +2499,7 @@ namespace QxW {
   }
 
   // div: 2-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_QQW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T e40, e41;
@@ -2509,7 +2509,7 @@ namespace QxW {
   }
 
   // div: 2-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_QQW_PA( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2519,7 +2519,7 @@ namespace QxW {
   }
 
   // div: 2-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_QQW_QTW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2535,7 +2535,7 @@ namespace QxW {
   }
 
   // div: 2-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_PA_QQW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2551,7 +2551,7 @@ namespace QxW {
   }
 
   // div: 3-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
   {
     T e40, e41;
@@ -2561,7 +2561,7 @@ namespace QxW {
   }
 
   // div: 3-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_SW_PA( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2577,7 +2577,7 @@ namespace QxW {
   }
 
   // div: 3-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_SW_QTW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2593,7 +2593,7 @@ namespace QxW {
   }
 
   // div: 3-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_SW_QQW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2607,7 +2607,7 @@ namespace QxW {
   }
 
   // div: 3-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_PA_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0 )
   {
     T e40, e41;
@@ -2617,7 +2617,7 @@ namespace QxW {
   }
 
   // div: 3-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_PA_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2627,7 +2627,7 @@ namespace QxW {
   }
 
   // div: 3-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_PA_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2643,7 +2643,7 @@ namespace QxW {
   }
 
   // div: 3-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_PA_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2657,7 +2657,7 @@ namespace QxW {
   }
 
   // div: 3-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_QTW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0 )
   {
     T e40, e41;
@@ -2667,7 +2667,7 @@ namespace QxW {
   }
 
   // div: 3-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_QTW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2679,7 +2679,7 @@ namespace QxW {
   }
 
   // div: 3-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_QTW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2697,7 +2697,7 @@ namespace QxW {
   }
 
   // div: 3-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_QTW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2711,7 +2711,7 @@ namespace QxW {
   }
 
   // div: 3-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_QQW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T e40, e41;
@@ -2721,7 +2721,7 @@ namespace QxW {
   }
 
   // div: 3-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_QQW_PA( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2733,7 +2733,7 @@ namespace QxW {
   }
 
   // div: 3-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_QQW_QTW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2743,7 +2743,7 @@ namespace QxW {
   }
 
   // div: 3-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QTW_QQW_QQW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2759,7 +2759,7 @@ namespace QxW {
   }
 
   // div: 4-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
   {
     T e40, e41;
@@ -2769,7 +2769,7 @@ namespace QxW {
   }
 
   // div: 4-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_SW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2785,7 +2785,7 @@ namespace QxW {
   }
 
   // div: 4-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_SW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2801,7 +2801,7 @@ namespace QxW {
   }
 
   // div: 4-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_SW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2817,7 +2817,7 @@ namespace QxW {
   }
 
   // div: 4-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_PA_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0 )
   {
     T e40, e41;
@@ -2827,7 +2827,7 @@ namespace QxW {
   }
 
   // div: 4-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_PA_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2837,7 +2837,7 @@ namespace QxW {
   }
 
   // div: 4-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_PA_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2853,7 +2853,7 @@ namespace QxW {
   }
 
   // div: 4-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_PA_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2869,7 +2869,7 @@ namespace QxW {
   }
 
   // div: 4-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_QTW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0 )
   {
     T e40, e41;
@@ -2879,7 +2879,7 @@ namespace QxW {
   }
 
   // div: 4-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_QTW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2891,7 +2891,7 @@ namespace QxW {
   }
 
   // div: 4-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_QTW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2901,7 +2901,7 @@ namespace QxW {
   }
 
   // div: 4-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_QTW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2917,7 +2917,7 @@ namespace QxW {
   }
 
   // div: 4-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_QQW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T e40, e41;
@@ -2927,7 +2927,7 @@ namespace QxW {
   }
 
   // div: 4-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_QQW_PA( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1;
@@ -2939,7 +2939,7 @@ namespace QxW {
   }
 
   // div: 4-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_QQW_QTW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -2951,7 +2951,7 @@ namespace QxW {
   }
 
   // div: 4-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QQW_QQW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -2969,21 +2969,21 @@ namespace QxW {
   }
 
   // sqr: 1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_SW_SW( T const a0, T &c0 )
   {
     c0 = a0 * a0;
   }
 
   // sqr: 1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_SW_PA( T const a0, T &c0, T &c1 )
   {
     TwoProductFMA( a0, a0, c0, c1 );
   }
 
   // sqr: 1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_SW_QTW( T const a0, T &c0, T &c1, T &c2 )
   {
     TwoProductFMA( a0, a0, c0, c1 );
@@ -2991,7 +2991,7 @@ namespace QxW {
   }
 
   // sqr: 1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_SW_QQW( T const a0, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoProductFMA( a0, a0, c0, c1 );
@@ -3000,7 +3000,7 @@ namespace QxW {
   }
 
   // sqr: 2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_PA_SW( T const a0, T const a1, T &c0 )
   {
     T t0;
@@ -3009,7 +3009,7 @@ namespace QxW {
   }
 
   // sqr: 2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_PA_PA( T const a0, T const a1, T &c0, T &c1 )
   {
     T t0;
@@ -3019,7 +3019,7 @@ namespace QxW {
   }
 
   // sqr: 2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_PA_QTW( T const a0, T const a1, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -3032,7 +3032,7 @@ namespace QxW {
   }
 
   // sqr: 2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_PA_QQW( T const a0, T const a1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2;
@@ -3047,7 +3047,7 @@ namespace QxW {
   }
 
   // sqr: 3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QTW_SW( T const a0, T const a1, T const a2, T &c0 )
   {
     T t0;
@@ -3056,7 +3056,7 @@ namespace QxW {
   }
 
   // sqr: 3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QTW_PA( T const a0, T const a1, T const a2, T &c0, T &c1 )
   {
     T t0, t1;
@@ -3067,7 +3067,7 @@ namespace QxW {
   }
 
   // sqr: 3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QTW_QTW( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -3081,7 +3081,7 @@ namespace QxW {
   }
 
   // sqr: 3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QTW_QQW( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5;
@@ -3100,7 +3100,7 @@ namespace QxW {
   }
 
   // sqr: 4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QQW_SW( T const a0, T const a1, T const a2, T const a3, T &c0 )
   {
     T t0;
@@ -3109,7 +3109,7 @@ namespace QxW {
   }
 
   // sqr: 4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QQW_PA( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1 )
   {
     T t0, t1;
@@ -3120,7 +3120,7 @@ namespace QxW {
   }
 
   // sqr: 4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QQW_QTW( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -3135,7 +3135,7 @@ namespace QxW {
   }
 
   // sqr: 4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QQW_QQW( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5;
@@ -3160,7 +3160,7 @@ namespace QxW {
   // ------------------------
 
   // add: 1-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_SW_DW( T const a0, T const b0, T &c0, T &c1 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -3168,7 +3168,7 @@ namespace QxW {
   }
 
   // add: 1-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_SW_TW( T const a0, T const b0, T &c0, T &c1, T &c2 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -3177,7 +3177,7 @@ namespace QxW {
   }
 
   // add: 1-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_SW_QW( T const a0, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -3187,7 +3187,7 @@ namespace QxW {
   }
 
   // add: 1-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_DW_SW( T const a0, T const b0, T const b1, T &c0 )
   {
     T t0;
@@ -3197,7 +3197,7 @@ namespace QxW {
   }
 
   // add: 1-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_DW_DW( T const a0, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0;
@@ -3208,7 +3208,7 @@ namespace QxW {
   }
 
   // add: 1-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_DW_TW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -3219,7 +3219,7 @@ namespace QxW {
   }
 
   // add: 1-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_DW_QW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -3229,7 +3229,7 @@ namespace QxW {
   }
 
   // add: 1-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_TW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1;
@@ -3240,7 +3240,7 @@ namespace QxW {
   }
 
   // add: 1-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_TW_DW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0;
@@ -3252,7 +3252,7 @@ namespace QxW {
   }
 
   // add: 1-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_TW_TW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -3268,7 +3268,7 @@ namespace QxW {
   }
 
   // add: 1-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_TW_QW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -3280,7 +3280,7 @@ namespace QxW {
   }
 
   // add: 1-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1;
@@ -3291,7 +3291,7 @@ namespace QxW {
   }
 
   // add: 1-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QW_DW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0;
@@ -3304,7 +3304,7 @@ namespace QxW {
   }
 
   // add: 1-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QW_TW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -3322,7 +3322,7 @@ namespace QxW {
   }
 
   // add: 1-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_SW_QW_QW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2;
@@ -3336,7 +3336,7 @@ namespace QxW {
   }
 
   // add: 2-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_SW_SW( T const a0, T const a1, T const b0, T &c0 )
   {
     T t0;
@@ -3346,7 +3346,7 @@ namespace QxW {
   }
 
   // add: 2-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_SW_DW( T const a0, T const a1, T const b0, T &c0, T &c1 )
   {
     T t0;
@@ -3357,7 +3357,7 @@ namespace QxW {
   }
 
   // add: 2-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_SW_TW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -3368,7 +3368,7 @@ namespace QxW {
   }
 
   // add: 2-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_SW_QW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoSum( a0, b0, c0, c1 );
@@ -3378,7 +3378,7 @@ namespace QxW {
   }
 
   // add: 2-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_DW_SW( T const a0, T const a1, T const b0, T const b1, T &c0 )
   {
     T t0, t1;
@@ -3389,7 +3389,7 @@ namespace QxW {
   }
 
   // add: 2-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_DW_DW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1;
@@ -3403,7 +3403,7 @@ namespace QxW {
   }
 
   // add: 2-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_DW_TW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -3420,7 +3420,7 @@ namespace QxW {
   }
 
   // add: 2-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_DW_QW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0;
@@ -3438,7 +3438,7 @@ namespace QxW {
   }
 
   // add: 2-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_TW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1;
@@ -3450,7 +3450,7 @@ namespace QxW {
   }
 
   // add: 2-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_TW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1;
@@ -3465,7 +3465,7 @@ namespace QxW {
   }
 
   // add: 2-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_TW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -3484,7 +3484,7 @@ namespace QxW {
   }
 
   // add: 2-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_TW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -3505,7 +3505,7 @@ namespace QxW {
   }
 
   // add: 2-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_QW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1;
@@ -3517,7 +3517,7 @@ namespace QxW {
   }
 
   // add: 2-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_QW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1;
@@ -3533,7 +3533,7 @@ namespace QxW {
   }
 
   // add: 2-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_QW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -3554,7 +3554,7 @@ namespace QxW {
   }
 
   // add: 2-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_DW_QW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2;
@@ -3577,7 +3577,7 @@ namespace QxW {
   }
 
   // add: 3-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
   {
     T t0, t1;
@@ -3588,7 +3588,7 @@ namespace QxW {
   }
 
   // add: 3-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_SW_DW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
   {
     T t0;
@@ -3600,7 +3600,7 @@ namespace QxW {
   }
 
   // add: 3-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_SW_TW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -3616,7 +3616,7 @@ namespace QxW {
   }
 
   // add: 3-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_SW_QW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -3628,7 +3628,7 @@ namespace QxW {
   }
 
   // add: 3-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_DW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0 )
   {
     T t0, t1;
@@ -3640,7 +3640,7 @@ namespace QxW {
   }
 
   // add: 3-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_DW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1;
@@ -3655,7 +3655,7 @@ namespace QxW {
   }
 
   // add: 3-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_DW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -3674,7 +3674,7 @@ namespace QxW {
   }
 
   // add: 3-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_DW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -3695,7 +3695,7 @@ namespace QxW {
   }
 
   // add: 3-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_TW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1, t2;
@@ -3708,7 +3708,7 @@ namespace QxW {
   }
 
   // add: 3-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_TW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -3724,7 +3724,7 @@ namespace QxW {
   }
 
   // add: 3-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_TW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -3744,7 +3744,7 @@ namespace QxW {
   }
 
   // add: 3-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_TW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -3768,7 +3768,7 @@ namespace QxW {
   }
 
   // add: 3-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_QW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1, t2;
@@ -3781,7 +3781,7 @@ namespace QxW {
   }
 
   // add: 3-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_QW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -3798,7 +3798,7 @@ namespace QxW {
   }
 
   // add: 3-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_QW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -3820,7 +3820,7 @@ namespace QxW {
   }
 
   // add: 3-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_TW_QW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2;
@@ -3845,7 +3845,7 @@ namespace QxW {
   }
 
   // add: 4-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
   {
     T t0, t1;
@@ -3856,7 +3856,7 @@ namespace QxW {
   }
 
   // add: 4-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_SW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1 )
   {
     T t0;
@@ -3869,7 +3869,7 @@ namespace QxW {
   }
 
   // add: 4-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_SW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -3887,7 +3887,7 @@ namespace QxW {
   }
 
   // add: 4-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_SW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2;
@@ -3901,7 +3901,7 @@ namespace QxW {
   }
 
   // add: 4-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_DW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0 )
   {
     T t0, t1;
@@ -3913,7 +3913,7 @@ namespace QxW {
   }
 
   // add: 4-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_DW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1;
@@ -3929,7 +3929,7 @@ namespace QxW {
   }
 
   // add: 4-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_DW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -3950,7 +3950,7 @@ namespace QxW {
   }
 
   // add: 4-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_DW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2;
@@ -3973,7 +3973,7 @@ namespace QxW {
   }
 
   // add: 4-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_TW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1, t2;
@@ -3986,7 +3986,7 @@ namespace QxW {
   }
 
   // add: 4-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_TW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -4003,7 +4003,7 @@ namespace QxW {
   }
 
   // add: 4-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_TW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -4025,7 +4025,7 @@ namespace QxW {
   }
 
   // add: 4-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_TW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2;
@@ -4050,7 +4050,7 @@ namespace QxW {
   }
 
   // add: 4-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_QW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1, t2, t3;
@@ -4064,7 +4064,7 @@ namespace QxW {
   }
 
   // add: 4-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_QW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -4082,7 +4082,7 @@ namespace QxW {
   }
 
   // add: 4-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_QW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -4105,7 +4105,7 @@ namespace QxW {
   }
 
   // add: 4-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   add_QW_QW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -4131,455 +4131,455 @@ namespace QxW {
   }
 
   // sub: 1-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_SW_DW( T const a0, T const b0, T &c0, T &c1 )
   {
     add_SW_SW_DW( a0, -b0, c0, c1 );
   }
 
   // sub: 1-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_SW_TW( T const a0, T const b0, T &c0, T &c1, T &c2 )
   {
     add_SW_SW_TW( a0, -b0, c0, c1, c2 );
   }
 
   // sub: 1-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_SW_QW( T const a0, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     add_SW_SW_QW( a0, -b0, c0, c1, c2, c3 );
   }
 
   // sub: 1-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_DW_SW( T const a0, T const b0, T const b1, T &c0 )
   {
     add_SW_DW_SW( a0, -b0, -b1, c0 );
   }
 
   // sub: 1-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_DW_DW( T const a0, T const b0, T const b1, T &c0, T &c1 )
   {
     add_SW_DW_DW( a0, -b0, -b1, c0, c1 );
   }
 
   // sub: 1-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_DW_TW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     add_SW_DW_TW( a0, -b0, -b1, c0, c1, c2 );
   }
 
   // sub: 1-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_DW_QW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     add_SW_DW_QW( a0, -b0, -b1, c0, c1, c2, c3 );
   }
 
   // sub: 1-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_TW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
   {
     add_SW_TW_SW( a0, -b0, -b1, -b2, c0 );
   }
 
   // sub: 1-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_TW_DW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     add_SW_TW_DW( a0, -b0, -b1, -b2, c0, c1 );
   }
 
   // sub: 1-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_TW_TW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     add_SW_TW_TW( a0, -b0, -b1, -b2, c0, c1, c2 );
   }
 
   // sub: 1-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_TW_QW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     add_SW_TW_QW( a0, -b0, -b1, -b2, c0, c1, c2, c3 );
   }
 
   // sub: 1-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     add_SW_QW_SW( a0, -b0, -b1, -b2, -b3, c0 );
   }
 
   // sub: 1-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QW_DW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     add_SW_QW_DW( a0, -b0, -b1, -b2, -b3, c0, c1 );
   }
 
   // sub: 1-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QW_TW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     add_SW_QW_TW( a0, -b0, -b1, -b2, -b3, c0, c1, c2 );
   }
 
   // sub: 1-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_SW_QW_QW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     add_SW_QW_QW( a0, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
   }
 
   // sub: 2-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_SW_SW( T const a0, T const a1, T const b0, T &c0 )
   {
     add_DW_SW_SW( a0, a1, -b0, c0 );
   }
 
   // sub: 2-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_SW_DW( T const a0, T const a1, T const b0, T &c0, T &c1 )
   {
     add_DW_SW_DW( a0, a1, -b0, c0, c1 );
   }
 
   // sub: 2-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_SW_TW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   {
     add_DW_SW_TW( a0, a1, -b0, c0, c1, c2 );
   }
 
   // sub: 2-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_SW_QW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     add_DW_SW_QW( a0, a1, -b0, c0, c1, c2, c3 );
   }
 
   // sub: 2-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_DW_SW( T const a0, T const a1, T const b0, T const b1, T &c0 )
   {
     add_DW_DW_SW( a0, a1, -b0, -b1, c0 );
   }
 
   // sub: 2-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_DW_DW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
   {
     add_DW_DW_DW( a0, a1, -b0, -b1, c0, c1 );
   }
 
   // sub: 2-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_DW_TW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     add_DW_DW_TW( a0, a1, -b0, -b1, c0, c1, c2 );
   }
 
   // sub: 2-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_DW_QW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     add_DW_DW_QW( a0, a1, -b0, -b1, c0, c1, c2, c3 );
   }
 
   // sub: 2-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_TW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0 )
   {
     add_DW_TW_SW( a0, a1, -b0, -b1, -b2, c0 );
   }
 
   // sub: 2-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_TW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     add_DW_TW_DW( a0, a1, -b0, -b1, -b2, c0, c1 );
   }
 
   // sub: 2-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_TW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     add_DW_TW_TW( a0, a1, -b0, -b1, -b2, c0, c1, c2 );
   }
 
   // sub: 2-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_TW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     add_DW_TW_QW( a0, a1, -b0, -b1, -b2, c0, c1, c2, c3 );
   }
 
   // sub: 2-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_QW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     add_DW_QW_SW( a0, a1, -b0, -b1, -b2, -b3, c0 );
   }
 
   // sub: 2-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_QW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     add_DW_QW_DW( a0, a1, -b0, -b1, -b2, -b3, c0, c1 );
   }
 
   // sub: 2-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_QW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     add_DW_QW_TW( a0, a1, -b0, -b1, -b2, -b3, c0, c1, c2 );
   }
 
   // sub: 2-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_DW_QW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     add_DW_QW_QW( a0, a1, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
   }
 
   // sub: 3-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
   {
     add_TW_SW_SW( a0, a1, a2, -b0, c0 );
   }
 
   // sub: 3-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_SW_DW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
   {
     add_TW_SW_DW( a0, a1, a2, -b0, c0, c1 );
   }
 
   // sub: 3-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_SW_TW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2 )
   {
     add_TW_SW_TW( a0, a1, a2, -b0, c0, c1, c2 );
   }
 
   // sub: 3-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_SW_QW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     add_TW_SW_QW( a0, a1, a2, -b0, c0, c1, c2, c3 );
   }
 
   // sub: 3-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_DW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0 )
   {
     add_TW_DW_SW( a0, a1, a2, -b0, -b1, c0 );
   }
 
   // sub: 3-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_DW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1 )
   {
     add_TW_DW_DW( a0, a1, a2, -b0, -b1, c0, c1 );
   }
 
   // sub: 3-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_DW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     add_TW_DW_TW( a0, a1, a2, -b0, -b1, c0, c1, c2 );
   }
 
   // sub: 3-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_DW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     add_TW_DW_QW( a0, a1, a2, -b0, -b1, c0, c1, c2, c3 );
   }
 
   // sub: 3-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_TW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0 )
   {
     add_TW_TW_SW( a0, a1, a2, -b0, -b1, -b2, c0 );
   }
 
   // sub: 3-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_TW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     add_TW_TW_DW( a0, a1, a2, -b0, -b1, -b2, c0, c1 );
   }
 
   // sub: 3-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_TW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     add_TW_TW_TW( a0, a1, a2, -b0, -b1, -b2, c0, c1, c2 );
   }
 
   // sub: 3-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_TW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     add_TW_TW_QW( a0, a1, a2, -b0, -b1, -b2, c0, c1, c2, c3 );
   }
 
   // sub: 3-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_QW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     add_TW_QW_SW( a0, a1, a2, -b0, -b1, -b2, -b3, c0 );
   }
 
   // sub: 3-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_QW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     add_TW_QW_DW( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1 );
   }
 
   // sub: 3-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_QW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     add_TW_QW_TW( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1, c2 );
   }
 
   // sub: 3-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_TW_QW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     add_TW_QW_QW( a0, a1, a2, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
   }
 
   // sub: 4-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
   {
     add_QW_SW_SW( a0, a1, a2, a3, -b0, c0 );
   }
 
   // sub: 4-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_SW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1 )
   {
     add_QW_SW_DW( a0, a1, a2, a3, -b0, c0, c1 );
   }
 
   // sub: 4-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_SW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2 )
   {
     add_QW_SW_TW( a0, a1, a2, a3, -b0, c0, c1, c2 );
   }
 
   // sub: 4-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_SW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QW_SW_QW( a0, a1, a2, a3, -b0, c0, c1, c2, c3 );
   }
 
   // sub: 4-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_DW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0 )
   {
     add_QW_DW_SW( a0, a1, a2, a3, -b0, -b1, c0 );
   }
 
   // sub: 4-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_DW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1 )
   {
     add_QW_DW_DW( a0, a1, a2, a3, -b0, -b1, c0, c1 );
   }
 
   // sub: 4-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_DW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     add_QW_DW_TW( a0, a1, a2, a3, -b0, -b1, c0, c1, c2 );
   }
 
   // sub: 4-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_DW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QW_DW_QW( a0, a1, a2, a3, -b0, -b1, c0, c1, c2, c3 );
   }
 
   // sub: 4-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_TW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0 )
   {
     add_QW_TW_SW( a0, a1, a2, a3, -b0, -b1, -b2, c0 );
   }
 
   // sub: 4-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_TW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     add_QW_TW_DW( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1 );
   }
 
   // sub: 4-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_TW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     add_QW_TW_TW( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1, c2 );
   }
 
   // sub: 4-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_TW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QW_TW_QW( a0, a1, a2, a3, -b0, -b1, -b2, c0, c1, c2, c3 );
   }
 
   // sub: 4-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_QW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     add_QW_QW_SW( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0 );
   }
 
   // sub: 4-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_QW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     add_QW_QW_DW( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1 );
   }
 
   // sub: 4-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_QW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     add_QW_QW_TW( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1, c2 );
   }
 
   // sub: 4-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sub_QW_QW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     add_QW_QW_QW( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
   }
 
   // mul: 1-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_SW_DW( T const a0, T const b0, T &c0, T &c1 )
   {
     TwoProductFMA( a0, b0, c0, c1 );
   }
 
   // mul: 1-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_SW_TW( T const a0, T const b0, T &c0, T &c1, T &c2 )
   {
     TwoProductFMA( a0, b0, c0, c1 );
@@ -4587,7 +4587,7 @@ namespace QxW {
   }
 
   // mul: 1-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_SW_QW( T const a0, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoProductFMA( a0, b0, c0, c1 );
@@ -4598,7 +4598,7 @@ namespace QxW {
   }
 
   // mul: 1-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_DW_SW( T const a0, T const b0, T const b1, T &c0 )
   {
     c0 = a0 * b0;
@@ -4606,7 +4606,7 @@ namespace QxW {
   }
 
   // mul: 1-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_DW_DW( T const a0, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1;
@@ -4620,7 +4620,7 @@ namespace QxW {
   }
 
   // mul: 1-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_DW_TW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0;
@@ -4636,7 +4636,7 @@ namespace QxW {
   }
 
   // mul: 1-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_DW_QW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoProductFMA( a0, b0, c0, c1 );
@@ -4654,7 +4654,7 @@ namespace QxW {
   }
 
   // mul: 1-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_TW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0;
@@ -4664,7 +4664,7 @@ namespace QxW {
   }
 
   // mul: 1-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_TW_DW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1;
@@ -4679,7 +4679,7 @@ namespace QxW {
   }
 
   // mul: 1-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_TW_TW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -4698,7 +4698,7 @@ namespace QxW {
   }
 
   // mul: 1-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_TW_QW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2;
@@ -4723,7 +4723,7 @@ namespace QxW {
   }
 
   // mul: 1-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0;
@@ -4733,7 +4733,7 @@ namespace QxW {
   }
 
   // mul: 1-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QW_DW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -4749,7 +4749,7 @@ namespace QxW {
   }
 
   // mul: 1-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QW_TW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -4769,7 +4769,7 @@ namespace QxW {
   }
 
   // mul: 1-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_SW_QW_QW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4;
@@ -4797,7 +4797,7 @@ namespace QxW {
   }
 
   // mul: 2-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_SW_SW( T const a0, T const a1, T const b0, T &c0 )
   {
     c0 = a0 * b0;
@@ -4805,7 +4805,7 @@ namespace QxW {
   }
 
   // mul: 2-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_SW_DW( T const a0, T const a1, T const b0, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -4819,7 +4819,7 @@ namespace QxW {
   }
 
   // mul: 2-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_SW_TW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1;
@@ -4835,7 +4835,7 @@ namespace QxW {
   }
 
   // mul: 2-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_SW_QW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1;
@@ -4854,7 +4854,7 @@ namespace QxW {
   }
 
   // mul: 2-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_DW_SW( T const a0, T const a1, T const b0, T const b1, T &c0 )
   {
     c0 = a0 * b0;
@@ -4864,7 +4864,7 @@ namespace QxW {
   }
 
   // mul: 2-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_DW_DW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -4882,7 +4882,7 @@ namespace QxW {
   }
 
   // mul: 2-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_DW_TW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4;
@@ -4905,7 +4905,7 @@ namespace QxW {
   }
 
   // mul: 2-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_DW_QW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -4936,7 +4936,7 @@ namespace QxW {
   }
 
   // mul: 2-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_TW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0;
@@ -4948,7 +4948,7 @@ namespace QxW {
   }
 
   // mul: 2-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_TW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -4967,7 +4967,7 @@ namespace QxW {
   }
 
   // mul: 2-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_TW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4, t5, t6;
@@ -4993,7 +4993,7 @@ namespace QxW {
   }
 
   // mul: 2-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_TW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6;
@@ -5033,7 +5033,7 @@ namespace QxW {
   }
 
   // mul: 2-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_QW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0;
@@ -5045,7 +5045,7 @@ namespace QxW {
   }
 
   // mul: 2-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_QW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2, t3, t4;
@@ -5065,7 +5065,7 @@ namespace QxW {
   }
 
   // mul: 2-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_QW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4, t5, t6;
@@ -5092,7 +5092,7 @@ namespace QxW {
   }
 
   // mul: 2-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_DW_QW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6;
@@ -5135,7 +5135,7 @@ namespace QxW {
   }
 
   // mul: 3-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
   {
     T t0;
@@ -5145,7 +5145,7 @@ namespace QxW {
   }
 
   // mul: 3-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_SW_DW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -5160,7 +5160,7 @@ namespace QxW {
   }
 
   // mul: 3-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_SW_TW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4;
@@ -5179,7 +5179,7 @@ namespace QxW {
   }
 
   // mul: 3-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_SW_QW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -5204,7 +5204,7 @@ namespace QxW {
   }
 
   // mul: 3-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_DW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0 )
   {
     T t0;
@@ -5216,7 +5216,7 @@ namespace QxW {
   }
 
   // mul: 3-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_DW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -5235,7 +5235,7 @@ namespace QxW {
   }
 
   // mul: 3-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_DW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4, t5, t6;
@@ -5261,7 +5261,7 @@ namespace QxW {
   }
 
   // mul: 3-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_DW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6;
@@ -5301,7 +5301,7 @@ namespace QxW {
   }
 
   // mul: 3-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_TW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1;
@@ -5314,7 +5314,7 @@ namespace QxW {
   }
 
   // mul: 3-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_TW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -5336,7 +5336,7 @@ namespace QxW {
   }
 
   // mul: 3-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_TW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7, t8;
@@ -5367,7 +5367,7 @@ namespace QxW {
   }
 
   // mul: 3-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_TW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7, t8;
@@ -5415,7 +5415,7 @@ namespace QxW {
   }
 
   // mul: 3-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_QW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1;
@@ -5428,7 +5428,7 @@ namespace QxW {
   }
 
   // mul: 3-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_QW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2, t3, t4;
@@ -5449,7 +5449,7 @@ namespace QxW {
   }
 
   // mul: 3-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_QW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7, t8;
@@ -5479,7 +5479,7 @@ namespace QxW {
   }
 
   // mul: 3-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_TW_QW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7, t8;
@@ -5529,7 +5529,7 @@ namespace QxW {
   }
 
   // mul: 4-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
   {
     T t0;
@@ -5539,7 +5539,7 @@ namespace QxW {
   }
 
   // mul: 4-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_SW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1 )
   {
     T t0, t1, t2, t3, t4;
@@ -5555,7 +5555,7 @@ namespace QxW {
   }
 
   // mul: 4-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_SW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4;
@@ -5575,7 +5575,7 @@ namespace QxW {
   }
 
   // mul: 4-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_SW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5;
@@ -5603,7 +5603,7 @@ namespace QxW {
   }
 
   // mul: 4-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_DW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0 )
   {
     T t0;
@@ -5615,7 +5615,7 @@ namespace QxW {
   }
 
   // mul: 4-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_DW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1, t2, t3, t4;
@@ -5635,7 +5635,7 @@ namespace QxW {
   }
 
   // mul: 4-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_DW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4, t5, t6;
@@ -5662,7 +5662,7 @@ namespace QxW {
   }
 
   // mul: 4-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_DW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7, t8;
@@ -5705,7 +5705,7 @@ namespace QxW {
   }
 
   // mul: 4-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_TW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1;
@@ -5718,7 +5718,7 @@ namespace QxW {
   }
 
   // mul: 4-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_TW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1, t2, t3, t4;
@@ -5739,7 +5739,7 @@ namespace QxW {
   }
 
   // mul: 4-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_TW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7, t8;
@@ -5769,7 +5769,7 @@ namespace QxW {
   }
 
   // mul: 4-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_TW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7, t8, t9;
@@ -5819,7 +5819,7 @@ namespace QxW {
   }
 
   // mul: 4-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_QW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1;
@@ -5832,7 +5832,7 @@ namespace QxW {
   }
 
   // mul: 4-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_QW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2, t3, t4, t5;
@@ -5856,7 +5856,7 @@ namespace QxW {
   }
 
   // mul: 4-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_QW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7, t8;
@@ -5889,7 +5889,7 @@ namespace QxW {
   }
 
   // mul: 4-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   mul_QW_QW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11;
@@ -5946,7 +5946,7 @@ namespace QxW {
   }
 
   // div: 1-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_SW_DW( T const a0, T const b0, T &c0, T &c1 )
   {
     T r = a0;
@@ -5956,7 +5956,7 @@ namespace QxW {
   }
 
   // div: 1-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_SW_TW( T const a0, T const b0, T &c0, T &c1, T &c2 )
   {
     T r = a0;
@@ -5968,7 +5968,7 @@ namespace QxW {
   }
 
   // div: 1-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_SW_QW( T const a0, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T r = a0;
@@ -5982,7 +5982,7 @@ namespace QxW {
   }
 
   // div: 1-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_DW_SW( T const a0, T const b0, T const b1, T &c0 )
   {
     T t0, t1;
@@ -5995,7 +5995,7 @@ namespace QxW {
   }
 
   // div: 1-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_DW_DW( T const a0, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1;
@@ -6012,7 +6012,7 @@ namespace QxW {
   }
 
   // div: 1-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_DW_TW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -6033,7 +6033,7 @@ namespace QxW {
   }
 
   // div: 1-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_DW_QW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6058,7 +6058,7 @@ namespace QxW {
   }
 
   // div: 1-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_TW_SW( T const a0, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1, t2;
@@ -6071,7 +6071,7 @@ namespace QxW {
   }
 
   // div: 1-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_TW_DW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -6088,7 +6088,7 @@ namespace QxW {
   }
 
   // div: 1-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_TW_TW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -6109,7 +6109,7 @@ namespace QxW {
   }
 
   // div: 1-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_TW_QW( T const a0, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6134,7 +6134,7 @@ namespace QxW {
   }
 
   // div: 1-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QW_SW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1, t2, t3;
@@ -6147,7 +6147,7 @@ namespace QxW {
   }
 
   // div: 1-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QW_DW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -6164,7 +6164,7 @@ namespace QxW {
   }
 
   // div: 1-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QW_TW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -6185,7 +6185,7 @@ namespace QxW {
   }
 
   // div: 1-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_SW_QW_QW( T const a0, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6210,7 +6210,7 @@ namespace QxW {
   }
 
   // div: 2-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_SW_SW( T const a0, T const a1, T const b0, T &c0 )
   {
     T t0, t1;
@@ -6223,7 +6223,7 @@ namespace QxW {
   }
 
   // div: 2-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_SW_DW( T const a0, T const a1, T const b0, T &c0, T &c1 )
   {
     T t0, t1;
@@ -6240,7 +6240,7 @@ namespace QxW {
   }
 
   // div: 2-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_SW_TW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -6261,7 +6261,7 @@ namespace QxW {
   }
 
   // div: 2-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_SW_QW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6286,7 +6286,7 @@ namespace QxW {
   }
 
   // div: 2-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_DW_SW( T const a0, T const a1, T const b0, T const b1, T &c0 )
   {
     T t0, t1;
@@ -6299,7 +6299,7 @@ namespace QxW {
   }
 
   // div: 2-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_DW_DW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 )
   {
     c0 = a0 / (b0 + b1);
@@ -6307,7 +6307,7 @@ namespace QxW {
   }
 
   // div: 2-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_DW_TW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -6328,7 +6328,7 @@ namespace QxW {
   }
 
   // div: 2-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_DW_QW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6353,7 +6353,7 @@ namespace QxW {
   }
 
   // div: 2-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_TW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1, t2;
@@ -6366,7 +6366,7 @@ namespace QxW {
   }
 
   // div: 2-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_TW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -6383,7 +6383,7 @@ namespace QxW {
   }
 
   // div: 2-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_TW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -6404,7 +6404,7 @@ namespace QxW {
   }
 
   // div: 2-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_TW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6429,7 +6429,7 @@ namespace QxW {
   }
 
   // div: 2-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_QW_SW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1, t2, t3;
@@ -6442,7 +6442,7 @@ namespace QxW {
   }
 
   // div: 2-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_QW_DW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -6459,7 +6459,7 @@ namespace QxW {
   }
 
   // div: 2-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_QW_TW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -6480,7 +6480,7 @@ namespace QxW {
   }
 
   // div: 2-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_DW_QW_QW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6505,7 +6505,7 @@ namespace QxW {
   }
 
   // div: 3-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 )
   {
     T t0, t1, t2;
@@ -6518,7 +6518,7 @@ namespace QxW {
   }
 
   // div: 3-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_SW_DW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -6535,7 +6535,7 @@ namespace QxW {
   }
 
   // div: 3-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_SW_TW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -6556,7 +6556,7 @@ namespace QxW {
   }
 
   // div: 3-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_SW_QW( T const a0, T const a1, T const a2, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6581,7 +6581,7 @@ namespace QxW {
   }
 
   // div: 3-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_DW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0 )
   {
     T t0, t1, t2;
@@ -6594,7 +6594,7 @@ namespace QxW {
   }
 
   // div: 3-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_DW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -6611,7 +6611,7 @@ namespace QxW {
   }
 
   // div: 3-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_DW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -6632,7 +6632,7 @@ namespace QxW {
   }
 
   // div: 3-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_DW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6657,7 +6657,7 @@ namespace QxW {
   }
 
   // div: 3-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_TW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1, t2;
@@ -6670,7 +6670,7 @@ namespace QxW {
   }
 
   // div: 3-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_TW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -6687,7 +6687,7 @@ namespace QxW {
   }
 
   // div: 3-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_TW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2;
@@ -6708,7 +6708,7 @@ namespace QxW {
   }
 
   // div: 3-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_TW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6733,7 +6733,7 @@ namespace QxW {
   }
 
   // div: 3-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_QW_SW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1, t2, t3;
@@ -6746,7 +6746,7 @@ namespace QxW {
   }
 
   // div: 3-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_QW_DW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -6763,7 +6763,7 @@ namespace QxW {
   }
 
   // div: 3-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_QW_TW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -6784,7 +6784,7 @@ namespace QxW {
   }
 
   // div: 3-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_TW_QW_QW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6809,7 +6809,7 @@ namespace QxW {
   }
 
   // div: 4-1-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_SW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0 )
   {
     T t0, t1, t2, t3;
@@ -6822,7 +6822,7 @@ namespace QxW {
   }
 
   // div: 4-1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_SW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -6839,7 +6839,7 @@ namespace QxW {
   }
 
   // div: 4-1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_SW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -6860,7 +6860,7 @@ namespace QxW {
   }
 
   // div: 4-1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_SW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6885,7 +6885,7 @@ namespace QxW {
   }
 
   // div: 4-2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_DW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0 )
   {
     T t0, t1, t2, t3;
@@ -6898,7 +6898,7 @@ namespace QxW {
   }
 
   // div: 4-2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_DW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -6915,7 +6915,7 @@ namespace QxW {
   }
 
   // div: 4-2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_DW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -6936,7 +6936,7 @@ namespace QxW {
   }
 
   // div: 4-2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_DW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -6961,7 +6961,7 @@ namespace QxW {
   }
 
   // div: 4-3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_TW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0 )
   {
     T t0, t1, t2, t3;
@@ -6974,7 +6974,7 @@ namespace QxW {
   }
 
   // div: 4-3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_TW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -6991,7 +6991,7 @@ namespace QxW {
   }
 
   // div: 4-3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_TW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -7012,7 +7012,7 @@ namespace QxW {
   }
 
   // div: 4-3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_TW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -7037,7 +7037,7 @@ namespace QxW {
   }
 
   // div: 4-4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_QW_SW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0 )
   {
     T t0, t1, t2, t3;
@@ -7050,7 +7050,7 @@ namespace QxW {
   }
 
   // div: 4-4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_QW_DW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1 )
   {
     T t0, t1, t2, t3;
@@ -7067,7 +7067,7 @@ namespace QxW {
   }
 
   // div: 4-4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_QW_TW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -7088,7 +7088,7 @@ namespace QxW {
   }
 
   // div: 4-4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   div_QW_QW_QW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -7113,7 +7113,7 @@ namespace QxW {
   }
 
   // sqr: 1-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_SW_DW( T const a0, T &c0, T &c1 )
   {
     TwoProductFMA( a0, a0, c0, c1 );
@@ -7121,7 +7121,7 @@ namespace QxW {
   }
 
   // sqr: 1-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_SW_TW( T const a0, T &c0, T &c1, T &c2 )
   {
     TwoProductFMA( a0, a0, c0, c1 );
@@ -7130,7 +7130,7 @@ namespace QxW {
   }
 
   // sqr: 1-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_SW_QW( T const a0, T &c0, T &c1, T &c2, T &c3 )
   {
     TwoProductFMA( a0, a0, c0, c1 );
@@ -7141,7 +7141,7 @@ namespace QxW {
   }
 
   // sqr: 2-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_DW_SW( T const a0, T const a1, T &c0 )
   {
     T t0;
@@ -7151,7 +7151,7 @@ namespace QxW {
   }
 
   // sqr: 2-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_DW_DW( T const a0, T const a1, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -7167,7 +7167,7 @@ namespace QxW {
   }
 
   // sqr: 2-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_DW_TW( T const a0, T const a1, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3;
@@ -7188,7 +7188,7 @@ namespace QxW {
   }
 
   // sqr: 2-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_DW_QW( T const a0, T const a1, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3;
@@ -7217,7 +7217,7 @@ namespace QxW {
   }
 
   // sqr: 3-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_TW_SW( T const a0, T const a1, T const a2, T &c0 )
   {
     T t0, t1;
@@ -7228,7 +7228,7 @@ namespace QxW {
   }
 
   // sqr: 3-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_TW_DW( T const a0, T const a1, T const a2, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -7245,7 +7245,7 @@ namespace QxW {
   }
 
   // sqr: 3-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_TW_TW( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4, t5, t6;
@@ -7270,7 +7270,7 @@ namespace QxW {
   }
 
   // sqr: 3-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_TW_QW( T const a0, T const a1, T const a2, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7;
@@ -7307,7 +7307,7 @@ namespace QxW {
   }
 
   // sqr: 4-1
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QW_SW( T const a0, T const a1, T const a2, T const a3, T &c0 )
   {
     T t0, t1;
@@ -7318,7 +7318,7 @@ namespace QxW {
   }
 
   // sqr: 4-2
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QW_DW( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1 )
   {
     T t0, t1, t2;
@@ -7335,7 +7335,7 @@ namespace QxW {
   }
 
   // sqr: 4-3
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QW_TW( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2 )
   {
     T t0, t1, t2, t3, t4, t5, t6;
@@ -7361,7 +7361,7 @@ namespace QxW {
   }
 
   // sqr: 4-4
-  template < typename T > __always_inline void constexpr
+  template < typename T > INLINE void constexpr
   sqr_QW_QW( T const a0, T const a1, T const a2, T const a3, T &c0, T &c1, T &c2, T &c3 )
   {
     T t0, t1, t2, t3, t4, t5, t6, t7, t8, t9;

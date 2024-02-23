@@ -13,7 +13,11 @@
 #include "mpreal.h"
 #endif
 
+#if defined(__NVCC__)
+#define	INLINE	__host__ __device__ __always_inline
+#else
 #define	INLINE	__always_inline
+#endif
 #define	MX_REAL_USE_INF_NAN_EXCEPTION	0
 
 #if 0
@@ -254,29 +258,9 @@ namespace mX_real {
   //
   template < typename T >
   INLINE auto constexpr copy_with_rounding( T * __restrict__ dest, T const * __restrict__ src, int const L, int const LL ) {
-    if ( L < LL ) {
+    if ( L <= LL ) {
       for(int i=0; i<L; i++) { dest[i] = src[i]; }
-
-      if ( src[L] == fp<T>::zero ) return;
-      if ( ( 0x1 & QxW::fp_const<T>::fp2uint( src[L-1] ) ) != 0x1 ) return;
-
-      auto const a =  QxW::fp_const<T>::ulp( src[L-1] );
-      auto const b =  QxW::fp_const<T>::hbit2( src[L] );
-      if ( signbit( src[L-1] ) ^ signbit( src[L] ) ) {
-        // +11.0/-.1 -> +10.1 -> + 10 ---
-        // +10.0/-.1 -> +01.1 -> + 10
-        // +01.0/-.1 -> +00.1 -> + 00 ---
-        // +00.0/-.1 -> +11.1 -> + 00
-        if ( -a == b ) { dest[L-1] -= a; }
-      } else {
-        // +11.0/+.1 -> +11.1 -> + 00 +++
-        // +10.0/+.1 -> +10.1 -> + 10
-        // +01.0/+.1 -> +01.1 -> + 10 +++
-        // +00.0/+.1 -> +00.1 -> + 00
-        if ( +a == b ) { dest[L-1] += a; }
-      }
-    } else if ( L == LL ) {
-      for(int i=0; i<L; i++) { dest[i] = src[i]; }
+      if ( L < LL ) { dest[L-1] += src[L]; }
     } else {
       for(int i=0; i<LL; i++) { dest[i] = src[i]; }
       for(int i=LL; i<L; i++) { dest[i] = fp<T>::zero; }
