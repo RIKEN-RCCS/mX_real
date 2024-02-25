@@ -2,17 +2,16 @@
 #include <omp.h>
 #include <iomanip>
 
-#include <qd/dd_real.h>
-#include <qd/qd_real.h>
-#include "mpreal.h"
-
 //
 // if some of {qd/dd_real.h, qd/qd_real.h, mpreal.h} are needed,
 // include their headers in advance of the inclusion of mX_real.hpp
 //
 
-
 #include "mX_real.hpp"
+#if USE_QDREAL || USE_DDREAL
+#include "mX_real_qd_dd.hpp"
+#endif
+#include "mX_real_mpfr.hpp"
 using namespace mX_real;
 
 #include "io.hpp"
@@ -315,18 +314,33 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
   delete [] y;
   
   {
-    auto y = T(0);
-    auto x = T(0);
-    //while ( true ) {
-    for(int i=0; i<=400; i++) {
-      auto s1 = double(2) / (4*x+double(1));
-      auto s2 = double(2) / (4*x+double(2));
-      auto s3 = double(1) / (4*x+double(3));
-      auto z = s1 + s2 + s3;
-      for(int j=0; j<i; j++) z = z * double(-0.25);
-      if ( z == T(0) ) break; // uderflow
-      y += z;
-      x += double(1);
+    auto const ZERO = T(0);
+    auto const ONE = T(1);
+    auto const TWO = T(2);
+
+    auto y = ZERO;
+    auto s1 = 1;
+    auto s2 = 2;
+    auto s3 = 3;
+    double f = 1.0;
+
+    while ( true ) {
+      if ( f == 0 ) break;
+
+      T z = T(0);
+      int h = 1;
+      for(int i=0; i<9; i++) {
+
+        z += ( ( TWO / s1 + TWO / s2 + ONE / s3 ) / h );
+
+        s1 += 4;
+        s2 += 4;
+        s3 += 4;
+        h *= (-4);
+      }
+      y += z * f;
+
+      f /= h;
     }
     auto ans = convert( y );
     std::cout << "pi.appx                    " << ans << "\n";

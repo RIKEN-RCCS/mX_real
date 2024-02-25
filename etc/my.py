@@ -53,7 +53,7 @@ def arg_list( Ta, Tb ) :
         line = line + ', T const& b'
     else :
         line = line + ', {m}X_real::{m}x_real<T,Ab> const& b'.format( m=mX_type(Tb) )
-    line = line + ' ) {'
+    line = line + ' ) NOEXCEPT {'
     return line
 
 def gen_op_ow_body( Tc, description, func, op, commutable ) :
@@ -78,7 +78,7 @@ def gen_op_ow_body( Tc, description, func, op, commutable ) :
 def gen_op_ow_stub( Tc, description, func, op, commutable ) :
 
     print( 'template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >' )
-    print( 'INLINE auto constexpr operator_{func}_ow ( {m}X_real::{m}x_real<T,Aa> & a, TXb<T,Ab> const& b ) {{'.format( func=func, m=mX_type(Tc) ) )
+    print( 'INLINE auto constexpr operator_{func}_ow ( {m}X_real::{m}x_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {{'.format( func=func, m=mX_type(Tc) ) )
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     print( '  bool flag = false;' )
     print( '  auto e = {m}X_real::operator_{func}_exception ( a, b, flag );'.format( m=mX_type(Tc), func=func ) )
@@ -88,7 +88,7 @@ def gen_op_ow_stub( Tc, description, func, op, commutable ) :
     print( '}' )
 
     print( 'template < typename T, Algorithm A >' )
-    print( 'INLINE auto constexpr operator_{func}_ow ( {m}X_real::{m}x_real<T,A> & a, T const& b ) {{'.format( func=func, m=mX_type(Tc) ) )
+    print( 'INLINE auto constexpr operator_{func}_ow ( {m}X_real::{m}x_real<T,A> & a, T const& b ) NOEXCEPT {{'.format( func=func, m=mX_type(Tc) ) )
     print( '#if MX_REAL_USE_INF_NAN_EXCEPTION' )
     print( '  bool flag = false;' )
     print( '  auto e = {m}X_real::operator_{func}_exception ( a, b, flag );'.format( m=mX_type(Tc), func=func ) )
@@ -100,24 +100,54 @@ def gen_op_ow_stub( Tc, description, func, op, commutable ) :
 def gen_op_ow_operator( Tc, description, func, op, commutable ) :
 
     print( 'template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >' )
-    print( 'INLINE auto constexpr operator{op}= ( {m}X_real::{m}x_real<T,Aa> & a, TXb<T,Ab> const& b ) {{'.format( m=mX_type(Tc), op=op ) )
+    print( 'INLINE auto constexpr operator{op}= ( {m}X_real::{m}x_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {{'.format( m=mX_type(Tc), op=op ) )
     print( '  return {m}X_real::operator_{func}_ow ( a, b );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
     print( 'template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >' )
-    print( 'INLINE auto constexpr operator{op}= ( {m}X_real::{m}x_real<T,A> & a, Ts const& b ) {{'.format( m=mX_type(Tc), op=op ) )
-    print( '  return {m}X_real::operator_{func}_ow ( a, T(b) );'.format( m=mX_type(Tc), func=func ) )
+    print( 'INLINE auto constexpr operator{op}= ( {m}X_real::{m}x_real<T,A> & a, Ts const& b ) NOEXCEPT {{'.format( m=mX_type(Tc), op=op ) )
+    if func == 'mul' or func =='div' :
+        print( '#if MX_REAL_OPTIMIZE_PROD_BY_POW2' )
+        print( '  if ( ( QxW::fp_const<T>::fp2uint( T(b) ) & QxW::fp_const<T>::FRAC ) == 0 ) {' )
+        print( '    return {m}X_real::operator_{func}_ow_pow2 ( a, b );'.format( m=mX_type(Tc), func=func ) )
+        print( '  } else' )
+        print( '#endif' )
+        print( '  {' )
+        print( '    return {m}X_real::operator_{func}_ow ( a, T(b) );'.format( m=mX_type(Tc), func=func ) )
+        print( '  }' )
+    else :
+        print( '  return {m}X_real::operator_{func}_ow ( a, T(b) );'.format( m=mX_type(Tc), func=func ) )
     print( '}' )
 
 def gen_op_ow_operator_sub( Tc, description, func, op, commutable ) :
 
     print( 'template < typename T, Algorithm Aa, Algorithm Ab, template < typename _Tb_, Algorithm _Ab_ > class TXb, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >' )
-    print( 'INLINE auto constexpr operator-= ( {m}X_real::{m}x_real<T,Aa> & a, TXb<T,Ab> const& b ) {{'.format( m=mX_type(Tc) ) )
+    print( 'INLINE auto constexpr operator-= ( {m}X_real::{m}x_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {{'.format( m=mX_type(Tc) ) )
     print( '  return a += (-b);' )
     print( '}' )
     print( 'template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >' )
-    print( 'INLINE auto constexpr operator-= ( {m}X_real::{m}x_real<T,A> & a, Ts const& b ) {{'.format( m=mX_type(Tc) ) )
+    print( 'INLINE auto constexpr operator-= ( {m}X_real::{m}x_real<T,A> & a, Ts const& b ) NOEXCEPT {{'.format( m=mX_type(Tc) ) )
     print( '  return a += (-b);' )
+    print( '}' )
+
+def gen_op_ow_operator_mul_special( Tc, description, func, op, commutable ) :
+    print( 'template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >' )
+    print( 'INLINE auto constexpr operator_mul_ow_pow2 ( {m}X_real::{m}x_real<T,A> & a, Ts const& b ) NOEXCEPT {{'.format( m=mX_type(Tc) ) )
+    print( '  auto sb = T(b);' )
+    print( '  for(int i=0; i<{L}; i++) {{'.format( L=Tc ) )
+    print( '    a.x[i] *= sb;' )
+    print( '  }' )
+    print( '  return a;' )
+    print( '}' )
+
+def gen_op_ow_operator_div_special( Tc, description, func, op, commutable ) :
+    print( 'template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >' )
+    print( 'INLINE auto constexpr operator_div_ow_pow2 ( {m}X_real::{m}x_real<T,A> & a, Ts const& b ) NOEXCEPT {{'.format( m=mX_type(Tc) ) )
+    print( '  auto sb = T(b);' )
+    print( '  for(int i=0; i<{L}; i++) {{'.format( L=Tc ) )
+    print( '    a.x[i] /= sb;' )
+    print( '  }' )
+    print( '  return a;' )
     print( '}' )
 
 def gen_add ( Tc ) :
@@ -161,6 +191,8 @@ def gen_mul ( Tc ) :
     print( '//' )
     gen_op_ow_stub( Tc, description, func, op, commutable )
     print( '//' )
+    gen_op_ow_operator_mul_special( Tc, description, func, op, commutable )
+    print( '//' )
     gen_op_ow_operator( Tc, description, func, op, commutable )
     print( '//' )
     print( '' )
@@ -176,6 +208,8 @@ def gen_div ( Tc ) :
     gen_op_ow_body( Tc, description, func, op, commutable )
     print( '//' )
     gen_op_ow_stub( Tc, description, func, op, commutable )
+    print( '//' )
+    gen_op_ow_operator_div_special( Tc, description, func, op, commutable )
     print( '//' )
     gen_op_ow_operator( Tc, description, func, op, commutable )
     print( '//' )

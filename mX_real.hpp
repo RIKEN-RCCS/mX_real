@@ -10,15 +10,18 @@
 #include <math.h>
 
 #ifdef USE_MPREAL
-#include "mpreal.h"
+#include <mpreal.h>
 #endif
 
 #if defined(__NVCC__)
-#define	INLINE	__host__ __device__ __always_inline
+#define	INLINE		__host__ __device__ __forceinline__
+#define	NOEXCEPT	/**/
 #else
-#define	INLINE	__always_inline
+#define	INLINE		__always_inline
+#define	NOEXCEPT	noexcept
 #endif
 #define	MX_REAL_USE_INF_NAN_EXCEPTION	0
+#define	MX_REAL_OPTIMIZE_PROD_BY_POW2	1
 
 #if 0
 #include <boost/type_index.hpp>
@@ -67,7 +70,7 @@ namespace mX_real {
       A == Algorithm::Accurate ? Algorithm::Sloppy : Algorithm::Quasi;
   };
 
-  std::string toString( Algorithm A ) {
+  std::string toString( Algorithm A ) NOEXCEPT {
     if ( A==Algorithm::Quasi ) return "Quasi";
     if ( A==Algorithm::Sloppy ) return "Sloppy";
     if ( A==Algorithm::Accurate ) return "Accurate";
@@ -106,37 +109,37 @@ namespace mX_real {
     STATIC_VAR float constexpr min        = std::numeric_limits<float>::min();
     STATIC_VAR float constexpr max        = std::numeric_limits<float>::max();
 
-    static INLINE auto constexpr isinf       ( float  const a ) {
+    static INLINE auto constexpr isinf       ( float  const a ) NOEXCEPT {
       return std::isinf( a );
     }
-    static INLINE auto constexpr isnan       ( float  const a ) {
+    static INLINE auto constexpr isnan       ( float  const a ) NOEXCEPT {
       return std::isnan( a );
     }
-    static INLINE auto constexpr copysign    ( float  const a, float  const b ) {
+    static INLINE auto constexpr copysign    ( float  const a, float  const b ) NOEXCEPT {
       return std::copysign( a, b );
     }
-    static INLINE auto constexpr signbit     ( float  const a ) {
+    static INLINE auto constexpr signbit     ( float  const a ) NOEXCEPT {
       return std::signbit( a );
     }
-    static INLINE auto constexpr is_zero     ( float  const a ) {
+    static INLINE auto constexpr is_zero     ( float  const a ) NOEXCEPT {
       return a == fp<float>::zero;
     }
-    static INLINE auto constexpr is_positive ( float  const a ) {
+    static INLINE auto constexpr is_positive ( float  const a ) NOEXCEPT {
       return a >  fp<float>::zero;
     }
-    static INLINE auto constexpr is_negative ( float  const a ) {
+    static INLINE auto constexpr is_negative ( float  const a ) NOEXCEPT {
       return a <  fp<float>::zero;
     }
-    static INLINE auto constexpr fabs ( float const a ) {
+    static INLINE auto constexpr fabs ( float const a ) NOEXCEPT {
       return std::fabs( a );
     }
-    static INLINE auto constexpr sqrt ( float const a ) {
+    static INLINE auto constexpr sqrt ( float const a ) NOEXCEPT {
       return std::sqrt( a );
     }
-    static INLINE auto constexpr fma ( float const a, float const b, float const c ) {
+    static INLINE auto constexpr fma ( float const a, float const b, float const c ) NOEXCEPT {
       return std::fma( a, b, c );
     }
-    static INLINE auto rand () {
+    static INLINE auto rand () NOEXCEPT {
       return std::rand();
     }
 
@@ -159,37 +162,37 @@ namespace mX_real {
     STATIC_VAR double constexpr min        = std::numeric_limits<double>::min();
     STATIC_VAR double constexpr max        = std::numeric_limits<double>::max();
 
-    static INLINE auto constexpr isinf       ( double  const a ) {
+    static INLINE auto constexpr isinf       ( double  const a ) NOEXCEPT {
       return std::isinf( a );
     }
-    static INLINE auto constexpr isnan       ( double  const a ) {
+    static INLINE auto constexpr isnan       ( double  const a ) NOEXCEPT {
       return std::isnan( a );
     }
-    static INLINE auto constexpr copysign    ( double  const a, double  const b ) {
+    static INLINE auto constexpr copysign    ( double  const a, double  const b ) NOEXCEPT {
       return std::copysign( a, b );
     }
-    static INLINE auto constexpr signbit     ( double  const a ) {
+    static INLINE auto constexpr signbit     ( double  const a ) NOEXCEPT {
       return std::signbit( a );
     }
-    static INLINE auto constexpr is_zero     ( double  const a ) {
+    static INLINE auto constexpr is_zero     ( double  const a ) NOEXCEPT {
       return a == fp<double>::zero;
     }
-    static INLINE auto constexpr is_positive ( double  const a ) {
+    static INLINE auto constexpr is_positive ( double  const a ) NOEXCEPT {
       return a >  fp<double>::zero;
     }
-    static INLINE auto constexpr is_negative ( double  const a ) {
+    static INLINE auto constexpr is_negative ( double  const a ) NOEXCEPT {
       return a <  fp<double>::zero;
     }
-    static INLINE auto constexpr fabs ( double const a ) {
+    static INLINE auto constexpr fabs ( double const a ) NOEXCEPT {
       return std::fabs( a );
     }
-    static INLINE auto constexpr sqrt ( double const a ) {
+    static INLINE auto constexpr sqrt ( double const a ) NOEXCEPT {
       return std::sqrt( a );
     }
-    static INLINE auto constexpr fma ( double const a, double const b, double const c ) {
+    static INLINE auto constexpr fma ( double const a, double const b, double const c ) NOEXCEPT {
       return std::fma( a, b, c );
     }
-    static INLINE auto rand () {
+    static INLINE auto rand () NOEXCEPT {
       return std::rand();
     }
 
@@ -231,33 +234,33 @@ namespace mX_real {
   // common operation functions
   //
   template < typename T >
-  INLINE auto constexpr twoSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
+  INLINE auto constexpr twoSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) NOEXCEPT {
     QxW::TwoSum( a, b, s, e );
   }
   template < typename T >
-  INLINE auto constexpr twoSum ( T & __restrict__ a, T & __restrict__ b ) {
+  INLINE auto constexpr twoSum ( T & __restrict__ a, T & __restrict__ b ) NOEXCEPT {
     twoSum( a, b, a, b );
   }
 
   //
   template < typename T >
-  INLINE auto constexpr quickSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
+  INLINE auto constexpr quickSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) NOEXCEPT {
     QxW::FastTwoSum( a, b, s, e );
   }
   template < typename T >
-  INLINE auto constexpr quickSum ( T & __restrict__ a, T & __restrict__ b ) {
+  INLINE auto constexpr quickSum ( T & __restrict__ a, T & __restrict__ b ) NOEXCEPT {
     quickSum( a, b, a, b );
   }
 
   //
   template < typename T >
-  INLINE auto constexpr twoProdFMA ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) {
+  INLINE auto constexpr twoProdFMA ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) NOEXCEPT {
     QxW::TwoProductFMA( a, b, s, e );
   }
 
   //
   template < typename T >
-  INLINE auto constexpr copy_with_rounding( T * __restrict__ dest, T const * __restrict__ src, int const L, int const LL ) {
+  INLINE auto constexpr copy_with_rounding( T * __restrict__ dest, T const * __restrict__ src, int const L, int const LL ) NOEXCEPT {
     if ( L <= LL ) {
       for(int i=0; i<L; i++) { dest[i] = src[i]; }
       if ( L < LL ) { dest[L-1] += src[L]; }
@@ -282,7 +285,7 @@ namespace mX_real {
   //       : >1 => Quasi
   //
   template < int N_accuracy = 0, typename T, Algorithm A >
-  INLINE auto constexpr Normalize( dX_real::dx_real<T,A> & c ) {
+  INLINE auto constexpr Normalize( dX_real::dx_real<T,A> & c ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     auto t = c.x[0] + c.x[1];
     if ( std::isnan( t ) || std::isinf( t ) ) {
@@ -299,7 +302,7 @@ namespace mX_real {
   }
   //
   template < int N_accuracy = 0, typename T, Algorithm A >
-  INLINE auto constexpr Normalize( tX_real::tx_real<T,A> & c ) {
+  INLINE auto constexpr Normalize( tX_real::tx_real<T,A> & c ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     auto t = c.x[0] + c.x[1] + c.x[2];
     if ( std::isnan( t ) || std::isinf( t ) ) {
@@ -323,7 +326,7 @@ namespace mX_real {
   }
   //
   template < int N_accuracy = 0, typename T, Algorithm A >
-  INLINE auto constexpr Normalize( qX_real::qx_real<T,A> & c ) {
+  INLINE auto constexpr Normalize( qX_real::qx_real<T,A> & c ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     auto t = c.x[0] + c.x[1] + c.x[2] + c.x[3];
     if ( std::isnan( t ) || std::isinf( t ) ) {
@@ -366,15 +369,6 @@ namespace mX_real {
   struct check_mX_real< tX_real::tx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
   template < typename T, Algorithm A >
   struct check_mX_real< qX_real::qx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
-#ifdef __MPREAL_H__
-  template <> struct check_mX_real <mpfr::mpreal> : std::false_type{};
-#endif
-#ifdef  _QD_DD_REAL_H
-  template <> struct check_mX_real <dd_real> : std::false_type{};
-#endif
-#ifdef  _QD_QD_REAL_H
-  template <> struct check_mX_real <qd_real> : std::false_type{};
-#endif
 #undef _BOOL_const_type
 
 
@@ -437,58 +431,35 @@ namespace mX_real {
 
   //
   // APIs for common constatnt number functions
-  // such as Type::Num_API()
+  // such as ConstNum_func_name<Type>()
   // C++17 makes these functions simpler by using ifconstexpr
   //
-  template < typename T, T_fp(T) > static INLINE auto constexpr zero() { return T(0); }
-  template < typename T, T_mX(T) > static INLINE auto constexpr zero() { return T::zero(); }
+  template < typename T, T_fp(T) > static INLINE auto constexpr zero() NOEXCEPT { return fp<T>::zero; }
+  template < typename T, T_mX(T) > static INLINE auto constexpr zero() NOEXCEPT { return T::zero(); }
 
   //
-  template < typename T, T_fp(T) > static INLINE auto constexpr one() { return T(1); }
-  template < typename T, T_mX(T) > static INLINE auto constexpr one() { return T::one(); }
+  template < typename T, T_fp(T) > static INLINE auto constexpr one() NOEXCEPT { return fp<T>::one; }
+  template < typename T, T_mX(T) > static INLINE auto constexpr one() NOEXCEPT { return T::one(); }
 
   //
-  template < typename T, T_fp(T) > static INLINE auto constexpr two() { return T(2); }
-  template < typename T, T_mX(T) > static INLINE auto constexpr two() { return T::two(); }
+  template < typename T, T_fp(T) > static INLINE auto constexpr two() NOEXCEPT { return fp<T>::two; }
+  template < typename T, T_mX(T) > static INLINE auto constexpr two() NOEXCEPT { return T::two(); }
 
   //
-  template < typename T, T_fp(T) > static INLINE auto constexpr half() { return T(1)/T(2); }
-  template < typename T, T_mX(T) > static INLINE auto constexpr half() { return T::half(); }
+  template < typename T, T_fp(T) > static INLINE auto constexpr half() NOEXCEPT { return fp<T>::half; }
+  template < typename T, T_mX(T) > static INLINE auto constexpr half() NOEXCEPT { return T::half(); }
 
   //
-  template < typename T, T_fp(T) > static INLINE auto constexpr epsilon() { return std::numeric_limits<T>::epsilon(); }
-  template < typename T, T_mX(T) > static INLINE auto constexpr epsilon() { return T::epsilon(); }
+  template < typename T, T_fp(T) > static INLINE auto constexpr epsilon() NOEXCEPT { return std::numeric_limits<T>::epsilon(); }
+  template < typename T, T_mX(T) > static INLINE auto constexpr epsilon() NOEXCEPT { return T::epsilon(); }
 
   //
-  template < typename T, T_fp(T) > static INLINE auto constexpr nan() { return std::numeric_limits<T>::quiet_NaN(); }
-  template < typename T, T_mX(T) > static INLINE auto constexpr nan() { return T::nan(); }
+  template < typename T, T_fp(T) > static INLINE auto constexpr nan() NOEXCEPT { return std::numeric_limits<T>::quiet_NaN(); }
+  template < typename T, T_mX(T) > static INLINE auto constexpr nan() NOEXCEPT { return T::nan(); }
 
   //
-  template < typename T, T_fp(T) > static INLINE auto constexpr inf() { return std::numeric_limits<T>::infinity(); }
-  template < typename T, T_mX(T) > static INLINE auto constexpr inf() { return T::inf(); }
-
-
-#ifdef __MPREAL_H__
-#define T_mpreal(...)   T_assert( std::is_same< mpfr::mpreal, __VA_ARGS__ >::value )
-  template < typename T, T_mpreal(T) > static INLINE auto epsilon() { return mpfr::machine_epsilon(); }
-  template < typename T, T_mpreal(T) > static INLINE auto inf() { return mpfr::const_infinity(); }
-  template < typename T, T_mpreal(T) > static INLINE auto nan() { return mpfr::mpreal().setNan(); }
-#undef T_mpreal
-#endif
-#ifdef  _QD_DD_REAL_H
-#define T_DD(...)       T_assert( std::is_same< dd_real, __VA_ARGS__ >::value )
-  template < typename T, T_DD(T) > static INLINE auto constexpr epsilon() { return dd_real::_eps; }
-  template < typename T, T_DD(T) > static INLINE auto constexpr inf() { return dd_real::_inf; }
-  template < typename T, T_DD(T) > static INLINE auto constexpr nan() { return dd_real::_nan; }
-#undef T_DD
-#endif
-#ifdef  _QD_QD_REAL_H
-#define T_QD(...)       T_assert( std::is_same< dd_real, __VA_ARGS__ >::value )
-  template < typename T, T_QD(T) > static INLINE auto constexpr epsilon() { return qd_real::_eps; }
-  template < typename T, T_QD(T) > static INLINE auto constexpr inf() { return qd_real::_inf; }
-  template < typename T, T_QD(T) > static INLINE auto constexpr nan() { return qd_real::_nan; }
-#undef T_QD
-#endif
+  template < typename T, T_fp(T) > static INLINE auto constexpr inf() NOEXCEPT { return std::numeric_limits<T>::infinity(); }
+  template < typename T, T_mX(T) > static INLINE auto constexpr inf() NOEXCEPT { return T::inf(); }
 
 }
 

@@ -56,12 +56,12 @@ namespace @{m}@X_real {
     // A special member function utilized in constructors
     //
     //
-    INLINE T constexpr quick_Normalized () const {
+    INLINE T constexpr quick_Normalized () const NOEXCEPT {
       T s = x[0];
       if ( A == Algorithm::Quasi ) for(int i=1; i<L; i++) { s += x[i]; }
       return s;
     }
-    INLINE @{M}@X_REAL<> constexpr element_rotate () const {
+    INLINE @{M}@X_REAL<> constexpr element_rotate () const NOEXCEPT {
       T y[L]; for(int i=0; i<L; i++) { y[i] = x[i]; }
       for(int i=0; i<L-1; i++) {
         if ( ! fp<T>::is_zero( y[0] ) ) { return @{M}@X_REAL<>( y ); }
@@ -75,10 +75,10 @@ namespace @{m}@X_real {
     // Simple constructors
     //
     //
-    INLINE @{m}@x_real() {
+    INLINE @{m}@x_real() NOEXCEPT {
       for(int i=0; i<L; i++) { x[i] = fp<T>::zero; }
     }
-    INLINE @{m}@x_real( T const& x0@@{, T const& x@{i}@}@@ ) {
+    INLINE @{m}@x_real( T const& x0@@{, T const& x@{i}@}@@ ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto t = x0@@{ + x@{i}@}@@;
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -88,10 +88,10 @@ namespace @{m}@X_real {
       { x[0] = x0;@@{ x[@{i}@] = x@{i}@;}@@ }
     }
     template < typename Ts, T_scalar(Ts) >
-    INLINE @{m}@x_real( Ts const &h ) {
+    INLINE @{m}@x_real( Ts const &h ) NOEXCEPT {
       { x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero; } }
     }
-    INLINE @{m}@x_real( T const *d ) {
+    INLINE @{m}@x_real( T const *d ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto t = d[0]; for(int i=1; i<L; i++) { t += d[1]; }
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -107,7 +107,7 @@ namespace @{m}@X_real {
     //
     //
     template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
-    INLINE @{m}@x_real( _TX_<T,_A_> const& h ) {
+    INLINE @{m}@x_real( _TX_<T,_A_> const& h ) NOEXCEPT {
       using TX = _TX_<T,_A_>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
@@ -136,12 +136,12 @@ namespace @{m}@X_real {
     //
     //
     template < typename Ts, T_scalar(Ts) >
-    INLINE @{M}@X_REAL<> constexpr &operator=( Ts const& h )_LV_ {
+    INLINE @{M}@X_REAL<> constexpr &operator=( Ts const& h )_LV_ NOEXCEPT {
       x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero; }
       return *this;
     }
     template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
-    INLINE @{M}@X_REAL<> constexpr &operator=( _TX_<T,_A_> const& h )_LV_ {
+    INLINE @{M}@X_REAL<> constexpr &operator=( _TX_<T,_A_> const& h )_LV_ NOEXCEPT {
       if ( std::is_same< @{M}@X_REAL<A>, _TX_<T,_A_> >::value &&
         this == (@{M}@X_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
@@ -173,7 +173,7 @@ namespace @{m}@X_real {
     //
     template < typename Ts, T_fp(Ts) >
     explicit
-    INLINE operator Ts() const noexcept {
+    INLINE operator Ts() const NOEXCEPT {
       if ( A == Algorithm::Quasi ) {
         return Ts(this->quick_Normalized());
       } else {
@@ -182,7 +182,7 @@ namespace @{m}@X_real {
     }
     template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
     explicit
-    INLINE operator _TX_<T,_A_>() const noexcept {
+    INLINE operator _TX_<T,_A_>() const NOEXCEPT {
       using TX = _TX_<T,_A_>;
       TX c;
       int constexpr LL = TX::L;
@@ -226,37 +226,37 @@ namespace @{m}@X_real {
     //
     //
 @@@{ func zero one two half
-    static INLINE @{M}@X_REAL<> constexpr @{func}@ () { return @{M}@X_REAL<>{ fp<T>::@{func}@ }; }
+    static INLINE @{M}@X_REAL<> constexpr @{func}@ () NOEXCEPT { return @{M}@X_REAL<>{ fp<T>::@{func}@ }; }
 }@@@
 @@@{ func nan inf
-    static INLINE @{M}@X_REAL<> constexpr @{func}@ () { T c = fp<T>::@{func}@; return @{M}@X_REAL<>{ c@@{, c}@@ }; }
+    static INLINE @{M}@X_REAL<> constexpr @{func}@ () NOEXCEPT { T c = fp<T>::@{func}@; return @{M}@X_REAL<>{ c@@{, c}@@ }; }
 }@@@
-    static INLINE @{M}@X_REAL<> constexpr epsilon () {
+    static INLINE @{M}@X_REAL<> constexpr epsilon () NOEXCEPT {
       T c = fp<T>::epsilon * fp<T>::half; c = (c @@{* c}@@) * 2;
       return @{M}@X_REAL<>{ c };
     }
-    static INLINE @{M}@X_REAL<> constexpr denorm_min  () {
+    static INLINE @{M}@X_REAL<> constexpr denorm_min  () NOEXCEPT {
       T c = fp<T>::denorm_min;
       return @{M}@X_REAL<>{ c };
     }
-    static INLINE @{M}@X_REAL<> constexpr min  () {
+    static INLINE @{M}@X_REAL<> constexpr min  () NOEXCEPT {
       T c = fp<T>::min;
       for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
       return @{M}@X_REAL<>{ c };
     }
-    static INLINE @{M}@X_REAL<> constexpr safe_min  () {
+    static INLINE @{M}@X_REAL<> constexpr safe_min  () NOEXCEPT {
       T c = fp<T>::min;
       for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
       c = std::sqrt( c );
       return @{M}@X_REAL<>{ c };
     }
-    static INLINE @{M}@X_REAL<> constexpr critical_min  () {
+    static INLINE @{M}@X_REAL<> constexpr critical_min  () NOEXCEPT {
       T c = fp<T>::denorm_min;
       for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
       c = std::sqrt( c );
       return @{M}@X_REAL<>{ c };
     }
-    static INLINE @{M}@X_REAL<> constexpr max  () {
+    static INLINE @{M}@X_REAL<> constexpr max  () NOEXCEPT {
       T c[L];
       c[0] = fp<T>::max;
       for(int i=1; i<L; i++) c[i] = c[i-1] * ( fp<T>::epsilon * fp<T>::half );

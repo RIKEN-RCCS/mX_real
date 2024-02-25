@@ -27,28 +27,29 @@ namespace QxW {
 
 template < typename T > struct fp_const {};
 template <> struct fp_const<float> {
-  static INLINE auto constexpr zero() { return 0.0f; }
-  static INLINE auto constexpr one()  { return 1.0f; }
-  static INLINE auto constexpr two()  { return 2.0f; }
-  static INLINE auto constexpr half() { return 0.5f; }
+  static INLINE auto constexpr zero() NOEXCEPT { return 0.0f; }
+  static INLINE auto constexpr one()  NOEXCEPT { return 1.0f; }
+  static INLINE auto constexpr two()  NOEXCEPT { return 2.0f; }
+  static INLINE auto constexpr half() NOEXCEPT { return 0.5f; }
 
   static uint32_t constexpr SBIT = 0x80000000;
   static uint32_t constexpr MASK = 0x7f800000;
   static uint32_t constexpr RINF = 0x7f000000;
   static uint32_t constexpr XONE = 0x0b800000;
   static uint32_t constexpr EONE = 0x00800000;
+  static uint32_t constexpr FRAC = 0x007fffff;
 
-  static INLINE auto constexpr fp2uint( float const a ) {
+  static INLINE auto constexpr fp2uint( float const a ) NOEXCEPT {
     union { float a; uint32_t e; } x = { .a = a };
     return x.e;
   }
-  static INLINE auto constexpr uint2fp( uint32_t const e ) {
+  static INLINE auto constexpr uint2fp( uint32_t const e ) NOEXCEPT {
     union { float a; uint32_t e; } x = { .e = e };
     return x.a;
   }
 
   template < bool doubled = false >
-  static INLINE auto constexpr hbit( float const a ) {
+  static INLINE auto constexpr hbit( float const a ) NOEXCEPT {
     auto e = fp2uint( a );
     auto s = e & SBIT;
     e &= MASK;
@@ -56,10 +57,10 @@ template <> struct fp_const<float> {
     e |= s;
     return uint2fp( e );
   }
-  static INLINE auto constexpr hbit2( float const a ) {
+  static INLINE auto constexpr hbit2( float const a ) NOEXCEPT {
     return hbit<true>( a );
   }
-  static INLINE auto constexpr ulp( float const a ) {
+  static INLINE auto constexpr ulp( float const a ) NOEXCEPT {
     if ( a == zero() ) return a;
     auto e = fp2uint( a );
     auto s = e & SBIT;
@@ -70,7 +71,7 @@ template <> struct fp_const<float> {
     return uint2fp( e );
   }
   template < bool inverse = false >
-  static INLINE auto constexpr exponent( float const a ) {
+  static INLINE auto constexpr exponent( float const a ) NOEXCEPT {
     if ( a == zero() ) return one();
     auto e = fp2uint( a );
     e &= MASK;
@@ -78,33 +79,34 @@ template <> struct fp_const<float> {
     if ( inverse ) e = RINF - e;
     return uint2fp( e );
   }
-  static INLINE auto constexpr exponenti( float const a ) {
+  static INLINE auto constexpr exponenti( float const a ) NOEXCEPT {
     return exponent<true>( a );
   }
 };
 template <> struct fp_const<double> {
-  static INLINE auto constexpr zero() { return 0.0; }
-  static INLINE auto constexpr one()  { return 1.0; }
-  static INLINE auto constexpr two()  { return 2.0; }
-  static INLINE auto constexpr half() { return 0.5; }
+  static INLINE auto constexpr zero() NOEXCEPT { return 0.0; }
+  static INLINE auto constexpr one()  NOEXCEPT { return 1.0; }
+  static INLINE auto constexpr two()  NOEXCEPT { return 2.0; }
+  static INLINE auto constexpr half() NOEXCEPT { return 0.5; }
 
   static uint64_t constexpr SBIT = 0x8000000000000000;
   static uint64_t constexpr MASK = 0x7ff0000000000000;
   static uint64_t constexpr RINF = 0x7fe0000000000000;
   static uint64_t constexpr XONE = 0x0340000000000000;
   static uint64_t constexpr EONE = 0x0010000000000000;
+  static uint64_t constexpr FRAC = 0x000fffffffffffff;
 
-  static INLINE auto constexpr fp2uint( double const a ) {
+  static INLINE auto constexpr fp2uint( double const a ) NOEXCEPT {
     union { double a; uint64_t e; } x = { .a = a };
     return x.e;
   }
-  static INLINE auto constexpr uint2fp( uint64_t const e ) {
+  static INLINE auto constexpr uint2fp( uint64_t const e ) NOEXCEPT {
     union { double a; uint64_t e; } x = { .e = e };
     return x.a;
   }
 
   template < bool doubled = false >
-  static INLINE auto constexpr hbit( double const a ) {
+  static INLINE auto constexpr hbit( double const a ) NOEXCEPT {
     auto e = fp2uint( a );
     auto s = e & SBIT;
     e &= MASK;
@@ -112,10 +114,10 @@ template <> struct fp_const<double> {
     e |= s;
     return uint2fp( e );
   }
-  static INLINE auto constexpr hbit2( double const a ) {
+  static INLINE auto constexpr hbit2( double const a ) NOEXCEPT {
     return hbit<true>( a );
   }
-  static INLINE auto constexpr ulp( double const a ) {
+  static INLINE auto constexpr ulp( double const a ) NOEXCEPT {
     if ( a == zero() ) return a;
     auto e = fp2uint( a );
     auto s = e & SBIT;
@@ -126,7 +128,7 @@ template <> struct fp_const<double> {
     return uint2fp( e );
   }
   template < bool inverse = false >
-  static INLINE auto constexpr exponent( double const a ) {
+  static INLINE auto constexpr exponent( double const a ) NOEXCEPT {
     if ( a == zero() ) return one();
     auto e = fp2uint( a );
     e &= MASK;
@@ -134,7 +136,7 @@ template <> struct fp_const<double> {
     if ( inverse ) e = RINF - e;
     return uint2fp( e );
   }
-  static INLINE auto constexpr exponenti( double const a ) {
+  static INLINE auto constexpr exponenti( double const a ) NOEXCEPT {
     return exponent<true>( a );
   }
 };
@@ -145,7 +147,7 @@ template <> struct fp_const<double> {
 // ------------------------
 
 template < typename T > INLINE void constexpr
-TwoSum ( T const a, T const b, T &x, T &y )
+TwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
 {
   T z;
   x = a + b;
@@ -154,14 +156,14 @@ TwoSum ( T const a, T const b, T &x, T &y )
 }
 
 template < typename T > INLINE void constexpr
-FastTwoSum ( T const a, T const b, T &x, T &y )
+FastTwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
 {
   x = a + b;
   y = (a - x) + b;
 }
 
 template < typename T > INLINE void constexpr
-TwoProductFMA ( T const a, T const b, T &x, T &y )
+TwoProductFMA ( T const a, T const b, T &x, T &y ) NOEXCEPT
 {
   x = a * b;
   y = std::fma(a, b, -x);
@@ -190,9 +192,9 @@ def def_head ( Func, NA, NB, NC, ACC, va, vb, vc ) :
     vb_list = ','.join( [ ' T const {}{}'.format( vb, i ) for i in range( NB ) ] )
     vc_list = ','.join( [ ' T &{}{}'.format( vc, i ) for i in range( NC ) ] )
     if NB > 0 :
-        print( '({},{},{} )'.format( va_list, vb_list, vc_list ) )
+        print( '({},{},{} ) NOEXCEPT'.format( va_list, vb_list, vc_list ) )
     else :
-        print( '({},{} )'.format( va_list, vc_list ) )
+        print( '({},{} ) NOEXCEPT'.format( va_list, vc_list ) )
 
 def caller_head ( Func, NA, NB, NC, ACC, va, vb, vc ) :
     fname( Func, NA, NB, NC, ACC )

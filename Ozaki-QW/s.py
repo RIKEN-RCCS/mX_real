@@ -74,7 +74,7 @@ template <> struct fp_const<double> {
 // Basic Part
 // ------------------------
 
-template < typename T > __always_inline void
+template < typename T > INLINE void
 TwoSum ( T const a, T const b, T &x, T &y )
 {
   T z;
@@ -83,14 +83,14 @@ TwoSum ( T const a, T const b, T &x, T &y )
   y = (a - (x - z)) + (b - z);
 }
 
-template < typename T > __always_inline void
+template < typename T > INLINE void
 FastTwoSum ( T const a, T const b, T &x, T &y )
 {
   x = a + b;
   y = (a - x) + b;
 }
 
-template < typename T > __always_inline void
+template < typename T > INLINE void
 TwoProductFMA ( T const a, T const b, T &x, T &y )
 {
   x = a * b;
@@ -127,15 +127,15 @@ def def_head ( Func, NA, NB, NC, ACC, va, vb, vc ) :
         print( '// {}: {}-{}-{}'.format( Func, NA, NB, NC ) )
     else :
         print( '// {}: {}-{}'.format( Func, NA, NC ) )
-    print( 'template < typename T > __always_inline void constexpr' )
+    print( 'template < typename T > INLINE void constexpr' )
     fname( Func, NA, NB, NC, ACC )
     va_list = ','.join( [ ' T const {}{}'.format( va, i ) for i in range( NA ) ] )
     vb_list = ','.join( [ ' T const {}{}'.format( vb, i ) for i in range( NB ) ] )
     vc_list = ','.join( [ ' T &{}{}'.format( vc, i ) for i in range( NC ) ] )
     if NB > 0 :
-        print( ' ({},{},{} )'.format( va_list, vb_list, vc_list ) )
+        print( ' ({},{},{} ) NOEXCEPT'.format( va_list, vb_list, vc_list ) )
     else :
-        print( ' ({},{} )'.format( va_list, vc_list ) )
+        print( ' ({},{} ) NOEXCEPT'.format( va_list, vc_list ) )
 
 def caller_head ( Func, NA, NB, NC, ACC, va, vb, vc ) :
     fname( Func, NA, NB, NC, ACC )

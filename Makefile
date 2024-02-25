@@ -30,6 +30,7 @@ CCFLAGS := $(CCFLAGS) -mfma -mavx2
 CCFLAGS := $(CCFLAGS) -fopenmp
 
 # QD
+CCFLAGS := $(CCFLAGS) -DUSE_QDREAL=1 -DUSE_DDREAL=1
 QD_CCFLAGS = -I./qd_real/include/
 QD_LDFLAGS = ./qd_real/src/.libs/libqd.a
 
@@ -46,18 +47,16 @@ bench: a.out sample.exe
 a.out: main.o
 	$(CXX) -o a.out main.o $(LDFLAGS) $(QD_LDFLAGS) $(MPFR_LDFLAGS)
 main.o: mpreal qd_real main.cpp mX_real.hpp.gch
-	$(CXX) -S main.cpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
 	$(CXX) -c main.cpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
 sample.exe: mpreal sample.cpp mX_real.hpp.gch
-	$(CXX) -S            sample.cpp $(CCFLAGS) $(MPFR_CCFLAGS)
-	$(CXX) -o sample.exe sample.cpp $(CCFLAGS) $(MPFR_LDFLAGS)
+	$(CXX) -o sample.exe sample.cpp $(CCFLAGS) $(MPFR_CCFLAGS) $(MPFR_LDFLAGS)
 test.o: test.cu mX_real.hpp
 	$(NVCC) -I./ --ptx test.cu
 	$(NVCC) -I./ -c test.cu
 
 
 mX_real.hpp.gch: mX_real.hpp Ozaki-QW/qxw.hpp dX_real.hpp tX_real.hpp qX_real.hpp
-	$(CXX) -c  -x c++-header mX_real.hpp $(CCFLAGS) $(MPFR_CCFLAGS)
+	$(CXX) -c  -x c++-header mX_real.hpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
 mX_real.hpp dX_real.hpp tX_real.hpp qX_real.hpp:
 	cd etc; make clean; make
 Ozaki-QW/qxw.hpp:
