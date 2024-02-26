@@ -11,7 +11,7 @@
 #if USE_QDREAL || USE_DDREAL
 #include "mX_real_qd_dd.hpp"
 #endif
-#include "mX_real_mpfr.hpp"
+#include "mX_real_mpreal.hpp"
 using namespace mX_real;
 
 #include "io.hpp"

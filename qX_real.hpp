@@ -277,12 +277,12 @@ namespace mX_real {
       static INLINE QX_REAL<> constexpr abs ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE QX_REAL<> constexpr sqrt ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE QX_REAL<> rand () NOEXCEPT;
-      static INLINE bool constexpr is_positive ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr signbit ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_zero ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr isnan ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr isinf ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_negative ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_positive ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_zero ( QX_REAL<> const& a ) NOEXCEPT;
       //
 
 
@@ -292,12 +292,12 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () NOEXCEPT { mX_real::Normalize( *this ); }
       //
-      INLINE bool constexpr is_positive () const NOEXCEPT { return QX_REAL<>::is_positive( *this ); }
       INLINE bool constexpr signbit () const NOEXCEPT { return QX_REAL<>::signbit( *this ); }
-      INLINE bool constexpr is_zero () const NOEXCEPT { return QX_REAL<>::is_zero( *this ); }
       INLINE bool constexpr isnan () const NOEXCEPT { return QX_REAL<>::isnan( *this ); }
       INLINE bool constexpr isinf () const NOEXCEPT { return QX_REAL<>::isinf( *this ); }
       INLINE bool constexpr is_negative () const NOEXCEPT { return QX_REAL<>::is_negative( *this ); }
+      INLINE bool constexpr is_positive () const NOEXCEPT { return QX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr is_zero () const NOEXCEPT { return QX_REAL<>::is_zero( *this ); }
       //
 
 
@@ -355,6 +355,10 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa >
+    INLINE auto constexpr signbit ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
+      return fp<T>::signbit( a.quick_Normalized() );
+    }
+    template < typename T, Algorithm Aa >
     INLINE auto constexpr isnan ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
       return fp<T>::isnan( a.quick_Normalized() );
     }
@@ -363,20 +367,16 @@ namespace mX_real {
       return fp<T>::isinf( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr signbit ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
-      return fp<T>::signbit( a.quick_Normalized() );
-    }
-    template < typename T, Algorithm Aa >
     INLINE bool constexpr is_positive ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
       return a.quick_Normalized() > fp<T>::zero;
     }
     template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_negative ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
-      return a.quick_Normalized() < fp<T>::zero;
-    }
-    template < typename T, Algorithm Aa >
     INLINE bool constexpr is_zero ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
       return a.quick_Normalized() == fp<T>::zero;
+    }
+    template < typename T, Algorithm Aa >
+    INLINE bool constexpr is_negative ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
+      return a.quick_Normalized() < fp<T>::zero;
     }
     //
     template < typename T, Algorithm A >

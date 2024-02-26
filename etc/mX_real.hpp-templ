@@ -100,7 +100,7 @@ namespace mX_real {
     STATIC_VAR @{X}@ constexpr zero    = @{X}@(0);
     STATIC_VAR @{X}@ constexpr one     = @{X}@(1);
     STATIC_VAR @{X}@ constexpr two     = @{X}@(2);
-    STATIC_VAR @{X}@ constexpr half    = one/two;
+    STATIC_VAR @{X}@ constexpr half    = @{X}@(0.5);
 
     STATIC_VAR @{X}@ constexpr epsilon    = std::numeric_limits<@{X}@>::epsilon();
     STATIC_VAR @{X}@ constexpr epsiloni   = one/std::numeric_limits<@{X}@>::epsilon();

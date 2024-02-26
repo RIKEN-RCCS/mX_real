@@ -99,7 +99,7 @@ namespace mX_real {
     STATIC_VAR float constexpr zero    = float(0);
     STATIC_VAR float constexpr one     = float(1);
     STATIC_VAR float constexpr two     = float(2);
-    STATIC_VAR float constexpr half    = one/two;
+    STATIC_VAR float constexpr half    = float(0.5);
 
     STATIC_VAR float constexpr epsilon    = std::numeric_limits<float>::epsilon();
     STATIC_VAR float constexpr epsiloni   = one/std::numeric_limits<float>::epsilon();
@@ -152,7 +152,7 @@ namespace mX_real {
     STATIC_VAR double constexpr zero    = double(0);
     STATIC_VAR double constexpr one     = double(1);
     STATIC_VAR double constexpr two     = double(2);
-    STATIC_VAR double constexpr half    = one/two;
+    STATIC_VAR double constexpr half    = double(0.5);
 
     STATIC_VAR double constexpr epsilon    = std::numeric_limits<double>::epsilon();
     STATIC_VAR double constexpr epsiloni   = one/std::numeric_limits<double>::epsilon();
