@@ -9,9 +9,12 @@
 #include <limits>
 #include <math.h>
 
-#ifdef USE_MPREAL
-#include <mpreal.h>
+#if 0
+#include <boost/type_index.hpp>
+template < typename T > void printTYPE( void ) {
+  std::cout << boost::typeindex::type_id_with_cvr<T>().pretty_name(); }
 #endif
+
 
 #if defined(__NVCC__)
 #define	INLINE		__host__ __device__ __forceinline__
@@ -23,10 +26,29 @@
 #define	MX_REAL_USE_INF_NAN_EXCEPTION	0
 #define	MX_REAL_OPTIMIZE_PROD_BY_POW2	1
 
-#if 0
-#include <boost/type_index.hpp>
-template < typename T > void printTYPE( void ) {
-  std::cout << boost::typeindex::type_id_with_cvr<T>().pretty_name(); }
+
+namespace mX_real {
+
+  template < typename T >
+  struct fp { static bool constexpr value = false; };
+  template < typename TX >
+  struct check_mX_real : std::false_type{};
+
+}
+
+
+// Trick to define MACROs for enabler in the template header part
+#define T_assert(...)	std::enable_if_t< __VA_ARGS__, std::nullptr_t > = nullptr
+#define T_scalar(...)	T_assert( std::is_arithmetic< __VA_ARGS__ >::value || fp< __VA_ARGS__ >::value )
+#define T_fp(...)	T_assert( fp< __VA_ARGS__ >::value )
+#define T_mX(...)	T_assert( check_mX_real< __VA_ARGS__ >::value )
+#define A_noQuasi(...)	T_assert( if_A_noQuasi< __VA_ARGS__ >::value )
+#define A_owAble(A,...)	T_assert( if_A_owAble< A,__VA_ARGS__ >::value )
+
+
+#ifdef USE_MPREAL
+#include <mpreal.h>
+#include "mX_real_mpreal.hpp"
 #endif
 
 namespace mX_real {
@@ -77,6 +99,15 @@ namespace mX_real {
     return "Unknow";
   }
 
+  template < Algorithm A >
+  struct if_A_noQuasi { static bool constexpr value = ( A != Algorithm::Quasi ); };
+  template < Algorithm Aa, Algorithm Ab >
+  struct if_A_owAble { static bool constexpr value =
+        ( Aa==Ab ) ||
+ 	( Aa==Algorithm::Quasi ) ||
+	( Aa==Algorithm::Sloppy && Ab!=Algorithm::Quasi ); };
+
+
   //
   // generic terms (const, func, and bit ops)
   //
@@ -89,8 +120,6 @@ namespace mX_real {
 #else
 #  define	STATIC_VAR	static inline
 #endif
-  template < typename T >
-  struct fp { static bool constexpr value = false; };
   //
 @@@{ X float double
   template <>
@@ -216,6 +245,20 @@ namespace mX_real {
   namespace tX_real { template < typename T, Algorithm A > struct tx_real; }
   namespace qX_real { template < typename T, Algorithm A > struct qx_real; }
 
+#if __cplusplus < 201703L
+#define	_BOOL_const_type(x)	std::integral_constant<bool,(x)>
+#else
+#define	_BOOL_const_type(x)	std::bool_constant<(x)>
+#endif
+  //
+  template < typename T, Algorithm A >
+  struct check_mX_real< dX_real::dx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
+  template < typename T, Algorithm A >
+  struct check_mX_real< tX_real::tx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
+  template < typename T, Algorithm A >
+  struct check_mX_real< qX_real::qx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
+#undef _BOOL_const_type
+
 
   //
   // Normalization policy
@@ -294,41 +337,6 @@ namespace mX_real {
       }
   }
 
-
-#if __cplusplus < 201703L
-#define	_BOOL_const_type(x)	std::integral_constant<bool,(x)>
-#else
-#define	_BOOL_const_type(x)	std::bool_constant<(x)>
-#endif
-  //
-  template < typename TX >
-  struct check_mX_real : std::false_type{};
-  template < typename T, Algorithm A >
-  struct check_mX_real< dX_real::dx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
-  template < typename T, Algorithm A >
-  struct check_mX_real< tX_real::tx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
-  template < typename T, Algorithm A >
-  struct check_mX_real< qX_real::qx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
-#undef _BOOL_const_type
-
-
-  //
-  template < Algorithm A >
-  struct if_A_noQuasi { static bool constexpr value = ( A != Algorithm::Quasi ); };
-  template < Algorithm Aa, Algorithm Ab >
-  struct if_A_owAble { static bool constexpr value =
-        ( Aa==Ab ) ||
- 	( Aa==Algorithm::Quasi ) ||
-	( Aa==Algorithm::Sloppy && Ab!=Algorithm::Quasi ); };
-
-// Trick to define MACROs for enabler in the template header part
-#define T_assert(...)	std::enable_if_t< __VA_ARGS__, std::nullptr_t > = nullptr
-#define T_scalar(...)	T_assert( std::is_arithmetic< __VA_ARGS__ >::value )
-#define T_fp(...)	T_assert( fp< __VA_ARGS__ >::value )
-#define T_mX(...)	T_assert( check_mX_real< __VA_ARGS__ >::value )
-#define A_noQuasi(...)	T_assert( if_A_noQuasi< __VA_ARGS__ >::value )
-#define A_owAble(A,...)	T_assert( if_A_owAble< A,__VA_ARGS__ >::value )
-
 }
 
 // helper macros to extend argument list elements passing into the raw QxW style
@@ -390,15 +398,15 @@ namespace mX_real {
   template < typename T, T_mX(T) > static INLINE auto constexpr half() NOEXCEPT { return T::half(); }
 
   //
-  template < typename T, T_fp(T) > static INLINE auto constexpr epsilon() NOEXCEPT { return std::numeric_limits<T>::epsilon(); }
+  template < typename T, T_fp(T) > static INLINE auto constexpr epsilon() NOEXCEPT { return fp<T>::epsilon; }
   template < typename T, T_mX(T) > static INLINE auto constexpr epsilon() NOEXCEPT { return T::epsilon(); }
 
   //
-  template < typename T, T_fp(T) > static INLINE auto constexpr nan() NOEXCEPT { return std::numeric_limits<T>::quiet_NaN(); }
+  template < typename T, T_fp(T) > static INLINE auto constexpr nan() NOEXCEPT { return fp<T>::nan; }
   template < typename T, T_mX(T) > static INLINE auto constexpr nan() NOEXCEPT { return T::nan(); }
 
   //
-  template < typename T, T_fp(T) > static INLINE auto constexpr inf() NOEXCEPT { return std::numeric_limits<T>::infinity(); }
+  template < typename T, T_fp(T) > static INLINE auto constexpr inf() NOEXCEPT { return fp<T>::inf; }
   template < typename T, T_mX(T) > static INLINE auto constexpr inf() NOEXCEPT { return T::inf(); }
 
 }

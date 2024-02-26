@@ -13,7 +13,8 @@ ifneq (x$(shell which $(CXX) 2>&1 | grep 'which'),x)
 	CXX = g++
 endif
 
-CXX := $(CXX) --std=c++14
+#CXX := $(CXX) --std=c++14
+CXX := $(CXX) --std=c++17
 ifeq (x$(cxx),xicpx)
         CXX := $(CXX) -fp-model strict
 endif

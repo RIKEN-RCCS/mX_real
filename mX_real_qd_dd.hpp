@@ -13,6 +13,7 @@ namespace mX_real {
   template < typename T, T_DD(T) > static INLINE auto constexpr zero() NOEXCEPT { return dd_real(0.); }
   template < typename T, T_DD(T) > static INLINE auto constexpr one() NOEXCEPT { return dd_real(1.); }
   template < typename T, T_DD(T) > static INLINE auto constexpr two() NOEXCEPT { return dd_real(2.); }
+  template < typename T, T_DD(T) > static INLINE auto constexpr half() NOEXCEPT { return dd_real(.5); }
   template < typename T, T_DD(T) > static INLINE auto constexpr epsilon() NOEXCEPT { return dd_real::_eps; }
   template < typename T, T_DD(T) > static INLINE auto constexpr inf() NOEXCEPT { return dd_real::_inf; }
   template < typename T, T_DD(T) > static INLINE auto constexpr nan() NOEXCEPT { return dd_real::_nan; }
@@ -22,6 +23,7 @@ namespace mX_real {
   template < typename T, T_QD(T) > static INLINE auto constexpr zero() NOEXCEPT { return qd_real(0.); }
   template < typename T, T_QD(T) > static INLINE auto constexpr one() NOEXCEPT { return qd_real(1.); }
   template < typename T, T_QD(T) > static INLINE auto constexpr two() NOEXCEPT { return qd_real(2.); }
+  template < typename T, T_QD(T) > static INLINE auto constexpr half() NOEXCEPT { return qd_real(.5); }
   template < typename T, T_QD(T) > static INLINE auto constexpr epsilon() NOEXCEPT { return qd_real::_eps; }
   template < typename T, T_QD(T) > static INLINE auto constexpr inf() NOEXCEPT { return qd_real::_inf; }
   template < typename T, T_QD(T) > static INLINE auto constexpr nan() NOEXCEPT { return qd_real::_nan; }

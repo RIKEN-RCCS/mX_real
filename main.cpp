@@ -314,9 +314,9 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
   delete [] y;
   
   {
-    auto const ZERO = T(0);
-    auto const ONE = T(1);
-    auto const TWO = T(2);
+    auto const ZERO = zero<T>();
+    auto const ONE  = one<T>();
+    auto const TWO  = two<T>();
 
     auto y = ZERO;
     auto s1 = 1;
@@ -327,7 +327,7 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
     while ( true ) {
       if ( f == 0 ) break;
 
-      T z = T(0);
+      auto z = ZERO;
       int h = 1;
       for(int i=0; i<9; i++) {
 
@@ -857,6 +857,14 @@ main(int argc, char *argv[])
     
     c = f + df_Real::epsilon() * df_Real::half();
     print( "one2-u2=", c );
+  }
+
+  {
+    using MP = typename mX_real::dX_real::dx_real<mpfr::mpreal>;
+    MP a = MP::two();
+    MP b = MP::half();
+    a = (a + b) * (a - b);
+    std::cout << a << " " << b << "\n";
   }
   
   init( L, alpha, x, y, z );

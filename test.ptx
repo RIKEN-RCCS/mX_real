@@ -196,7 +196,7 @@ $L__BB0_14:
 	add.s32 	%r26, %r26, 4;
 	mul.f64 	%fd162, %fd162, 0dBFD0000000000000;
 	add.s32 	%r23, %r23, 1;
-	setp.ne.s32 	%p5, %r23, 14;
+	setp.ne.s32 	%p5, %r23, 9;
 	@%p5 bra 	$L__BB0_2;
 
 	mov.b64 	%rd11, %fd157;
@@ -218,7 +218,7 @@ $L__BB0_17:
 	mov.f64 	%fd171, %fd41;
 
 $L__BB0_18:
-	add.s32 	%r21, %r21, 56;
+	add.s32 	%r21, %r21, 36;
 	add.f64 	%fd146, %fd159, %fd171;
 	sub.f64 	%fd147, %fd146, %fd159;
 	sub.f64 	%fd148, %fd146, %fd147;
@@ -232,8 +232,8 @@ $L__BB0_18:
 	add.f64 	%fd158, %fd153, %fd154;
 	mul.f64 	%fd157, %fd157, %fd162;
 	setp.neu.f64 	%p7, %fd157, 0d0000000000000000;
-	add.s32 	%r22, %r22, 56;
-	add.s32 	%r20, %r20, 56;
+	add.s32 	%r22, %r22, 36;
+	add.s32 	%r20, %r20, 36;
 	@%p7 bra 	$L__BB0_1;
 
 	ld.param.u64 	%rd14, [_Z9benchmarkIN7mX_real7dX_real7dx_realIdLNS0_9AlgorithmE1EEEEvPT__param_0];
