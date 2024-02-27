@@ -7,15 +7,9 @@ namespace mX_real {
 
   template <> struct check_mX_real <mpfr::mpreal> : std::false_type{};
 
-#if defined(__INTEL_COMPILER)
-#  define       STATIC_VAR      static inline
-#  define       STATIC_INIT(...)	= ( __VA_ARGS__ )
-#elif defined(__INTEL_LLVM_COMPILER)||defined(__INTEL_CLANG_COMPILER)
+#if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
 #  define       STATIC_VAR      static
-#  define       STATIC_INIT(...)	 /* */
-#elif __cplusplus < 201703L
-#  define       STATIC_VAR      static
-#  define       STATIC_INIT(...)	 /* */
+#  define       STATIC_INIT(...)	/* */
 #else
 #  define       STATIC_VAR      static inline
 #  define       STATIC_INIT(...)	= ( __VA_ARGS__ )
@@ -23,6 +17,7 @@ namespace mX_real {
   template <>
   struct fp<mpfr::mpreal> {
     static bool   constexpr value = true;
+    static bool   constexpr use_dynamic_digits = true;
 
     STATIC_VAR mpfr::mpreal const zero       STATIC_INIT( mpfr::mpreal(0.) );
     STATIC_VAR mpfr::mpreal const one        STATIC_INIT( mpfr::mpreal(1.) );
@@ -36,22 +31,29 @@ namespace mX_real {
     STATIC_VAR mpfr::mpreal const denorm_min STATIC_INIT( std::numeric_limits<mpfr::mpreal>::denorm_min() );
     STATIC_VAR mpfr::mpreal const min        STATIC_INIT( std::numeric_limits<mpfr::mpreal>::min() );
     STATIC_VAR mpfr::mpreal const max        STATIC_INIT( std::numeric_limits<mpfr::mpreal>::max() );
+
+    STATIC_VAR int const digits              STATIC_INIT( std::numeric_limits<mpfr::mpreal>::digits() );
+    STATIC_VAR int const digits10            STATIC_INIT( std::numeric_limits<mpfr::mpreal>::digits10() );
+    STATIC_VAR int const max_digits10        STATIC_INIT( std::numeric_limits<mpfr::mpreal>::max_digits10() );
   };
 #undef	STATIC_VAR
 #undef	STATIC_INIT
 
-#if __cplusplus < 201703L
-  mpfr::mpreal  const fp<mpfr::mpreal>::zero       = mpfr::mpreal(0.);
-  mpfr::mpreal  const fp<mpfr::mpreal>::one        = mpfr::mpreal(1.);
-  mpfr::mpreal  const fp<mpfr::mpreal>::two        = mpfr::mpreal(2.);
-  mpfr::mpreal  const fp<mpfr::mpreal>::half       = mpfr::mpreal(.5);
-  mpfr::mpreal  const fp<mpfr::mpreal>::epsilon    = mpfr::machine_epsilon();
-  mpfr::mpreal  const fp<mpfr::mpreal>::epsiloni   = mpfr::frac( mpfr::machine_epsilon() );
-  mpfr::mpreal  const fp<mpfr::mpreal>::inf        = mpfr::const_infinity();
-  mpfr::mpreal  const fp<mpfr::mpreal>::nan        = mpfr::mpreal().setNan();
-  mpfr::mpreal  const fp<mpfr::mpreal>::denorm_min = std::numeric_limits<mpfr::mpreal>::denorm_min();
-  mpfr::mpreal  const fp<mpfr::mpreal>::min        = std::numeric_limits<mpfr::mpreal>::min();
-  mpfr::mpreal  const fp<mpfr::mpreal>::max        = std::numeric_limits<mpfr::mpreal>::max();
+#if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
+  mpfr::mpreal  const fp<mpfr::mpreal>::zero         = mpfr::mpreal(0.);
+  mpfr::mpreal  const fp<mpfr::mpreal>::one          = mpfr::mpreal(1.);
+  mpfr::mpreal  const fp<mpfr::mpreal>::two          = mpfr::mpreal(2.);
+  mpfr::mpreal  const fp<mpfr::mpreal>::half         = mpfr::mpreal(.5);
+  mpfr::mpreal  const fp<mpfr::mpreal>::epsilon      = mpfr::machine_epsilon();
+  mpfr::mpreal  const fp<mpfr::mpreal>::epsiloni     = mpfr::frac( mpfr::machine_epsilon() );
+  mpfr::mpreal  const fp<mpfr::mpreal>::inf          = mpfr::const_infinity();
+  mpfr::mpreal  const fp<mpfr::mpreal>::nan          = mpfr::mpreal().setNan();
+  mpfr::mpreal  const fp<mpfr::mpreal>::denorm_min   = std::numeric_limits<mpfr::mpreal>::denorm_min();
+  mpfr::mpreal  const fp<mpfr::mpreal>::min          = std::numeric_limits<mpfr::mpreal>::min();
+  mpfr::mpreal  const fp<mpfr::mpreal>::max          = std::numeric_limits<mpfr::mpreal>::max();
+  int           const fp<mpfr::mpreal>::digits       = std::numeric_limits<mpfr::mpreal>::digits();
+  int           const fp<mpfr::mpreal>::digits10     = std::numeric_limits<mpfr::mpreal>::digits10();
+  int           const fp<mpfr::mpreal>::max_digits10 = std::numeric_limits<mpfr::mpreal>::max_digits10();
 #endif
 
 #define T_mpreal(...)   T_assert( std::is_same< mpfr::mpreal, __VA_ARGS__ >::value )

@@ -861,8 +861,8 @@ main(int argc, char *argv[])
 
   {
     using MP = typename mX_real::dX_real::dx_real<mpfr::mpreal>;
-    MP a = MP::two();
-    MP b = MP::half();
+    MP a = MP::two() + MP::rand();
+    MP b = MP::half() + MP::rand();
     a = (a + b) * (a - b);
     std::cout << a << " " << b << "\n";
   }

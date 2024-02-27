@@ -30,7 +30,10 @@ template < typename T > void printTYPE( void ) {
 namespace mX_real {
 
   template < typename T >
-  struct fp { static bool constexpr value = false; };
+  struct fp {
+    static bool constexpr value = false;
+    static bool constexpr use_dynamic_digits = false;
+  };
   template < typename TX >
   struct check_mX_real : std::false_type{};
 
@@ -111,11 +114,7 @@ namespace mX_real {
   //
   // generic terms (const, func, and bit ops)
   //
-#if defined(__INTEL_COMPILER)
-#  define	STATIC_VAR	static inline
-#elif defined(__INTEL_LLVM_COMPILER)||defined(__INTEL_CLANG_COMPILER)
-#  define	STATIC_VAR	static
-#elif __cplusplus < 201703L
+#if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
 #  define	STATIC_VAR	static
 #else
 #  define	STATIC_VAR	static inline
@@ -124,6 +123,7 @@ namespace mX_real {
   template <>
   struct fp<float> {
     static bool   constexpr value = true;
+    static bool   constexpr use_dynamic_digits = false;
 
     STATIC_VAR float constexpr zero    = float(0);
     STATIC_VAR float constexpr one     = float(1);
@@ -137,6 +137,10 @@ namespace mX_real {
     STATIC_VAR float constexpr denorm_min = std::numeric_limits<float>::denorm_min();
     STATIC_VAR float constexpr min        = std::numeric_limits<float>::min();
     STATIC_VAR float constexpr max        = std::numeric_limits<float>::max();
+
+    STATIC_VAR int constexpr digits       = std::numeric_limits<float>::digits;
+    STATIC_VAR int constexpr digits10     = std::numeric_limits<float>::digits10;
+    STATIC_VAR int constexpr max_digits10 = std::numeric_limits<float>::max_digits10;
 
     static INLINE auto constexpr isinf       ( float  const a ) NOEXCEPT {
       return std::isinf( a );
@@ -177,6 +181,7 @@ namespace mX_real {
   template <>
   struct fp<double> {
     static bool   constexpr value = true;
+    static bool   constexpr use_dynamic_digits = false;
 
     STATIC_VAR double constexpr zero    = double(0);
     STATIC_VAR double constexpr one     = double(1);
@@ -190,6 +195,10 @@ namespace mX_real {
     STATIC_VAR double constexpr denorm_min = std::numeric_limits<double>::denorm_min();
     STATIC_VAR double constexpr min        = std::numeric_limits<double>::min();
     STATIC_VAR double constexpr max        = std::numeric_limits<double>::max();
+
+    STATIC_VAR int constexpr digits       = std::numeric_limits<double>::digits;
+    STATIC_VAR int constexpr digits10     = std::numeric_limits<double>::digits10;
+    STATIC_VAR int constexpr max_digits10 = std::numeric_limits<double>::max_digits10;
 
     static INLINE auto constexpr isinf       ( double  const a ) NOEXCEPT {
       return std::isinf( a );
@@ -230,8 +239,7 @@ namespace mX_real {
   //
 #undef STATIC_VAR
   //
-#ifndef __INTEL_COMPILER
-#if __cplusplus < 201703L
+#if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
   float  constexpr fp<float>::zero;
   float  constexpr fp<float>::one;
   float  constexpr fp<float>::two;
@@ -254,7 +262,6 @@ namespace mX_real {
   double  constexpr fp<double>::min;
   double  constexpr fp<double>::max;
   //
-#endif
 #endif
   //
 

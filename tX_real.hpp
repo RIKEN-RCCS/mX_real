@@ -274,14 +274,14 @@ namespace mX_real {
       // static member funtions
       // definition is below outside of the struct definition block
       //
-      static INLINE TX_REAL<> constexpr abs ( TX_REAL<> const& a ) NOEXCEPT;
       static INLINE TX_REAL<> constexpr sqrt ( TX_REAL<> const& a ) NOEXCEPT;
+      static INLINE TX_REAL<> constexpr abs ( TX_REAL<> const& a ) NOEXCEPT;
       static INLINE TX_REAL<> rand () NOEXCEPT;
       static INLINE bool constexpr is_positive ( TX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr isnan ( TX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr isinf ( TX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_zero ( TX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_negative ( TX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr isinf ( TX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr signbit ( TX_REAL<> const& a ) NOEXCEPT;
       //
 
@@ -294,9 +294,9 @@ namespace mX_real {
       //
       INLINE bool constexpr is_positive () const NOEXCEPT { return TX_REAL<>::is_positive( *this ); }
       INLINE bool constexpr isnan () const NOEXCEPT { return TX_REAL<>::isnan( *this ); }
+      INLINE bool constexpr isinf () const NOEXCEPT { return TX_REAL<>::isinf( *this ); }
       INLINE bool constexpr is_zero () const NOEXCEPT { return TX_REAL<>::is_zero( *this ); }
       INLINE bool constexpr is_negative () const NOEXCEPT { return TX_REAL<>::is_negative( *this ); }
-      INLINE bool constexpr isinf () const NOEXCEPT { return TX_REAL<>::isinf( *this ); }
       INLINE bool constexpr signbit () const NOEXCEPT { return TX_REAL<>::signbit( *this ); }
       //
 
@@ -359,12 +359,12 @@ namespace mX_real {
       return fp<T>::isinf( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr signbit ( tX_real::tx_real<T,Aa> const& a ) NOEXCEPT {
-      return fp<T>::signbit( a.quick_Normalized() );
-    }
-    template < typename T, Algorithm Aa >
     INLINE auto constexpr isnan ( tX_real::tx_real<T,Aa> const& a ) NOEXCEPT {
       return fp<T>::isnan( a.quick_Normalized() );
+    }
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr signbit ( tX_real::tx_real<T,Aa> const& a ) NOEXCEPT {
+      return fp<T>::signbit( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_zero ( tX_real::tx_real<T,Aa> const& a ) NOEXCEPT {
@@ -1960,13 +1960,13 @@ namespace mX_real {
     template < typename T, Algorithm A, T_fp(T) >
     INLINE auto rand () NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
-      auto constexpr f = fp<T>::half / (1 << 30);
+      auto const f = fp<T>::half / (1 << 30);
       auto g = f;
       auto r = TX::zero();
-      auto constexpr bits = std::numeric_limits<TX>::digits;
-      auto constexpr rand_bits = std::numeric_limits<int>::digits - 1;
+      auto const bits = std::numeric_limits<TX>::digits;
+      auto const rand_bits = std::numeric_limits<int>::digits - 1;
       for(int i=0; i<bits; i+=rand_bits ) {
-        auto b_ = fp<T>::rand() & 0x7fffffff;
+        auto b_ = std::rand() & 0x7fffffff;
         T b, c;
         if ( std::is_same<T,float>::value ) {
           b = T( ( b_ & 0x7fff0000 ) >> 16 ) * (1 << 16);

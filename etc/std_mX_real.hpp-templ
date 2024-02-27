@@ -10,10 +10,26 @@ namespace std {
     INLINE static TX constexpr infinity() NOEXCEPT { return TX::inf(); }
     INLINE static TX constexpr quiet_NaN() NOEXCEPT { return TX::nan(); }
     
+#if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
+#  define       STATIC_VAR      static
+#  define       STATIC_INIT(...)         /* */
+#else
+#  define       STATIC_VAR      static inline
+#  define       STATIC_INIT(...)        = ( __VA_ARGS__ )
+#endif
 @@@{ F digits digits10 max_digits10
-    static int constexpr @{F}@ = numeric_limits<T>::@{F}@ * TX::L;
+    STATIC_VAR int const @{F}@ STATIC_INIT( mX_real::fp<T>::@{F}@ * TX::L );
 }@@@
   };
+#undef STATIC_VAR
+#undef STATIC_INIT
+
+#if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
+@@@{ F digits digits10 max_digits10
+  template < typename T, mX_real::Algorithm A >
+    int const numeric_limits<mX_real::@{m}@X_real::@{m}@x_real<T,A>>::@{F}@ = mX_real::fp<T>::@{F}@ * mX_real::@{m}@X_real::@{m}@x_real<T,A>::L;
+}@@@
+#endif
   
 @@@{ F isinf isnan signbit
   template < typename T, mX_real::Algorithm A >

@@ -30,7 +30,10 @@ template < typename T > void printTYPE( void ) {
 namespace mX_real {
 
   template < typename T >
-  struct fp { static bool constexpr value = false; };
+  struct fp {
+    static bool constexpr value = false;
+    static bool constexpr use_dynamic_digits = false;
+  };
   template < typename TX >
   struct check_mX_real : std::false_type{};
 
@@ -111,11 +114,7 @@ namespace mX_real {
   //
   // generic terms (const, func, and bit ops)
   //
-#if defined(__INTEL_COMPILER)
-#  define	STATIC_VAR	static inline
-#elif defined(__INTEL_LLVM_COMPILER)||defined(__INTEL_CLANG_COMPILER)
-#  define	STATIC_VAR	static
-#elif __cplusplus < 201703L
+#if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
 #  define	STATIC_VAR	static
 #else
 #  define	STATIC_VAR	static inline
@@ -125,6 +124,7 @@ namespace mX_real {
   template <>
   struct fp<@{X}@> {
     static bool   constexpr value = true;
+    static bool   constexpr use_dynamic_digits = false;
 
     STATIC_VAR @{X}@ constexpr zero    = @{X}@(0);
     STATIC_VAR @{X}@ constexpr one     = @{X}@(1);
@@ -138,6 +138,10 @@ namespace mX_real {
     STATIC_VAR @{X}@ constexpr denorm_min = std::numeric_limits<@{X}@>::denorm_min();
     STATIC_VAR @{X}@ constexpr min        = std::numeric_limits<@{X}@>::min();
     STATIC_VAR @{X}@ constexpr max        = std::numeric_limits<@{X}@>::max();
+
+    STATIC_VAR int constexpr digits       = std::numeric_limits<@{X}@>::digits;
+    STATIC_VAR int constexpr digits10     = std::numeric_limits<@{X}@>::digits10;
+    STATIC_VAR int constexpr max_digits10 = std::numeric_limits<@{X}@>::max_digits10;
 
     static INLINE auto constexpr isinf       ( @{X}@  const a ) NOEXCEPT {
       return std::isinf( a );
@@ -179,8 +183,7 @@ namespace mX_real {
   //
 #undef STATIC_VAR
   //
-#ifndef __INTEL_COMPILER
-#if __cplusplus < 201703L
+#if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
 @@@{ X float double
   @{X}@  constexpr fp<@{X}@>::zero;
   @{X}@  constexpr fp<@{X}@>::one;
@@ -194,7 +197,6 @@ namespace mX_real {
   @{X}@  constexpr fp<@{X}@>::max;
   //
 }@@@
-#endif
 #endif
   //
 
