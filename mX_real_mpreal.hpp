@@ -57,20 +57,20 @@ namespace mX_real {
 #endif
 
 #define T_mpreal(...)   T_assert( std::is_same< mpfr::mpreal, __VA_ARGS__ >::value )
-  template < typename T, T_mpreal(T) > static INLINE auto zero()    { return fp<mpfr::mpreal>::zero; }
-  template < typename T, T_mpreal(T) > static INLINE auto one()     { return fp<mpfr::mpreal>::one; }
-  template < typename T, T_mpreal(T) > static INLINE auto two()     { return fp<mpfr::mpreal>::two; }
-  template < typename T, T_mpreal(T) > static INLINE auto half()    { return fp<mpfr::mpreal>::half; }
-  template < typename T, T_mpreal(T) > static INLINE auto epsilon() { return fp<mpfr::mpreal>::epsilon; }
-  template < typename T, T_mpreal(T) > static INLINE auto nan()     { return fp<mpfr::mpreal>::nan; }
-  template < typename T, T_mpreal(T) > static INLINE auto inf()     { return fp<mpfr::mpreal>::inf; }
+  template < typename T, T_mpreal(T) > static INLINE auto zero()    NOEXCEPT { return fp<mpfr::mpreal>::zero; }
+  template < typename T, T_mpreal(T) > static INLINE auto one()     NOEXCEPT { return fp<mpfr::mpreal>::one; }
+  template < typename T, T_mpreal(T) > static INLINE auto two()     NOEXCEPT { return fp<mpfr::mpreal>::two; }
+  template < typename T, T_mpreal(T) > static INLINE auto half()    NOEXCEPT { return fp<mpfr::mpreal>::half; }
+  template < typename T, T_mpreal(T) > static INLINE auto epsilon() NOEXCEPT { return fp<mpfr::mpreal>::epsilon; }
+  template < typename T, T_mpreal(T) > static INLINE auto nan()     NOEXCEPT { return fp<mpfr::mpreal>::nan; }
+  template < typename T, T_mpreal(T) > static INLINE auto inf()     NOEXCEPT { return fp<mpfr::mpreal>::inf; }
 #undef T_mpreal
 
 }
 
 namespace std {
 
-  INLINE mpfr::mpreal const fma( mpfr::mpreal const& a, mpfr::mpreal const& b, mpfr::mpreal const& c ) {
+  INLINE mpfr::mpreal const fma( mpfr::mpreal const& a, mpfr::mpreal const& b, mpfr::mpreal const& c ) NOEXCEPT {
     return mpfr::fma( a, b, c );
   }
 
