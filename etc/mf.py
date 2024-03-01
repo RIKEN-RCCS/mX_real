@@ -463,7 +463,7 @@ def gen_members ( Tc ) :
     print( '// static member funtions' )
     print( '// definition is below outside of the struct definition block' )
     print( '//' )
-    for func in { 'abs', 'sqrt' } :
+    for func in { 'fabs', 'abs', 'sqrt' } :
         print( 'static INLINE {m}X_REAL<> constexpr {func} ( {m}X_REAL<> const& a ) NOEXCEPT;'.format( m=mX_Type(Tc), func=func ) )
     print( 'static INLINE {m}X_REAL<> rand () NOEXCEPT;'.format( m=mX_Type(Tc) ) )
     for func in { 'signbit', 'isinf', 'isnan', 'is_zero', 'is_positive', 'is_negative' } :

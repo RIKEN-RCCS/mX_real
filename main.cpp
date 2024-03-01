@@ -856,15 +856,28 @@ main(int argc, char *argv[])
     print( "(one2-u2)-(one1-u1,(one1-u1)*u1)=", c );
     
     c = f + df_Real::epsilon() * df_Real::half();
+    c = f + df_Real::widerType::epsilon() * df_Real::widerType::half();
     print( "one2-u2=", c );
   }
 
-  {
+#if 1
+  if ( 1 ) {
     using MP = typename mX_real::dX_real::dx_real<mpfr::mpreal>;
     MP a = MP::two() + MP::rand();
     MP b = MP::half() + MP::rand();
-    a = (a + b) * (a - b);
+    MP c = abs((a + b) * (a - b));
+    MP d = sqrt(c);
     std::cout << a << " " << b << "\n";
+    std::cout << c << " " << d << "\n";
+    std::cout << double(c) << " " << sqrt(double(c)) << "\n";
+  }
+#endif
+
+  {
+    double s = fp<double>::two - fp<double>::epsilon;
+    print( "2    ", fp<double>::two );
+    print( "2-eps", s );
+    print( "2-eps+eps/2", s + fp<double>::epsilon/2 );
   }
   
   init( L, alpha, x, y, z );

@@ -9,6 +9,10 @@
 #include <limits>
 #include <math.h>
 
+#ifdef USE_MPREAL
+#include <mpreal.h>
+#endif
+
 #if 0
 #include <boost/type_index.hpp>
 template < typename T > void printTYPE( void ) {
@@ -27,19 +31,6 @@ template < typename T > void printTYPE( void ) {
 #define	MX_REAL_OPTIMIZE_PROD_BY_POW2	1
 
 
-namespace mX_real {
-
-  template < typename T >
-  struct fp {
-    static bool constexpr value = false;
-    static bool constexpr use_dynamic_digits = false;
-  };
-  template < typename TX >
-  struct check_mX_real : std::false_type{};
-
-}
-
-
 // Trick to define MACROs for enabler in the template header part
 #define T_assert(...)	std::enable_if_t< __VA_ARGS__, std::nullptr_t > = nullptr
 #define T_scalar(...)	T_assert( std::is_arithmetic< __VA_ARGS__ >::value || fp< __VA_ARGS__ >::value )
@@ -49,8 +40,20 @@ namespace mX_real {
 #define A_owAble(A,...)	T_assert( if_A_owAble< A,__VA_ARGS__ >::value )
 
 
+namespace mX_real {
+
+  template < typename T >
+  struct fp {
+    static bool constexpr value = false;
+  };
+  template < typename TX >
+  struct check_mX_real : std::false_type{};
+
+#include "Ozaki-QW/fp_const.hpp"
+
+}
+
 #ifdef USE_MPREAL
-#include <mpreal.h>
 #include "mX_real_mpreal.hpp"
 #endif
 
@@ -112,7 +115,7 @@ namespace mX_real {
 
 
   //
-  // generic terms (const, func, and bit ops)
+  // generic terms (const, comparison funcs, and sign-bit ops)
   //
 #if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
 #  define	STATIC_VAR	static
@@ -123,7 +126,6 @@ namespace mX_real {
   template <>
   struct fp<float> {
     static bool   constexpr value = true;
-    static bool   constexpr use_dynamic_digits = false;
 
     STATIC_VAR float constexpr zero    = float(0);
     STATIC_VAR float constexpr one     = float(1);
@@ -163,25 +165,11 @@ namespace mX_real {
     static INLINE auto constexpr is_negative ( float  const a ) NOEXCEPT {
       return a <  fp<float>::zero;
     }
-    static INLINE auto constexpr fabs ( float const a ) NOEXCEPT {
-      return std::fabs( a );
-    }
-    static INLINE auto constexpr sqrt ( float const a ) NOEXCEPT {
-      return std::sqrt( a );
-    }
-    static INLINE auto constexpr fma ( float const a, float const b, float const c ) NOEXCEPT {
-      return std::fma( a, b, c );
-    }
-    static INLINE auto rand () NOEXCEPT {
-      return std::rand();
-    }
-
   };
   //
   template <>
   struct fp<double> {
     static bool   constexpr value = true;
-    static bool   constexpr use_dynamic_digits = false;
 
     STATIC_VAR double constexpr zero    = double(0);
     STATIC_VAR double constexpr one     = double(1);
@@ -221,19 +209,6 @@ namespace mX_real {
     static INLINE auto constexpr is_negative ( double  const a ) NOEXCEPT {
       return a <  fp<double>::zero;
     }
-    static INLINE auto constexpr fabs ( double const a ) NOEXCEPT {
-      return std::fabs( a );
-    }
-    static INLINE auto constexpr sqrt ( double const a ) NOEXCEPT {
-      return std::sqrt( a );
-    }
-    static INLINE auto constexpr fma ( double const a, double const b, double const c ) NOEXCEPT {
-      return std::fma( a, b, c );
-    }
-    static INLINE auto rand () NOEXCEPT {
-      return std::rand();
-    }
-
   };
   //
   //
@@ -443,6 +418,22 @@ namespace mX_real {
   template < typename TXa, typename TXb >
   using commonType = largeType<TXa,TXb>;
 
+  //
+  //
+  //
+  template < typename Ta, Algorithm Aa, int La, T_fp(Ta) >
+  struct mx_real_impl {
+    using type = typename std::conditional_t< La <= 2, dX_real::dx_real<Ta,Aa>,
+                                                    std::conditional_t< La == 3, tX_real::tx_real<Ta,Aa>,
+                                                                        std::conditional_t< La >= 4, qX_real::qx_real<Ta,Aa>, std::nullptr_t >>>;
+  };
+  template < typename Ta, Algorithm Aa, int La >
+  using mx_real = typename mx_real_impl<Ta,Aa,La>::type;
+  template < typename TXa, T_mX(TXa) >
+  using narrowerType = mx_real<typename TXa::base_T,TXa::base_A,TXa::L-1>;
+  template < typename TXa, T_mX(TXa) >
+  using widerType = mx_real<typename TXa::base_T,TXa::base_A,TXa::L+1>;
+
 
   //
   // APIs for common constatnt number functions
@@ -451,27 +442,21 @@ namespace mX_real {
   //
   template < typename T, T_fp(T) > static INLINE auto constexpr zero() NOEXCEPT { return fp<T>::zero; }
   template < typename T, T_mX(T) > static INLINE auto constexpr zero() NOEXCEPT { return T::zero(); }
-
   //
   template < typename T, T_fp(T) > static INLINE auto constexpr one() NOEXCEPT { return fp<T>::one; }
   template < typename T, T_mX(T) > static INLINE auto constexpr one() NOEXCEPT { return T::one(); }
-
   //
   template < typename T, T_fp(T) > static INLINE auto constexpr two() NOEXCEPT { return fp<T>::two; }
   template < typename T, T_mX(T) > static INLINE auto constexpr two() NOEXCEPT { return T::two(); }
-
   //
   template < typename T, T_fp(T) > static INLINE auto constexpr half() NOEXCEPT { return fp<T>::half; }
   template < typename T, T_mX(T) > static INLINE auto constexpr half() NOEXCEPT { return T::half(); }
-
   //
   template < typename T, T_fp(T) > static INLINE auto constexpr epsilon() NOEXCEPT { return fp<T>::epsilon; }
   template < typename T, T_mX(T) > static INLINE auto constexpr epsilon() NOEXCEPT { return T::epsilon(); }
-
   //
   template < typename T, T_fp(T) > static INLINE auto constexpr nan() NOEXCEPT { return fp<T>::nan; }
   template < typename T, T_mX(T) > static INLINE auto constexpr nan() NOEXCEPT { return T::nan(); }
-
   //
   template < typename T, T_fp(T) > static INLINE auto constexpr inf() NOEXCEPT { return fp<T>::inf; }
   template < typename T, T_mX(T) > static INLINE auto constexpr inf() NOEXCEPT { return T::inf(); }

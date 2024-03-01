@@ -45,11 +45,13 @@ namespace @{m}@X_real {
     using type_with_Algorithm = @{M}@X_REAL<_A_>;
     //
 @@@{ A Accurate Sloppy Quasi
-    using type_@{A}@   = type_with_Algorithm<Algorithm::@{A}@>;
+    using type@{A}@   = type_with_Algorithm<Algorithm::@{A}@>;
 }@@@
     //
-    using accurate_type   = type_with_Algorithm<accurateAlgorithm<A>::algorithm>;
-    using inaccurate_type = type_with_Algorithm<inaccurateAlgorithm<A>::algorithm>;
+    using accurateType   = type_with_Algorithm<accurateAlgorithm<A>::algorithm>;
+    using inaccurateType = type_with_Algorithm<inaccurateAlgorithm<A>::algorithm>;
+    using narrowerType   = typename std::conditional_t< @{L}@>=4, tX_real::tx_real<T,A>, dX_real::dx_real<T,A> >;
+    using widerType      = typename std::conditional_t< @{L}@==2, tX_real::tx_real<T,A>, qX_real::qx_real<T,A> >;
 
 
     //
@@ -120,9 +122,9 @@ namespace @{m}@X_real {
         if ( ( L < LL || A != Algorithm::Quasi ) && _A_ == Algorithm::Quasi ) {
           auto s = h;
           mX_real::Normalize<1>( s );
-          copy_with_rounding( x, s.x, L, LL );
+          mX_real::copy_with_rounding( x, s.x, L, LL );
         } else {
-          copy_with_rounding( x, h.x, L, LL );
+          mX_real::copy_with_rounding( x, h.x, L, LL );
         }
         if ( L < LL ) {
           mX_real::Normalize<0>( *this );
@@ -155,9 +157,9 @@ namespace @{m}@X_real {
         if ( ( L < LL || A != Algorithm::Quasi ) && _A_ == Algorithm::Quasi ) {
           auto s = h;
           mX_real::Normalize<1>( s );
-          copy_with_rounding( x, s.x, L, LL );
+          mX_real::copy_with_rounding( x, s.x, L, LL );
         } else {
-          copy_with_rounding( x, h.x, L, LL );
+          mX_real::copy_with_rounding( x, h.x, L, LL );
         }
         if ( L < LL ) {
           mX_real::Normalize<0>( *this );
@@ -195,9 +197,9 @@ namespace @{m}@X_real {
       if ( ( LL < L || _A_ != Algorithm::Quasi ) && A == Algorithm::Quasi ) {
         auto s = *this;
         mX_real::Normalize<1>( s );
-        copy_with_rounding( c.x, s.x, LL, L );
+        mX_real::copy_with_rounding( c.x, s.x, LL, L );
       } else {
-        copy_with_rounding( c.x, x, LL, L );
+        mX_real::copy_with_rounding( c.x, x, LL, L );
       }
       if ( LL < L ) {
         mX_real::Normalize<0>( c );
@@ -329,8 +331,8 @@ namespace @{m}@X_real {
   std::ostream& operator<< ( std::ostream& stream, @{m}@X_real::@{m}@x_real<T,Aa> const& a ) {
     int constexpr LL = @{m}@X_real::@{m}@x_real<T,Aa>::L;
 #if USE_MPREAL
-    mpfr::mpreal t = double( a.x[0] );
-    for(int i=1; i<LL; i++) { t += double( a.x[i] ); }
+    mpfr::mpreal t = mpfr::mpreal(a.x[0]);
+    for(int i=1; i<LL; i++) { t += mpfr::mpreal(a.x[i]); }
     stream << t;
 #else
     for(int i=0; i<LL; i++) { stream << a.x[i] << ":"; }

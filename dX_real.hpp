@@ -44,12 +44,14 @@ namespace mX_real {
       template < Algorithm _A_ >
       using type_with_Algorithm = DX_REAL<_A_>;
       //
-      using type_Accurate   = type_with_Algorithm<Algorithm::Accurate>;
-      using type_Sloppy   = type_with_Algorithm<Algorithm::Sloppy>;
-      using type_Quasi   = type_with_Algorithm<Algorithm::Quasi>;
+      using typeAccurate   = type_with_Algorithm<Algorithm::Accurate>;
+      using typeSloppy   = type_with_Algorithm<Algorithm::Sloppy>;
+      using typeQuasi   = type_with_Algorithm<Algorithm::Quasi>;
       //
-      using accurate_type   = type_with_Algorithm<accurateAlgorithm<A>::algorithm>;
-      using inaccurate_type = type_with_Algorithm<inaccurateAlgorithm<A>::algorithm>;
+      using accurateType   = type_with_Algorithm<accurateAlgorithm<A>::algorithm>;
+      using inaccurateType = type_with_Algorithm<inaccurateAlgorithm<A>::algorithm>;
+      using narrowerType   = typename std::conditional_t< 2>=4, tX_real::tx_real<T,A>, dX_real::dx_real<T,A> >;
+      using widerType      = typename std::conditional_t< 2==2, tX_real::tx_real<T,A>, qX_real::qx_real<T,A> >;
 
 
       //
@@ -120,9 +122,9 @@ namespace mX_real {
             if ( ( L < LL || A != Algorithm::Quasi ) && _A_ == Algorithm::Quasi ) {
               auto s = h;
               mX_real::Normalize<1>( s );
-              copy_with_rounding( x, s.x, L, LL );
+              mX_real::copy_with_rounding( x, s.x, L, LL );
             } else {
-              copy_with_rounding( x, h.x, L, LL );
+              mX_real::copy_with_rounding( x, h.x, L, LL );
             }
             if ( L < LL ) {
               mX_real::Normalize<0>( *this );
@@ -155,9 +157,9 @@ namespace mX_real {
             if ( ( L < LL || A != Algorithm::Quasi ) && _A_ == Algorithm::Quasi ) {
               auto s = h;
               mX_real::Normalize<1>( s );
-              copy_with_rounding( x, s.x, L, LL );
+              mX_real::copy_with_rounding( x, s.x, L, LL );
             } else {
-              copy_with_rounding( x, h.x, L, LL );
+              mX_real::copy_with_rounding( x, h.x, L, LL );
             }
             if ( L < LL ) {
               mX_real::Normalize<0>( *this );
@@ -195,9 +197,9 @@ namespace mX_real {
           if ( ( LL < L || _A_ != Algorithm::Quasi ) && A == Algorithm::Quasi ) {
             auto s = *this;
             mX_real::Normalize<1>( s );
-            copy_with_rounding( c.x, s.x, LL, L );
+            mX_real::copy_with_rounding( c.x, s.x, LL, L );
           } else {
-            copy_with_rounding( c.x, x, LL, L );
+            mX_real::copy_with_rounding( c.x, x, LL, L );
           }
         if ( LL < L ) {
           mX_real::Normalize<0>( c );
@@ -274,15 +276,16 @@ namespace mX_real {
       // static member funtions
       // definition is below outside of the struct definition block
       //
-      static INLINE DX_REAL<> constexpr sqrt ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE DX_REAL<> constexpr abs ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE DX_REAL<> constexpr sqrt ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE DX_REAL<> constexpr fabs ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE DX_REAL<> rand () NOEXCEPT;
-      static INLINE bool constexpr is_positive ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_negative ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr isinf ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr signbit ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_zero ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr isinf ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_positive ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr isnan ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_negative ( DX_REAL<> const& a ) NOEXCEPT;
       //
 
 
@@ -292,12 +295,12 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () NOEXCEPT { mX_real::Normalize( *this ); }
       //
-      INLINE bool constexpr is_positive () const NOEXCEPT { return DX_REAL<>::is_positive( *this ); }
-      INLINE bool constexpr is_negative () const NOEXCEPT { return DX_REAL<>::is_negative( *this ); }
+      INLINE bool constexpr isinf () const NOEXCEPT { return DX_REAL<>::isinf( *this ); }
       INLINE bool constexpr signbit () const NOEXCEPT { return DX_REAL<>::signbit( *this ); }
       INLINE bool constexpr is_zero () const NOEXCEPT { return DX_REAL<>::is_zero( *this ); }
-      INLINE bool constexpr isinf () const NOEXCEPT { return DX_REAL<>::isinf( *this ); }
+      INLINE bool constexpr is_positive () const NOEXCEPT { return DX_REAL<>::is_positive( *this ); }
       INLINE bool constexpr isnan () const NOEXCEPT { return DX_REAL<>::isnan( *this ); }
+      INLINE bool constexpr is_negative () const NOEXCEPT { return DX_REAL<>::is_negative( *this ); }
       //
 
 
@@ -367,12 +370,12 @@ namespace mX_real {
       return fp<T>::signbit( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_zero ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
-      return a.quick_Normalized() == fp<T>::zero;
-    }
-    template < typename T, Algorithm Aa >
     INLINE bool constexpr is_positive ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
       return a.quick_Normalized() > fp<T>::zero;
+    }
+    template < typename T, Algorithm Aa >
+    INLINE bool constexpr is_zero ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
+      return a.quick_Normalized() == fp<T>::zero;
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_negative ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
@@ -1998,8 +2001,8 @@ namespace mX_real {
     std::ostream& operator<< ( std::ostream& stream, dX_real::dx_real<T,Aa> const& a ) {
       int constexpr LL = dX_real::dx_real<T,Aa>::L;
 #if USE_MPREAL
-      mpfr::mpreal t = double( a.x[0] );
-      for(int i=1; i<LL; i++) { t += double( a.x[i] ); }
+      mpfr::mpreal t = mpfr::mpreal(a.x[0]);
+      for(int i=1; i<LL; i++) { t += mpfr::mpreal(a.x[i]); }
       stream << t;
 #else
       for(int i=0; i<LL; i++) { stream << a.x[i] << ":"; }

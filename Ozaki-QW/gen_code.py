@@ -1,7 +1,10 @@
-def init () :
+import sys
+import re
 
-    header = '''#ifndef QXW_H
-#define QXW_H
+def init_ () :
+
+    header = '''#ifndef QXW_FP_H
+#define QXW_FP_H
 
 
 //
@@ -25,7 +28,9 @@ namespace QxW {
 // Constants
 // ------------------------
 
-template < typename T > struct fp_const {};
+//
+template < typename T > struct fp_const { };
+//
 template <> struct fp_const<float> {
   static INLINE auto constexpr zero() NOEXCEPT { return 0.0f; }
   static INLINE auto constexpr one()  NOEXCEPT { return 1.0f; }
@@ -141,6 +146,32 @@ template <> struct fp_const<double> {
   }
 };
 
+}
+#endif
+'''
+    print( header )
+
+def init () :
+    header = '''#ifndef QXW_H
+#define QXW_H
+
+
+//
+// C++-fied version 2023.12.26 (refered to Ozaki's code)
+//
+// This C++ code was automatically generated
+// referering to the idea by Katsuhisa Ozaki (Shibaura Institute of Technology)
+// Debug is not sufficiently done, so please use it carefully and
+//
+// by Toshiyuki Imamura (RIKEN, R-CCS)
+//
+
+
+#include <stdio.h>
+#include <math.h>
+
+
+namespace QxW {
 
 // ------------------------
 // Basic EFT Part
@@ -168,6 +199,7 @@ TwoProductFMA ( T const a, T const b, T &x, T &y ) NOEXCEPT
   x = a * b;
   y = std::fma(a, b, -x);
 }
+
 '''
     print( header )
 
@@ -1722,8 +1754,14 @@ def gen_div( NA, NB, NC, ACC ) :
         
 if __name__ == '__main__' :
 
-    init()
+    args = sys.argv
+    argc = len( args )
 
+    if argc > 1 :
+        init_()
+        exit(0)
+
+    init()
     for ACC in range( 2 ) :
 
         if  ACC == 0 :
