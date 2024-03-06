@@ -30,14 +30,15 @@ namespace QxW {
     static INLINE auto constexpr zero() NOEXCEPT { return 0.0f; }
     static INLINE auto constexpr one()  NOEXCEPT { return 1.0f; }
     static INLINE auto constexpr two()  NOEXCEPT { return 2.0f; }
-    static INLINE auto constexpr half() NOEXCEPT { return 0.5f; }
+    static INLINE auto constexpr nhalf() NOEXCEPT { return 0.5f; }
 
-    static uint32_t constexpr SBIT = 0x80000000;
-    static uint32_t constexpr MASK = 0x7f800000;
-    static uint32_t constexpr RINF = 0x7f000000;
-    static uint32_t constexpr XONE = 0x0b800000;
-    static uint32_t constexpr EONE = 0x00800000;
-    static uint32_t constexpr FRAC = 0x007fffff;
+    static uint32_t constexpr FONE = 0x00000001;
+    static uint32_t constexpr SBIT = FONE << (32-1); // 0x80000000;
+    static uint32_t constexpr EONE = FONE << (23);   // 0x00800000;
+    static uint32_t constexpr MASK = SBIT - EONE;    // 0x7f800000;
+    static uint32_t constexpr FRAC = EONE - FONE;    // 0x007fffff;
+    static uint32_t constexpr RINF = MASK - EONE;    // 0x7f000000;
+    static uint32_t constexpr XONE = EONE * 23;      // 0x0b800000;
 
     static INLINE auto constexpr fp2uint( float const a ) NOEXCEPT {
       union { float a; uint32_t e; } x = { .a = a };
@@ -48,18 +49,6 @@ namespace QxW {
       return x.a;
     }
 
-    template < bool doubled = false >
-    static INLINE auto constexpr hbit( float const a ) NOEXCEPT {
-      auto e = fp2uint( a );
-      auto s = e & SBIT;
-      e &= MASK;
-      if ( doubled ) e += EONE;
-      e |= s;
-      return uint2fp( e );
-    }
-    static INLINE auto constexpr hbit2( float const a ) NOEXCEPT {
-      return hbit<true>( a );
-    }
     static INLINE auto constexpr ulp( float const a ) NOEXCEPT {
       if ( a == zero() ) return a;
       auto e = fp2uint( a );
@@ -87,14 +76,15 @@ namespace QxW {
     static INLINE auto constexpr zero() NOEXCEPT { return 0.0; }
     static INLINE auto constexpr one()  NOEXCEPT { return 1.0; }
     static INLINE auto constexpr two()  NOEXCEPT { return 2.0; }
-    static INLINE auto constexpr half() NOEXCEPT { return 0.5; }
+    static INLINE auto constexpr nhalf() NOEXCEPT { return 0.5; }
 
-    static uint64_t constexpr SBIT = 0x8000000000000000;
-    static uint64_t constexpr MASK = 0x7ff0000000000000;
-    static uint64_t constexpr RINF = 0x7fe0000000000000;
-    static uint64_t constexpr XONE = 0x0340000000000000;
-    static uint64_t constexpr EONE = 0x0010000000000000;
-    static uint64_t constexpr FRAC = 0x000fffffffffffff;
+    static uint64_t constexpr FONE = 0x0000000000000001;
+    static uint64_t constexpr SBIT = FONE << (64-1); // 0x8000000000000000;
+    static uint64_t constexpr EONE = FONE << (52);   // 0x0010000000000000;
+    static uint64_t constexpr MASK = SBIT - EONE;    // 0x7ff0000000000000;
+    static uint64_t constexpr FRAC = EONE - FONE;    // 0x000fffffffffffff;
+    static uint64_t constexpr RINF = MASK - EONE;    // 0x7fe0000000000000;
+    static uint64_t constexpr XONE = EONE * 52;      // 0x0340000000000000;
 
     static INLINE auto constexpr fp2uint( double const a ) NOEXCEPT {
       union { double a; uint64_t e; } x = { .a = a };
@@ -105,18 +95,6 @@ namespace QxW {
       return x.a;
     }
 
-    template < bool doubled = false >
-    static INLINE auto constexpr hbit( double const a ) NOEXCEPT {
-      auto e = fp2uint( a );
-      auto s = e & SBIT;
-      e &= MASK;
-      if ( doubled ) e += EONE;
-      e |= s;
-      return uint2fp( e );
-    }
-    static INLINE auto constexpr hbit2( double const a ) NOEXCEPT {
-      return hbit<true>( a );
-    }
     static INLINE auto constexpr ulp( double const a ) NOEXCEPT {
       if ( a == zero() ) return a;
       auto e = fp2uint( a );

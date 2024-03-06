@@ -18,3 +18,5 @@ etc/qd_real
 mpreal
 qd_real
 Ozaki-QW/old
+etc/half*
+etc/patch-complex

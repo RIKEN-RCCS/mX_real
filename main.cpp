@@ -363,7 +363,7 @@ struct Test_add
   using TXc = largeType<TXa,TXb>;
   using T   = typename TXc::base_T;
   auto eps = convert( largeType<TXa,TXb>::epsilon() );
-  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon ) ) );
+  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
 
   unsigned int seed = 1;
   srand( seed );
@@ -404,7 +404,7 @@ struct Test_mul
   using TXc = largeType<TXa,TXb>;
   using T   = typename TXc::base_T;
   auto eps = convert( largeType<TXa,TXb>::epsilon() );
-  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon ) ) );
+  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
 
   unsigned int seed = 1;
   srand( seed );
@@ -445,7 +445,7 @@ struct Test_div
   using TXc = largeType<TXa,TXb>;
   using T   = typename TXc::base_T;
   auto eps = convert( largeType<TXa,TXb>::epsilon() );
-  auto tol = convert( 31*double(1.0) / double( fp<T>::epsilon ) );
+  auto tol = convert( 31*double(1.0) / double( fp<T>::epsilon() ) );
 
   unsigned int seed = 1;
   srand( seed );
@@ -486,7 +486,7 @@ struct Test_sqr
   using TXc = TXa;
   using T   = typename TXc::base_T;
   auto eps = convert( TXa::epsilon() );
-  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon ) ) );
+  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
 
   unsigned int seed = 1;
   srand( seed );
@@ -526,7 +526,7 @@ struct Test_sqrt
   using TXc = TXa;
   using T   = typename TXc::base_T;
   auto eps = convert( TXa::epsilon() );
-  auto tol = convert( 31*double(1.0) / double( fp<T>::epsilon ) );
+  auto tol = convert( 31*double(1.0) / double( fp<T>::epsilon() ) );
 
   unsigned int seed = 1;
   srand( seed );
@@ -622,8 +622,8 @@ main(int argc, char *argv[])
 
 
   {
-    auto cp = df_Real_quasi( 1); cp.x[1] = fp<float>::epsilon/4;
-    auto cn = df_Real_quasi(-1); cn.x[1] = fp<float>::epsilon/4;
+    auto cp = df_Real_quasi( 1); cp.x[1] = fp<float>::epsilon()/4;
+    auto cn = df_Real_quasi(-1); cn.x[1] = fp<float>::epsilon()/4;
     print( "Quasi cp=", cp );
     print( "Quasi cn=", cn );
     auto c = cp + cn;
@@ -849,14 +849,14 @@ main(int argc, char *argv[])
     
     df_Real c = df_Real(1);
     print( "one2=", c );
-    c = c - df_Real::epsilon() * df_Real::half();
+    c = c - df_Real::epsilon() * df_Real::nhalf();
     print( "one2-u2=", c );
     
     c = c - f;
     print( "(one2-u2)-(one1-u1,(one1-u1)*u1)=", c );
     
-    c = f + df_Real::epsilon() * df_Real::half();
-    c = f + df_Real::widerType::epsilon() * df_Real::widerType::half();
+    c = f + df_Real::epsilon() * df_Real::nhalf();
+    c = f + df_Real::widerType::epsilon() * df_Real::widerType::nhalf();
     print( "one2-u2=", c );
   }
 
@@ -864,7 +864,7 @@ main(int argc, char *argv[])
   if ( 1 ) {
     using MP = typename mX_real::dX_real::dx_real<mpfr::mpreal>;
     MP a = MP::two() + MP::rand();
-    MP b = MP::half() + MP::rand();
+    MP b = MP::nhalf() + MP::rand();
     MP c = abs((a + b) * (a - b));
     MP d = sqrt(c);
     std::cout << a << " " << b << "\n";
@@ -874,10 +874,10 @@ main(int argc, char *argv[])
 #endif
 
   {
-    double s = fp<double>::two - fp<double>::epsilon;
-    print( "2    ", fp<double>::two );
+    double s = fp<double>::two() - fp<double>::epsilon();
+    print( "2    ", fp<double>::two() );
     print( "2-eps", s );
-    print( "2-eps+eps/2", s + fp<double>::epsilon/2 );
+    print( "2-eps+eps/2", s + fp<double>::epsilon()/2 );
   }
   
   init( L, alpha, x, y, z );

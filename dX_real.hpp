@@ -78,7 +78,7 @@ namespace mX_real {
       //
       //
       INLINE dx_real() NOEXCEPT {
-        for(int i=0; i<L; i++) { x[i] = fp<T>::zero; }
+        for(int i=0; i<L; i++) { x[i] = fp<T>::zero(); }
       }
       INLINE dx_real( T const& x0, T const& x1 ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
@@ -91,7 +91,7 @@ namespace mX_real {
       }
       template < typename Ts, T_scalar(Ts) >
       INLINE dx_real( Ts const &h ) NOEXCEPT {
-        { x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero; } }
+        { x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
       }
       INLINE dx_real( T const *d ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
@@ -139,7 +139,7 @@ namespace mX_real {
       //
       template < typename Ts, T_scalar(Ts) >
       INLINE DX_REAL<> constexpr &operator=( Ts const& h )& NOEXCEPT {
-        x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero; }
+        x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); }
         return *this;
       }
       template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
@@ -233,41 +233,41 @@ namespace mX_real {
       // but they follow in the Algorithm argument 'A'
       //
       //
-      static INLINE DX_REAL<> constexpr zero () NOEXCEPT { return DX_REAL<>{ fp<T>::zero }; }
-      static INLINE DX_REAL<> constexpr one () NOEXCEPT { return DX_REAL<>{ fp<T>::one }; }
-      static INLINE DX_REAL<> constexpr two () NOEXCEPT { return DX_REAL<>{ fp<T>::two }; }
-      static INLINE DX_REAL<> constexpr half () NOEXCEPT { return DX_REAL<>{ fp<T>::half }; }
-      static INLINE DX_REAL<> constexpr nan () NOEXCEPT { T c = fp<T>::nan; return DX_REAL<>{ c, c }; }
-      static INLINE DX_REAL<> constexpr inf () NOEXCEPT { T c = fp<T>::inf; return DX_REAL<>{ c, c }; }
+      static INLINE DX_REAL<> constexpr zero () NOEXCEPT { return DX_REAL<>{ fp<T>::zero() }; }
+      static INLINE DX_REAL<> constexpr one () NOEXCEPT { return DX_REAL<>{ fp<T>::one() }; }
+      static INLINE DX_REAL<> constexpr two () NOEXCEPT { return DX_REAL<>{ fp<T>::two() }; }
+      static INLINE DX_REAL<> constexpr nhalf () NOEXCEPT { return DX_REAL<>{ fp<T>::nhalf() }; }
+      static INLINE DX_REAL<> constexpr nan () NOEXCEPT { T c = fp<T>::nan(); return DX_REAL<>{ c, c }; }
+      static INLINE DX_REAL<> constexpr inf () NOEXCEPT { T c = fp<T>::inf(); return DX_REAL<>{ c, c }; }
       static INLINE DX_REAL<> constexpr epsilon () NOEXCEPT {
-        T c = fp<T>::epsilon * fp<T>::half; c = (c * c) * 2;
+        T c = fp<T>::epsilon() * fp<T>::nhalf(); c = (c * c) * 2;
         return DX_REAL<>{ c };
       }
       static INLINE DX_REAL<> constexpr denorm_min  () NOEXCEPT {
-        T c = fp<T>::denorm_min;
+        T c = fp<T>::denorm_min();
         return DX_REAL<>{ c };
       }
       static INLINE DX_REAL<> constexpr min  () NOEXCEPT {
-        T c = fp<T>::min;
-        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+        T c = fp<T>::min();
+        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
         return DX_REAL<>{ c };
       }
       static INLINE DX_REAL<> constexpr safe_min  () NOEXCEPT {
-        T c = fp<T>::min;
-        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+        T c = fp<T>::min();
+        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
         c = std::sqrt( c );
         return DX_REAL<>{ c };
       }
       static INLINE DX_REAL<> constexpr critical_min  () NOEXCEPT {
-        T c = fp<T>::denorm_min;
-        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+        T c = fp<T>::denorm_min();
+        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
         c = std::sqrt( c );
         return DX_REAL<>{ c };
       }
       static INLINE DX_REAL<> constexpr max  () NOEXCEPT {
         T c[L];
-        c[0] = fp<T>::max;
-        for(int i=1; i<L; i++) c[i] = c[i-1] * ( fp<T>::epsilon * fp<T>::half );
+        c[0] = fp<T>::max();
+        for(int i=1; i<L; i++) c[i] = c[i-1] * ( fp<T>::epsilon() * fp<T>::nhalf() );
         return DX_REAL<>{ c };
       }
 
@@ -276,14 +276,14 @@ namespace mX_real {
       // static member funtions
       // definition is below outside of the struct definition block
       //
+      static INLINE DX_REAL<> constexpr fabs ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE DX_REAL<> constexpr abs ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE DX_REAL<> constexpr sqrt ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE DX_REAL<> constexpr fabs ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE DX_REAL<> rand () NOEXCEPT;
-      static INLINE bool constexpr isinf ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr signbit ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_zero ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_positive ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr isinf ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_zero ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr signbit ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr isnan ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_negative ( DX_REAL<> const& a ) NOEXCEPT;
       //
@@ -295,10 +295,10 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () NOEXCEPT { mX_real::Normalize( *this ); }
       //
-      INLINE bool constexpr isinf () const NOEXCEPT { return DX_REAL<>::isinf( *this ); }
-      INLINE bool constexpr signbit () const NOEXCEPT { return DX_REAL<>::signbit( *this ); }
-      INLINE bool constexpr is_zero () const NOEXCEPT { return DX_REAL<>::is_zero( *this ); }
       INLINE bool constexpr is_positive () const NOEXCEPT { return DX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr isinf () const NOEXCEPT { return DX_REAL<>::isinf( *this ); }
+      INLINE bool constexpr is_zero () const NOEXCEPT { return DX_REAL<>::is_zero( *this ); }
+      INLINE bool constexpr signbit () const NOEXCEPT { return DX_REAL<>::signbit( *this ); }
       INLINE bool constexpr isnan () const NOEXCEPT { return DX_REAL<>::isnan( *this ); }
       INLINE bool constexpr is_negative () const NOEXCEPT { return DX_REAL<>::is_negative( *this ); }
       //
@@ -358,10 +358,6 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isinf ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
-      return fp<T>::isinf( a.quick_Normalized() );
-    }
-    template < typename T, Algorithm Aa >
     INLINE auto constexpr isnan ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
       return fp<T>::isnan( a.quick_Normalized() );
     }
@@ -370,16 +366,20 @@ namespace mX_real {
       return fp<T>::signbit( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
+    INLINE auto constexpr isinf ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
+      return fp<T>::isinf( a.quick_Normalized() );
+    }
+    template < typename T, Algorithm Aa >
     INLINE bool constexpr is_positive ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
-      return a.quick_Normalized() > fp<T>::zero;
+      return a.quick_Normalized() > fp<T>::zero();
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_zero ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
-      return a.quick_Normalized() == fp<T>::zero;
+      return a.quick_Normalized() == fp<T>::zero();
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_negative ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
-      return a.quick_Normalized() < fp<T>::zero;
+      return a.quick_Normalized() < fp<T>::zero();
     }
     //
     template < typename T, Algorithm A >
@@ -1963,7 +1963,7 @@ namespace mX_real {
     template < typename T, Algorithm A, T_fp(T) >
     INLINE auto rand () NOEXCEPT {
       using TX = dX_real::dx_real<T,A>;
-      auto const f = fp<T>::half / (1 << 30);
+      auto const f = fp<T>::nhalf() / (1 << 30);
       auto g = f;
       auto r = TX::zero();
       auto const bits = std::numeric_limits<TX>::digits;

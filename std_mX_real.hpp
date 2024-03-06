@@ -27,20 +27,20 @@ namespace std {
 #  define       STATIC_VAR      static inline
 #  define       STATIC_INIT(...)        = ( __VA_ARGS__ )
 #endif
-    STATIC_VAR int const digits STATIC_INIT( mX_real::fp<T>::digits * TX::L );
-    STATIC_VAR int const digits10 STATIC_INIT( mX_real::fp<T>::digits10 * TX::L );
-    STATIC_VAR int const max_digits10 STATIC_INIT( mX_real::fp<T>::max_digits10 * TX::L );
+    STATIC_VAR int const digits STATIC_INIT( mX_real::fp<T>::digits() * TX::L );
+    STATIC_VAR int const digits10 STATIC_INIT( mX_real::fp<T>::digits10() * TX::L );
+    STATIC_VAR int const max_digits10 STATIC_INIT( mX_real::fp<T>::max_digits10() * TX::L );
   };
 #undef STATIC_VAR
 #undef STATIC_INIT
 
 #if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
   template < typename T, mX_real::Algorithm A >
-  int const numeric_limits<mX_real::dX_real::dx_real<T,A>>::digits = mX_real::fp<T>::digits * mX_real::dX_real::dx_real<T,A>::L;
+  int const numeric_limits<mX_real::dX_real::dx_real<T,A>>::digits = mX_real::fp<T>::digits() * mX_real::dX_real::dx_real<T,A>::L;
   template < typename T, mX_real::Algorithm A >
-  int const numeric_limits<mX_real::dX_real::dx_real<T,A>>::digits10 = mX_real::fp<T>::digits10 * mX_real::dX_real::dx_real<T,A>::L;
+  int const numeric_limits<mX_real::dX_real::dx_real<T,A>>::digits10 = mX_real::fp<T>::digits10() * mX_real::dX_real::dx_real<T,A>::L;
   template < typename T, mX_real::Algorithm A >
-  int const numeric_limits<mX_real::dX_real::dx_real<T,A>>::max_digits10 = mX_real::fp<T>::max_digits10 * mX_real::dX_real::dx_real<T,A>::L;
+  int const numeric_limits<mX_real::dX_real::dx_real<T,A>>::max_digits10 = mX_real::fp<T>::max_digits10() * mX_real::dX_real::dx_real<T,A>::L;
 #endif
   
   template < typename T, mX_real::Algorithm A >
@@ -94,20 +94,20 @@ namespace std {
 #  define       STATIC_VAR      static inline
 #  define       STATIC_INIT(...)        = ( __VA_ARGS__ )
 #endif
-    STATIC_VAR int const digits STATIC_INIT( mX_real::fp<T>::digits * TX::L );
-    STATIC_VAR int const digits10 STATIC_INIT( mX_real::fp<T>::digits10 * TX::L );
-    STATIC_VAR int const max_digits10 STATIC_INIT( mX_real::fp<T>::max_digits10 * TX::L );
+    STATIC_VAR int const digits STATIC_INIT( mX_real::fp<T>::digits() * TX::L );
+    STATIC_VAR int const digits10 STATIC_INIT( mX_real::fp<T>::digits10() * TX::L );
+    STATIC_VAR int const max_digits10 STATIC_INIT( mX_real::fp<T>::max_digits10() * TX::L );
   };
 #undef STATIC_VAR
 #undef STATIC_INIT
 
 #if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
   template < typename T, mX_real::Algorithm A >
-  int const numeric_limits<mX_real::tX_real::tx_real<T,A>>::digits = mX_real::fp<T>::digits * mX_real::tX_real::tx_real<T,A>::L;
+  int const numeric_limits<mX_real::tX_real::tx_real<T,A>>::digits = mX_real::fp<T>::digits() * mX_real::tX_real::tx_real<T,A>::L;
   template < typename T, mX_real::Algorithm A >
-  int const numeric_limits<mX_real::tX_real::tx_real<T,A>>::digits10 = mX_real::fp<T>::digits10 * mX_real::tX_real::tx_real<T,A>::L;
+  int const numeric_limits<mX_real::tX_real::tx_real<T,A>>::digits10 = mX_real::fp<T>::digits10() * mX_real::tX_real::tx_real<T,A>::L;
   template < typename T, mX_real::Algorithm A >
-  int const numeric_limits<mX_real::tX_real::tx_real<T,A>>::max_digits10 = mX_real::fp<T>::max_digits10 * mX_real::tX_real::tx_real<T,A>::L;
+  int const numeric_limits<mX_real::tX_real::tx_real<T,A>>::max_digits10 = mX_real::fp<T>::max_digits10() * mX_real::tX_real::tx_real<T,A>::L;
 #endif
   
   template < typename T, mX_real::Algorithm A >
@@ -161,20 +161,20 @@ namespace std {
 #  define       STATIC_VAR      static inline
 #  define       STATIC_INIT(...)        = ( __VA_ARGS__ )
 #endif
-    STATIC_VAR int const digits STATIC_INIT( mX_real::fp<T>::digits * TX::L );
-    STATIC_VAR int const digits10 STATIC_INIT( mX_real::fp<T>::digits10 * TX::L );
-    STATIC_VAR int const max_digits10 STATIC_INIT( mX_real::fp<T>::max_digits10 * TX::L );
+    STATIC_VAR int const digits STATIC_INIT( mX_real::fp<T>::digits() * TX::L );
+    STATIC_VAR int const digits10 STATIC_INIT( mX_real::fp<T>::digits10() * TX::L );
+    STATIC_VAR int const max_digits10 STATIC_INIT( mX_real::fp<T>::max_digits10() * TX::L );
   };
 #undef STATIC_VAR
 #undef STATIC_INIT
 
 #if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
   template < typename T, mX_real::Algorithm A >
-  int const numeric_limits<mX_real::qX_real::qx_real<T,A>>::digits = mX_real::fp<T>::digits * mX_real::qX_real::qx_real<T,A>::L;
+  int const numeric_limits<mX_real::qX_real::qx_real<T,A>>::digits = mX_real::fp<T>::digits() * mX_real::qX_real::qx_real<T,A>::L;
   template < typename T, mX_real::Algorithm A >
-  int const numeric_limits<mX_real::qX_real::qx_real<T,A>>::digits10 = mX_real::fp<T>::digits10 * mX_real::qX_real::qx_real<T,A>::L;
+  int const numeric_limits<mX_real::qX_real::qx_real<T,A>>::digits10 = mX_real::fp<T>::digits10() * mX_real::qX_real::qx_real<T,A>::L;
   template < typename T, mX_real::Algorithm A >
-  int const numeric_limits<mX_real::qX_real::qx_real<T,A>>::max_digits10 = mX_real::fp<T>::max_digits10 * mX_real::qX_real::qx_real<T,A>::L;
+  int const numeric_limits<mX_real::qX_real::qx_real<T,A>>::max_digits10 = mX_real::fp<T>::max_digits10() * mX_real::qX_real::qx_real<T,A>::L;
 #endif
   
   template < typename T, mX_real::Algorithm A >

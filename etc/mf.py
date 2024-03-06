@@ -398,7 +398,7 @@ def gen_prng ( Tc ) :
     print( 'template < typename T, Algorithm A, T_fp(T) >' )
     print( 'INLINE auto rand () NOEXCEPT {' )
     print( '  using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc) ) )
-    print( '  auto const f = fp<T>::half / (1 << 30);' )
+    print( '  auto const f = fp<T>::nhalf() / (1 << 30);' )
     print( '  auto g = f;' )
     print( '  auto r = TX::zero();' )
     print( '  auto const bits = std::numeric_limits<TX>::digits;' )
@@ -445,7 +445,7 @@ def gen_bit ( Tc ) :
         op = a_list[1]
         print( '  template < typename T, Algorithm Aa >' )
         print( '  INLINE bool constexpr {func} ( {m}X_real::{m}x_real<T,Aa> const& a ) NOEXCEPT {{'.format( m=mX_type(Tc), func=func ) )
-        print( '    return a.quick_Normalized() {op} fp<T>::zero;'.format( op=op ) )
+        print( '    return a.quick_Normalized() {op} fp<T>::zero();'.format( op=op ) )
         print( '  }' )
     print( '//' )
     for func in [ 'isinf', 'isnan', 'signbit', 'is_zero', 'is_positive', 'is_negative' ] :

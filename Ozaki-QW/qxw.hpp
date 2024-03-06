@@ -5209,7 +5209,7 @@ namespace QxW {
     t1 = t1 + t3;
     t0 = t0 + t1 + t2;
     t0 = std::fma ( a1, b1, t0 );
-    t0 = t0 * fp_const<T>::half();
+    t0 = t0 * fp_const<T>::nhalf();
     t1 = std::fma ( a0, b2, t0 );
     t2 = std::fma ( b0, a2, t0 );
     t1 = t1 + t2;
@@ -5238,7 +5238,7 @@ namespace QxW {
     TwoSum( c2, t5, c2, t5 );
     TwoSum( c2, t7, c2, t7 );
     t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8;
-    t0 = t0 * fp_const<T>::half();
+    t0 = t0 * fp_const<T>::nhalf();
     t1 = std::fma ( a1, b2, t0 );
     t2 = std::fma ( a2, b1, t0 );
     t0 = t1 + t2;
@@ -5729,7 +5729,7 @@ namespace QxW {
     t4 = a2 + a3;
     t5 = b2 + b3;
     t0 = std::fma ( a1, b1, t0 );
-    t0 = t0 * fp_const<T>::half();
+    t0 = t0 * fp_const<T>::nhalf();
     t1 = std::fma ( a0, t5, t0 );
     t2 = std::fma ( b0, t4, t0 );
     t1 = t1 + t2;
@@ -5758,7 +5758,7 @@ namespace QxW {
     TwoSum( c2, t5, c2, t5 );
     TwoSum( c2, t7, c2, t7 );
     t0 = t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8;
-    t0 = t0 * fp_const<T>::half();
+    t0 = t0 * fp_const<T>::nhalf();
     t1 = std::fma ( a0, b3, t0 );
     t2 = std::fma ( a3, b0, t0 );
     t1 = std::fma ( a1, b2, t1 );
@@ -5813,7 +5813,7 @@ namespace QxW {
     t9 = t0 + t1 + t2 + t3 + t4 + t5 + t7;
     FastTwoSum( c3, t9, c3, t9 );
     FastTwoSum( c2, c3, c2, c3 );
-    t0 = t9 * fp_const<T>::half();
+    t0 = t9 * fp_const<T>::nhalf();
     t10 = std::fma ( a1, b3, t0 );
     t11 = std::fma ( a3, b1, t0 );
     t0 = t10 + t11;
@@ -7314,7 +7314,7 @@ namespace QxW {
     tn = t0 + t1 + t2;
     td = c0 + c1;
     c2 = tn / td;
-    c2 = c2 * fp_const<T>::half();
+    c2 = c2 * fp_const<T>::nhalf();
   }
 
   // sqrt: 1-4
@@ -7329,7 +7329,7 @@ namespace QxW {
     tn = t0 + t1 + t2 + t3;
     td = c0 + c1 + c2;
     c3 = tn / td;
-    c3 = c3 * fp_const<T>::half();
+    c3 = c3 * fp_const<T>::nhalf();
   }
 
   // sqrt: 2-1
@@ -7359,7 +7359,7 @@ namespace QxW {
     tn = t0 + t1 + t2;
     td = c0 + c1;
     c2 = tn / td;
-    c2 = c2 * fp_const<T>::half();
+    c2 = c2 * fp_const<T>::nhalf();
   }
 
   // sqrt: 2-4
@@ -7374,7 +7374,7 @@ namespace QxW {
     tn = t0 + t1 + t2 + t3;
     td = c0 + c1 + c2;
     c3 = tn / td;
-    c3 = c3 * fp_const<T>::half();
+    c3 = c3 * fp_const<T>::nhalf();
   }
 
   // sqrt: 3-1
@@ -7404,7 +7404,7 @@ namespace QxW {
     tn = t0 + t1 + t2;
     td = c0 + c1;
     c2 = tn / td;
-    c2 = c2 * fp_const<T>::half();
+    c2 = c2 * fp_const<T>::nhalf();
   }
 
   // sqrt: 3-4
@@ -7419,7 +7419,7 @@ namespace QxW {
     tn = t0 + t1 + t2 + t3;
     td = c0 + c1 + c2;
     c3 = tn / td;
-    c3 = c3 * fp_const<T>::half();
+    c3 = c3 * fp_const<T>::nhalf();
   }
 
   // sqrt: 4-1
@@ -7456,7 +7456,7 @@ namespace QxW {
     tn = t0 + t1 + t2 + t3;
     td = c0 + c1 + c2;
     c3 = tn / td;
-    c3 = c3 * fp_const<T>::half();
+    c3 = c3 * fp_const<T>::nhalf();
   }
 
   // sqrt: 1-2
@@ -7467,9 +7467,9 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1;
     T r0, r1;
     r0 = e / as;
@@ -7492,9 +7492,9 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1, t2;
     T r0, r1, r2;
     r0 = e / as;
@@ -7523,9 +7523,9 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     r0 = e / as;
@@ -7569,7 +7569,7 @@ namespace QxW {
     TwoProductFMA( ax, ax, r0, r1 );
     sub_DW_DW_SW( b0, b1, r0, r1, c0 );
 
-    c0 = ax + c0 * ( x * fp_const<T>::half() );
+    c0 = ax + c0 * ( x * fp_const<T>::nhalf() );
     c0 = c0 * e;
   }
 
@@ -7581,10 +7581,10 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
     T const ax1 = (a1 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1;
     T r0, r1;
     r0 = e / as;
@@ -7607,10 +7607,10 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
     T const ax1 = (a1 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1, t2;
     T r0, r1, r2;
     r0 = e / as;
@@ -7639,10 +7639,10 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
     T const ax1 = (a1 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     r0 = e / as;
@@ -7687,7 +7687,7 @@ namespace QxW {
     TwoProductFMA( ax, ax, r0, r1 );
     sub_TW_DW_SW( b0, b1, b2, r0, r1, c0 );
 
-    c0 = ax + c0 * ( x * fp_const<T>::half() );
+    c0 = ax + c0 * ( x * fp_const<T>::nhalf() );
     c0 = c0 * e;
   }
 
@@ -7699,11 +7699,11 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
     T const ax1 = (a1 * ex) * ex2;
     T const ax2 = (a2 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1, t2;
     T r0, r1, r2;
     r0 = e / as;
@@ -7726,11 +7726,11 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
     T const ax1 = (a1 * ex) * ex2;
     T const ax2 = (a2 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1, t2;
     T r0, r1, r2;
     r0 = e / as;
@@ -7759,11 +7759,11 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
     T const ax1 = (a1 * ex) * ex2;
     T const ax2 = (a2 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     r0 = e / as;
@@ -7809,7 +7809,7 @@ namespace QxW {
     TwoProductFMA( ax, ax, r0, r1 );
     sub_DW_DW_SW( b0, b1, b2, b3, r0, r1, c0 );
 
-    c0 = ax + c0 * ( x * fp_const<T>::half() );
+    c0 = ax + c0 * ( x * fp_const<T>::nhalf() );
     c0 = c0 * e;
   }
 
@@ -7821,12 +7821,12 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
     T const ax1 = (a1 * ex) * ex2;
     T const ax2 = (a2 * ex) * ex2;
     T const ax3 = (a3 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     r0 = e / as;
@@ -7849,12 +7849,12 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
     T const ax1 = (a1 * ex) * ex2;
     T const ax2 = (a2 * ex) * ex2;
     T const ax3 = (a3 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     r0 = e / as;
@@ -7883,12 +7883,12 @@ namespace QxW {
     T const e  = fp_const<T>::exponent( as );
     T const e2 = e * fp_const<T>::two();
     T const ex = fp_const<T>::exponenti( as );
-    T const ex2 = ex * fp_const<T>::half();
+    T const ex2 = ex * fp_const<T>::nhalf();
     T const ax0 = (a0 * ex) * ex2;
     T const ax1 = (a1 * ex) * ex2;
     T const ax2 = (a2 * ex) * ex2;
     T const ax3 = (a3 * ex) * ex2;
-    T const h0 = 3*fp_const<T>::half();
+    T const h0 = 3*fp_const<T>::nhalf();
     T t0, t1, t2, t3;
     T r0, r1, r2, r3;
     r0 = e / as;

@@ -78,7 +78,7 @@ namespace mX_real {
       //
       //
       INLINE qx_real() NOEXCEPT {
-        for(int i=0; i<L; i++) { x[i] = fp<T>::zero; }
+        for(int i=0; i<L; i++) { x[i] = fp<T>::zero(); }
       }
       INLINE qx_real( T const& x0, T const& x1, T const& x2, T const& x3 ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
@@ -91,7 +91,7 @@ namespace mX_real {
       }
       template < typename Ts, T_scalar(Ts) >
       INLINE qx_real( Ts const &h ) NOEXCEPT {
-        { x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero; } }
+        { x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
       }
       INLINE qx_real( T const *d ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
@@ -139,7 +139,7 @@ namespace mX_real {
       //
       template < typename Ts, T_scalar(Ts) >
       INLINE QX_REAL<> constexpr &operator=( Ts const& h )& NOEXCEPT {
-        x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero; }
+        x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); }
         return *this;
       }
       template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
@@ -233,41 +233,41 @@ namespace mX_real {
       // but they follow in the Algorithm argument 'A'
       //
       //
-      static INLINE QX_REAL<> constexpr zero () NOEXCEPT { return QX_REAL<>{ fp<T>::zero }; }
-      static INLINE QX_REAL<> constexpr one () NOEXCEPT { return QX_REAL<>{ fp<T>::one }; }
-      static INLINE QX_REAL<> constexpr two () NOEXCEPT { return QX_REAL<>{ fp<T>::two }; }
-      static INLINE QX_REAL<> constexpr half () NOEXCEPT { return QX_REAL<>{ fp<T>::half }; }
-      static INLINE QX_REAL<> constexpr nan () NOEXCEPT { T c = fp<T>::nan; return QX_REAL<>{ c, c, c, c }; }
-      static INLINE QX_REAL<> constexpr inf () NOEXCEPT { T c = fp<T>::inf; return QX_REAL<>{ c, c, c, c }; }
+      static INLINE QX_REAL<> constexpr zero () NOEXCEPT { return QX_REAL<>{ fp<T>::zero() }; }
+      static INLINE QX_REAL<> constexpr one () NOEXCEPT { return QX_REAL<>{ fp<T>::one() }; }
+      static INLINE QX_REAL<> constexpr two () NOEXCEPT { return QX_REAL<>{ fp<T>::two() }; }
+      static INLINE QX_REAL<> constexpr nhalf () NOEXCEPT { return QX_REAL<>{ fp<T>::nhalf() }; }
+      static INLINE QX_REAL<> constexpr nan () NOEXCEPT { T c = fp<T>::nan(); return QX_REAL<>{ c, c, c, c }; }
+      static INLINE QX_REAL<> constexpr inf () NOEXCEPT { T c = fp<T>::inf(); return QX_REAL<>{ c, c, c, c }; }
       static INLINE QX_REAL<> constexpr epsilon () NOEXCEPT {
-        T c = fp<T>::epsilon * fp<T>::half; c = (c * c* c* c) * 2;
+        T c = fp<T>::epsilon() * fp<T>::nhalf(); c = (c * c* c* c) * 2;
         return QX_REAL<>{ c };
       }
       static INLINE QX_REAL<> constexpr denorm_min  () NOEXCEPT {
-        T c = fp<T>::denorm_min;
+        T c = fp<T>::denorm_min();
         return QX_REAL<>{ c };
       }
       static INLINE QX_REAL<> constexpr min  () NOEXCEPT {
-        T c = fp<T>::min;
-        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+        T c = fp<T>::min();
+        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
         return QX_REAL<>{ c };
       }
       static INLINE QX_REAL<> constexpr safe_min  () NOEXCEPT {
-        T c = fp<T>::min;
-        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+        T c = fp<T>::min();
+        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
         c = std::sqrt( c );
         return QX_REAL<>{ c };
       }
       static INLINE QX_REAL<> constexpr critical_min  () NOEXCEPT {
-        T c = fp<T>::denorm_min;
-        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni * 2 );
+        T c = fp<T>::denorm_min();
+        for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
         c = std::sqrt( c );
         return QX_REAL<>{ c };
       }
       static INLINE QX_REAL<> constexpr max  () NOEXCEPT {
         T c[L];
-        c[0] = fp<T>::max;
-        for(int i=1; i<L; i++) c[i] = c[i-1] * ( fp<T>::epsilon * fp<T>::half );
+        c[0] = fp<T>::max();
+        for(int i=1; i<L; i++) c[i] = c[i-1] * ( fp<T>::epsilon() * fp<T>::nhalf() );
         return QX_REAL<>{ c };
       }
 
@@ -276,16 +276,16 @@ namespace mX_real {
       // static member funtions
       // definition is below outside of the struct definition block
       //
-      static INLINE QX_REAL<> constexpr fabs ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE QX_REAL<> constexpr abs ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE QX_REAL<> constexpr sqrt ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE QX_REAL<> constexpr fabs ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE QX_REAL<> rand () NOEXCEPT;
-      static INLINE bool constexpr isnan ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_positive ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_zero ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr isinf ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_negative ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_positive ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr isnan ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr signbit ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_zero ( QX_REAL<> const& a ) NOEXCEPT;
       //
 
 
@@ -295,12 +295,12 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () NOEXCEPT { mX_real::Normalize( *this ); }
       //
-      INLINE bool constexpr isnan () const NOEXCEPT { return QX_REAL<>::isnan( *this ); }
+      INLINE bool constexpr is_positive () const NOEXCEPT { return QX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr is_zero () const NOEXCEPT { return QX_REAL<>::is_zero( *this ); }
       INLINE bool constexpr isinf () const NOEXCEPT { return QX_REAL<>::isinf( *this ); }
       INLINE bool constexpr is_negative () const NOEXCEPT { return QX_REAL<>::is_negative( *this ); }
-      INLINE bool constexpr is_positive () const NOEXCEPT { return QX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr isnan () const NOEXCEPT { return QX_REAL<>::isnan( *this ); }
       INLINE bool constexpr signbit () const NOEXCEPT { return QX_REAL<>::signbit( *this ); }
-      INLINE bool constexpr is_zero () const NOEXCEPT { return QX_REAL<>::is_zero( *this ); }
       //
 
 
@@ -370,16 +370,16 @@ namespace mX_real {
       return fp<T>::isnan( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
+    INLINE bool constexpr is_positive ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
+      return a.quick_Normalized() > fp<T>::zero();
+    }
+    template < typename T, Algorithm Aa >
     INLINE bool constexpr is_negative ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
-      return a.quick_Normalized() < fp<T>::zero;
+      return a.quick_Normalized() < fp<T>::zero();
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_zero ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
-      return a.quick_Normalized() == fp<T>::zero;
-    }
-    template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_positive ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
-      return a.quick_Normalized() > fp<T>::zero;
+      return a.quick_Normalized() == fp<T>::zero();
     }
     //
     template < typename T, Algorithm A >
@@ -1963,7 +1963,7 @@ namespace mX_real {
     template < typename T, Algorithm A, T_fp(T) >
     INLINE auto rand () NOEXCEPT {
       using TX = qX_real::qx_real<T,A>;
-      auto const f = fp<T>::half / (1 << 30);
+      auto const f = fp<T>::nhalf() / (1 << 30);
       auto g = f;
       auto r = TX::zero();
       auto const bits = std::numeric_limits<TX>::digits;

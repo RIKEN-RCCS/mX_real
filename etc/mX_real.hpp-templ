@@ -117,76 +117,40 @@ namespace mX_real {
   //
   // generic terms (const, comparison funcs, and sign-bit ops)
   //
-#if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
-#  define	STATIC_VAR	static
-#else
-#  define	STATIC_VAR	static inline
-#endif
-  //
 @@@{ X float double
   template <>
   struct fp<@{X}@> {
     static bool   constexpr value = true;
 
-    STATIC_VAR @{X}@ constexpr zero    = @{X}@(0);
-    STATIC_VAR @{X}@ constexpr one     = @{X}@(1);
-    STATIC_VAR @{X}@ constexpr two     = @{X}@(2);
-    STATIC_VAR @{X}@ constexpr half    = @{X}@(0.5);
+    static INLINE auto constexpr zero()  NOEXCEPT { return @{X}@(0); }
+    static INLINE auto constexpr one()   NOEXCEPT { return @{X}@(1); }
+    static INLINE auto constexpr two()   NOEXCEPT { return @{X}@(2); }
+    static INLINE auto constexpr nhalf() NOEXCEPT { return @{X}@(0.5); }
 
-    STATIC_VAR @{X}@ constexpr epsilon    = std::numeric_limits<@{X}@>::epsilon();
-    STATIC_VAR @{X}@ constexpr epsiloni   = one/std::numeric_limits<@{X}@>::epsilon();
-    STATIC_VAR @{X}@ constexpr nan        = std::numeric_limits<@{X}@>::quiet_NaN();
-    STATIC_VAR @{X}@ constexpr inf        = std::numeric_limits<@{X}@>::infinity();
-    STATIC_VAR @{X}@ constexpr denorm_min = std::numeric_limits<@{X}@>::denorm_min();
-    STATIC_VAR @{X}@ constexpr min        = std::numeric_limits<@{X}@>::min();
-    STATIC_VAR @{X}@ constexpr max        = std::numeric_limits<@{X}@>::max();
+    static INLINE auto constexpr epsilon()    NOEXCEPT { return std::numeric_limits<@{X}@>::epsilon(); }
+    static INLINE auto constexpr epsiloni()   NOEXCEPT { return one()/std::numeric_limits<@{X}@>::epsilon(); }
+    static INLINE auto constexpr nan()        NOEXCEPT { return std::numeric_limits<@{X}@>::quiet_NaN(); }
+    static INLINE auto constexpr inf()        NOEXCEPT { return std::numeric_limits<@{X}@>::infinity(); }
+    static INLINE auto constexpr denorm_min() NOEXCEPT { return std::numeric_limits<@{X}@>::denorm_min(); }
+    static INLINE auto constexpr min()        NOEXCEPT { return std::numeric_limits<@{X}@>::min(); }
+    static INLINE auto constexpr max()        NOEXCEPT { return std::numeric_limits<@{X}@>::max(); }
 
-    STATIC_VAR int constexpr digits       = std::numeric_limits<@{X}@>::digits;
-    STATIC_VAR int constexpr digits10     = std::numeric_limits<@{X}@>::digits10;
-    STATIC_VAR int constexpr max_digits10 = std::numeric_limits<@{X}@>::max_digits10;
+    static INLINE auto constexpr digits()       NOEXCEPT { return std::numeric_limits<@{X}@>::digits; }
+    static INLINE auto constexpr digits10()     NOEXCEPT { return std::numeric_limits<@{X}@>::digits10; }
+    static INLINE auto constexpr max_digits10() NOEXCEPT { return std::numeric_limits<@{X}@>::max_digits10; }
 
-    static INLINE auto constexpr isinf       ( @{X}@  const a ) NOEXCEPT {
-      return std::isinf( a );
-    }
-    static INLINE auto constexpr isnan       ( @{X}@  const a ) NOEXCEPT {
-      return std::isnan( a );
-    }
-    static INLINE auto constexpr copysign    ( @{X}@  const a, @{X}@  const b ) NOEXCEPT {
-      return std::copysign( a, b );
-    }
-    static INLINE auto constexpr signbit     ( @{X}@  const a ) NOEXCEPT {
-      return std::signbit( a );
-    }
-    static INLINE auto constexpr is_zero     ( @{X}@  const a ) NOEXCEPT {
-      return a == fp<@{X}@>::zero;
-    }
-    static INLINE auto constexpr is_positive ( @{X}@  const a ) NOEXCEPT {
-      return a >  fp<@{X}@>::zero;
-    }
-    static INLINE auto constexpr is_negative ( @{X}@  const a ) NOEXCEPT {
-      return a <  fp<@{X}@>::zero;
-    }
+    static INLINE auto constexpr isinf       ( @{X}@ const& a ) NOEXCEPT { return std::isinf( a ); }
+    static INLINE auto constexpr isnan       ( @{X}@ const& a ) NOEXCEPT { return std::isnan( a ); }
+    static INLINE auto constexpr copysign    ( @{X}@ const& a, @{X}@ const& b ) NOEXCEPT { return std::copysign( a, b ); }
+    static INLINE auto constexpr signbit     ( @{X}@ const& a ) NOEXCEPT { return std::signbit( a ); }
+    static INLINE auto constexpr is_zero     ( @{X}@ const& a ) NOEXCEPT { return (a == fp<@{X}@>::zero()); }
+    static INLINE auto constexpr is_positive ( @{X}@ const& a ) NOEXCEPT { return (a >  fp<@{X}@>::zero()); }
+    static INLINE auto constexpr is_negative ( @{X}@ const& a ) NOEXCEPT { return (a <  fp<@{X}@>::zero()); }
   };
   //
 }@@@
   //
 #undef STATIC_VAR
-  //
-#if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
-@@@{ X float double
-  @{X}@  constexpr fp<@{X}@>::zero;
-  @{X}@  constexpr fp<@{X}@>::one;
-  @{X}@  constexpr fp<@{X}@>::two;
-  @{X}@  constexpr fp<@{X}@>::half;
-  @{X}@  constexpr fp<@{X}@>::epsilon;
-  @{X}@  constexpr fp<@{X}@>::inf;
-  @{X}@  constexpr fp<@{X}@>::nan;
-  @{X}@  constexpr fp<@{X}@>::denorm_min;
-  @{X}@  constexpr fp<@{X}@>::min;
-  @{X}@  constexpr fp<@{X}@>::max;
-  //
-}@@@
-#endif
   //
 
 
@@ -226,7 +190,7 @@ namespace mX_real {
       if ( L < LL ) { dest[L-1] += src[L]; }
     } else {
       for(int i=0; i<LL; i++) { dest[i] = src[i]; }
-      for(int i=LL; i<L; i++) { dest[i] = fp<T>::zero; }
+      for(int i=LL; i<L; i++) { dest[i] = fp<T>::zero(); }
     }
   }
 
@@ -370,9 +334,11 @@ namespace mX_real {
   //
   template < typename Ta, Algorithm Aa, int La, T_fp(Ta) >
   struct mx_real_impl {
-    using type = typename std::conditional_t< La <= 2, dX_real::dx_real<Ta,Aa>,
-                          std::conditional_t< La == 3, tX_real::tx_real<Ta,Aa>,
-                          std::conditional_t< La >= 4, qX_real::qx_real<Ta,Aa>, std::nullptr_t >>>;
+    using type = typename 
+      std::conditional_t< (La <= 2), dX_real::dx_real<Ta,Aa>,
+      std::conditional_t< (La == 3), tX_real::tx_real<Ta,Aa>,
+      std::conditional_t< (La >= 4), qX_real::qx_real<Ta,Aa>,
+      std::nullptr_t >>>;
   };
   template < typename Ta, Algorithm Aa, int La >
   using mx_real = typename mx_real_impl<Ta,Aa,La>::type;
@@ -386,9 +352,9 @@ namespace mX_real {
   // APIs for common constatnt number functions
   // such as ConstNum_func_name<Type>()
   // C++17 makes these functions simpler by using ifconstexpr
-@@@{ X zero one two half epsilon nan inf
+@@@{ X zero one two nhalf epsilon nan inf
   //
-  template < typename T, T_fp(T) > static INLINE auto constexpr @{X}@() NOEXCEPT { return fp<T>::@{X}@; }
+  template < typename T, T_fp(T) > static INLINE auto constexpr @{X}@() NOEXCEPT { return fp<T>::@{X}@(); }
   template < typename T, T_mX(T) > static INLINE auto constexpr @{X}@() NOEXCEPT { return T::@{X}@(); }
 }@@@
 

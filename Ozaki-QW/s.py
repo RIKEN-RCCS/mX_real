@@ -29,7 +29,7 @@ template < typename T > struct fp_const {};
 template <> struct fp_const<float> {
   static inline auto constexpr zero() { return 0.0f; }
   static inline auto constexpr one()  { return 1.0f; }
-  static inline auto constexpr half() { return 0.5f; }
+  static inline auto constexpr nhalf() { return 0.5f; }
 
   static uint32_t constexpr MASK = 0x7f800000;
   static uint32_t constexpr RINF = 0x7f000000;
@@ -50,7 +50,7 @@ template <> struct fp_const<float> {
 template <> struct fp_const<double> {
   static inline auto constexpr zero() { return 0.0; }
   static inline auto constexpr one()  { return 1.0; }
-  static inline auto constexpr half() { return 0.5; }
+  static inline auto constexpr nhalf() { return 0.5; }
 
   static uint64_t constexpr MASK = 0x7ff0000000000000;
   static uint64_t constexpr RINF = 0x7fe0000000000000;
@@ -696,7 +696,7 @@ def LET_propagate( line ) :
             if '!' in line[i] :
                 continue
             a_list = line[i].split()
-            if a_list[0] == 'MUL' and 'half' in a_list[3] :
+            if a_list[0] == 'MUL' and 'nhalf' in a_list[3] :
                 if i+1 >= len(line) :
                     continue
                 b_list = line[i+1].split()
@@ -972,7 +972,7 @@ def gen_sqrt( NA, NC, ACC ) :
             if NA == 4 :
                 print( '  sub_DW_DW_SW( b0, b1, b2, b3, r0, r1, c0 );' )
             print( '' )
-            print( '  c0 = ax + c0 * ( x * fp_const<T>::half() );' )
+            print( '  c0 = ax + c0 * ( x * fp_const<T>::nhalf() );' )
             print( '  c0 = c0 * e;' )
             print( '}\n' )
         return
@@ -1015,7 +1015,7 @@ def gen_sqrt( NA, NC, ACC ) :
                 print( '  sub_TW_DW_SW( b0, b1, b2, r0, r1, c0 );' )
             if NA == 4 :
                 print( '  sub_QW_DW_SW( b0, b1, b2, b3, r0, r1, c0 );' )
-            print( '  TwoSum( ax, c0 * ( x * fp_const<T>::half() ), c0, c1 );' )
+            print( '  TwoSum( ax, c0 * ( x * fp_const<T>::nhalf() ), c0, c1 );' )
             print( '\n  c0 = c0 * e;' )
             print( '  c1 = c1 * e;' )
 
@@ -1060,7 +1060,7 @@ def gen_sqrt( NA, NC, ACC ) :
             LineCount = LineCount + 1
             line[LineCount] = 'DIV c{} tn td'.format( NC-1 )
             LineCount = LineCount + 1
-            line[LineCount] = 'MUL c{} c{} fp_const<T>::half()'.format( NC-1, NC-1 )
+            line[LineCount] = 'MUL c{} c{} fp_const<T>::nhalf()'.format( NC-1, NC-1 )
 
     else :
 
@@ -1070,12 +1070,12 @@ def gen_sqrt( NA, NC, ACC ) :
         print( '  T const e  = fp_const<T>::exponent( as );' )
         print( '  T const e2 = e * fp_const<T>::two();' )
         print( '  T const ex = fp_const<T>::exponenti( as );' )
-        print( '  T const ex2 = ex * fp_const<T>::half();' )
+        print( '  T const ex2 = ex * fp_const<T>::nhalf();' )
 
         NX = max(NA, NC)
 
         [ print( '  T const ax{} = (a{} * ex) * ex2;'.format( i, i ) ) for i in range( NA ) ]
-        print( '  T const h0 = 3*fp_const<T>::half();' )
+        print( '  T const h0 = 3*fp_const<T>::nhalf();' )
 
         print( '  T ' + ', '.join( [ 't{}'.format( i ) for i in range( NX ) ] ) + ';' )
         print( '  T ' + ', '.join( [ 'r{}'.format( i ) for i in range( NX ) ] ) + ';' )

@@ -18,7 +18,7 @@ namespace std {
 #  define       STATIC_INIT(...)        = ( __VA_ARGS__ )
 #endif
 @@@{ F digits digits10 max_digits10
-    STATIC_VAR int const @{F}@ STATIC_INIT( mX_real::fp<T>::@{F}@ * TX::L );
+    STATIC_VAR int const @{F}@ STATIC_INIT( mX_real::fp<T>::@{F}@() * TX::L );
 }@@@
   };
 #undef STATIC_VAR
@@ -27,7 +27,7 @@ namespace std {
 #if __cplusplus < 201703L || defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_CLANG_COMPILER)
 @@@{ F digits digits10 max_digits10
   template < typename T, mX_real::Algorithm A >
-    int const numeric_limits<mX_real::@{m}@X_real::@{m}@x_real<T,A>>::@{F}@ = mX_real::fp<T>::@{F}@ * mX_real::@{m}@X_real::@{m}@x_real<T,A>::L;
+    int const numeric_limits<mX_real::@{m}@X_real::@{m}@x_real<T,A>>::@{F}@ = mX_real::fp<T>::@{F}@() * mX_real::@{m}@X_real::@{m}@x_real<T,A>::L;
 }@@@
 #endif
   
