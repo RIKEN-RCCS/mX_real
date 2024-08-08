@@ -6198,7 +6198,7 @@ namespace QxW {
   {
     T r0, r1, q0, q1, s0, s1;
     q0 = a0 / b0;
-    TwoProdFMA( b0, q0, r0, r1 );
+    TwoProductFMA( b0, q0, r0, r1 );
     r1 = std::fma( q0, b1, r1 );
     TwoSum( a0, -r0, s0, s1 );
     s1 = (s1 - r1) + a1;

@@ -1588,7 +1588,7 @@ def gen_div( NA, NB, NC, ACC ) :
         else :
             print( '  T r0, r1, q0, q1, s0, s1;' )
             print( '  q0 = a0 / b0;' )
-            print( '  TwoProdFMA( b0, q0, r0, r1 );' )
+            print( '  TwoProductFMA( b0, q0, r0, r1 );' )
             print( '  r1 = std::fma( q0, b1, r1 );' )
             print( '  TwoSum( a0, -r0, s0, s1 );' )
             print( '  s1 = (s1 - r1) + a1;' )
