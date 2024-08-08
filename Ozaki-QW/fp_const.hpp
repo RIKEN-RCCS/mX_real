@@ -31,6 +31,7 @@ namespace QxW {
     static INLINE auto constexpr one()  NOEXCEPT { return 1.0f; }
     static INLINE auto constexpr two()  NOEXCEPT { return 2.0f; }
     static INLINE auto constexpr nhalf() NOEXCEPT { return 0.5f; }
+    static INLINE auto constexpr threehalves() NOEXCEPT { return 1.5f; }
 
     static uint32_t constexpr FONE = 0x00000001;
     static uint32_t constexpr SBIT = FONE << (32-1); // 0x80000000;
@@ -77,6 +78,7 @@ namespace QxW {
     static INLINE auto constexpr one()  NOEXCEPT { return 1.0; }
     static INLINE auto constexpr two()  NOEXCEPT { return 2.0; }
     static INLINE auto constexpr nhalf() NOEXCEPT { return 0.5; }
+    static INLINE auto constexpr threehalves() NOEXCEPT { return 1.5; }
 
     static uint64_t constexpr FONE = 0x0000000000000001;
     static uint64_t constexpr SBIT = FONE << (64-1); // 0x8000000000000000;

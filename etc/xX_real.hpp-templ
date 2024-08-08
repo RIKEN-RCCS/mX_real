@@ -11,7 +11,7 @@ namespace @{m}@X_real {
   struct @{m}@x_real {
 
     static_assert( fp<T>::value,
-                   "The base type must be out of the defined types, such as float or double." );
+                   "The base type must be a pre-defined type such as float or double." );
 
     //
     //
@@ -89,7 +89,10 @@ namespace @{m}@X_real {
 #endif
       { x[0] = x0;@@{ x[@{i}@] = x@{i}@;}@@ }
     }
-    template < typename Ts, T_scalar(Ts) >
+    INLINE @{m}@x_real( T const &h ) NOEXCEPT {
+      { x[0] = h; for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
+    }
+    template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE @{m}@x_real( Ts const &h ) NOEXCEPT {
       { x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
     }
@@ -118,16 +121,22 @@ namespace @{m}@X_real {
       } else
 #endif
       {
+        // rewritten in the copya and normalization process
         int constexpr LL = TX::L;
-        if ( ( L < LL || A != Algorithm::Quasi ) && _A_ == Algorithm::Quasi ) {
-          auto s = h;
-          mX_real::Normalize<1>( s );
-          mX_real::copy_with_rounding( x, s.x, L, LL );
+        bool constexpr need_normalize =
+          ( A != Algorithm::Quasi && _A_ == Algorithm::Quasi );
+        if ( L < LL ) {
+          if ( _A_ == Algorithm::Quasi ) {
+            auto s = h;
+            mX_real::Normalize<1>( s );
+            mX_real::copy_with_rounding( x, s.x, L, LL );
+          } else {
+            mX_real::copy_with_rounding( x, h.x, L, LL );
+          }
+          if ( need_normalize ) { mX_real::Normalize<0>( *this ); }
         } else {
           mX_real::copy_with_rounding( x, h.x, L, LL );
-        }
-        if ( L < LL ) {
-          mX_real::Normalize<0>( *this );
+          if ( need_normalize ) { mX_real::Normalize<1>( *this ); }
         }
       }
     }
@@ -137,7 +146,11 @@ namespace @{m}@X_real {
     // Copy-assignment operator
     //
     //
-    template < typename Ts, T_scalar(Ts) >
+    INLINE @{M}@X_REAL<> constexpr &operator=( T const& h )_LV_ NOEXCEPT {
+      x[0] = h; for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); }
+      return *this;
+    }
+    template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE @{M}@X_REAL<> constexpr &operator=( Ts const& h )_LV_ NOEXCEPT {
       x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); }
       return *this;
@@ -153,16 +166,22 @@ namespace @{m}@X_real {
       } else
 #endif
       {
-        int constexpr LL = @{M}@X_REAL<>::L;
-        if ( ( L < LL || A != Algorithm::Quasi ) && _A_ == Algorithm::Quasi ) {
-          auto s = h;
-          mX_real::Normalize<1>( s );
-          mX_real::copy_with_rounding( x, s.x, L, LL );
+        // rewritten in the copya and normalization process
+        int constexpr LL = _TX_<T,_A_>::L;
+        bool constexpr need_normalize = 
+          ( A != Algorithm::Quasi && _A_ == Algorithm::Quasi );
+        if ( L < LL ) {
+          if ( _A_ == Algorithm::Quasi ) {
+            auto s = h;
+            mX_real::Normalize<1>( s );
+            mX_real::copy_with_rounding( x, s.x, L, LL );
+          } else {
+            mX_real::copy_with_rounding( x, h.x, L, LL );
+          }
+          if ( need_normalize ) { mX_real::Normalize<0>( *this ); }
         } else {
           mX_real::copy_with_rounding( x, h.x, L, LL );
-        }
-        if ( L < LL ) {
-          mX_real::Normalize<0>( *this );
+          if ( need_normalize ) { mX_real::Normalize<1>( *this ); }
         }
       }
       return *this;
@@ -173,7 +192,15 @@ namespace @{m}@X_real {
     // Casting to other datatypes
     //
     //
-    template < typename Ts, T_fp(Ts) >
+    explicit
+    INLINE operator T() const NOEXCEPT {
+      if ( A == Algorithm::Quasi ) {
+        return this->quick_Normalized();
+      } else {
+        return x[0];
+      }
+    }
+    template < typename Ts, T_fp(Ts), T_neq_Ts(T,Ts) >
     explicit
     INLINE operator Ts() const NOEXCEPT {
       if ( A == Algorithm::Quasi ) {
@@ -194,15 +221,23 @@ namespace @{m}@X_real {
         for(int i=0; i<LL; i++) { c.x[i] = t; }
       } else
 #endif
-      if ( ( LL < L || _A_ != Algorithm::Quasi ) && A == Algorithm::Quasi ) {
-        auto s = *this;
-        mX_real::Normalize<1>( s );
-        mX_real::copy_with_rounding( c.x, s.x, LL, L );
-      } else {
-        mX_real::copy_with_rounding( c.x, x, LL, L );
-      }
-      if ( LL < L ) {
-        mX_real::Normalize<0>( c );
+      {
+       // rewritten in the copya and normalization process
+        bool constexpr need_normalize = 
+          ( _A_ != Algorithm::Quasi && A == Algorithm::Quasi );
+        if ( LL < L ) {
+          if ( A == Algorithm::Quasi ) {
+            auto s = *this;
+            mX_real::Normalize<1>( s );
+            mX_real::copy_with_rounding( c.x, s.x, LL, L );
+          } else {
+            mX_real::copy_with_rounding( c.x, x, LL, L );
+          }
+          if ( need_normalize ) { mX_real::Normalize<0>( c ); }
+        } else {
+          mX_real::copy_with_rounding( c.x, x, LL, L );
+          if ( need_normalize ) { mX_real::Normalize<1>( c ); }
+        }
       }
       return c;
     }
@@ -331,8 +366,8 @@ namespace @{m}@X_real {
   std::ostream& operator<< ( std::ostream& stream, @{m}@X_real::@{m}@x_real<T,Aa> const& a ) {
     int constexpr LL = @{m}@X_real::@{m}@x_real<T,Aa>::L;
 #if USE_MPREAL
-    mpfr::mpreal t = mpfr::mpreal(a.x[0]);
-    for(int i=1; i<LL; i++) { t += mpfr::mpreal(a.x[i]); }
+    mpfr::mpreal t = mpfr::mpreal( a.x[0] );
+    for(int i=1; i<LL; i++) { t += mpfr::mpreal( a.x[i] ); }
     stream << t;
 #else
     for(int i=0; i<LL; i++) { stream << a.x[i] << ":"; }

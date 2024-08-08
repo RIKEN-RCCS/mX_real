@@ -80,7 +80,7 @@ T nrm2( int const& L, T const* x ) {
   for(int i=0; i<L; i++) {
     z += x[i] * x[i];
   }
-  return sqrt(z);
+  return std::sqrt(z);
 }
 
 template < typename T >
@@ -92,7 +92,7 @@ T asum( int const& L, T const* x ) {
 #pragma omp simd
 #endif
   for(int i=0; i<L; i++) {
-    z += abs( x[i] );
+    z += std::fabs( x[i] );
   }
   return z;
 }
@@ -880,6 +880,47 @@ main(int argc, char *argv[])
     print( "2-eps+eps/2", s + fp<double>::epsilon()/2 );
   }
   
+  {
+    auto d = td_Real( 0.1 );
+    auto f = tf_Real( 0.1 );
+    auto du = dd_Real( 0.1 );
+    auto fu = df_Real( 0.1 );
+    auto ds = 0.2;
+    auto fs = 0.1f;
+    //
+    print( "d=", d );
+    print( "f=", f );
+    d *= d;
+    print( "(d*=d)=", d );
+    d += d;
+    print( "(d+=d)=", d );
+    d /= d;
+    print( "(d/=d)=", d );
+    f *= f;
+    print( "(f*=f)=", f );
+    f += f;
+    print( "(f+=f)=", f );
+    f /= f;
+    print( "(f/=f)=", f );
+    //
+    // d *= f; // error :: un-defined op
+    // f *= d; // error :: un-defined op
+    //
+    d *= du;
+    print( "(d*=du(0.2,0))=", d );
+    f *= fu;
+    print( "(f*=fu(0.1,0))=", f );
+    //
+    d *= ds;
+    print( "(d*=ds(0.2))=", d );
+    d *= fs;
+    print( "(d*=fs(0.1))=", d );
+    f *= fs;
+    print( "(f*=fs(0.1))=", f );
+    f *= ds;
+    print( "(f*=ds(0.2))=", f );
+  }
+
   init( L, alpha, x, y, z );
   
   std::cout << " BLAS1  : Vector length    = " << L <<"\n",
@@ -920,6 +961,9 @@ main(int argc, char *argv[])
   
 #endif
   
+//  using dd_mpreal = dX_real::dx_real<mpfr::mpreal>;
+//  verify<dd_mpreal> ( L, alpha, x, y, z );
+
   delete [] x;
   delete [] y;
   delete [] z;

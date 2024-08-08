@@ -36,6 +36,7 @@ template <> struct fp_const<float> {
   static INLINE auto constexpr one()  NOEXCEPT { return 1.0f; }
   static INLINE auto constexpr two()  NOEXCEPT { return 2.0f; }
   static INLINE auto constexpr nhalf() NOEXCEPT { return 0.5f; }
+  static INLINE auto constexpr threehalves() NOEXCEPT { return 1.5f; }
 
   static uint32_t constexpr FONE = 0x00000001;
   static uint32_t constexpr SBIT = FONE << (32-1); // 0x80000000;
@@ -82,6 +83,7 @@ template <> struct fp_const<double> {
   static INLINE auto constexpr one()  NOEXCEPT { return 1.0; }
   static INLINE auto constexpr two()  NOEXCEPT { return 2.0; }
   static INLINE auto constexpr nhalf() NOEXCEPT { return 0.5; }
+  static INLINE auto constexpr threehalves() NOEXCEPT { return 1.5; }
 
   static uint64_t constexpr FONE = 0x0000000000000001;
   static uint64_t constexpr SBIT = FONE << (64-1); // 0x8000000000000000;
@@ -158,6 +160,9 @@ namespace QxW {
 template < typename T > INLINE void constexpr
 TwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
 {
+  //
+  // basic cost is 6 flops per a signle call
+  //
   T z;
   x = a + b;
   z = x - a;
@@ -167,6 +172,9 @@ TwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
 template < typename T > INLINE void constexpr
 FastTwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
 {
+  //
+  // basic cost is 3 flops per a signle call
+  //
   x = a + b;
   y = (a - x) + b;
 }
@@ -174,6 +182,11 @@ FastTwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
 template < typename T > INLINE void constexpr
 TwoProductFMA ( T const a, T const b, T &x, T &y ) NOEXCEPT
 {
+  //
+  // basic cost is 3 flops per a signle call
+  // (fma with negative arg is expected to be replaced by a sigle instruction
+  // at the compilation
+  //
   x = a * b;
   y = std::fma(a, b, -x);
 }
@@ -1566,9 +1579,22 @@ def gen_div( NA, NB, NC, ACC ) :
     if NA==2 and NB==2 and NC==2 :
         def_head( 'div', NA, NB, NC, ACC, 'a', 'b', 'c' )
         print( '{' )
-        # print( '  c0 = a0 / b0;' )
-        print( '  c0 = a0 / (b0 + b1);' )
-        print( '  c1 = (std::fma(-b0, c0, a0 ) + std::fma(-b1, c0, a1 )) / (b0 + b1);' )
+        if ACC == 0 :
+            # print( '  c0 = a0 / b0;' )
+            print( '  c0 = a0 / (b0 + b1);' )
+            #print( '  c1 = (std::fma(-b0, c0, a0 ) + std::fma(-b1, c0, a1 )) / (b0 + b1);' )
+            print( '  c1 = std::fma(-b0, c0, a0 ) + a1;' )
+            print( '  c1 = std::fma(-b1, c0, c1 ) / (b0 + b1);' )
+        else :
+            print( '  T r0, r1, q0, q1, s0, s1;' )
+            print( '  q0 = a0 / b0;' )
+            print( '  TwoProdFMA( b0, q0, r0, r1 );' )
+            print( '  r1 = std::fma( q0, b1, r1 );' )
+            print( '  TwoSum( a0, -r0, s0, s1 );' )
+            print( '  s1 = (s1 - r1) + a1;' )
+            print( '  q1 = ( s0 + s1 ) / b1;' )
+            print( '  FastTwoSum( c0, c1, q0, q1 );' )
+
         print( '}\n' )
         return
 

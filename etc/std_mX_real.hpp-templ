@@ -37,7 +37,7 @@ namespace std {
     return mX_real::@{m}@X_real::@{F}@ (x);
   }
 }@@@
-@@@{ F abs fmin fmax sqrt
+@@@{ F abs fabs fmin fmax sqrt
   template < typename T, mX_real::Algorithm A >
   INLINE mX_real::@{m}@X_real::@{m}@x_real<T,A> constexpr @{F}@ ( mX_real::@{m}@X_real::@{m}@x_real<T,A> const& x ) NOEXCEPT {
     return mX_real::@{m}@X_real::@{F}@ (x);

@@ -60,6 +60,10 @@ namespace std {
     return mX_real::dX_real::abs (x);
   }
   template < typename T, mX_real::Algorithm A >
+  INLINE mX_real::dX_real::dx_real<T,A> constexpr fabs ( mX_real::dX_real::dx_real<T,A> const& x ) NOEXCEPT {
+    return mX_real::dX_real::fabs (x);
+  }
+  template < typename T, mX_real::Algorithm A >
   INLINE mX_real::dX_real::dx_real<T,A> constexpr fmin ( mX_real::dX_real::dx_real<T,A> const& x ) NOEXCEPT {
     return mX_real::dX_real::fmin (x);
   }
@@ -127,6 +131,10 @@ namespace std {
     return mX_real::tX_real::abs (x);
   }
   template < typename T, mX_real::Algorithm A >
+  INLINE mX_real::tX_real::tx_real<T,A> constexpr fabs ( mX_real::tX_real::tx_real<T,A> const& x ) NOEXCEPT {
+    return mX_real::tX_real::fabs (x);
+  }
+  template < typename T, mX_real::Algorithm A >
   INLINE mX_real::tX_real::tx_real<T,A> constexpr fmin ( mX_real::tX_real::tx_real<T,A> const& x ) NOEXCEPT {
     return mX_real::tX_real::fmin (x);
   }
@@ -192,6 +200,10 @@ namespace std {
   template < typename T, mX_real::Algorithm A >
   INLINE mX_real::qX_real::qx_real<T,A> constexpr abs ( mX_real::qX_real::qx_real<T,A> const& x ) NOEXCEPT {
     return mX_real::qX_real::abs (x);
+  }
+  template < typename T, mX_real::Algorithm A >
+  INLINE mX_real::qX_real::qx_real<T,A> constexpr fabs ( mX_real::qX_real::qx_real<T,A> const& x ) NOEXCEPT {
+    return mX_real::qX_real::fabs (x);
   }
   template < typename T, mX_real::Algorithm A >
   INLINE mX_real::qX_real::qx_real<T,A> constexpr fmin ( mX_real::qX_real::qx_real<T,A> const& x ) NOEXCEPT {

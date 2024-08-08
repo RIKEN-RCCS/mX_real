@@ -230,6 +230,14 @@ def gen_abs ( Tc ) :
     print( 'INLINE auto constexpr abs ( T const& a ) NOEXCEPT {' )
     print( '  return {m}X_real::operator_abs<A> ( a );'.format( m=mX_type(Tc) ) )
     print( '}' )
+    print( 'template < typename TXa, T_mX(TXa) >' )
+    print( 'INLINE auto constexpr fabs ( TXa const& a ) NOEXCEPT {' )
+    print( '  return {m}X_real::operator_abs ( a );'.format( m=mX_type(Tc) ) )
+    print( '}' )
+    print( 'template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >' )
+    print( 'INLINE auto constexpr fabs ( T const& a ) NOEXCEPT {' )
+    print( '  return {m}X_real::operator_abs<A> ( a );'.format( m=mX_type(Tc) ) )
+    print( '}' )
     print( '//' )
     gen_op_member( Tc, description, func, op, commutable )
     print( '//' )
@@ -463,8 +471,13 @@ def gen_members ( Tc ) :
     print( '// static member funtions' )
     print( '// definition is below outside of the struct definition block' )
     print( '//' )
-    for func in { 'fabs', 'abs', 'sqrt' } :
+    for func in { 'abs', 'sqrt' } :
         print( 'static INLINE {m}X_REAL<> constexpr {func} ( {m}X_REAL<> const& a ) NOEXCEPT;'.format( m=mX_Type(Tc), func=func ) )
+
+    print( 'static INLINE {m}X_REAL<> constexpr {func} ( {m}X_REAL<> const& a ) NOEXCEPT {{'.format( m=mX_Type(Tc), func='fabs' ) )
+    print( '  return {m}X_REAL<>::abs(a);'.format( m=mX_Type(Tc) ) )
+    print( '}' )
+
     print( 'static INLINE {m}X_REAL<> rand () NOEXCEPT;'.format( m=mX_Type(Tc) ) )
     for func in { 'signbit', 'isinf', 'isnan', 'is_zero', 'is_positive', 'is_negative' } :
         print( 'static INLINE bool constexpr {func} ( {m}X_REAL<> const& a ) NOEXCEPT;'.format( m=mX_Type(Tc), func=func ) )

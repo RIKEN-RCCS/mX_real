@@ -29,7 +29,9 @@ template < typename T > struct fp_const {};
 template <> struct fp_const<float> {
   static inline auto constexpr zero() { return 0.0f; }
   static inline auto constexpr one()  { return 1.0f; }
+  static inline auto constexpr two()  { return 2.0f; }
   static inline auto constexpr nhalf() { return 0.5f; }
+  static inline auto constexpr threehalves() { return 1.5f; }
 
   static uint32_t constexpr MASK = 0x7f800000;
   static uint32_t constexpr RINF = 0x7f000000;
@@ -50,7 +52,9 @@ template <> struct fp_const<float> {
 template <> struct fp_const<double> {
   static inline auto constexpr zero() { return 0.0; }
   static inline auto constexpr one()  { return 1.0; }
+  static inline auto constexpr two()  { return 2.0; }
   static inline auto constexpr nhalf() { return 0.5; }
+  static inline auto constexpr threehalves() { return 1.5; }
 
   static uint64_t constexpr MASK = 0x7ff0000000000000;
   static uint64_t constexpr RINF = 0x7fe0000000000000;
@@ -1075,7 +1079,7 @@ def gen_sqrt( NA, NC, ACC ) :
         NX = max(NA, NC)
 
         [ print( '  T const ax{} = (a{} * ex) * ex2;'.format( i, i ) ) for i in range( NA ) ]
-        print( '  T const h0 = 3*fp_const<T>::nhalf();' )
+        print( '  T const h0 = fp_const<T>::threehalves();' )
 
         print( '  T ' + ', '.join( [ 't{}'.format( i ) for i in range( NX ) ] ) + ';' )
         print( '  T ' + ', '.join( [ 'r{}'.format( i ) for i in range( NX ) ] ) + ';' )

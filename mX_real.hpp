@@ -34,8 +34,11 @@ template < typename T > void printTYPE( void ) {
 // Trick to define MACROs for enabler in the template header part
 #define T_assert(...)	std::enable_if_t< __VA_ARGS__, std::nullptr_t > = nullptr
 #define T_scalar(...)	T_assert( std::is_arithmetic< __VA_ARGS__ >::value || fp< __VA_ARGS__ >::value )
+#define T_neq_Ts(...)	T_assert( ! std::is_same< __VA_ARGS__ >::value )
 #define T_fp(...)	T_assert( fp< __VA_ARGS__ >::value )
 #define T_mX(...)	T_assert( check_mX_real< __VA_ARGS__ >::value )
+#define T_mX2(...)	T_assert( check_mX_bases< __VA_ARGS__ >::value )
+#define T_mX_fp(...)	T_assert(  check_mX_base_Tfp< __VA_ARGS__ >::value )
 #define A_noQuasi(...)	T_assert( if_A_noQuasi< __VA_ARGS__ >::value )
 #define A_owAble(A,...)	T_assert( if_A_owAble< A,__VA_ARGS__ >::value )
 
@@ -48,6 +51,8 @@ namespace mX_real {
   };
   template < typename TX >
   struct check_mX_real : std::false_type{};
+  template < typename TX >
+  struct base_mX_real { using type = void; };
 
 #include "Ozaki-QW/fp_const.hpp"
 
@@ -121,10 +126,12 @@ namespace mX_real {
   struct fp<float> {
     static bool   constexpr value = true;
 
-    static INLINE auto constexpr zero()  NOEXCEPT { return float(0); }
-    static INLINE auto constexpr one()   NOEXCEPT { return float(1); }
-    static INLINE auto constexpr two()   NOEXCEPT { return float(2); }
-    static INLINE auto constexpr nhalf() NOEXCEPT { return float(0.5); }
+    using _fp_ = QxW::fp_const<float>;
+    static INLINE auto constexpr zero()  NOEXCEPT { return _fp_::zero(); }
+    static INLINE auto constexpr one()   NOEXCEPT { return _fp_::one(); }
+    static INLINE auto constexpr two()   NOEXCEPT { return _fp_::two(); }
+    static INLINE auto constexpr nhalf() NOEXCEPT { return _fp_::nhalf(); }
+    static INLINE auto constexpr threehalves() NOEXCEPT { return _fp_::threehalves(); }
 
     static INLINE auto constexpr epsilon()    NOEXCEPT { return std::numeric_limits<float>::epsilon(); }
     static INLINE auto constexpr epsiloni()   NOEXCEPT { return one()/std::numeric_limits<float>::epsilon(); }
@@ -151,10 +158,12 @@ namespace mX_real {
   struct fp<double> {
     static bool   constexpr value = true;
 
-    static INLINE auto constexpr zero()  NOEXCEPT { return double(0); }
-    static INLINE auto constexpr one()   NOEXCEPT { return double(1); }
-    static INLINE auto constexpr two()   NOEXCEPT { return double(2); }
-    static INLINE auto constexpr nhalf() NOEXCEPT { return double(0.5); }
+    using _fp_ = QxW::fp_const<double>;
+    static INLINE auto constexpr zero()  NOEXCEPT { return _fp_::zero(); }
+    static INLINE auto constexpr one()   NOEXCEPT { return _fp_::one(); }
+    static INLINE auto constexpr two()   NOEXCEPT { return _fp_::two(); }
+    static INLINE auto constexpr nhalf() NOEXCEPT { return _fp_::nhalf(); }
+    static INLINE auto constexpr threehalves() NOEXCEPT { return _fp_::threehalves(); }
 
     static INLINE auto constexpr epsilon()    NOEXCEPT { return std::numeric_limits<double>::epsilon(); }
     static INLINE auto constexpr epsiloni()   NOEXCEPT { return one()/std::numeric_limits<double>::epsilon(); }
@@ -229,9 +238,9 @@ namespace mX_real {
   namespace qX_real { template < typename T, Algorithm A > struct qx_real; }
 
 #if __cplusplus < 201703L
-#define	_BOOL_const_type(x)	std::integral_constant<bool,(x)>
+#define	_BOOL_const_type(...)	std::integral_constant<bool, __VA_ARGS__ >
 #else
-#define	_BOOL_const_type(x)	std::bool_constant<(x)>
+#define	_BOOL_const_type(...)	std::bool_constant< __VA_ARGS__ >
 #endif
   //
   template < typename T, Algorithm A >
@@ -240,6 +249,27 @@ namespace mX_real {
   struct check_mX_real< tX_real::tx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
   template < typename T, Algorithm A >
   struct check_mX_real< qX_real::qx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
+  //
+  template < typename T, Algorithm A >
+  struct base_mX_real< dX_real::dx_real<T,A> > { using type = T; };
+  template < typename T, Algorithm A >
+  struct base_mX_real< tX_real::tx_real<T,A> > { using type = T; };
+  template < typename T, Algorithm A >
+  struct base_mX_real< qX_real::qx_real<T,A> > { using type = T; };
+  //
+  template < typename TX, typename Ts >
+  struct check_mX_base_Tfp : _BOOL_const_type(
+                                              check_mX_real<TX>::value &&
+                                              fp<Ts>::value &&
+                                              std::is_same< typename base_mX_real<TX>::type, Ts >::value ){}; 
+  template < typename TXa, typename TXb >
+  struct check_mX_bases : _BOOL_const_type(
+                                           check_mX_real<TXa>::value &&
+                                           check_mX_real<TXb>::value &&
+                                           ! std::is_same< typename base_mX_real<TXa>::type,
+                                           std::nullptr_t >::value &&
+                                           std::is_same< typename base_mX_real<TXa>::type,
+                                           typename base_mX_real<TXb>::type >::value ){};
 #undef _BOOL_const_type
 
 

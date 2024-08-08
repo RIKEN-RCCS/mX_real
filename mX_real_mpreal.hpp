@@ -16,6 +16,7 @@ namespace QxW {
     static INLINE auto one() NOEXCEPT { return mpfr::mpreal(1.); }
     static INLINE auto two() NOEXCEPT { return mpfr::mpreal(2.); }
     static INLINE auto nhalf() NOEXCEPT { return mpfr::mpreal(.5); }
+    static INLINE auto threehalves() NOEXCEPT { return mpfr::mpreal(1.5); }
     static INLINE auto near_pow2(const mpfr::mpreal& x, mp_rnd_t r = mpfr::mpreal::get_default_rnd())
     {
       mpfr::mpreal y(1, x.getPrecision());
@@ -31,11 +32,13 @@ namespace QxW {
   template <>
   struct fp<mpfr::mpreal> {
     static bool   constexpr value = true;
+    using _fp_ = QxW::fp_const<mpfr::mpreal>;
 
-    static INLINE auto  zero()       NOEXCEPT { return mpfr::mpreal(0.); }
-    static INLINE auto  one()        NOEXCEPT { return mpfr::mpreal(1.); }
-    static INLINE auto  two()        NOEXCEPT { return mpfr::mpreal(2.); }
-    static INLINE auto  nhalf()      NOEXCEPT { return mpfr::mpreal(.5); }
+    static INLINE auto  zero()       NOEXCEPT { return _fp_::zero(); }
+    static INLINE auto  one()        NOEXCEPT { return _fp_::one(); }
+    static INLINE auto  two()        NOEXCEPT { return _fp_::two(); }
+    static INLINE auto  nhalf()      NOEXCEPT { return _fp_::nhalf(); }
+    static INLINE auto  threehalves() NOEXCEPT { return _fp_::threehalves(); }
 
     static INLINE auto  epsilon()    NOEXCEPT { return mpfr::machine_epsilon(); }
     static INLINE auto  epsiloni()   NOEXCEPT { return one()/epsilon(); }
@@ -77,6 +80,11 @@ namespace QxW {
 }
 
 namespace std {
+
+#if 0
+  template < >
+  struct is_arithmetic < mpfr::mpreal > { static bool constexpr value = true; };
+#endif
 
   INLINE mpfr::mpreal const fabs( mpfr::mpreal const& a ) NOEXCEPT {
     return mpfr::fabs( a );
