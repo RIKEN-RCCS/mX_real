@@ -1593,7 +1593,7 @@ def gen_div( NA, NB, NC, ACC ) :
             print( '  TwoSum( a0, -r0, s0, s1 );' )
             print( '  s1 = (s1 - r1) + a1;' )
             print( '  q1 = ( s0 + s1 ) / b1;' )
-            print( '  FastTwoSum( c0, c1, q0, q1 );' )
+            print( '  FastTwoSum( q0, q1, c0, c1 );' )
 
         print( '}\n' )
         return

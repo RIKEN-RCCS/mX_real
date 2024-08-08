@@ -6203,7 +6203,7 @@ namespace QxW {
     TwoSum( a0, -r0, s0, s1 );
     s1 = (s1 - r1) + a1;
     q1 = ( s0 + s1 ) / b1;
-    FastTwoSum( c0, c1, q0, q1 );
+    FastTwoSum( q0, q1, c0, c1 );
   }
 
   // div: 2-2-3
