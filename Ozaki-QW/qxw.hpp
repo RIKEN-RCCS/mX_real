@@ -6196,14 +6196,30 @@ namespace QxW {
   template < typename T > INLINE void constexpr
   div_DW_DW_DW( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 ) NOEXCEPT
   {
+#if 1
+    // Ozaki's division scheme is described here.
     T r0, r1, q0, q1, s0, s1;
     q0 = a0 / b0;
     TwoProductFMA( b0, q0, r0, r1 );
-    r1 = std::fma( q0, b1, r1 );
+    r1 = std::fma( b1, q0, r1 );
     TwoSum( a0, -r0, s0, s1 );
-    s1 = (s1 - r1) + a1;
+    s1 = ( s1 - r1 ) + a1;
     q1 = ( s0 + s1 ) / b0;
-    FastTwoSum( q0, q1, c0, c1 );
+#else
+    // Meanwhile, dd-compatible one is commented out.
+    T t0, t1;
+    T r0, r1;
+    c0 = a0 / b0;
+    mul_DW_SW_DW( b0, b1, c0, t0, t1 );
+    sub_DW_DW_DW( a0, a1, t0, t1, r0, r1 );
+    c1 = r0 / b0;
+    mul_DW_SW_DW( b0, b1, c1, t0, t1 );
+    sub_DW_DW_SW( r0, r1, t0, t1, r0 );
+    r0 = r0 / b0;
+    FastTwoSum( c0, c1, c0, c1 );
+    add_DW_SW_DW( c0, c1, r0, c0, c1 );
+#endif
+    FastTwoSum( c0, c1, c0, c1 );
   }
 
   // div: 2-2-3
