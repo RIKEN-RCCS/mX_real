@@ -1612,6 +1612,7 @@ def gen_div( NA, NB, NC, ACC ) :
             print( '  TwoSum( a0, -r0, s0, s1 );' )
             print( '  s1 = ( s1 - r1 ) + a1;' )
             print( '  q1 = ( s0 + s1 ) / b0;' )
+            print( '  FastTwoSum( q0, q1, c0, c1 );' )
             print( '#else' )
             print( '  // Meanwhile, dd-compatible one is commented out.' )
             print( '  T t0, t1;' )
@@ -1626,7 +1627,6 @@ def gen_div( NA, NB, NC, ACC ) :
             print( '  FastTwoSum( c0, c1, c0, c1 );' )
             print( '  add_DW_SW_DW( c0, c1, r0, c0, c1 );' )
             print( '#endif' )
-            print( '  FastTwoSum( c0, c1, c0, c1 );' )
         print( '}\n' )
         return
 

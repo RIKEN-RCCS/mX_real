@@ -6205,6 +6205,7 @@ namespace QxW {
     TwoSum( a0, -r0, s0, s1 );
     s1 = ( s1 - r1 ) + a1;
     q1 = ( s0 + s1 ) / b0;
+    FastTwoSum( q0, q1, c0, c1 );
 #else
     // Meanwhile, dd-compatible one is commented out.
     T t0, t1;
@@ -6219,7 +6220,6 @@ namespace QxW {
     FastTwoSum( c0, c1, c0, c1 );
     add_DW_SW_DW( c0, c1, r0, c0, c1 );
 #endif
-    FastTwoSum( c0, c1, c0, c1 );
   }
 
   // div: 2-2-3
