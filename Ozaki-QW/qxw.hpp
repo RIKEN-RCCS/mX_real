@@ -2095,7 +2095,7 @@ namespace QxW {
     sub_SW_PA_PA( a0, t0, t1, t0, t1 );
     T tn, td;
     tn = t0 + t1;
-    td = b0 + b1;
+    td = e40;
     c1 = tn / td;
   }
 
@@ -2149,7 +2149,7 @@ namespace QxW {
     sub_SW_PA_PA( a0, t0, t1, t0, t1 );
     T tn, td;
     tn = t0 + t1;
-    td = b0 + b1 + b2;
+    td = e40;
     c1 = tn / td;
   }
 
@@ -2205,7 +2205,7 @@ namespace QxW {
     sub_SW_PA_PA( a0, t0, t1, t0, t1 );
     T tn, td;
     tn = t0 + t1;
-    td = b0 + b1 + b2 + b3;
+    td = e40;
     c1 = tn / td;
   }
 
@@ -2299,19 +2299,20 @@ namespace QxW {
   template < typename T > INLINE void constexpr
   div_PA_PA_SW( T const a0, T const a1, T const b0, T const b1, T &c0 ) NOEXCEPT
   {
-    T e40, e41;
-    e40 = a0 + a1;
-    e41 = b0 + b1;
-    c0 = e40 / e41;
+    T ah, bh;
+    ah = a0 + a1;
+    bh = b0 + b1;
+    c0 = ah / bh;
   }
 
   // div: 2-2-2
   template < typename T > INLINE void constexpr
   div_PA_PA_PA( T const a0, T const a1, T const b0, T const b1, T &c0, T &c1 ) NOEXCEPT
   {
-    c0 = a0 / (b0 + b1);
+    T bh = b0 + b1;
+    c0 = a0 / bh;
     c1 = std::fma(-b0, c0, a0 ) + a1;
-    c1 = std::fma(-b1, c0, c1 ) / (b0 + b1);
+    c1 = std::fma(-b1, c0, c1 ) / bh;
   }
 
   // div: 2-2-3
@@ -6183,13 +6184,12 @@ namespace QxW {
   template < typename T > INLINE void constexpr
   div_DW_DW_SW( T const a0, T const a1, T const b0, T const b1, T &c0 ) NOEXCEPT
   {
-    T t0, t1;
-    T r0, r1;
+    T t0, t1, s0, s1;
     c0 = a0 / b0;
     mul_DW_SW_DW( b0, b1, c0, t0, t1 );
-    sub_DW_DW_SW( a0, a1, t0, t1, r0 );
-    r0 = r0 / b0;
-    c0 = c0 + r0;
+    TwoSum( a0, -t0, s0, s1 );
+    s1 = s1 - t1 + a1;
+    c0 = c0 + (s0 + s1) / b0;
   }
 
   // div: 2-2-2
@@ -6202,7 +6202,7 @@ namespace QxW {
     r1 = std::fma( q0, b1, r1 );
     TwoSum( a0, -r0, s0, s1 );
     s1 = (s1 - r1) + a1;
-    q1 = ( s0 + s1 ) / b1;
+    q1 = ( s0 + s1 ) / b0;
     FastTwoSum( q0, q1, c0, c1 );
   }
 

@@ -1576,15 +1576,32 @@ def gen_div( NA, NB, NC, ACC ) :
             print( '  c{} = r / b0;'.format( i, i ) )
         print( '}\n' )
         return
+    if NA==2 and NB==2 and NC==1 :
+        def_head( 'div', NA, NB, NC, ACC, 'a', 'b', 'c' )
+        print( '{' )
+        if ACC == 0 :
+            print( '  T ah, bh;' )
+            print( '  ah = a0 + a1;' )
+            print( '  bh = b0 + b1;' )
+            print( '  c0 = ah / bh;' )
+        else :
+            print( '  T t0, t1, s0, s1;' )
+            print( '  c0 = a0 / b0;' )
+            print( '  mul_DW_SW_DW( b0, b1, c0, t0, t1 );' )
+            print( '  TwoSum( a0, -t0, s0, s1 );' )
+            print( '  s1 = s1 - t1 + a1;' )
+            print( '  c0 = c0 + (s0 + s1) / b0;' )
+        print( '}\n' )
+        return
     if NA==2 and NB==2 and NC==2 :
         def_head( 'div', NA, NB, NC, ACC, 'a', 'b', 'c' )
         print( '{' )
         if ACC == 0 :
-            # print( '  c0 = a0 / b0;' )
-            print( '  c0 = a0 / (b0 + b1);' )
+            print( '  T bh = b0 + b1;' )
+            print( '  c0 = a0 / bh;' )
             #print( '  c1 = (std::fma(-b0, c0, a0 ) + std::fma(-b1, c0, a1 )) / (b0 + b1);' )
             print( '  c1 = std::fma(-b0, c0, a0 ) + a1;' )
-            print( '  c1 = std::fma(-b1, c0, c1 ) / (b0 + b1);' )
+            print( '  c1 = std::fma(-b1, c0, c1 ) / bh;' )
         else :
             print( '  T r0, r1, q0, q1, s0, s1;' )
             print( '  q0 = a0 / b0;' )
@@ -1592,7 +1609,7 @@ def gen_div( NA, NB, NC, ACC ) :
             print( '  r1 = std::fma( q0, b1, r1 );' )
             print( '  TwoSum( a0, -r0, s0, s1 );' )
             print( '  s1 = (s1 - r1) + a1;' )
-            print( '  q1 = ( s0 + s1 ) / b1;' )
+            print( '  q1 = ( s0 + s1 ) / b0;' )
             print( '  FastTwoSum( q0, q1, c0, c1 );' )
 
         print( '}\n' )
@@ -1702,7 +1719,10 @@ def gen_div( NA, NB, NC, ACC ) :
                 line[LineCount] = 'SUM {} tn {}'.format( NC, vt_list )
                 LineCount = LineCount + 1
                 #line[LineCount] = 'SUM {} td {}'.format( max(1,NB-1), vk_list )
-                line[LineCount] = 'SUM {} td {}'.format( NB, vk_list )
+                if NB > NCC and NCC == 1 :
+                    line[LineCount] = 'LET td e{}'.format( e_list[1] )
+                else :
+                    line[LineCount] = 'SUM {} td {}'.format( NB, vk_list )
                 LineCount = LineCount + 1
                 line[LineCount] = 'DIV c{} tn td'.format( NC-1 )
 
