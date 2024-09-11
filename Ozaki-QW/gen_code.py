@@ -824,6 +824,7 @@ def LET_propagate( line ) :
                     line[i+2] = 'LET {} {}'.format( b_list[1], a_list[2] )
 
         line = Cregs_backpropagete ( line )
+        line = Cregs_backpropagete ( line )
 
         itr = itr + 1
         if stable and itr > 2 :
@@ -835,6 +836,7 @@ def LET_propagate( line ) :
 
 def Cregs_backpropagete ( line ) :
 
+    #print( '#1:{}'.format( line ) )
     for i in reversed( range( len(line) ) ) :
         if '!' in line[i] :
             continue
@@ -861,6 +863,30 @@ def Cregs_backpropagete ( line ) :
                 line[j] = concat( line[j], b_list[k] )
 
         line[i] = '!'
+
+    #print( '#2:{}'.format( line ) )
+    for i in reversed( range( len(line) ) ) :
+        if '!' in line[i] :
+            continue
+        a_list = line[i].split()
+        #print( '---:{}:{}'.format( a_list[0], line[i] ) )
+        if (a_list[0] != 'QQQ') and (a_list[0] != 'TWO') :
+            continue
+        if (a_list[1] == a_list[3]) and (a_list[2] == a_list[4]) :
+            continue
+        #if (a_list[1] != a_list[3]) and (a_list[2] != a_list[4]) :
+        #    continue
+
+        if ('c' in a_list[3]) and (a_list[1] != a_list[3]) and ('e' in a_list[1]) :
+            #print( '***{}'.format( line[i] ) )
+            line[i] = '{} {} {} {} {}'.format( a_list[0], a_list[3], a_list[2], a_list[3], a_list[4] )
+            insert( line, i, 'LET {} {}'.format( a_list[3], a_list[1] ) )
+
+        if ('c' in a_list[4]) and (a_list[2] != a_list[4]) and ('e' in a_list[2]) :
+            #print( '==={}'.format( line[i] ) )
+            line[i] = '{} {} {} {} {}'.format( a_list[0], a_list[1], a_list[4], a_list[3], a_list[4] )
+            insert( line, i, 'LET {} {}'.format( a_list[4], a_list[2] ) )
+    #print( '#3:{}'.format( line ) )
 
     return line
 
@@ -1108,7 +1134,7 @@ def gen_add( NA, NB, NC, ACC ) :
 
         if ACC > 0 :
             line[2] = 'TWO a1 b1 e0 e1' # (c0)(c1 e0)(e1)
-            line[3] = 'TWO c1 e0 c1 e0' # (c0)(c1)(e0 e1)
+            line[3] = 'TWO c1 e0 c1 e0' if (NA > 2 or NB > 2) or (NA < 2 or NB < 2) else '!' # (c0)(c1)(e0 e1)
             line[4] = 'ADD c1 c1 e0' # (c0)(c1)(e1)
             line[5] = 'ADD e2 a2 b2' # (c0)(c1)(e1 e2)
             line[6] = 'ADD e3 a3 b3' # (c0)(c1)(e1 e2 e3)
@@ -1116,7 +1142,6 @@ def gen_add( NA, NB, NC, ACC ) :
             line[8] = 'ADD c1 c1 e3' # (c0)(c1)(e1)
             line[9] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
             line[10] = 'ADD c1 c1 e1' # (c0)(c1)
-            line[11] = 'QQQ c0 c1 c0 c1' if NA > 1 and NB > 1 else '!'
         else :
             line[2] = 'ADD e0 a1 b1'
             line[3] = 'ADD e1 a2 b2'
@@ -1125,7 +1150,7 @@ def gen_add( NA, NB, NC, ACC ) :
             line[6] = 'ADD c1 c1 e0'
 
         if ACC > 0 :
-            line[12] = 'QQQ c0 c1 c0 c1'
+            line[11] = 'QQQ c0 c1 c0 c1'
 
     if NC == 3 :
         line[0] = '!'
@@ -1143,17 +1168,16 @@ def gen_add( NA, NB, NC, ACC ) :
             line[10] = 'QQQ c1 c2 c1 c2' if NA*NB > 2 else '!'
             line[11] = 'SUM 3 e0 e0 e1 e2' # (c0)(c1)(c2)(e0)
             line[12] = 'ADD c2 c2 e0' # (c0)(c1)(c2)
-            line[13] = 'QQQ c1 c2 c1 c2' if NA*NB > 2 else '!'
         else :
             line[4] = 'ADD e1 a2 b2' # (c0)(c1)(c2 e0 e1)
             line[5] = 'ADD e2 a3 b3' # (c0)(c1)(c2 e0 e1 e2)
             line[6] = 'SUM 4 c2 c2 e0 e1 e2' # (c0)(c1)(c2)
 
         if ACC > 0 :
-            line[14] = 'QQQ c0 c1 c0 c1'
-        if NA*NB > 2 and ACC > 0 :
-            line[15] = 'QQQ c1 c2 c1 c2'
-            line[16] = 'QQQ c0 c1 c0 c1'
+            line[13] = 'QQQ c0 c1 c0 c1'
+        if NA + NB > 2 and ACC > 0 :
+            line[14] = 'QQQ c1 c2 c1 c2'
+            line[15] = 'QQQ c0 c1 c0 c1'
 
     if NC == 4 :
         line[0] = '!'
@@ -1178,9 +1202,10 @@ def gen_add( NA, NB, NC, ACC ) :
 
         if ACC > 0 :
             line[14] = 'QQQ c0 c1 c0 c1'
-        if NA > 1 and NB > 1 and ACC > 0 :
+        if ( NA + NB > 2 ) and ACC > 0 :
             line[15] = 'QQQ c1 c2 c1 c2'
             line[16] = 'QQQ c2 c3 c2 c3'
+        if ( NA + NB > 3 ) and ACC > 0 :
             line[17] = 'QQQ c0 c1 c0 c1'
             line[18] = 'QQQ c1 c2 c1 c2'
             line[19] = 'QQQ c0 c1 c0 c1'
