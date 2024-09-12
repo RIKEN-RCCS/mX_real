@@ -15,7 +15,7 @@
 
 #if 0
 #include <boost/type_index.hpp>
-template < typename T > void printTYPE( void ) {
+template < typename T > void printTYPE() {
   std::cout << boost::typeindex::type_id_with_cvr<T>().pretty_name(); }
 #endif
 
@@ -34,11 +34,17 @@ template < typename T > void printTYPE( void ) {
 // Trick to define MACROs for enabler in the template header part
 #define T_assert(...)	std::enable_if_t< __VA_ARGS__, std::nullptr_t > = nullptr
 #define T_scalar(...)	T_assert( std::is_arithmetic< __VA_ARGS__ >::value || fp< __VA_ARGS__ >::value )
+#define T_not_scalar(...)	T_assert( ! std::is_arithmetic< __VA_ARGS__ >::value || fp< __VA_ARGS__ >::value )
 #define T_neq_Ts(...)	T_assert( ! std::is_same< __VA_ARGS__ >::value )
+#define T_eq_Ts(...)	T_assert( std::is_same< __VA_ARGS__ >::value )
 #define T_fp(...)	T_assert( fp< __VA_ARGS__ >::value )
+#define T_not_fp(...)	T_assert( ! fp< __VA_ARGS__ >::value )
 #define T_mX(...)	T_assert( check_mX_real< __VA_ARGS__ >::value )
+#define T_not_mX(...)	T_assert( ! check_mX_real< __VA_ARGS__ >::value )
 #define T_mX2(...)	T_assert( check_mX_bases< __VA_ARGS__ >::value )
-#define T_mX_fp(...)	T_assert(  check_mX_base_Tfp< __VA_ARGS__ >::value )
+#define T_not_mX2(...)	T_assert( ! check_mX_bases< __VA_ARGS__ >::value )
+#define T_mX_fp(...)	T_assert( check_mX_base_Tfp< __VA_ARGS__ >::value )
+#define T_not_mX_fp(...)	T_assert( ! check_mX_base_Tfp< __VA_ARGS__ >::value )
 #define A_noQuasi(...)	T_assert( if_A_noQuasi< __VA_ARGS__ >::value )
 #define A_owAble(A,...)	T_assert( if_A_owAble< A,__VA_ARGS__ >::value )
 
@@ -52,7 +58,7 @@ namespace mX_real {
   template < typename TX >
   struct check_mX_real : std::false_type{};
   template < typename TX >
-  struct base_mX_real { using type = void; };
+  struct base_mX_real { using type = std::nullptr_t; };
 
 #include "Ozaki-QW/fp_const.hpp"
 

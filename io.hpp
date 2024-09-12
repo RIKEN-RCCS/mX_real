@@ -38,9 +38,8 @@ namespace mX_real {
   inline auto TYPE_name ( char * x ) { strcpy( x, "_QD" ); }
 #endif
     
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, dX_real::dx_real<T,A> const &x )
-    -> std::enable_if_t< std::is_same< T, float >::value, void > {
+  template < typename T, Algorithm A, T_eq_Ts(T,float) >
+  inline auto debug_print ( std::string message, dX_real::dx_real<T,A> const &x ) {
     uint32_t * d = (uint32_t *)(&x.x[0]);
 #if USE_MPREAL
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]);
@@ -57,9 +56,8 @@ namespace mX_real {
 #endif
   }
   
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, dX_real::dx_real<T,A> const &x )
-    -> std::enable_if_t< std::is_same< T, double >::value, void > {
+  template < typename T, Algorithm A, T_eq_Ts(T,double) >
+  inline auto debug_print ( std::string message, dX_real::dx_real<T,A> const &x ) {
     uint64_t * d = (uint64_t *)(&x.x[0]);
 #if USE_MPREAL
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]);
@@ -80,9 +78,8 @@ namespace mX_real {
 namespace mX_real {
   //
   //
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, tX_real::tx_real<T,A> const &x )
-    -> std::enable_if_t< std::is_same< T, float >::value, void > {
+  template < typename T, Algorithm A, T_eq_Ts(T,float) >
+  inline auto debug_print ( std::string message, tX_real::tx_real<T,A> const &x ) {
     uint32_t * d = (uint32_t *)(&x.x[0]);
 #if USE_MPREAL
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]); xx += double(x.x[2]);
@@ -98,9 +95,8 @@ namespace mX_real {
            toString(A)[0], d[0], d[1], d[2], xx);
 #endif
   }
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, tX_real::tx_real<T,A> const &x )
-    -> std::enable_if_t< std::is_same< T, double >::value, void > {
+  template < typename T, Algorithm A, T_eq_Ts(T,double) >
+  inline auto debug_print ( std::string message, tX_real::tx_real<T,A> const &x ) {
     uint64_t * d = (uint64_t *)(&x.x[0]);
 #if USE_MPREAL
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]); xx += double(x.x[2]);
@@ -121,9 +117,8 @@ namespace mX_real {
 namespace mX_real {
   //
   //
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, qX_real::qx_real<T,A> const &x )
-    -> std::enable_if_t< std::is_same< T, float >::value, void > {
+  template < typename T, Algorithm A, T_eq_Ts(T,float) >
+  inline auto debug_print ( std::string message, qX_real::qx_real<T,A> const &x ) {
     uint32_t * d = (uint32_t *)(&x.x[0]);
 #if USE_MPREAL
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]); xx += double(x.x[2]); xx += double(x.x[3]);
@@ -140,9 +135,8 @@ namespace mX_real {
            toString(A)[0], d[0], d[1], d[2], d[3], xx);
 #endif
   }
-  template < typename T, Algorithm A >
-  inline auto debug_print ( std::string message, qX_real::qx_real<T,A> const &x )
-    -> std::enable_if_t< std::is_same< T, double >::value, void > {
+  template < typename T, Algorithm A, T_eq_Ts(T,double) >
+  inline auto debug_print ( std::string message, qX_real::qx_real<T,A> const &x ) {
     uint64_t * d = (uint64_t *)(&x.x[0]);
 #if USE_MPREAL
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]); xx += double(x.x[2]); xx += double(x.x[3]);
@@ -162,20 +156,17 @@ namespace mX_real {
 }
 
 
-template < typename T >
-auto print ( std::string message, T const &x )
- -> std::enable_if_t< check_mX_real<T>::value, void > {
+template < typename T, T_mX(T) >
+auto print ( std::string message, T const &x ) {
   mX_real::debug_print<typename T::base_T>( message, x );
 }
 
 
-template < typename T >
-auto print ( std::string message, T const &x )
- -> std::enable_if_t< std::is_same<T, mpfr::mpreal>::value, void > { }
+template < typename T, T_eq_Ts(T,mpfr::mpreal) >
+auto print ( std::string message, T const &x ) { }
 
-template < typename T >
-auto print ( std::string message, T const &x )
- -> std::enable_if_t< std::is_same<T, float>::value, void > {
+template < typename T, T_eq_Ts(T,float) >
+auto print ( std::string message, T const &x ) {
   unsigned int * d = (unsigned int *)&x;
 #if USE_MPREAL
   mpfr::mpreal xx = double(x);
@@ -189,9 +180,8 @@ auto print ( std::string message, T const &x )
 #endif
 }
 
-template < typename T >
-auto print ( std::string message, T const &x )
- -> std::enable_if_t< std::is_same<T, double>::value, void > {
+template < typename T, T_eq_Ts(T,double) >
+auto print ( std::string message, T const &x ) {
   unsigned long * d = (unsigned long *)&x;
 #if USE_MPREAL
   mpfr::mpreal xx = double(x);
@@ -206,9 +196,8 @@ auto print ( std::string message, T const &x )
 }
 
 #ifdef  _QD_DD_REAL_H
-template < typename T >
-auto print ( std::string message, T const &x )
- -> std::enable_if_t< std::is_same<T, dd_real>::value, void > {
+template < typename T, T_eq_Ts(T,dd_real) >
+auto print ( std::string message, T const &x ) {
   unsigned long * d = (unsigned long *)&x;
 #if USE_MPREAL
   mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]);
@@ -224,9 +213,8 @@ auto print ( std::string message, T const &x )
 #endif
 
 #ifdef  _QD_QD_REAL_H
-template < typename T >
-auto print ( std::string message, T const &x )
- -> std::enable_if_t< std::is_same<T, qd_real>::value, void > {
+template < typename T, T_eq_Ts(T,qd_real) >
+auto print ( std::string message, T const &x ) {
   unsigned long * d = (unsigned long *)&x;
 #if USE_MPREAL
   mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]); xx += double(x.x[2]); xx += double(x.x[3]);

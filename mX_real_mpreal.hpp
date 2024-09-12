@@ -12,12 +12,12 @@ namespace mX_real {
 namespace QxW {
 
   template <> struct fp_const<mpfr::mpreal> {
-    static INLINE auto zero() NOEXCEPT { return mpfr::mpreal(0.); }
-    static INLINE auto one() NOEXCEPT { return mpfr::mpreal(1.); }
-    static INLINE auto two() NOEXCEPT { return mpfr::mpreal(2.); }
-    static INLINE auto nhalf() NOEXCEPT { return mpfr::mpreal(.5); }
-    static INLINE auto threehalves() NOEXCEPT { return mpfr::mpreal(1.5); }
-    static INLINE auto near_pow2(const mpfr::mpreal& x, mp_rnd_t r = mpfr::mpreal::get_default_rnd())
+    static INLINE auto  zero() NOEXCEPT { return mpfr::mpreal(0.); }
+    static INLINE auto  one() NOEXCEPT { return mpfr::mpreal(1.); }
+    static INLINE auto  two() NOEXCEPT { return mpfr::mpreal(2.); }
+    static INLINE auto  nhalf() NOEXCEPT { return mpfr::mpreal(.5); }
+    static INLINE auto  threehalves() NOEXCEPT { return mpfr::mpreal(1.5); }
+    static INLINE auto  near_pow2(const mpfr::mpreal& x, mp_rnd_t r = mpfr::mpreal::get_default_rnd())
     {
       mpfr::mpreal y(1, x.getPrecision());
       if(!iszero(x)) y = floor(log2(abs(x,r),r));
@@ -68,13 +68,13 @@ namespace QxW {
   // templated fuction style
   // zero<mpfr::mpreal>()
   //
-  template < typename T, T_mpreal(T) > static INLINE auto zero()    NOEXCEPT { return fp<mpfr::mpreal>::zero(); }
-  template < typename T, T_mpreal(T) > static INLINE auto one()     NOEXCEPT { return fp<mpfr::mpreal>::one(); }
-  template < typename T, T_mpreal(T) > static INLINE auto two()     NOEXCEPT { return fp<mpfr::mpreal>::two(); }
-  template < typename T, T_mpreal(T) > static INLINE auto nhalf()   NOEXCEPT { return fp<mpfr::mpreal>::nhalf(); }
-  template < typename T, T_mpreal(T) > static INLINE auto epsilon() NOEXCEPT { return fp<mpfr::mpreal>::epsilon(); }
-  template < typename T, T_mpreal(T) > static INLINE auto nan()     NOEXCEPT { return fp<mpfr::mpreal>::nan(); }
-  template < typename T, T_mpreal(T) > static INLINE auto inf()     NOEXCEPT { return fp<mpfr::mpreal>::inf(); }
+  template < typename T, T_mpreal(T) > static INLINE auto  zero()    NOEXCEPT { return fp<mpfr::mpreal>::zero(); }
+  template < typename T, T_mpreal(T) > static INLINE auto  one()     NOEXCEPT { return fp<mpfr::mpreal>::one(); }
+  template < typename T, T_mpreal(T) > static INLINE auto  two()     NOEXCEPT { return fp<mpfr::mpreal>::two(); }
+  template < typename T, T_mpreal(T) > static INLINE auto  nhalf()   NOEXCEPT { return fp<mpfr::mpreal>::nhalf(); }
+  template < typename T, T_mpreal(T) > static INLINE auto  epsilon() NOEXCEPT { return fp<mpfr::mpreal>::epsilon(); }
+  template < typename T, T_mpreal(T) > static INLINE auto  nan()     NOEXCEPT { return fp<mpfr::mpreal>::nan(); }
+  template < typename T, T_mpreal(T) > static INLINE auto  inf()     NOEXCEPT { return fp<mpfr::mpreal>::inf(); }
 #undef T_mpreal
 
 }

@@ -24,29 +24,31 @@ namespace mX_real {
 
 
   //
-  template < typename T > auto convert( T const& x )
-  -> std::enable_if_t<std::is_same<T,mpfr::mpreal>::value, mpfr::mpreal> { return x; }
+  template < typename T, T_eq_Ts(T,mpfr::mpreal) >
+  mpfr::mpreal convert( T const& x ) { return x; }
   //
-  template < typename T > auto convert( T const& x )
-  -> std::enable_if_t<!check_mX_real<T>::value,mpfr::mpreal> { return mpfr::mpreal((double)x); }
+  template < typename T, T_neq_Ts(T,mpfr::mpreal), T_not_mX(T) >
+  mpfr::mpreal convert( T const& x ) { return mpfr::mpreal((double)x); }
 
   //
-  template < typename T > auto convert( T const& x )
-  -> std::enable_if_t< check_mX_real<T>::value,mpfr::mpreal> {
+  template < typename T, T_mX(T) >
+  mpfr::mpreal convert( T const& x ) {
     mpfr::mpreal s = mpfr::mpreal(0); for(int i=0;i<T::L;i++) s = s + (double)x.x[i]; return s; }
   //
 #ifdef  _QD_DD_REAL_H
-  template < > mpfr::mpreal convert<dd_real>( dd_real const& x ) {
+  template < >
+  mpfr::mpreal convert<dd_real>( dd_real const& x ) {
     mpfr::mpreal s = mpfr::mpreal(0); for(int i=0;i<2;i++) s = s + x.x[i]; return s; }
 #endif
 #ifdef  _QD_QD_REAL_H
-  template < > mpfr::mpreal convert<qd_real>( qd_real const& x ) {
+  template < >
+  mpfr::mpreal convert<qd_real>( qd_real const& x ) {
     mpfr::mpreal s = mpfr::mpreal(0); for(int i=0;i<4;i++) s = s + x.x[i]; return s; }
 #endif
 
 
-  template < typename T > auto convert( mpfr::mpreal const& x )
-  -> std::enable_if_t<!check_mX_real<T>::value,T> {
+  template < typename T, T_not_mX(T) >
+  T convert( mpfr::mpreal const& x ) {
     auto s = (T)((double)x);
     if ( s != zero<T>() ) {
       mpfr::mpreal S = (double)s;
@@ -60,8 +62,8 @@ namespace mX_real {
   }
 
   //
-  template < typename T > auto convert( mpfr::mpreal const& x )
-  -> std::enable_if_t< check_mX_real<T>::value,T> {
+  template < typename T, T_mX(T) >
+  T convert( mpfr::mpreal const& x ) {
     mpfr::mpreal X = x;
     using _T  = typename T::base_T; T t;
     for(int i=0; i<T::L; i++) {
@@ -101,7 +103,8 @@ namespace mX_real {
   }
   //
 #ifdef  _QD_DD_REAL_H
-  template < > dd_real convert<dd_real>( mpfr::mpreal const& x ) {
+  template < >
+  dd_real convert<dd_real>( mpfr::mpreal const& x ) {
     mpfr::mpreal X = x;
 
     dd_real t;
@@ -121,7 +124,8 @@ namespace mX_real {
   }
 #endif
 #ifdef  _QD_QD_REAL_H
-  template < > qd_real convert<qd_real>( mpfr::mpreal const& x ) {
+  template < >
+  qd_real convert<qd_real>( mpfr::mpreal const& x ) {
     mpfr::mpreal X = x;
 
     qd_real t;
