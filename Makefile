@@ -13,8 +13,10 @@ ifneq (x$(shell which $(CXX) 2>&1 | grep 'which'),x)
 	CXX = g++
 endif
 
+#CXX := $(CXX)
 CXX := $(CXX) --std=c++14
 #CXX := $(CXX) --std=c++17
+#CXX := $(CXX) --std=c++2a
 ifeq (x$(cxx),xicpx)
         CXX := $(CXX) -fp-model strict
 endif
@@ -22,7 +24,8 @@ endif
 NVCC = nvcc
 
 
-CCFLAGS := $(CCFLAGS) -O3 -Wall -I./ -include mX_real.hpp
+#CCFLAGS := $(CCFLAGS) -O3 -Wall -I./ -include mX_real.hpp
+CCFLAGS := $(CCFLAGS) -O3 -I./ -include mX_real.hpp
 LDFLAGS = -fopenmp -lquadmath -lm
 
 # Optimizations
