@@ -77,10 +77,10 @@ namespace @{m}@X_real {
     // Simple constructors
     //
     //
-    INLINE @{m}@x_real() NOEXCEPT {
+    INLINE constexpr @{m}@x_real() NOEXCEPT {
       for(int i=0; i<L; i++) { x[i] = fp<T>::zero(); }
     }
-    INLINE @{m}@x_real( T const& x0@@{, T const& x@{i}@}@@ ) NOEXCEPT {
+    INLINE constexpr @{m}@x_real( T const& x0@@{, T const& x@{i}@}@@ ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto t = x0@@{ + x@{i}@}@@;
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -89,14 +89,14 @@ namespace @{m}@X_real {
 #endif
       { x[0] = x0;@@{ x[@{i}@] = x@{i}@;}@@ }
     }
-    INLINE @{m}@x_real( T const &h ) NOEXCEPT {
+    INLINE constexpr @{m}@x_real( T const &h ) NOEXCEPT {
       { x[0] = h; for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
     }
     template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE @{m}@x_real( Ts const &h ) NOEXCEPT {
       { x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
     }
-    INLINE @{m}@x_real( T const *d ) NOEXCEPT {
+    INLINE constexpr @{m}@x_real( T const *d ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto t = d[0]; for(int i=1; i<L; i++) { t += d[1]; }
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -112,7 +112,7 @@ namespace @{m}@X_real {
     //
     //
     template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
-    INLINE @{m}@x_real( _TX_<T,_A_> const& h ) NOEXCEPT {
+    INLINE constexpr @{m}@x_real( _TX_<T,_A_> const& h ) NOEXCEPT {
       using TX = _TX_<T,_A_>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
@@ -193,7 +193,7 @@ namespace @{m}@X_real {
     //
     //
     explicit
-    INLINE operator T() const NOEXCEPT {
+    INLINE constexpr operator T() const NOEXCEPT {
       if ( A == Algorithm::Quasi ) {
         return this->quick_Normalized();
       } else {
@@ -202,7 +202,7 @@ namespace @{m}@X_real {
     }
     template < typename Ts, T_fp(Ts), T_neq_Ts(T,Ts) >
     explicit
-    INLINE operator Ts() const NOEXCEPT {
+    INLINE constexpr operator Ts() const NOEXCEPT {
       if ( A == Algorithm::Quasi ) {
         return Ts(this->quick_Normalized());
       } else {
@@ -211,7 +211,7 @@ namespace @{m}@X_real {
     }
     template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
     explicit
-    INLINE operator _TX_<T,_A_>() const NOEXCEPT {
+    INLINE constexpr operator _TX_<T,_A_>() const NOEXCEPT {
       using TX = _TX_<T,_A_>;
       TX c;
       int constexpr LL = TX::L;
@@ -261,6 +261,8 @@ namespace @{m}@X_real {
     // contents are always in Accurate format
     // but they follow in the Algorithm argument 'A'
     //
+    // Some constants such as NAN, INF are compatible to the format
+    // defined in the QD library by Bailey and Hida
     //
 @@@{ func zero one two nhalf
     static INLINE @{M}@X_REAL<> constexpr @{func}@ () NOEXCEPT { return @{M}@X_REAL<>{ fp<T>::@{func}@() }; }
