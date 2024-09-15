@@ -297,6 +297,7 @@ namespace mX_real {
       {
         if ( N_accuracy > 0 || A == Algorithm::Quasi ) {
           twoSum( c.x[0], c.x[1] );
+          quickSum( c.x[0], c.x[1] );
         } else {
           quickSum( c.x[0], c.x[1] );
         }
@@ -313,17 +314,22 @@ namespace mX_real {
 #endif
       {
         if ( N_accuracy > 0 || A == Algorithm::Quasi ) {
+          if ( N_accuracy > 1 ) {
+            twoSum( c.x[0], c.x[2] );
+          }
           twoSum( c.x[0], c.x[1] );
           twoSum( c.x[1], c.x[2] );
-        } else {
+
+          quickSum( c.x[1], c.x[2] );
           quickSum( c.x[0], c.x[1] );
+
+          quickSum( c.x[1], c.x[2] );
+        } else {
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[0], c.x[1] );
+
           quickSum( c.x[1], c.x[2] );
         }
-        if ( N_accuracy > 1 ) {
-          quickSum( c.x[0], c.x[1] );
-          quickSum( c.x[1], c.x[2] );
-	}
-        quickSum( c.x[0], c.x[1] );
       }
   }
   //
@@ -337,22 +343,35 @@ namespace mX_real {
 #endif
       {
         if ( N_accuracy > 0 || A == Algorithm::Quasi ) {
+          if ( N_accuracy > 1 ) {
+            twoSum( c.x[0], c.x[3] );
+            twoSum( c.x[0], c.x[2] );
+          }
           twoSum( c.x[0], c.x[1] );
+          if ( N_accuracy > 1 ) {
+            twoSum( c.x[1], c.x[3] );
+          }
           twoSum( c.x[1], c.x[2] );
           twoSum( c.x[2], c.x[3] );
-        } else {
-          quickSum( c.x[0], c.x[1] );
+
+          quickSum( c.x[2], c.x[3] );
           quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[0], c.x[1] );
+
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[1], c.x[2] );
+
+          quickSum( c.x[2], c.x[3] );
+        } else {
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[0], c.x[1] );
+
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[1], c.x[2] );
+
           quickSum( c.x[2], c.x[3] );
         }
-        quickSum( c.x[0], c.x[1] );
-        quickSum( c.x[1], c.x[2] );
-        if ( N_accuracy > 1 ) {
-          quickSum( c.x[2], c.x[3] );
-          quickSum( c.x[0], c.x[1] );
-          quickSum( c.x[1], c.x[2] );
-	}
-        quickSum( c.x[0], c.x[1] );
       }
   }
 

@@ -658,51 +658,114 @@ main(int argc, char *argv[])
     print( "eps", std::numeric_limits<qf_Real>::epsilon() );
     print( "eps", std::pow( (float)2, -(float)95 ) );
   }
+  //
   {
-    tf_Real r = tf_Real::rand();
-    tf_Real x;
-    x.x[0] =  9*r.x[0];
-    x.x[1] = -9*r.x[0];
-    x.x[2] = 1*r.x[2];
-    print( "normalize test A0", x );
+    auto r0 = tf_Real::rand();
+    auto r1 = tf_Real::rand();
+    r0.x[1] -= r1.x[1]*4096;
+    r0.x[2] -= r1.x[2]*4096;
+    tf_Real r, x;
+
+    r.x[0] =  1*r0.x[0];
+    r.x[1] =  1*r0.x[1];
+    r.x[2] =  1*r0.x[2];
+
+    x = r;
+    print( "normalize test C0", x );
+    //QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    //QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    //print( "normalize test C1", x );
     QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
     QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test A1", x );
     QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    print( "normalize test A2", x );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test A3", x );
+    print( "normalize test C2", x );
     
-    x.x[0] =  9*r.x[0];
-    x.x[1] = -9*r.x[0];
-    x.x[2] = 1*r.x[2];
-    print( "normalize test B0", x );
+    x = r;
+    print( "normalize test D0", x );
+    //QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    //QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    //print( "normalize test D1", x );
     QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
     QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    print( "normalize test B1", x );
     QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test B2", x );
+    print( "normalize test D2", x );
     
-    x.x[0] =  9*r.x[0];
-    x.x[1] = -9*r.x[0];
-    x.x[2] = 1*r.x[2];
+    //
+
+    r.x[0] =  9*r0.x[0];
+    r.x[1] = -9*r0.x[0];
+    r.x[2] =  1*r0.x[2];
+
+    x = r;
     print( "normalize test C0", x );
     QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
     QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
     print( "normalize test C1", x );
     QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    print( "normalize test C2", x );
     QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test C3", x );
+    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    print( "normalize test C2", x );
     
-    x.x[0] =  9*r.x[0];
-    x.x[1] = -9*r.x[0];
-    x.x[2] = 1*r.x[2];
+    x = r;
     print( "normalize test D0", x );
-    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
     QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
     print( "normalize test D1", x );
     QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    print( "normalize test D2", x );
+    
+    //
+
+    r.x[0] =  9*r0.x[0];
+    r.x[1] =  1*r0.x[2];
+    r.x[2] = -9*r0.x[0];
+
+    x = r;
+    print( "normalize test C0", x );
+    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    print( "normalize test C1", x );
+    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    print( "normalize test C2", x );
+    
+    x = r;
+    print( "normalize test D0", x );
+    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    print( "normalize test D1", x );
+    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    print( "normalize test D2", x );
+    
+    //
+
+    r.x[0] =  1*r0.x[2];
+    r.x[1] =  9*r0.x[0];
+    r.x[2] = -9*r0.x[0];
+
+    x = r;
+    print( "normalize test C0", x );
+    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    print( "normalize test C1", x );
+    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    print( "normalize test C2", x );
+    
+    x = r;
+    print( "normalize test D0", x );
+    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    print( "normalize test D1", x );
+    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
+    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
+    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
     print( "normalize test D2", x );
     
   }

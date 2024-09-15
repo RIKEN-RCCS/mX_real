@@ -62,7 +62,7 @@ namespace mX_real {
 #if USE_MPREAL
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]);
     std::cout << message;
-    printf(" %cTD : %016lx %016lx ", toString(A)[0], d[0], d[1]);
+    printf(" %cDD : %016lx %016lx ", toString(A)[0], d[0], d[1]);
     std::cout << xx << "\n";
 #else
     long double xx =

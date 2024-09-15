@@ -1173,10 +1173,12 @@ def gen_add( NA, NB, NC, ACC ) :
             line[5] = 'ADD e2 a3 b3' # (c0)(c1)(c2 e0 e1 e2)
             line[6] = 'SUM 4 c2 c2 e0 e1 e2' # (c0)(c1)(c2)
 
+            ## down
+            ## 001 -> 001 010 : 100
+            ## 011 -> 101 110
         if ACC > 0 :
-            line[13] = 'QQQ c0 c1 c0 c1'
-        if NA + NB > 2 and ACC > 0 :
-            line[14] = 'QQQ c1 c2 c1 c2'
+            line[13] = 'QQQ c0 c1 c0 c1' if NA+NB>2 else '!'
+            line[14] = 'QQQ c1 c2 c1 c2' if NA+NB>2 else '!'
             line[15] = 'QQQ c0 c1 c0 c1'
 
     if NC == 4 :
@@ -1200,16 +1202,18 @@ def gen_add( NA, NB, NC, ACC ) :
             line[7] = 'ADD e2 a3 b3' # (c0)(c1)(c2)(c3 e0 e1 e2)
             line[8] = 'SUM 4 c3 c3 e0 e1 e2' # (c0)(c1)(c2)(c3)
 
-        if ACC > 0 :
-            line[14] = 'QQQ c0 c1 c0 c1'
-        if ( NA + NB > 2 ) and ACC > 0 :
-            line[15] = 'QQQ c1 c2 c1 c2'
-            line[16] = 'QQQ c2 c3 c2 c3'
-        if ( NA + NB > 3 ) and ACC > 0 :
-            line[17] = 'QQQ c0 c1 c0 c1'
-            line[18] = 'QQQ c1 c2 c1 c2'
-            line[19] = 'QQQ c0 c1 c0 c1'
+            ## down
+            ## 0001 -> 0001 0001 0010 : 0010 0100 : 1000
+            ## 0011 -> 0011 0101 0110 : 1010 1100
+            ## 0111 -> 1011 1101 1110 : 1110 1110
 
+        if ACC > 0 :
+            line[14] = 'QQQ c0 c1 c0 c1' if NA+NB>3 else '!'
+            line[15] = 'QQQ c1 c2 c1 c2' if NA+NB>3 else '!'
+            line[16] = 'QQQ c2 c3 c2 c3' if NA+NB>3 else '!'
+            line[17] = 'QQQ c0 c1 c0 c1' if NA+NB>2 else '!'
+            line[18] = 'QQQ c1 c2 c1 c2' if NA+NB>2 else '!'
+            line[19] = 'QQQ c0 c1 c0 c1'
 
     line = INIT_propagate( line, NA, NB, NC )
     line = ZERO_propagate( line )
@@ -1327,9 +1331,9 @@ def gen_mul( NA, NB, NC, ACC ) :
 
             line[23] = 'ADD c2 c2 e2' # (c1)(c2)
 
-            line[24] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
-            line[25] = 'QQQ c1 c2 c1 c2' if NA*NB > 1 else '!'
-            line[26] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
+            line[24] = 'QQQ c0 c1 c0 c1' if NA+NB > 2 else '!'
+            line[25] = 'QQQ c1 c2 c1 c2' if NA+NB > 2 else '!'
+            line[26] = 'QQQ c0 c1 c0 c1' if NA+NB > 1 else '!'
 
 
     if NC == 4 :
@@ -1409,12 +1413,12 @@ def gen_mul( NA, NB, NC, ACC ) :
                 line[43] = '!'
             line[44] = 'ADD c3 c3 e3' # (c1)(c2)(c3)
 
-            line[45] = 'QQQ c0 c1 c0 c1'
-            line[46] = 'QQQ c1 c2 c1 c2'
-            line[47] = 'QQQ c2 c3 c2 c3'
-            line[48] = 'QQQ c0 c1 c0 c1'
-            line[49] = 'QQQ c1 c2 c1 c2'
-            line[50] = 'QQQ c0 c1 c0 c1'
+            line[45] = 'QQQ c0 c1 c0 c1' if NA+NB>3 else '!'
+            line[46] = 'QQQ c1 c2 c1 c2' if NA+NB>3 else '!'
+            line[47] = 'QQQ c2 c3 c2 c3' if NA+NB>3 else '!'
+            line[48] = 'QQQ c0 c1 c0 c1' if NA+NB>2 else '!'
+            line[49] = 'QQQ c1 c2 c1 c2' if NA+NB>2 else '!'
+            line[50] = 'QQQ c0 c1 c0 c1' if NA+NB>1 else '!'
 
 
     line = INIT_propagate( line, NA, NB, NC )
