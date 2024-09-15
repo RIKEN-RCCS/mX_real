@@ -26,12 +26,20 @@ NVCC = nvcc
 
 #CCFLAGS := $(CCFLAGS) -O3 -Wall -I./ -include mX_real.hpp
 CCFLAGS := $(CCFLAGS) -O3 -I./ -include mX_real.hpp
+ifeq (x$(cxx),xicpx)
+LDFLAGS = -qopenmp -lquadmath -lm
+else
 LDFLAGS = -fopenmp -lquadmath -lm
+endif
 
 # Optimizations
 CCFLAGS := $(CCFLAGS) -mfma -mavx2
 #CCFLAGS := $(CCFLAGS) -mfma -mavx2 -mavx512f
+ifeq (x$(cxx),xicpx)
+CCFLAGS := $(CCFLAGS) -qopenmp
+else
 CCFLAGS := $(CCFLAGS) -fopenmp
+endif
 
 # QD
 CCFLAGS := $(CCFLAGS) -DUSE_QDREAL=1 -DUSE_DDREAL=1
