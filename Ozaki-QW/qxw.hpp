@@ -27,11 +27,10 @@ namespace QxW {
   TwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
   {
     //
-    // basic cost is 6 flops per a signle call
+    // basic cost is 6 flops and 6 cycles per a signle call
     //
-    T z;
     x = a + b;
-    z = x - a;
+    auto z = x - a;
     y = (a - (x - z)) + (b - z);
   }
 
@@ -39,7 +38,7 @@ namespace QxW {
   FastTwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
   {
     //
-    // basic cost is 3 flops per a signle call
+    // basic cost is 3 flops and 3 cycles per a signle call
     //
     x = a + b;
     y = (a - x) + b;
@@ -49,7 +48,7 @@ namespace QxW {
   TwoProductFMA ( T const a, T const b, T &x, T &y ) NOEXCEPT
   {
     //
-    // basic cost is 3 flops per a signle call
+    // basic cost is 3 flops but 2 cycles per a signle call
     // (fma with negative arg is expected to be replaced by a sigle instruction
     // at the compilation
     //
@@ -1253,7 +1252,7 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a0, b1, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
-    c2 = c2 + t0;
+    c2 = t0 + c2;
   }
 
   // mul: 1-2-4
@@ -1293,8 +1292,8 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a0, b1, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
-    c2 = c2 + t0;
-    c2 = std::fma ( a0, b2, c2 );
+    t0 = std::fma ( a0, b2, t0 );
+    c2 = t0 + c2;
   }
 
   // mul: 1-3-4
@@ -1338,9 +1337,9 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a0, b1, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
-    c2 = c2 + t0;
     t1 = b3 + b2;
-    c2 = std::fma ( a0, t1, c2 );
+    t0 = std::fma ( a0, t1, t0 );
+    c2 = t0 + c2;
   }
 
   // mul: 1-4-4
@@ -1354,8 +1353,8 @@ namespace QxW {
     TwoProductFMA( a0, b2, t0, t1 );
     TwoSum( c2, c3, c2, c3 );
     TwoSum( c2, t0, c2, t0 );
-    c3 = c3 + t0 + t1;
     c3 = std::fma ( a0, b3, c3 );
+    c3 = c3 + t0 + t1;
   }
 
   // mul: 2-1-1
@@ -1383,7 +1382,7 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a1, b0, t0, t1 );
     TwoSum( c1, t0, c1, t0 );
-    c2 = t0 + t1;
+    c2 = t1 + t0;
   }
 
   // mul: 2-1-4
@@ -1425,8 +1424,8 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    c2 = c2 + t1 + t0 + t2;
     c2 = std::fma ( a1, b1, c2 );
+    c2 = t0 + c2 + t2 + t1;
   }
 
   // mul: 2-2-4
@@ -1478,9 +1477,9 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    c2 = c2 + t1 + t0 + t2;
-    c2 = std::fma ( a0, b2, c2 );
+    t0 = std::fma ( a0, b2, t0 );
     c2 = std::fma ( a1, b1, c2 );
+    c2 = t0 + c2 + t2 + t1;
   }
 
   // mul: 2-3-4
@@ -1500,8 +1499,8 @@ namespace QxW {
     TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t4, c2, t4 );
-    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
     c3 = std::fma ( a1, b2, c3 );
+    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
   }
 
   // mul: 2-4-1
@@ -1535,10 +1534,10 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    c2 = c2 + t1 + t0 + t2;
     t3 = b3 + b2;
-    c2 = std::fma ( a0, t3, c2 );
+    t0 = std::fma ( a0, t3, t0 );
     c2 = std::fma ( a1, b1, c2 );
+    c2 = t0 + c2 + t2 + t1;
   }
 
   // mul: 2-4-4
@@ -1558,9 +1557,9 @@ namespace QxW {
     TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t4, c2, t4 );
-    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
     c3 = std::fma ( a0, b3, c3 );
     c3 = std::fma ( a1, b2, c3 );
+    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
   }
 
   // mul: 3-1-1
@@ -1590,8 +1589,8 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a1, b0, t0, t1 );
     TwoSum( c1, t0, c1, t0 );
-    c2 = t0 + t1;
-    c2 = std::fma ( a2, b0, c2 );
+    t1 = std::fma ( a2, b0, t1 );
+    c2 = t1 + t0;
   }
 
   // mul: 3-1-4
@@ -1639,9 +1638,9 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    c2 = c2 + t1 + t0 + t2;
     c2 = std::fma ( a1, b1, c2 );
-    c2 = std::fma ( a2, b0, c2 );
+    t2 = std::fma ( a2, b0, t2 );
+    c2 = t0 + c2 + t2 + t1;
   }
 
   // mul: 3-2-4
@@ -1661,8 +1660,8 @@ namespace QxW {
     TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t4, c2, t4 );
-    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
     c3 = std::fma ( a2, b1, c3 );
+    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
   }
 
   // mul: 3-3-1
@@ -1697,10 +1696,10 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    c2 = c2 + t1 + t0 + t2;
-    c2 = std::fma ( a0, b2, c2 );
+    t0 = std::fma ( a0, b2, t0 );
     c2 = std::fma ( a1, b1, c2 );
-    c2 = std::fma ( a2, b0, c2 );
+    t2 = std::fma ( a2, b0, t2 );
+    c2 = t0 + c2 + t2 + t1;
   }
 
   // mul: 3-3-4
@@ -1722,9 +1721,9 @@ namespace QxW {
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t4, c2, t4 );
     TwoSum( c2, t6, c2, t6 );
-    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
     c3 = std::fma ( a1, b2, c3 );
     c3 = std::fma ( a2, b1, c3 );
+    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
   }
 
   // mul: 3-4-1
@@ -1759,11 +1758,11 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    c2 = c2 + t1 + t0 + t2;
     t3 = b3 + b2;
-    c2 = std::fma ( a0, t3, c2 );
+    t0 = std::fma ( a0, t3, t0 );
     c2 = std::fma ( a1, b1, c2 );
-    c2 = std::fma ( a2, b0, c2 );
+    t2 = std::fma ( a2, b0, t2 );
+    c2 = t0 + c2 + t2 + t1;
   }
 
   // mul: 3-4-4
@@ -1785,10 +1784,10 @@ namespace QxW {
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t4, c2, t4 );
     TwoSum( c2, t6, c2, t6 );
-    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
     c3 = std::fma ( a0, b3, c3 );
     c3 = std::fma ( a1, b2, c3 );
     c3 = std::fma ( a2, b1, c3 );
+    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
   }
 
   // mul: 4-1-1
@@ -1818,9 +1817,9 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a1, b0, t0, t1 );
     TwoSum( c1, t0, c1, t0 );
-    c2 = t0 + t1;
     t2 = a3 + a2;
-    c2 = std::fma ( t2, b0, c2 );
+    t1 = std::fma ( t2, b0, t1 );
+    c2 = t1 + t0;
   }
 
   // mul: 4-1-4
@@ -1834,8 +1833,8 @@ namespace QxW {
     TwoProductFMA( a2, b0, t1, t2 );
     TwoSum( c2, t0, c2, t0 );
     TwoSum( c2, t1, c2, t1 );
-    c3 = t0 + t1 + t2;
-    c3 = std::fma ( a3, b0, c3 );
+    c3 = a3 * b0;
+    c3 = c3 + t0 + t1 + t2;
   }
 
   // mul: 4-2-1
@@ -1869,10 +1868,10 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    c2 = c2 + t1 + t0 + t2;
     t3 = a3 + a2;
     c2 = std::fma ( a1, b1, c2 );
-    c2 = std::fma ( t3, b0, c2 );
+    t2 = std::fma ( t3, b0, t2 );
+    c2 = t0 + c2 + t2 + t1;
   }
 
   // mul: 4-2-4
@@ -1892,9 +1891,9 @@ namespace QxW {
     TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t4, c2, t4 );
-    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
     c3 = std::fma ( a2, b1, c3 );
     c3 = std::fma ( a3, b0, c3 );
+    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
   }
 
   // mul: 4-3-1
@@ -1929,11 +1928,11 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    c2 = c2 + t1 + t0 + t2;
     t3 = a3 + a2;
-    c2 = std::fma ( a0, b2, c2 );
+    t0 = std::fma ( a0, b2, t0 );
     c2 = std::fma ( a1, b1, c2 );
-    c2 = std::fma ( t3, b0, c2 );
+    t2 = std::fma ( t3, b0, t2 );
+    c2 = t0 + c2 + t2 + t1;
   }
 
   // mul: 4-3-4
@@ -1955,10 +1954,10 @@ namespace QxW {
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t4, c2, t4 );
     TwoSum( c2, t6, c2, t6 );
-    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
     c3 = std::fma ( a1, b2, c3 );
     c3 = std::fma ( a2, b1, c3 );
     c3 = std::fma ( a3, b0, c3 );
+    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
   }
 
   // mul: 4-4-1
@@ -1993,12 +1992,12 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    c2 = c2 + t1 + t0 + t2;
     t3 = a3 + a2;
     t4 = b3 + b2;
-    c2 = std::fma ( a0, t4, c2 );
+    t0 = std::fma ( a0, t4, t0 );
     c2 = std::fma ( a1, b1, c2 );
-    c2 = std::fma ( t3, b0, c2 );
+    t2 = std::fma ( t3, b0, t2 );
+    c2 = t0 + c2 + t2 + t1;
   }
 
   // mul: 4-4-4
@@ -2020,11 +2019,11 @@ namespace QxW {
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t4, c2, t4 );
     TwoSum( c2, t6, c2, t6 );
-    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
     c3 = std::fma ( a0, b3, c3 );
     c3 = std::fma ( a1, b2, c3 );
     c3 = std::fma ( a2, b1, c3 );
     c3 = std::fma ( a3, b0, c3 );
+    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
   }
 
   // div: 1-1-1
@@ -7345,8 +7344,8 @@ namespace QxW {
     T tn, td;
     tn = t0 + t1 + t2;
     td = c0 + c1;
+    td = td * fp_const<T>::two();
     c2 = tn / td;
-    c2 = c2 * fp_const<T>::nhalf();
   }
 
   // sqrt: 1-4
@@ -7360,8 +7359,8 @@ namespace QxW {
     T tn, td;
     tn = t0 + t1 + t2 + t3;
     td = c0 + c1 + c2;
+    td = td * fp_const<T>::two();
     c3 = tn / td;
-    c3 = c3 * fp_const<T>::nhalf();
   }
 
   // sqrt: 2-1
@@ -7390,8 +7389,8 @@ namespace QxW {
     T tn, td;
     tn = t0 + t1 + t2;
     td = c0 + c1;
+    td = td * fp_const<T>::two();
     c2 = tn / td;
-    c2 = c2 * fp_const<T>::nhalf();
   }
 
   // sqrt: 2-4
@@ -7405,8 +7404,8 @@ namespace QxW {
     T tn, td;
     tn = t0 + t1 + t2 + t3;
     td = c0 + c1 + c2;
+    td = td * fp_const<T>::two();
     c3 = tn / td;
-    c3 = c3 * fp_const<T>::nhalf();
   }
 
   // sqrt: 3-1
@@ -7435,8 +7434,8 @@ namespace QxW {
     T tn, td;
     tn = t0 + t1 + t2;
     td = c0 + c1;
+    td = td * fp_const<T>::two();
     c2 = tn / td;
-    c2 = c2 * fp_const<T>::nhalf();
   }
 
   // sqrt: 3-4
@@ -7450,8 +7449,8 @@ namespace QxW {
     T tn, td;
     tn = t0 + t1 + t2 + t3;
     td = c0 + c1 + c2;
+    td = td * fp_const<T>::two();
     c3 = tn / td;
-    c3 = c3 * fp_const<T>::nhalf();
   }
 
   // sqrt: 4-1
@@ -7487,8 +7486,8 @@ namespace QxW {
     T tn, td;
     tn = t0 + t1 + t2 + t3;
     td = c0 + c1 + c2;
+    td = td * fp_const<T>::two();
     c3 = tn / td;
-    c3 = c3 * fp_const<T>::nhalf();
   }
 
   // sqrt: 1-2

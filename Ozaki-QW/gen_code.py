@@ -161,11 +161,10 @@ template < typename T > INLINE void constexpr
 TwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
 {
   //
-  // basic cost is 6 flops per a signle call
+  // basic cost is 6 flops and 6 cycles per a signle call
   //
-  T z;
   x = a + b;
-  z = x - a;
+  auto z = x - a;
   y = (a - (x - z)) + (b - z);
 }
 
@@ -173,7 +172,7 @@ template < typename T > INLINE void constexpr
 FastTwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
 {
   //
-  // basic cost is 3 flops per a signle call
+  // basic cost is 3 flops and 3 cycles per a signle call
   //
   x = a + b;
   y = (a - x) + b;
@@ -183,7 +182,7 @@ template < typename T > INLINE void constexpr
 TwoProductFMA ( T const a, T const b, T &x, T &y ) NOEXCEPT
 {
   //
-  // basic cost is 3 flops per a signle call
+  // basic cost is 3 flops but 2 cycles per a signle call
   // (fma with negative arg is expected to be replaced by a sigle instruction
   // at the compilation
   //
@@ -1173,9 +1172,6 @@ def gen_add( NA, NB, NC, ACC ) :
             line[5] = 'ADD e2 a3 b3' # (c0)(c1)(c2 e0 e1 e2)
             line[6] = 'SUM 4 c2 c2 e0 e1 e2' # (c0)(c1)(c2)
 
-            ## down
-            ## 001 -> 001 010 : 100
-            ## 011 -> 101 110
         if ACC > 0 :
             line[13] = 'QQQ c0 c1 c0 c1' if NA+NB>2 else '!'
             line[14] = 'QQQ c1 c2 c1 c2' if NA+NB>2 else '!'
@@ -1293,12 +1289,18 @@ def gen_mul( NA, NB, NC, ACC ) :
         line[5] = 'TWO c1 e3 c1 e3' # (c1)(c2,e3,e2,e4)
 
         if ACC == 0 :
-            line[6] = 'SUM 4 c2 c2 e3 e2 e4' # (c1)(c2)
-            line[7] = 'SUM 3 e0 a3 a2'
-            line[8] = 'SUM 3 e1 b3 b2'
-            line[9] = 'MAD c2 a0 e1 c2' # (c1)(c2)
-            line[10] = 'MAD c2 a1 b1 c2' # (c1)(c2)
-            line[11] = 'MAD c2 e0 b0 c2' # (c1)(c2)
+            line[6] = 'SUM 2 e0 a3 a2'
+            line[7] = 'SUM 2 e1 b3 b2'
+            line[8] = 'MAD e2 a0 e1 e2' # (c1)(c2)
+            line[9] = 'MAD c2 a1 b1 c2' # (c1)(c2)
+            line[10] = 'MAD e4 e0 b0 e4' # (c1)(c2)
+            line[11] = 'SUM 4 c2 e2 c2 e4 e3' # (c1)(c2)
+#            line[6] = 'SUM 4 c2 c2 e3 e2 e4' # (c1)(c2)
+#            line[7] = 'SUM 2 e0 a3 a2'
+#            line[8] = 'SUM 2 e1 b3 b2'
+#            line[9] = 'MAD c2 a0 e1 c2' # (c1)(c2)
+#            line[10] = 'MAD c2 a1 b1 c2' # (c1)(c2)
+#            line[11] = 'MAD c2 e0 b0 c2' # (c1)(c2)
         else :
             line[6] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
 
@@ -1359,11 +1361,13 @@ def gen_mul( NA, NB, NC, ACC ) :
         line[15] = 'TWO c2 e9 c2 e9' # (c1)(c2)(e9,e7,e5,e4,c3,e3,e6,e8,e10)
 
         if ACC == 0 :
-            line[16] = 'SUM 9 c3 c3 e3 e4 e5 e6 e7 e8 e9 e10' # (c1)(c2)(c3)
+            #line[16] = 'SUM 9 c3 c3 e3 e4 e5 e6 e7 e8 e9 e10' # (c1)(c2)(c3)
+            line[16] = '!'
             line[17] = 'MAD c3 a0 b3 c3' # (c1)(c2)(c3)
             line[18] = 'MAD c3 a1 b2 c3' # (c1)(c2)(c3)
             line[19] = 'MAD c3 a2 b1 c3' # (c1)(c2)(c3)
             line[20] = 'MAD c3 a3 b0 c3' # (c1)(c2)(c3)
+            line[21] = 'SUM 9 c3 c3 e3 e4 e5 e6 e7 e8 e9 e10' # (c1)(c2)(c3)
         else :
             line[16] = 'QQQ c1 c2 c1 c2' if NA*NB > 1 else '!'
 

@@ -1062,9 +1062,11 @@ def gen_sqrt( NA, NC, ACC ) :
             LineCount = LineCount + 1
             line[LineCount] = 'SUM {} td {}'.format( NCC, vc_list )
             LineCount = LineCount + 1
+            line[LineCount] = 'MUL td td fp_const<T>::two()'
+            LineCount = LineCount + 1
             line[LineCount] = 'DIV c{} tn td'.format( NC-1 )
             LineCount = LineCount + 1
-            line[LineCount] = 'MUL c{} c{} fp_const<T>::nhalf()'.format( NC-1, NC-1 )
+            #line[LineCount] = 'MUL c{} c{} fp_const<T>::nhalf()'.format( NC-1, NC-1 )
 
     else :
 

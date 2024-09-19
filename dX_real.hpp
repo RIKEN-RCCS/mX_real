@@ -128,15 +128,15 @@ namespace mX_real {
             if ( L < LL ) {
               if ( _A_ == Algorithm::Quasi ) {
                 auto s = h;
-                mX_real::Normalize<1>( s );
+                mX_real::Normalize<NormalizeOption::Accurate>( s );
                 mX_real::copy_with_rounding( x, s.x, L, LL );
               } else {
                 mX_real::copy_with_rounding( x, h.x, L, LL );
               }
-              if ( need_normalize ) { mX_real::Normalize<0>( *this ); }
+              if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Accurate>( *this ); }
             } else {
               mX_real::copy_with_rounding( x, h.x, L, LL );
-              if ( need_normalize ) { mX_real::Normalize<1>( *this ); }
+              if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Regular>( *this ); }
             }
           }
       }
@@ -173,15 +173,15 @@ namespace mX_real {
             if ( L < LL ) {
               if ( _A_ == Algorithm::Quasi ) {
                 auto s = h;
-                mX_real::Normalize<1>( s );
+                mX_real::Normalize<NormalizeOption::Accurate>( s );
                 mX_real::copy_with_rounding( x, s.x, L, LL );
               } else {
                 mX_real::copy_with_rounding( x, h.x, L, LL );
               }
-              if ( need_normalize ) { mX_real::Normalize<0>( *this ); }
+              if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Regular>( *this ); }
             } else {
               mX_real::copy_with_rounding( x, h.x, L, LL );
-              if ( need_normalize ) { mX_real::Normalize<1>( *this ); }
+              if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Accurate>( *this ); }
             }
           }
         return *this;
@@ -228,15 +228,15 @@ namespace mX_real {
             if ( LL < L ) {
               if ( A == Algorithm::Quasi ) {
                 auto s = *this;
-                mX_real::Normalize<1>( s );
+                mX_real::Normalize<NormalizeOption::Accurate>( s );
                 mX_real::copy_with_rounding( c.x, s.x, LL, L );
               } else {
                 mX_real::copy_with_rounding( c.x, x, LL, L );
               }
-              if ( need_normalize ) { mX_real::Normalize<0>( c ); }
+              if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Regular>( c ); }
             } else {
               mX_real::copy_with_rounding( c.x, x, LL, L );
-              if ( need_normalize ) { mX_real::Normalize<1>( c ); }
+              if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Accurate>( c ); }
             }
           }
         return c;
@@ -313,18 +313,18 @@ namespace mX_real {
       // static member funtions
       // their definitions are below outside of the struct definition block
       //
-      static INLINE DX_REAL<> constexpr sqrt ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE DX_REAL<> constexpr abs ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE DX_REAL<> constexpr sqrt ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE DX_REAL<> constexpr fabs ( DX_REAL<> const& a ) NOEXCEPT {
         return DX_REAL<>::abs(a);
       }
       static INLINE DX_REAL<> rand () NOEXCEPT;
+      static INLINE bool constexpr is_negative ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_positive ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr signbit ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_negative ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr isinf ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_zero ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr isnan ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr isinf ( DX_REAL<> const& a ) NOEXCEPT;
       //
 
 
@@ -334,12 +334,12 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () NOEXCEPT { mX_real::Normalize( *this ); }
       //
+      INLINE bool constexpr is_negative () const NOEXCEPT { return DX_REAL<>::is_negative( *this ); }
       INLINE bool constexpr is_positive () const NOEXCEPT { return DX_REAL<>::is_positive( *this ); }
       INLINE bool constexpr signbit () const NOEXCEPT { return DX_REAL<>::signbit( *this ); }
-      INLINE bool constexpr is_negative () const NOEXCEPT { return DX_REAL<>::is_negative( *this ); }
-      INLINE bool constexpr isinf () const NOEXCEPT { return DX_REAL<>::isinf( *this ); }
       INLINE bool constexpr is_zero () const NOEXCEPT { return DX_REAL<>::is_zero( *this ); }
       INLINE bool constexpr isnan () const NOEXCEPT { return DX_REAL<>::isnan( *this ); }
+      INLINE bool constexpr isinf () const NOEXCEPT { return DX_REAL<>::isinf( *this ); }
       //
 
 
@@ -397,10 +397,6 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr signbit ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
-      return fp<T>::signbit( a.quick_Normalized() );
-    }
-    template < typename T, Algorithm Aa >
     INLINE auto constexpr isinf ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
       return fp<T>::isinf( a.quick_Normalized() );
     }
@@ -409,16 +405,20 @@ namespace mX_real {
       return fp<T>::isnan( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_negative ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
-      return a.quick_Normalized() < fp<T>::zero();
+    INLINE auto constexpr signbit ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
+      return fp<T>::signbit( a.quick_Normalized() );
+    }
+    template < typename T, Algorithm Aa >
+    INLINE bool constexpr is_positive ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
+      return a.quick_Normalized() > fp<T>::zero();
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_zero ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
       return a.quick_Normalized() == fp<T>::zero();
     }
     template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_positive ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
-      return a.quick_Normalized() > fp<T>::zero();
+    INLINE bool constexpr is_negative ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
+      return a.quick_Normalized() < fp<T>::zero();
     }
     //
     template < typename T, Algorithm A >

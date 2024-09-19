@@ -124,6 +124,16 @@ namespace mX_real {
     ( Aa==Algorithm::Quasi ) ||
     ( Aa==Algorithm::Sloppy && Ab!=Algorithm::Quasi ); };
 
+  enum class NormalizeOption {
+                              Regular      = 0,
+                              Accurate     = 1,
+                              VsumForward  = 2,
+                              VQsumForward = 3,
+                              VsumReverse  = 4,
+                              VQsumReverse = 5,
+                              Unknown      = -1,
+                              Default      = Regular
+  };
 
   //
   // generic terms (const, comparison funcs, and sign-bit ops)
@@ -283,10 +293,8 @@ namespace mX_real {
   // Normalization policy
   // if O(|x0|)>O(|x1|)>... => quickSum in a decending (w.r.t. O(e)) order once
   // not guaranteed => TwoSum in an ascending order, then quickSum up-and-down order once or more
-  // N_itr :  0 => Sloppy
-  //       : >1 => Quasi
   //
-  template < int N_accuracy = 0, typename T, Algorithm A >
+  template < NormalizeOption Nopt = NormalizeOption::Regular, typename T, Algorithm A >
   INLINE auto constexpr Normalize( dX_real::dx_real<T,A> & c ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     auto t = c.x[0] + c.x[1];
@@ -295,16 +303,37 @@ namespace mX_real {
     } else
 #endif
       {
-        if ( N_accuracy > 0 || A == Algorithm::Quasi ) {
+	switch ( Nopt ) {
+	case NormalizeOption::VsumForward: {
+          twoSum( c.x[0], c.x[1] );
+	} break;
+	case NormalizeOption::VQsumForward: {
+          quickSum( c.x[0], c.x[1] );
+	} break;
+	case NormalizeOption::VsumReverse: {
+          twoSum( c.x[0], c.x[1] );
+	} break;
+	case NormalizeOption::VQsumReverse: {
+          quickSum( c.x[0], c.x[1] );
+	} break;
+	case NormalizeOption::Accurate: {
           twoSum( c.x[0], c.x[1] );
           quickSum( c.x[0], c.x[1] );
-        } else {
-          quickSum( c.x[0], c.x[1] );
-        }
+	} break;
+	case NormalizeOption::Regular: {
+          if ( A == Algorithm::Quasi ) {
+            twoSum( c.x[0], c.x[1] );
+            quickSum( c.x[0], c.x[1] );
+          } else {
+            quickSum( c.x[0], c.x[1] );
+          } } break;
+	case NormalizeOption::Unknown: { } break;
+	default: { } break;
+	}
       }
   }
   //
-  template < int N_accuracy = 0, typename T, Algorithm A >
+  template < NormalizeOption Nopt = NormalizeOption::Regular, typename T, Algorithm A >
   INLINE auto constexpr Normalize( tX_real::tx_real<T,A> & c ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     auto t = c.x[0] + c.x[1] + c.x[2];
@@ -313,27 +342,53 @@ namespace mX_real {
     } else
 #endif
       {
-        if ( N_accuracy > 0 || A == Algorithm::Quasi ) {
-          if ( N_accuracy > 1 ) {
-            twoSum( c.x[0], c.x[2] );
-          }
+	switch ( Nopt ) {
+	case NormalizeOption::Accurate: {
+          twoSum( c.x[0], c.x[2] );
           twoSum( c.x[0], c.x[1] );
           twoSum( c.x[1], c.x[2] );
-
           quickSum( c.x[1], c.x[2] );
           quickSum( c.x[0], c.x[1] );
-
           quickSum( c.x[1], c.x[2] );
-        } else {
+	} break;
+	case NormalizeOption::VsumForward: {
+          twoSum( c.x[0], c.x[1] );
+          twoSum( c.x[1], c.x[2] );
+	} break;
+	case NormalizeOption::VQsumForward: {
+          quickSum( c.x[0], c.x[1] );
+          quickSum( c.x[1], c.x[2] );
+	} break;
+	case NormalizeOption::VsumReverse: {
+          twoSum( c.x[1], c.x[2] );
+          twoSum( c.x[0], c.x[1] );
+	} break;
+	case NormalizeOption::VQsumReverse: {
           quickSum( c.x[1], c.x[2] );
           quickSum( c.x[0], c.x[1] );
-
-          quickSum( c.x[1], c.x[2] );
+	} break;
+	case NormalizeOption::Regular: {
+          if ( A == Algorithm::Quasi ) {
+            twoSum( c.x[0], c.x[2] );
+            twoSum( c.x[0], c.x[1] );
+            twoSum( c.x[1], c.x[2] );
+            quickSum( c.x[1], c.x[2] );
+            quickSum( c.x[0], c.x[1] );
+            quickSum( c.x[1], c.x[2] );
+          } else {
+            twoSum( c.x[0], c.x[1] );
+            twoSum( c.x[1], c.x[2] );
+            quickSum( c.x[1], c.x[2] );
+            quickSum( c.x[0], c.x[1] );
+            quickSum( c.x[1], c.x[2] );
+          } } break;
+	case NormalizeOption::Unknown: { } break;
+	default: { } break;
         }
       }
   }
   //
-  template < int N_accuracy = 0, typename T, Algorithm A >
+  template < NormalizeOption Nopt = NormalizeOption::Regular, typename T, Algorithm A >
   INLINE auto constexpr Normalize( qX_real::qx_real<T,A> & c ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     auto t = c.x[0] + c.x[1] + c.x[2] + c.x[3];
@@ -342,35 +397,65 @@ namespace mX_real {
     } else
 #endif
       {
-        if ( N_accuracy > 0 || A == Algorithm::Quasi ) {
-          if ( N_accuracy > 1 ) {
-            twoSum( c.x[0], c.x[3] );
-            twoSum( c.x[0], c.x[2] );
-          }
+	switch ( Nopt ) {
+	case NormalizeOption::VsumForward: {
           twoSum( c.x[0], c.x[1] );
-          if ( N_accuracy > 1 ) {
-            twoSum( c.x[1], c.x[3] );
-          }
           twoSum( c.x[1], c.x[2] );
           twoSum( c.x[2], c.x[3] );
-
+	} break;
+	case NormalizeOption::VQsumForward: {
+          quickSum( c.x[0], c.x[1] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[2], c.x[3] );
+	} break;
+	case NormalizeOption::VsumReverse: {
+          twoSum( c.x[2], c.x[3] );
+          twoSum( c.x[1], c.x[2] );
+          twoSum( c.x[0], c.x[1] );
+	} break;
+	case NormalizeOption::VQsumReverse: {
           quickSum( c.x[2], c.x[3] );
           quickSum( c.x[1], c.x[2] );
           quickSum( c.x[0], c.x[1] );
-
-          quickSum( c.x[2], c.x[3] );
-          quickSum( c.x[1], c.x[2] );
-
-          quickSum( c.x[2], c.x[3] );
-        } else {
+	} break;
+	case NormalizeOption::Accurate: {
+          twoSum( c.x[0], c.x[3] );
+          twoSum( c.x[0], c.x[2] );
+          twoSum( c.x[0], c.x[1] );
+          twoSum( c.x[1], c.x[3] );
+          twoSum( c.x[1], c.x[2] );
+          twoSum( c.x[2], c.x[3] );
           quickSum( c.x[2], c.x[3] );
           quickSum( c.x[1], c.x[2] );
           quickSum( c.x[0], c.x[1] );
-
           quickSum( c.x[2], c.x[3] );
           quickSum( c.x[1], c.x[2] );
-
           quickSum( c.x[2], c.x[3] );
+	} break;
+	case NormalizeOption::Regular: {
+          if ( A == Algorithm::Quasi ) {
+            twoSum( c.x[0], c.x[3] );
+            twoSum( c.x[0], c.x[2] );
+            twoSum( c.x[0], c.x[1] );
+            twoSum( c.x[1], c.x[3] );
+            twoSum( c.x[1], c.x[2] );
+            twoSum( c.x[2], c.x[3] );
+            quickSum( c.x[2], c.x[3] );
+            quickSum( c.x[1], c.x[2] );
+            quickSum( c.x[0], c.x[1] );
+            quickSum( c.x[2], c.x[3] );
+            quickSum( c.x[1], c.x[2] );
+            quickSum( c.x[2], c.x[3] );
+          } else {
+            quickSum( c.x[2], c.x[3] );
+            quickSum( c.x[1], c.x[2] );
+            quickSum( c.x[0], c.x[1] );
+            quickSum( c.x[2], c.x[3] );
+            quickSum( c.x[1], c.x[2] );
+            quickSum( c.x[2], c.x[3] );
+          } } break;
+	case NormalizeOption::Unknown: { } break;
+	default: { } break;
         }
       }
   }

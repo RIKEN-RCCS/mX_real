@@ -128,15 +128,15 @@ namespace @{m}@X_real {
         if ( L < LL ) {
           if ( _A_ == Algorithm::Quasi ) {
             auto s = h;
-            mX_real::Normalize<1>( s );
+            mX_real::Normalize<NormalizeOption::Accurate>( s );
             mX_real::copy_with_rounding( x, s.x, L, LL );
           } else {
             mX_real::copy_with_rounding( x, h.x, L, LL );
           }
-          if ( need_normalize ) { mX_real::Normalize<0>( *this ); }
+          if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Accurate>( *this ); }
         } else {
           mX_real::copy_with_rounding( x, h.x, L, LL );
-          if ( need_normalize ) { mX_real::Normalize<1>( *this ); }
+          if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Regular>( *this ); }
         }
       }
     }
@@ -173,15 +173,15 @@ namespace @{m}@X_real {
         if ( L < LL ) {
           if ( _A_ == Algorithm::Quasi ) {
             auto s = h;
-            mX_real::Normalize<1>( s );
+            mX_real::Normalize<NormalizeOption::Accurate>( s );
             mX_real::copy_with_rounding( x, s.x, L, LL );
           } else {
             mX_real::copy_with_rounding( x, h.x, L, LL );
           }
-          if ( need_normalize ) { mX_real::Normalize<0>( *this ); }
+          if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Regular>( *this ); }
         } else {
           mX_real::copy_with_rounding( x, h.x, L, LL );
-          if ( need_normalize ) { mX_real::Normalize<1>( *this ); }
+          if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Accurate>( *this ); }
         }
       }
       return *this;
@@ -228,15 +228,15 @@ namespace @{m}@X_real {
         if ( LL < L ) {
           if ( A == Algorithm::Quasi ) {
             auto s = *this;
-            mX_real::Normalize<1>( s );
+            mX_real::Normalize<NormalizeOption::Accurate>( s );
             mX_real::copy_with_rounding( c.x, s.x, LL, L );
           } else {
             mX_real::copy_with_rounding( c.x, x, LL, L );
           }
-          if ( need_normalize ) { mX_real::Normalize<0>( c ); }
+          if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Regular>( c ); }
         } else {
           mX_real::copy_with_rounding( c.x, x, LL, L );
-          if ( need_normalize ) { mX_real::Normalize<1>( c ); }
+          if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Accurate>( c ); }
         }
       }
       return c;

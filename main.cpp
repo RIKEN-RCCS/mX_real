@@ -363,7 +363,7 @@ struct Test_add
   using TXc = largeType<TXa,TXb>;
   using T   = typename TXc::base_T;
   auto eps = convert( largeType<TXa,TXb>::epsilon() );
-  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
+  auto tol = convert( 16*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
 
   unsigned int seed = 1;
   srand( seed );
@@ -390,7 +390,7 @@ struct Test_add
   char sc[64]; TYPE_name<TXc>( sc );
   std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
           << " : ADD " << std::string( sa ) << " + " << std::string( sb ) << " => " << std::string( sc )
-	  << " :: " << res << " " << eps << " " << tol << " "
+	  << " :: Res=" << res << " Eps=" << eps << " Tol=" << tol << " "
 	  << std::numeric_limits<T>::max_digits10 << "\n";
   }
 };
@@ -404,7 +404,7 @@ struct Test_mul
   using TXc = largeType<TXa,TXb>;
   using T   = typename TXc::base_T;
   auto eps = convert( largeType<TXa,TXb>::epsilon() );
-  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
+  auto tol = convert( 16*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
 
   unsigned int seed = 1;
   srand( seed );
@@ -431,7 +431,7 @@ struct Test_mul
   char sc[64]; TYPE_name<TXc>( sc );
   std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
           << " : MUL " << std::string( sa ) << " * " << std::string( sb ) << " => " << std::string( sc )
-	  << " :: " << res << " " << eps << " " << tol << " "
+	  << " :: Res=" << res << " Eps=" << eps << " Tol=" << tol << " "
 	  << std::numeric_limits<T>::max_digits10 << "\n";
   }
 };
@@ -445,7 +445,7 @@ struct Test_div
   using TXc = largeType<TXa,TXb>;
   using T   = typename TXc::base_T;
   auto eps = convert( largeType<TXa,TXb>::epsilon() );
-  auto tol = convert( 31*double(1.0) / double( fp<T>::epsilon() ) );
+  auto tol = convert( 16*double(1.0) / double( fp<T>::epsilon() ) );
 
   unsigned int seed = 1;
   srand( seed );
@@ -472,7 +472,7 @@ struct Test_div
   char sc[64]; TYPE_name<TXc>( sc );
   std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
           << " : DIV " << std::string( sa ) << " / " << std::string( sb ) << " => " << std::string( sc )
-	  << " :: " << res << " " << eps << " " << tol << " "
+	  << " :: Res=" << res << " Eps=" << eps << " Tol=" << tol << " "
 	  << std::numeric_limits<T>::max_digits10 << "\n";
   }
 };
@@ -486,7 +486,7 @@ struct Test_sqr
   using TXc = TXa;
   using T   = typename TXc::base_T;
   auto eps = convert( TXa::epsilon() );
-  auto tol = convert( 31*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
+  auto tol = convert( 16*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
 
   unsigned int seed = 1;
   srand( seed );
@@ -512,7 +512,7 @@ struct Test_sqr
   char sc[64]; TYPE_name<TXc>( sc );
   std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
 	  << " : SQR  " << std::string( sa ) << " => " << std::string( sc )
-	  << " :: " << res << " " << eps << " " << tol << " "
+	  << " :: Res=" << res << " Eps=" << eps << " Tol=" << tol << " "
 	  << std::numeric_limits<T>::max_digits10 << "\n";
   }
 };
@@ -526,7 +526,7 @@ struct Test_sqrt
   using TXc = TXa;
   using T   = typename TXc::base_T;
   auto eps = convert( TXa::epsilon() );
-  auto tol = convert( 31*double(1.0) / double( fp<T>::epsilon() ) );
+  auto tol = convert( 16*double(1.0) / double( fp<T>::epsilon() ) );
 
   unsigned int seed = 1;
   srand( seed );
@@ -549,7 +549,7 @@ struct Test_sqrt
   char sc[64]; TYPE_name<TXc>( sc );
   std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
 	  << " : SQRT " << std::string( sa ) << " => " << std::string( sc )
-	  << " :: " << res << " " << eps << " " << tol << " "
+	  << " :: Res=" << res << " Eps=" << eps << " Tol=" << tol << " "
 	  << std::numeric_limits<T>::max_digits10 << "\n";
   }
 };
@@ -630,6 +630,39 @@ main(int argc, char *argv[])
     print( "Quasi c= cp + cn", c );
     auto cx = df_Real( cp ) + df_Real( cn );
     print( "Acc cx = Acc(cp) + Acc(cn)", cx );
+    print( "Acc(cp+cn) =", df_Real(cp+cn) );
+    c = cp+cn;
+    Normalize<NormalizeOption::VsumForward>( c );
+    print( "Normalize(c) =", c );
+  }
+  {
+    auto cp = tf_Real_quasi( 1024);
+    cp.x[1] = fp<float>::epsilon()*4;
+    cp.x[2] = fp<float>::epsilon()/64;
+    auto cn = tf_Real_quasi(-1024);
+    cn.x[1] = fp<float>::epsilon()*4;
+    cn.x[2] = fp<float>::epsilon()/64;
+    print( "Quasi cp=", cp );
+    print( "Quasi cn=", cn );
+    auto c = cp + cn;
+    print( "Quasi c= cp + cn", c );
+    Normalize( cp );
+    print( "Normalize( cp )", cp );
+    Normalize( cn );
+    print( "Normalize( cn )", cn );
+    print( "Normal( cp ) + Normal( cn )", cp+cn );
+    auto cx = tf_Real( cp ) + tf_Real( cn );
+    print( "Acc cx = Acc(cp) + Acc(cn)", cx );
+    print( "Acc(cp+cn) =", tf_Real(cp+cn) );
+    c = cp+cn;
+    Normalize<NormalizeOption::VsumForward>( c );
+    print( "Normalize(c) =", c );
+    c = cp+cn;
+    Normalize<NormalizeOption::VQsumForward>( c );
+    print( "Normalize(c) =", c );
+    c = cp+cn;
+    Normalize<NormalizeOption::Regular>( c );
+    print( "Normalize(c) =", c );
   }
   for(int i=1;i<3;i++){
     std::srand(i); print( "rand", df_Real::rand() );
