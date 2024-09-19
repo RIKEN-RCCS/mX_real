@@ -9,6 +9,7 @@ Log*
 sample.exe
 sample.exe-*
 sample.s-*
+sample.cpp-*
 *.tmp
 *.swp
 *.awk

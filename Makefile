@@ -33,8 +33,8 @@ LDFLAGS = -fopenmp -lquadmath -lm
 endif
 
 # Optimizations
-CCFLAGS := $(CCFLAGS) -mfma -mavx2
-#CCFLAGS := $(CCFLAGS) -mfma -mavx2 -mavx512f
+#CCFLAGS := $(CCFLAGS) -mfma -mavx2
+CCFLAGS := $(CCFLAGS) -mfma -mavx2 -mavx512f
 ifeq (x$(cxx),xicpx)
 CCFLAGS := $(CCFLAGS) -qopenmp
 else

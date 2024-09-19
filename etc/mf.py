@@ -177,12 +177,14 @@ def gen_op_operator( Tc, description, func, op, commutable ) :
 # ************************************************************************************************
 #
 # ************************************************************************************************
-def gen_op_member( Tc, description, func, op, commutable ) :
+def gen_op_member( Tc, description, func, op, commutable, flag ) :
 
-    print( 'template < typename T, Algorithm A >' )
-    print( 'INLINE {m}X_real::{m}x_real<T,A> constexpr {m}X_real::{m}x_real<T,A>::{op} ( {m}X_real::{m}x_real<T,A> const& a ) NOEXCEPT {{'.format( m=mX_type(Tc), op=op ) )
-    print( '  return {m}X_real::operator_{func} ( a );'.format( m=mX_type(Tc), func=func ) )
-    print( '}' )
+    for Tcx in { 2,3,4 } :
+        if ( flag == True ) or ( Tcx == Tc ) :
+            print( 'template < typename T, Algorithm A >' )
+            print( 'INLINE {m}X_real::{m}x_real<T,A> constexpr {m}X_real::{m}x_real<T,A>::{op} ( {mm}X_real::{mm}x_real<T,A> const& a ) NOEXCEPT {{'.format( m=mX_type(Tc), mm=mX_type(Tcx), op=op ) )
+            print( '  return {m}X_real::operator_{func} ( a );'.format( m=mX_type(Tc), func=func ) )
+            print( '}' )
 
 
 # ************************************************************************************************
@@ -239,7 +241,7 @@ def gen_abs ( Tc ) :
     print( '  return {m}X_real::operator_abs<A> ( a );'.format( m=mX_type(Tc) ) )
     print( '}' )
     print( '//' )
-    gen_op_member( Tc, description, func, op, commutable )
+    gen_op_member( Tc, description, func, op, commutable, True )
     print( '//' )
     print( '' )
 
@@ -263,7 +265,7 @@ def gen_sqrt ( Tc ) :
     print( '//' )
     gen_op_operator( Tc, description, func, op, commutable )
     print( '//' )
-    gen_op_member( Tc, description, func, op, commutable )
+    gen_op_member( Tc, description, func, op, commutable, True )
     print( '//' )
     print( '' )
 
@@ -481,11 +483,13 @@ def gen_members ( Tc ) :
     print( '// their definitions are below outside of the struct definition block' )
     print( '//' )
     for func in { 'abs', 'sqrt' } :
-        print( 'static INLINE {m}X_REAL<> constexpr {func} ( {m}X_REAL<> const& a ) NOEXCEPT;'.format( m=mX_Type(Tc), func=func ) )
+        for Tcx in { 2,3,4 } :
+            print( 'static INLINE {m}X_REAL<> constexpr {func} ( {mm}X_REAL<> const& a ) NOEXCEPT;'.format( m=mX_Type(Tc), mm=mX_Type(Tcx), func=func ) )
 
-    print( 'static INLINE {m}X_REAL<> constexpr {func} ( {m}X_REAL<> const& a ) NOEXCEPT {{'.format( m=mX_Type(Tc), func='fabs' ) )
-    print( '  return {m}X_REAL<>::abs(a);'.format( m=mX_Type(Tc) ) )
-    print( '}' )
+    for Tcx in { 2,3,4 } :
+        print( 'static INLINE {m}X_REAL<> constexpr {func} ( {mm}X_REAL<> const& a ) NOEXCEPT {{'.format( m=mX_Type(Tc), mm=mX_Type(Tcx), func='fabs' ) )
+        print( '  return {m}X_REAL<>::abs(a);'.format( m=mX_Type(Tc) ) )
+        print( '}' )
 
     print( 'static INLINE {m}X_REAL<> rand () NOEXCEPT;'.format( m=mX_Type(Tc) ) )
     for func in { 'signbit', 'isinf', 'isnan', 'is_zero', 'is_positive', 'is_negative' } :
