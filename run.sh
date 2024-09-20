@@ -11,6 +11,7 @@ for cxx in g++ icpx; do
 	\rm sample.exe
 	CXX=$cxx make sample.exe
 	cp sample.exe sample.exe-$cxx
+	cp sample.s sample.s-$cxx
 done
 
 for cxx in g++ icpx; do

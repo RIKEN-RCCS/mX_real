@@ -13,6 +13,20 @@ ifneq (x$(shell which $(CXX) 2>&1 | grep 'which'),x)
 	CXX = g++
 endif
 
+OPT_HEADER = mX_real.hpp.gch
+ifeq (x$(CXX),xg++)
+OPT_HEADER := mX_real.hpp.gch
+endif
+ifeq (x$(CXX),xicpx)
+CXXVER = $(shell icpx --version | awk '/Compiler/{ V=$$NF; gsub(/[\(\)]/,"",V); split(V,a,"."); print a[1]; exit;}' )
+ifeq (x$(CXXVER),x2023)
+OPT_HEADER := mX_real.hpp.gch
+endif
+ifeq (x$(CXXVER),x2024)
+OPT_HEADER := mX_real.hpp.pchi
+endif
+endif
+
 #CXX := $(CXX)
 CXX := $(CXX) --std=c++14
 #CXX := $(CXX) --std=c++17
@@ -58,17 +72,18 @@ all: Ozaki-QW/qxw.hpp mX_real.hpp dX_real.hpp tX_real.hpp qX_real.hpp
 bench: a.out sample.exe
 a.out: main.o
 	$(CXX) -o a.out main.o $(LDFLAGS) $(QD_LDFLAGS) $(MPFR_LDFLAGS)
-main.o: mpreal qd_real main.cpp mX_real.hpp.gch
+main.o: mpreal qd_real main.cpp $(OPT_HEADER)
 	$(CXX) -c main.cpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
-sample.exe: mpreal sample.cpp mX_real.hpp.gch
+sample.exe: mpreal sample.cpp $(OPT_HEADER)
+	$(CXX) -S sample.cpp $(CCFLAGS) $(MPFR_CCFLAGS) $(MPFR_LDFLAGS)
 	$(CXX) -o sample.exe sample.cpp $(CCFLAGS) $(MPFR_CCFLAGS) $(MPFR_LDFLAGS)
 test.o: test.cu mX_real.hpp
 	$(NVCC) -I./ --ptx test.cu
 	$(NVCC) -I./ -c test.cu
 
 
-mX_real.hpp.gch: mX_real.hpp Ozaki-QW/qxw.hpp dX_real.hpp tX_real.hpp qX_real.hpp
-	$(CXX) -c  -x c++-header mX_real.hpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
+$(OPT_HEADER): mX_real.hpp Ozaki-QW/qxw.hpp dX_real.hpp tX_real.hpp qX_real.hpp
+	$(CXX) -c  -x c++-header -o $(OPT_HEADER) mX_real.hpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
 mX_real.hpp dX_real.hpp tX_real.hpp qX_real.hpp:
 	cd etc; make clean; make
 Ozaki-QW/qxw.hpp:
@@ -88,7 +103,7 @@ mpreal:
 
 
 clean:
-	-\rm *.o a.out *.s sample.exe sample.exe-* *.gch *.tmp
+	-\rm *.o a.out *.s sample.exe sample.exe-* *.gch *.pchi *.tmp
        
 distclean:
 	-make clean
