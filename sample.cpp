@@ -31,6 +31,7 @@ struct _Matrix_ {
     _Matrix_ &operator= ( _Matrix_ const &any ) = delete;
     auto operator[] ( int64_t const & offset ) { assert(false); }
   public:
+    // Row-major format
     inline type operator() ( int64_t const & row, int64_t const & col ) {
       return pointer[col + row*leading_dim];
     }
@@ -41,6 +42,7 @@ struct FLOAT {
   INLINE FLOAT() {}
   INLINE FLOAT(float const& h) : x(h) {}
   INLINE FLOAT(FLOAT const& h) : x(h.x) {}
+  INLINE operator float() const { return x; }
   static
   INLINE FLOAT rand() {
     auto constexpr f = 1.0f / (1<<16) / (1<<15);
@@ -52,9 +54,12 @@ struct FLOAT {
   INLINE auto const operator+( FLOAT const& a ) { return FLOAT(x + a.x); }
   INLINE auto const operator-( FLOAT const& a ) { return FLOAT(x - a.x); }
   INLINE auto const operator*( FLOAT const& a ) { return FLOAT(x * a.x); }
+  INLINE auto const& operator=( FLOAT const& a ) { (x = a.x); return *this; }
   INLINE auto const& operator+=( FLOAT const& a ) { (x += a.x); return *this; }
   INLINE auto const& operator-=( FLOAT const& a ) { (x -= a.x); return *this; }
   INLINE auto const& operator*=( FLOAT const& a ) { (x *= a.x); return *this; }
+  template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
+  INLINE auto const& operator=( T const& a ) { (x = a); return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
   INLINE auto const& operator+=( T const& a ) { (x += a); return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
@@ -68,6 +73,7 @@ struct DOUBLE {
   INLINE DOUBLE() {}
   INLINE DOUBLE(double const& h) : x(h) {}
   INLINE DOUBLE(DOUBLE const& h) : x(h.x) {}
+  INLINE operator double() const { return x; }
   static
   INLINE DOUBLE rand() {
     auto constexpr f = 1.0f / (1<<16) / (1<<15);
@@ -82,9 +88,12 @@ struct DOUBLE {
   INLINE auto const operator+( DOUBLE const& a ) { return DOUBLE(x + a.x); }
   INLINE auto const operator-( DOUBLE const& a ) { return DOUBLE(x - a.x); }
   INLINE auto const operator*( DOUBLE const& a ) { return DOUBLE(x * a.x); }
+  INLINE auto const& operator=( DOUBLE const& a ) { (x = a.x); return *this; }
   INLINE auto const& operator+=( DOUBLE const& a ) { (x += a.x); return *this; }
   INLINE auto const& operator-=( DOUBLE const& a ) { (x -= a.x); return *this; }
   INLINE auto const& operator*=( DOUBLE const& a ) { (x *= a.x); return *this; }
+  template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
+  INLINE auto const& operator=( T const& a ) { (x = a); return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
   INLINE auto const& operator+=( T const& a ) { (x += a); return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
@@ -101,11 +110,15 @@ void benchmark( int const& N ) {
   auto * c = new REAL[N*N];
   REAL alpha, beta;
   
+  _Matrix_<REAL> a_(a, N);
+  _Matrix_<REAL> b_(b, N);
+  _Matrix_<REAL> c_(c, N);
+
   for(int i=0; i<N; i++){
     for(int j=0; j<N; j++){
-      a[j+i*N] = REAL::rand();
-      b[j+i*N] = REAL::rand();
-      c[j+i*N] = REAL::rand();
+      a_(i,j) = REAL::rand();
+      b_(i,j) = REAL::rand();
+      c_(i,j) = REAL::rand();
     }
   }
   alpha = REAL::rand();
@@ -134,16 +147,12 @@ void benchmark( int const& N ) {
 #pragma omp parallel
     {
 
-      REAL _A_[STEP_k*STEP_j]; // 36*36*4*4=20.25KB
-      REAL _C_[STEP_i*STEP_j]; // 36*36*4*4=20.25KB
+      // private buffers for matrices a and c
+      auto * _A_ = new REAL[STEP_k*STEP_j]; // 36*36*4*4=20.25KB
+      auto * _C_ = new REAL[STEP_i*STEP_j]; // 36*36*4*4=20.25KB
 
-#if 1
-#define	A(x,y)	*(_A_+((x)*STEP_j+(y)))
-#define	C(x,y)	*(_C_+((x)*STEP_j+(y)))
-#else
-	_Matrix_<REAL> A(&_A_[0], STEP_j);
-	_Matrix_<REAL> C(&_C_[0], STEP_j);
-#endif
+      _Matrix_<REAL> A(_A_, STEP_j);
+      _Matrix_<REAL> C(_C_, STEP_j);
 
 #pragma omp for collapse(2) schedule(dynamic)
       for(int i_=0; i_<N; i_+=STEP_i) {
@@ -158,7 +167,7 @@ void benchmark( int const& N ) {
 #pragma omp simd
 #endif
             for(int j=j_; j<Nj_; j++) {
-              C(i-i_,j-j_) = c[j+i*N];
+              C(i-i_,j-j_) = c_(i,j);
             }}
 
           for(int k_=0; k_<N; k_+=STEP_k) {
@@ -174,7 +183,7 @@ void benchmark( int const& N ) {
 #pragma omp simd
 #endif
               for(int j=j_; j<Nj_; j++) {
-                A(k-k_,j-j_) = a[j+k*N];
+                A(k-k_,j-j_) = a_(k,j);
               }}
             
             if ( D_k==4 ) {
@@ -186,14 +195,14 @@ void benchmark( int const& N ) {
                       C(i-i_+0,j-j_) *= beta;
                       C(i-i_+1,j-j_) *= beta;
                     }}
-                  auto const s00 = alpha * b[(k+0)+(i+0)*N];
-                  auto const s10 = alpha * b[(k+1)+(i+0)*N];
-                  auto const s20 = alpha * b[(k+2)+(i+0)*N];
-                  auto const s30 = alpha * b[(k+3)+(i+0)*N];
-                  auto const s01 = alpha * b[(k+0)+(i+1)*N];
-                  auto const s11 = alpha * b[(k+1)+(i+1)*N];
-                  auto const s21 = alpha * b[(k+2)+(i+1)*N];
-                  auto const s31 = alpha * b[(k+3)+(i+1)*N];
+                  auto const s00 = alpha * b_(i+0,k+0);
+                  auto const s10 = alpha * b_(i+0,k+1);
+                  auto const s20 = alpha * b_(i+0,k+2);
+                  auto const s30 = alpha * b_(i+0,k+3);
+                  auto const s01 = alpha * b_(i+1,k+0);
+                  auto const s11 = alpha * b_(i+1,k+1);
+                  auto const s21 = alpha * b_(i+1,k+2);
+                  auto const s31 = alpha * b_(i+1,k+3);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(i-i_+0,j-j_);
                     auto c1 = C(i-i_+1,j-j_);
@@ -220,10 +229,10 @@ void benchmark( int const& N ) {
                     for(int j=j_; j<Nj_; j++) {
                       C(i-i_+0,j-j_) *= beta;
                     }}
-                  auto const s00 = alpha * b[(k+0)+(i+0)*N];
-                  auto const s10 = alpha * b[(k+1)+(i+0)*N];
-                  auto const s20 = alpha * b[(k+2)+(i+0)*N];
-                  auto const s30 = alpha * b[(k+3)+(i+0)*N];
+                  auto const s00 = alpha * b_(i+0,k+0);
+                  auto const s10 = alpha * b_(i+0,k+1);
+                  auto const s20 = alpha * b_(i+0,k+2);
+                  auto const s30 = alpha * b_(i+0,k+3);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(i-i_+0,j-j_);
                     auto a0 = A(k-k_+0,j-j_);
@@ -248,12 +257,12 @@ void benchmark( int const& N ) {
                       C(i-i_+0,j-j_) *= beta;
                       C(i-i_+1,j-j_) *= beta;
                     }}
-                  auto const s00 = alpha * b[(k+0)+(i+0)*N];
-                  auto const s10 = alpha * b[(k+1)+(i+0)*N];
-                  auto const s20 = alpha * b[(k+2)+(i+0)*N];
-                  auto const s01 = alpha * b[(k+0)+(i+1)*N];
-                  auto const s11 = alpha * b[(k+1)+(i+1)*N];
-                  auto const s21 = alpha * b[(k+2)+(i+1)*N];
+                  auto const s00 = alpha * b_(i+0,k+0);
+                  auto const s10 = alpha * b_(i+0,k+1);
+                  auto const s20 = alpha * b_(i+0,k+2);
+                  auto const s01 = alpha * b_(i+1,k+0);
+                  auto const s11 = alpha * b_(i+1,k+1);
+                  auto const s21 = alpha * b_(i+1,k+2);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(i-i_+0,j-j_);
                     auto c1 = C(i-i_+1,j-j_);
@@ -277,9 +286,9 @@ void benchmark( int const& N ) {
                     for(int j=j_; j<Nj_; j++) {
                       C(i-i_+0,j-j_) *= beta;
                     }}
-                  auto const s00 = alpha * b[(k+0)+i*N];
-                  auto const s10 = alpha * b[(k+1)+i*N];
-                  auto const s20 = alpha * b[(k+2)+i*N];
+                  auto const s00 = alpha * b_(i+0,k+0);
+                  auto const s10 = alpha * b_(i+0,k+1);
+                  auto const s20 = alpha * b_(i+0,k+2);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(i-i_+0,j-j_);
                     auto a0 = A(k-k_+0,j-j_);
@@ -302,10 +311,10 @@ void benchmark( int const& N ) {
                       C(i-i_+0,j-j_) *= beta;
                       C(i-i_+1,j-j_) *= beta;
                     }}
-                  auto const s00 = alpha * b[(k+0)+(i+0)*N];
-                  auto const s10 = alpha * b[(k+1)+(i+0)*N];
-                  auto const s01 = alpha * b[(k+0)+(i+1)*N];
-                  auto const s11 = alpha * b[(k+1)+(i+1)*N];
+                  auto const s00 = alpha * b_(k+0,i+0);
+                  auto const s10 = alpha * b_(k+1,i+0);
+                  auto const s01 = alpha * b_(k+0,i+1);
+                  auto const s11 = alpha * b_(k+1,i+1);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(i-i_+0,j-j_);
                     auto c1 = C(i-i_+1,j-j_);
@@ -326,8 +335,8 @@ void benchmark( int const& N ) {
                     for(int j=j_; j<Nj_; j++) {
                       C(i-i_+0,j-j_) *= beta;
                     }}
-                  auto const s00 = alpha * b[(k+0)+i*N];
-                  auto const s10 = alpha * b[(k+1)+i*N];
+                  auto const s00 = alpha * b_(k+0,i+0);
+                  auto const s10 = alpha * b_(k+1,i+0);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(i-i_+0,j-j_);
                     auto a0 = A(k-k_+0,j-j_);
@@ -348,8 +357,8 @@ void benchmark( int const& N ) {
                       C(i-i_+0,j-j_) *= beta;
                       C(i-i_+1,j-j_) *= beta;
                     }}
-                  auto const s00 = alpha * b[(k+0)+(i+0)*N];
-                  auto const s01 = alpha * b[(k+0)+(i+1)*N];
+                  auto const s00 = alpha * b_(k+0,i+0);
+                  auto const s01 = alpha * b_(k+0,i+1);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(i-i_+0,j-j_);
                     auto c1 = C(i-i_+1,j-j_);
@@ -367,7 +376,7 @@ void benchmark( int const& N ) {
                     for(int j=j_; j<Nj_; j++) {
                       C(i-i_+0,j-j_) *= beta;
                     }}
-                  auto const s00 = alpha * b[(k+0)+i*N];
+                  auto const s00 = alpha * b_(k+0,i+0);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(i-i_+0,j-j_);
                     auto a0 = A(k-k_+0,j-j_);
@@ -386,8 +395,8 @@ void benchmark( int const& N ) {
                       C(i-i_+0,j-j_) *= beta;
                       C(i-i_+1,j-j_) *= beta;
                     }}
-                  auto const s00 = alpha * b[(k+0)+(i+0)*N];
-                  auto const s01 = alpha * b[(k+0)+(i+1)*N];
+                  auto const s00 = alpha * b_(k+0,i+0);
+                  auto const s01 = alpha * b_(k+0,i+1);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(i-i_+0,j-j_);
                     auto a0 = A(k-k_+0,j-j_);
@@ -405,7 +414,7 @@ void benchmark( int const& N ) {
                     for(int j=j_; j<Nj_; j++) {
                       C(i-i_+0,j-j_) *= beta;
                     }}
-                  auto const s00 = alpha * b[(k+0)+(i+0)*N];
+                  auto const s00 = alpha * b_(k+0,i+0);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(i-i_+0,j-j_);
                     auto a0 = A(k-k_+0,j-j_);
@@ -425,16 +434,21 @@ void benchmark( int const& N ) {
 #pragma omp simd
 #endif
             for(int j=j_; j<Nj_; j++) {
-              c[j+i*N] = C(i-i_,j-j_);
+              c_(i,j) = C(i-i_,j-j_);
             }
           }
           
         }
       }
-    }
+
+      delete [] _A_;
+      delete [] _C_;
+#undef	A
 #undef	C
-    
+
+    }
     auto const te = omp_get_wtime();
+    
     
     if ( itr>0 ) t = t + (te - ts);
     

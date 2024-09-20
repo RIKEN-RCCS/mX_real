@@ -4,6 +4,8 @@ OMP_NUM_THREADS=`lscpu | awk '/^Core\(s/{Cores=$4}/^Socket\(s/{Socket=$2}END{pri
 HOST=`hostname`-${OMP_NUM_THREADS}th
 G=`expr $OMP_NUM_THREADS - 1`
 
+VER=1
+
 for cxx in g++ icpx; do
 	\rm mX_real.hpp.gch
 	\rm sample.exe
@@ -12,10 +14,10 @@ for cxx in g++ icpx; do
 done
 
 for cxx in g++ icpx; do
-	OPT=$cxx
+	CC=$cxx
 	i=0
 	for MX in SW PA DWS DWA QTW TWS TWA QQW QWS QWA; do
-		numactl --physcpubind=0-$G ./sample.exe-$cxx $i < IN | tee log-$MX-$OPT-$HOST
+		numactl --physcpubind=0-$G ./sample.exe-$cxx $i < IN | tee log-$MX-$CC-$HOST.$VER
 		i=`expr $i + 1`
 	done
 done
