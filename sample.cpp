@@ -12,28 +12,82 @@ using namespace mX_real;
 #define	__isINTEL_COMPILER__	0
 #endif
 
-template < typename T >
+enum class _Matrix_format_ {
+  //
+  Column_Major = 0,
+  Row_Major    = 1,
+  Default      = Column_Major
+};
+
+template < typename T, _Matrix_format_ format=_Matrix_format_::Default, bool Check_Index_Row=false, bool Check_Index_Column=false >
 struct _Matrix_ {
   private:
     using pure_T   = typename std::remove_const_t<T>;
     using type     = typename std::conditional_t< std::is_const<T>::value, pure_T const, pure_T & >;
     using type_ptr = typename std::conditional_t< std::is_const<T>::value, pure_T const *, pure_T *>;
+
     T * const pointer = nullptr;
-    int64_t const leading_dim = 1; 
+    int64_t const leading_dim = 0; 
+    int64_t const Row_size = 0; 
+    int64_t const Column_size = 0; 
+
   public:
-    _Matrix_( ... ) { };
-    _Matrix_( T * const ptr )
-      : leading_dim((int64_t)1), pointer(const_cast<T*>(ptr)) { }
-    _Matrix_( T * const ptr, int64_t const & ld )
-      : leading_dim(ld), pointer(const_cast<T*>(ptr)) { }
+    _Matrix_( ... ) { assert(false); };
+
+    _Matrix_( T * const ptr, int64_t const row_size, int64_t const column_size, int64_t const ld ) :
+      pointer( const_cast<T*>(ptr) ),
+      Row_size( row_size ),
+      Column_size( column_size ),
+      leading_dim( ld ) {
+	assert( ptr != nullptr );
+	assert( row_size > 0 );
+	assert( column_size > 0 );
+	assert( ld>=row_size );
+    }
+
+    _Matrix_( T * const ptr, int64_t const row_size, int64_t const column_size ) :
+      pointer( const_cast<T*>(ptr) ),
+      Row_size( row_size ),
+      Column_size( column_size ),
+      leading_dim( row_size ) {
+	assert( ptr != nullptr );
+	assert( row_size > 0 );
+	assert( column_size > 0 );
+    }
+
+    _Matrix_( T * const ptr, int64_t const row_size ) :
+      pointer( const_cast<T*>(ptr) ),
+      Row_size( row_size ),
+      Column_size( row_size ),
+      leading_dim( row_size ) {
+	assert( ptr != nullptr );
+	assert( row_size > 0 );
+    }
+
   private:
     _Matrix_( _Matrix_ const &any ) = delete;
     _Matrix_ &operator= ( _Matrix_ const &any ) = delete;
-    auto operator[] ( int64_t const & offset ) { assert(false); }
+    auto operator[] ( int64_t const offset ) { assert( false ); }
+
   public:
-    // Row-major format
-    inline type operator() ( int64_t const & row, int64_t const & col ) {
-      return pointer[col + row*leading_dim];
+    // Column-major format is default
+    inline type operator() ( int64_t const row, int64_t const col ) {
+      if ( Check_Index_Row ) {
+        assert ( 0 <= row );
+       	assert( row < Row_size );
+      }
+      if ( Check_Index_Column ) {
+        assert ( 0 <= col );
+       	assert( col < Column_size );
+      }
+      int64_t index = 0;
+      if ( format == _Matrix_format_::Column_Major ) {
+        index = row + col * leading_dim;
+      }
+      if ( format == _Matrix_format_::Row_Major ) {
+        index = col + row * leading_dim;
+      }
+      return * ( pointer + index );
     }
 };
 
@@ -54,18 +108,18 @@ struct FLOAT {
   INLINE auto const operator+( FLOAT const& a ) { return FLOAT(x + a.x); }
   INLINE auto const operator-( FLOAT const& a ) { return FLOAT(x - a.x); }
   INLINE auto const operator*( FLOAT const& a ) { return FLOAT(x * a.x); }
-  INLINE auto const& operator=( FLOAT const& a ) { (x = a.x); return *this; }
-  INLINE auto const& operator+=( FLOAT const& a ) { (x += a.x); return *this; }
-  INLINE auto const& operator-=( FLOAT const& a ) { (x -= a.x); return *this; }
-  INLINE auto const& operator*=( FLOAT const& a ) { (x *= a.x); return *this; }
+  INLINE auto const& operator=( FLOAT const& a ) { x = a.x; return *this; }
+  INLINE auto const& operator+=( FLOAT const& a ) { x += a.x; return *this; }
+  INLINE auto const& operator-=( FLOAT const& a ) { x -= a.x; return *this; }
+  INLINE auto const& operator*=( FLOAT const& a ) { x *= a.x; return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
-  INLINE auto const& operator=( T const& a ) { (x = a); return *this; }
+  INLINE auto const& operator=( T const& a ) { x = a; return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
-  INLINE auto const& operator+=( T const& a ) { (x += a); return *this; }
+  INLINE auto const& operator+=( T const& a ) { x += a; return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
-  INLINE auto const& operator-=( T const& a ) { (x -= a); return *this; }
+  INLINE auto const& operator-=( T const& a ) { x -= a; return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
-  INLINE auto const& operator*=( T const& a ) { (x *= a); return *this; }
+  INLINE auto const& operator*=( T const& a ) { x *= a; return *this; }
 };
 
 struct DOUBLE {
@@ -88,19 +142,20 @@ struct DOUBLE {
   INLINE auto const operator+( DOUBLE const& a ) { return DOUBLE(x + a.x); }
   INLINE auto const operator-( DOUBLE const& a ) { return DOUBLE(x - a.x); }
   INLINE auto const operator*( DOUBLE const& a ) { return DOUBLE(x * a.x); }
-  INLINE auto const& operator=( DOUBLE const& a ) { (x = a.x); return *this; }
-  INLINE auto const& operator+=( DOUBLE const& a ) { (x += a.x); return *this; }
-  INLINE auto const& operator-=( DOUBLE const& a ) { (x -= a.x); return *this; }
-  INLINE auto const& operator*=( DOUBLE const& a ) { (x *= a.x); return *this; }
+  INLINE auto const& operator=( DOUBLE const& a ) { x = a.x; return *this; }
+  INLINE auto const& operator+=( DOUBLE const& a ) { x += a.x; return *this; }
+  INLINE auto const& operator-=( DOUBLE const& a ) { x -= a.x; return *this; }
+  INLINE auto const& operator*=( DOUBLE const& a ) { x *= a.x; return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
-  INLINE auto const& operator=( T const& a ) { (x = a); return *this; }
+  INLINE auto const& operator=( T const& a ) { x = a; return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
-  INLINE auto const& operator+=( T const& a ) { (x += a); return *this; }
+  INLINE auto const& operator+=( T const& a ) { x += a; return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
-  INLINE auto const& operator-=( T const& a ) { (x -= a); return *this; }
+  INLINE auto const& operator-=( T const& a ) { x -= a; return *this; }
   template < typename T, typename _dummy_=std::enable_if_t<std::is_arithmetic<T>::value> >
-  INLINE auto const& operator*=( T const& a ) { (x *= a); return *this; }
+  INLINE auto const& operator*=( T const& a ) { x *= a; return *this; }
 };
+
 
 template < typename REAL >
 void benchmark( int const& N ) {
@@ -110,9 +165,9 @@ void benchmark( int const& N ) {
   auto * c = new REAL[N*N];
   REAL alpha, beta;
   
-  _Matrix_<REAL> a_(a, N);
-  _Matrix_<REAL> b_(b, N);
-  _Matrix_<REAL> c_(c, N);
+  _Matrix_<REAL> a_( a, N, N, N );
+  _Matrix_<REAL> b_( b, N, N, N );
+  _Matrix_<REAL> c_( c, N, N, N );
 
   for(int i=0; i<N; i++){
     for(int j=0; j<N; j++){
@@ -136,23 +191,24 @@ void benchmark( int const& N ) {
     // optimized GEMV-n kernel
     //
     int constexpr STEP_i = (sizeof(a[0]) >= 3*sizeof(float) ? 36 : 72);
-    int constexpr STEP_j = (sizeof(a[0]) >= 4*sizeof(float) ? 36 : 72);
+    int constexpr STEP_j = (sizeof(a[0]) >= 4*sizeof(float) ? 32 : 64);
     int constexpr STEP_k = (sizeof(a[0]) >= 4*sizeof(float) ? 36 : 72);
     
     int constexpr D_i = 2;
-    int constexpr D_k = 4;
+//    int constexpr D_k = 2;
 //    int constexpr D_k = 3;
+    int constexpr D_k = 4;
     
     
 #pragma omp parallel
     {
 
       // private buffers for matrices a and c
-      auto * _A_ = new REAL[STEP_k*STEP_j]; // 36*36*4*4=20.25KB
-      auto * _C_ = new REAL[STEP_i*STEP_j]; // 36*36*4*4=20.25KB
+      auto * _A_ = new REAL[STEP_k*STEP_j];
+      auto * _C_ = new REAL[STEP_i*STEP_j];
 
-      _Matrix_<REAL> A(_A_, STEP_j);
-      _Matrix_<REAL> C(_C_, STEP_j);
+      _Matrix_<REAL> A( _A_, STEP_j, STEP_k, STEP_j );
+      _Matrix_<REAL> C( _C_, STEP_j, STEP_i, STEP_j );
 
 #pragma omp for collapse(2) schedule(dynamic)
       for(int i_=0; i_<N; i_+=STEP_i) {
@@ -160,15 +216,15 @@ void benchmark( int const& N ) {
           auto const Ni_ = std::min( i_+STEP_i, N );
           auto const Nj_ = std::min( j_+STEP_j, N );
           
+	  //
+	  //
           for(int i=i_; i<Ni_; i++) {
-#if __isINTEL_COMPILER__
-#pragma ivdep
-#else
-#pragma omp simd
-#endif
             for(int j=j_; j<Nj_; j++) {
-              C(i-i_,j-j_) = c_(i,j);
-            }}
+              C(j-j_,i-i_) = c_(j,i);
+            } // j
+	  } // i
+	  //
+	  //
 
           for(int k_=0; k_<N; k_+=STEP_k) {
             auto const Nk_ = std::min( k_+STEP_k, N );
@@ -176,267 +232,306 @@ void benchmark( int const& N ) {
             auto const Ni__ = Ni_-(Ni_-i_)%D_i;
             auto const Nk__ = Nk_-(Nk_-k_)%D_k;
             
+	    //
+	    //
             for(int k=k_; k<Nk_; k++) {
-#if __isINTEL_COMPILER__
-#pragma ivdep
-#else
-#pragma omp simd
-#endif
               for(int j=j_; j<Nj_; j++) {
-                A(k-k_,j-j_) = a_(k,j);
-              }}
+                A(j-j_,k-k_) = a_(j,k);
+              } // j
+	    } // i
+	    //
+	    //
             
             if ( D_k==4 ) {
               
               for(int k=k_; k<Nk__; k+=D_k) {
                 for(int i=i_; i<Ni__; i+=D_i) {
-                  if ( k_==0 ) {
+
+                  if ( k==0 ) {
                     for(int j=j_; j<Nj_; j++) {
-                      C(i-i_+0,j-j_) *= beta;
-                      C(i-i_+1,j-j_) *= beta;
-                    }}
-                  auto const s00 = alpha * b_(i+0,k+0);
-                  auto const s10 = alpha * b_(i+0,k+1);
-                  auto const s20 = alpha * b_(i+0,k+2);
-                  auto const s30 = alpha * b_(i+0,k+3);
-                  auto const s01 = alpha * b_(i+1,k+0);
-                  auto const s11 = alpha * b_(i+1,k+1);
-                  auto const s21 = alpha * b_(i+1,k+2);
-                  auto const s31 = alpha * b_(i+1,k+3);
+                      C(j-j_,i-i_+0) *= beta;
+                      C(j-j_,i-i_+1) *= beta;
+                    } // j
+		  }
+
+                  auto const s00 = alpha * b_(k+0,i+0);
+                  auto const s10 = alpha * b_(k+1,i+0);
+                  auto const s20 = alpha * b_(k+2,i+0);
+                  auto const s30 = alpha * b_(k+3,i+0);
+                  auto const s01 = alpha * b_(k+0,i+1);
+                  auto const s11 = alpha * b_(k+1,i+1);
+                  auto const s21 = alpha * b_(k+2,i+1);
+                  auto const s31 = alpha * b_(k+3,i+1);
                   for(int j=j_; j<Nj_; j++) {
-                    auto c0 = C(i-i_+0,j-j_);
-                    auto c1 = C(i-i_+1,j-j_);
-                    auto a0 = A(k-k_+0,j-j_);
-                    auto a1 = A(k-k_+1,j-j_);
+                    auto c0 = C(j-j_,i-i_+0);
+                    auto c1 = C(j-j_,i-i_+1);
+                    auto a0 = A(j-j_,k-k_+0);
+                    auto a1 = A(j-j_,k-k_+1);
+                    auto a2 = A(j-j_,k-k_+2);
+                    auto a3 = A(j-j_,k-k_+2);
                     c0 += a0 * s00;
                     c1 += a0 * s01;
-                    auto a2 = A(k-k_+2,j-j_);
                     c0 += a1 * s10;
                     c1 += a1 * s11;
-                    auto a3 = A(k-k_+3,j-j_);
                     c0 += a2 * s20;
                     c1 += a2 * s21;
                     c0 += a3 * s30;
                     c1 += a3 * s31;
-                    C(i-i_+0,j-j_) = c0;
-                    C(i-i_+1,j-j_) = c1;
-                  }
-                }}
+                    C(j-j_,i-i_+0) = c0;
+                    C(j-j_,i-i_+1) = c1;
+                  } // j
+                } // i
+	      } // k
               
               for(int k=k_; k<Nk__; k+=D_k) {
                 for(int i=Ni__; i<Ni_; i++) {
-                  if ( k_==0 ) {
+
+                  if ( k==0 ) {
                     for(int j=j_; j<Nj_; j++) {
                       C(i-i_+0,j-j_) *= beta;
-                    }}
-                  auto const s00 = alpha * b_(i+0,k+0);
-                  auto const s10 = alpha * b_(i+0,k+1);
-                  auto const s20 = alpha * b_(i+0,k+2);
-                  auto const s30 = alpha * b_(i+0,k+3);
+                    } // j
+		  }
+
+                  auto const s00 = alpha * b_(k+0,i+0);
+                  auto const s10 = alpha * b_(k+1,i+0);
+                  auto const s20 = alpha * b_(k+2,i+0);
+                  auto const s30 = alpha * b_(k+3,i+0);
                   for(int j=j_; j<Nj_; j++) {
-                    auto c0 = C(i-i_+0,j-j_);
-                    auto a0 = A(k-k_+0,j-j_);
-                    auto a1 = A(k-k_+1,j-j_);
-                    auto a2 = A(k-k_+2,j-j_);
+                    auto c0 = C(j-j_,i-i_+0);
+                    auto a0 = A(j-j_,k-k_+0);
+                    auto a1 = A(j-j_,k-k_+1);
+                    auto a2 = A(j-j_,k-k_+2);
+                    auto a3 = A(j-j_,k-k_+3);
                     c0 += a0 * s00;
-                    auto a3 = A(k-k_+3,j-j_);
                     c0 += a1 * s10;
                     c0 += a2 * s20;
                     c0 += a3 * s30;
-                    C(i-i_+0,j-j_) = c0;
-                  }
-                }}
+                    C(j-j_,i-i_+0) = c0;
+                  } // j
+                } // i
+	      } // k
               
             }
             if ( D_k==3 ) {
               
               for(int k=k_; k<Nk__; k+=D_k) {
                 for(int i=i_; i<Ni__; i+=D_i) {
-                  if ( k_==0 ) {
+
+                  if ( k==0 ) {
                     for(int j=j_; j<Nj_; j++) {
-                      C(i-i_+0,j-j_) *= beta;
-                      C(i-i_+1,j-j_) *= beta;
-                    }}
-                  auto const s00 = alpha * b_(i+0,k+0);
-                  auto const s10 = alpha * b_(i+0,k+1);
-                  auto const s20 = alpha * b_(i+0,k+2);
-                  auto const s01 = alpha * b_(i+1,k+0);
-                  auto const s11 = alpha * b_(i+1,k+1);
-                  auto const s21 = alpha * b_(i+1,k+2);
+                      C(j-j_,i-i_+0) *= beta;
+                      C(j-j_,i-i_+1) *= beta;
+                    } // j
+		  }
+
+                  auto const s00 = alpha * b_(k+0,i+0);
+                  auto const s10 = alpha * b_(k+1,i+0);
+                  auto const s20 = alpha * b_(k+2,i+0);
+                  auto const s01 = alpha * b_(k+0,i+1);
+                  auto const s11 = alpha * b_(k+1,i+1);
+                  auto const s21 = alpha * b_(k+2,i+1);
                   for(int j=j_; j<Nj_; j++) {
-                    auto c0 = C(i-i_+0,j-j_);
-                    auto c1 = C(i-i_+1,j-j_);
-                    auto a0 = A(k-k_+0,j-j_);
-                    auto a1 = A(k-k_+1,j-j_);
+                    auto c0 = C(j-j_,i-i_+0);
+                    auto c1 = C(j-j_,i-i_+1);
+                    auto a0 = A(j-j_,k-k_+0);
+                    auto a1 = A(j-j_,k-k_+1);
+                    auto a2 = A(j-j_,k-k_+2);
                     c0 += a0 * s00;
                     c1 += a0 * s01;
-                    auto a2 = A(k-k_+2,j-j_);
                     c0 += a1 * s10;
                     c1 += a1 * s11;
                     c0 += a2 * s20;
                     c1 += a2 * s21;
-                    C(i-i_+0,j-j_) = c0;
-                    C(i-i_+1,j-j_) = c1;
-                  }
-                }}
+                    C(j-j_,i-i_+0) = c0;
+                    C(j-j_,i-i_+1) = c1;
+                  } // j
+                } // i
+	      } // k
               
               for(int k=k_; k<Nk__; k+=D_k) {
                 for(int i=Ni__; i<Ni_; i++) {
-                  if ( k_==0 ) {
+
+                  if ( k==0 ) {
                     for(int j=j_; j<Nj_; j++) {
-                      C(i-i_+0,j-j_) *= beta;
-                    }}
-                  auto const s00 = alpha * b_(i+0,k+0);
-                  auto const s10 = alpha * b_(i+0,k+1);
-                  auto const s20 = alpha * b_(i+0,k+2);
+                      C(j-j_,i-i_+0) *= beta;
+                    } // j
+		  }
+
+                  auto const s00 = alpha * b_(k+0,i+0);
+                  auto const s10 = alpha * b_(k+1,i+0);
+                  auto const s20 = alpha * b_(k+2,i+0);
                   for(int j=j_; j<Nj_; j++) {
-                    auto c0 = C(i-i_+0,j-j_);
-                    auto a0 = A(k-k_+0,j-j_);
-                    auto a1 = A(k-k_+1,j-j_);
+                    auto c0 = C(j-j_,i-i_+0);
+                    auto a0 = A(j-j_,k-k_+0);
+                    auto a1 = A(j-j_,k-k_+1);
+                    auto a2 = A(j-j_,k-k_+2);
                     c0 += a0 * s00;
-                    auto a2 = A(k-k_+2,j-j_);
                     c0 += a1 * s10;
                     c0 += a2 * s20;
-                    C(i-i_+0,j-j_) = c0;
-                  }
-                }}
+                    C(j-j_,i-i_+0) = c0;
+                  } // j
+                } // i
+	      } // k
               
             }
             if ( D_k==2 ) {
               
               for(int k=k_; k<Nk__; k+=D_k) {
                 for(int i=i_; i<Ni__; i+=D_i) {
-                  if ( k_==0 ) {
+
+                  if ( k==0 ) {
                     for(int j=j_; j<Nj_; j++) {
-                      C(i-i_+0,j-j_) *= beta;
-                      C(i-i_+1,j-j_) *= beta;
-                    }}
+                      C(j-j_,i-i_+0) *= beta;
+                      C(j-j_,i-i_+1) *= beta;
+                    } // j
+		  }
+
                   auto const s00 = alpha * b_(k+0,i+0);
                   auto const s10 = alpha * b_(k+1,i+0);
                   auto const s01 = alpha * b_(k+0,i+1);
                   auto const s11 = alpha * b_(k+1,i+1);
                   for(int j=j_; j<Nj_; j++) {
-                    auto c0 = C(i-i_+0,j-j_);
-                    auto c1 = C(i-i_+1,j-j_);
-                    auto a0 = A(k-k_+0,j-j_);
-                    auto a1 = A(k-k_+1,j-j_);
+                    auto c0 = C(j-j_,i-i_+0);
+                    auto c1 = C(j-j_,i-i_+1);
+                    auto a0 = A(j-j_,k-k_+0);
+                    auto a1 = A(j-j_,k-k_+1);
                     c0 += a0 * s00;
                     c1 += a0 * s01;
                     c0 += a1 * s10;
                     c1 += a1 * s11;
-                    C(i-i_+0,j-j_) = c0;
-                    C(i-i_+1,j-j_) = c1;
-                  }
-                }}
+                    C(j-j_,i-i_+0) = c0;
+                    C(j-j_,i-i_+1) = c1;
+                  } // j
+                } // i
+	      } // k
               
               for(int k=k_; k<Nk__; k+=D_k) {
                 for(int i=Ni__; i<Ni_; i++) {
-                  if ( k_==0 ) {
+
+                  if ( k==0 ) {
                     for(int j=j_; j<Nj_; j++) {
-                      C(i-i_+0,j-j_) *= beta;
-                    }}
+                      C(j-j_,i-i_+0) *= beta;
+                    } // j
+		  }
+
                   auto const s00 = alpha * b_(k+0,i+0);
                   auto const s10 = alpha * b_(k+1,i+0);
                   for(int j=j_; j<Nj_; j++) {
-                    auto c0 = C(i-i_+0,j-j_);
-                    auto a0 = A(k-k_+0,j-j_);
-                    auto a1 = A(k-k_+1,j-j_);
+                    auto c0 = C(j-j_,i-i_+0);
+                    auto a0 = A(j-j_,k-k_+0);
+                    auto a1 = A(j-j_,k-k_+1);
                     c0 += a0 * s00;
                     c0 += a1 * s10;
-                    C(i-i_+0,j-j_) = c0;
-                  }
-                }}
+                    C(j-j_,i-i_+0) = c0;
+                  } // j
+                } // i
+	      } // k
               
             }
             if ( D_k==1 ) {
               
               for(int k=k_; k<Nk__; k+=D_k) {
                 for(int i=i_; i<Ni__; i+=D_i) {
-                  if ( k_==0 ) {
+
+                  if ( k==0 ) {
                     for(int j=j_; j<Nj_; j++) {
-                      C(i-i_+0,j-j_) *= beta;
-                      C(i-i_+1,j-j_) *= beta;
-                    }}
+                      C(j-j_,i-i_+0) *= beta;
+                      C(j-j_,i-i_+1) *= beta;
+                    } // j
+		  }
+
                   auto const s00 = alpha * b_(k+0,i+0);
                   auto const s01 = alpha * b_(k+0,i+1);
                   for(int j=j_; j<Nj_; j++) {
-                    auto c0 = C(i-i_+0,j-j_);
-                    auto c1 = C(i-i_+1,j-j_);
-                    auto a0 = A(k-k_+0,j-j_);
+                    auto c0 = C(j-j_,i-i_+0);
+                    auto c1 = C(j-j_,i-i_+1);
+                    auto a0 = A(j-j_,k-k_+0);
                     c0 += a0 * s00;
                     c1 += a0 * s01;
-                    C(i-i_+0,j-j_) = c0;
-                    C(i-i_+1,j-j_) = c1;
-                  }
-                }}
+                    C(j-j_,i-i_+0) = c0;
+                    C(j-j_,i-i_+1) = c1;
+                  } // j
+                } // i
+	      } // k
               
               for(int k=k_; k<Nk__; k+=D_k) {
                 for(int i=Ni__; i<Ni_; i++) {
-                  if ( k_==0 ) {
+
+                  if ( k==0 ) {
                     for(int j=j_; j<Nj_; j++) {
-                      C(i-i_+0,j-j_) *= beta;
-                    }}
+                      C(j-j_,i-i_+0) *= beta;
+                    } // j
+		  }
+
                   auto const s00 = alpha * b_(k+0,i+0);
                   for(int j=j_; j<Nj_; j++) {
-                    auto c0 = C(i-i_+0,j-j_);
-                    auto a0 = A(k-k_+0,j-j_);
+                    auto c0 = C(j-j_,i-i_+0);
+                    auto a0 = A(j-j_,k-k_+0);
                     c0 = c0 + a0 * s00;
-                    C(i-i_+0,j-j_) = c0;
-                  }
-                }}
+                    C(j-j_,i-i_+0) = c0;
+                  } // j
+                } // i
+	      } // k
               
             }
             if ( D_k!=1 ) {
               
               for(int k=Nk__; k<Nk_; k++) {
                 for(int i=i_; i<Ni__; i+=D_i) {
-                  if ( k_==0 ) {
+
+                  if ( k==0 ) {
                     for(int j=j_; j<Nj_; j++) {
-                      C(i-i_+0,j-j_) *= beta;
-                      C(i-i_+1,j-j_) *= beta;
-                    }}
+                      C(j-j_,i-i_+0) *= beta;
+                      C(j-j_,i-i_+1) *= beta;
+                    } // j
+		  }
+
                   auto const s00 = alpha * b_(k+0,i+0);
                   auto const s01 = alpha * b_(k+0,i+1);
                   for(int j=j_; j<Nj_; j++) {
-                    auto c0 = C(i-i_+0,j-j_);
-                    auto a0 = A(k-k_+0,j-j_);
+                    auto c0 = C(j-j_,i-i_+0);
+                    auto c1 = C(j-j_,i-i_+1);
+                    auto a0 = A(j-j_,k-k_+0);
                     c0 += a0 * s00;
-                    auto c1 = C(i-i_+1,j-j_);
                     c1 += a0 * s01;
-                    C(i-i_+0,j-j_) = c0;
-                    C(i-i_+1,j-j_) = c1;
-                  }
-                }}
-              
+                    C(j-j_,i-i_+0) = c0;
+                    C(j-j_,i-i_+1) = c1;
+                  } // j
+                } // i
+	      } // k
+
               for(int k=Nk__; k<Nk_; k++) {
                 for(int i=Ni__; i<Ni_; i++) {
-                  if ( k_==0 ) {
+
+                  if ( k==0 ) {
                     for(int j=j_; j<Nj_; j++) {
-                      C(i-i_+0,j-j_) *= beta;
-                    }}
+                      C(j-j_,i-i_+0) *= beta;
+                    } // j
+		  }
+
                   auto const s00 = alpha * b_(k+0,i+0);
                   for(int j=j_; j<Nj_; j++) {
-                    auto c0 = C(i-i_+0,j-j_);
-                    auto a0 = A(k-k_+0,j-j_);
+                    auto c0 = C(j-j_,i-i_+0);
+                    auto a0 = A(j-j_,k-k_+0);
                     c0 += a0 * s00;
-                    C(i-i_+0,j-j_) = c0;
-                  }
-                }}
+                    C(j-j_,i-i_+0) = c0;
+                  } // j
+                } // i
+	      } // k
               
             }
             
           }
           
+	  //
+	  //
           for(int i=i_; i<Ni_; i++) {
-#if __isINTEL_COMPILER__
-#pragma ivdep
-#else
-#pragma omp simd
-#endif
             for(int j=j_; j<Nj_; j++) {
-              c_(i,j) = C(i-i_,j-j_);
-            }
-          }
+              c_(j,i) = C(j-j_,i-i_);
+            } // j
+          } // i
+	  //
+	  //
           
         }
       }
