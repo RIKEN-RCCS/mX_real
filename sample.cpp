@@ -236,7 +236,7 @@ void benchmark( int const& N ) {
 	    //
             for(int k=k_; k<Nk_; k++) {
               for(int j=j_; j<Nj_; j++) {
-                A(j-j_,k-k_) = a_(j,k);
+                A(j-j_,k-k_) = alpha * a_(j,k);
               } // j
 	    } // i
 	    //
@@ -254,21 +254,21 @@ void benchmark( int const& N ) {
                     } // j
 		  }
 
-                  auto const s00 = alpha * b_(k+0,i+0);
-                  auto const s10 = alpha * b_(k+1,i+0);
-                  auto const s20 = alpha * b_(k+2,i+0);
-                  auto const s30 = alpha * b_(k+3,i+0);
-                  auto const s01 = alpha * b_(k+0,i+1);
-                  auto const s11 = alpha * b_(k+1,i+1);
-                  auto const s21 = alpha * b_(k+2,i+1);
-                  auto const s31 = alpha * b_(k+3,i+1);
+                  auto const s00 = b_(k+0,i+0);
+                  auto const s10 = b_(k+1,i+0);
+                  auto const s20 = b_(k+2,i+0);
+                  auto const s30 = b_(k+3,i+0);
+                  auto const s01 = b_(k+0,i+1);
+                  auto const s11 = b_(k+1,i+1);
+                  auto const s21 = b_(k+2,i+1);
+                  auto const s31 = b_(k+3,i+1);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(j-j_,i-i_+0);
                     auto c1 = C(j-j_,i-i_+1);
                     auto a0 = A(j-j_,k-k_+0);
                     auto a1 = A(j-j_,k-k_+1);
                     auto a2 = A(j-j_,k-k_+2);
-                    auto a3 = A(j-j_,k-k_+2);
+                    auto a3 = A(j-j_,k-k_+3);
                     c0 += a0 * s00;
                     c1 += a0 * s01;
                     c0 += a1 * s10;
@@ -292,10 +292,10 @@ void benchmark( int const& N ) {
                     } // j
 		  }
 
-                  auto const s00 = alpha * b_(k+0,i+0);
-                  auto const s10 = alpha * b_(k+1,i+0);
-                  auto const s20 = alpha * b_(k+2,i+0);
-                  auto const s30 = alpha * b_(k+3,i+0);
+                  auto const s00 = b_(k+0,i+0);
+                  auto const s10 = b_(k+1,i+0);
+                  auto const s20 = b_(k+2,i+0);
+                  auto const s30 = b_(k+3,i+0);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(j-j_,i-i_+0);
                     auto a0 = A(j-j_,k-k_+0);
@@ -324,12 +324,12 @@ void benchmark( int const& N ) {
                     } // j
 		  }
 
-                  auto const s00 = alpha * b_(k+0,i+0);
-                  auto const s10 = alpha * b_(k+1,i+0);
-                  auto const s20 = alpha * b_(k+2,i+0);
-                  auto const s01 = alpha * b_(k+0,i+1);
-                  auto const s11 = alpha * b_(k+1,i+1);
-                  auto const s21 = alpha * b_(k+2,i+1);
+                  auto const s00 = b_(k+0,i+0);
+                  auto const s10 = b_(k+1,i+0);
+                  auto const s20 = b_(k+2,i+0);
+                  auto const s01 = b_(k+0,i+1);
+                  auto const s11 = b_(k+1,i+1);
+                  auto const s21 = b_(k+2,i+1);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(j-j_,i-i_+0);
                     auto c1 = C(j-j_,i-i_+1);
@@ -357,9 +357,9 @@ void benchmark( int const& N ) {
                     } // j
 		  }
 
-                  auto const s00 = alpha * b_(k+0,i+0);
-                  auto const s10 = alpha * b_(k+1,i+0);
-                  auto const s20 = alpha * b_(k+2,i+0);
+                  auto const s00 = b_(k+0,i+0);
+                  auto const s10 = b_(k+1,i+0);
+                  auto const s20 = b_(k+2,i+0);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(j-j_,i-i_+0);
                     auto a0 = A(j-j_,k-k_+0);
@@ -386,10 +386,10 @@ void benchmark( int const& N ) {
                     } // j
 		  }
 
-                  auto const s00 = alpha * b_(k+0,i+0);
-                  auto const s10 = alpha * b_(k+1,i+0);
-                  auto const s01 = alpha * b_(k+0,i+1);
-                  auto const s11 = alpha * b_(k+1,i+1);
+                  auto const s00 = b_(k+0,i+0);
+                  auto const s10 = b_(k+1,i+0);
+                  auto const s01 = b_(k+0,i+1);
+                  auto const s11 = b_(k+1,i+1);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(j-j_,i-i_+0);
                     auto c1 = C(j-j_,i-i_+1);
@@ -414,8 +414,8 @@ void benchmark( int const& N ) {
                     } // j
 		  }
 
-                  auto const s00 = alpha * b_(k+0,i+0);
-                  auto const s10 = alpha * b_(k+1,i+0);
+                  auto const s00 = b_(k+0,i+0);
+                  auto const s10 = b_(k+1,i+0);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(j-j_,i-i_+0);
                     auto a0 = A(j-j_,k-k_+0);
@@ -440,8 +440,8 @@ void benchmark( int const& N ) {
                     } // j
 		  }
 
-                  auto const s00 = alpha * b_(k+0,i+0);
-                  auto const s01 = alpha * b_(k+0,i+1);
+                  auto const s00 = b_(k+0,i+0);
+                  auto const s01 = b_(k+0,i+1);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(j-j_,i-i_+0);
                     auto c1 = C(j-j_,i-i_+1);
@@ -463,7 +463,7 @@ void benchmark( int const& N ) {
                     } // j
 		  }
 
-                  auto const s00 = alpha * b_(k+0,i+0);
+                  auto const s00 = b_(k+0,i+0);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(j-j_,i-i_+0);
                     auto a0 = A(j-j_,k-k_+0);
@@ -486,8 +486,8 @@ void benchmark( int const& N ) {
                     } // j
 		  }
 
-                  auto const s00 = alpha * b_(k+0,i+0);
-                  auto const s01 = alpha * b_(k+0,i+1);
+                  auto const s00 = b_(k+0,i+0);
+                  auto const s01 = b_(k+0,i+1);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(j-j_,i-i_+0);
                     auto c1 = C(j-j_,i-i_+1);
@@ -509,7 +509,7 @@ void benchmark( int const& N ) {
                     } // j
 		  }
 
-                  auto const s00 = alpha * b_(k+0,i+0);
+                  auto const s00 = b_(k+0,i+0);
                   for(int j=j_; j<Nj_; j++) {
                     auto c0 = C(j-j_,i-i_+0);
                     auto a0 = A(j-j_,k-k_+0);
