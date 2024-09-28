@@ -1,5 +1,7 @@
 a.cpp
+a.cpp-*
 aa.cpp
+b.cpp
 *.o
 *.s
 *.ptx
@@ -24,3 +26,4 @@ qd_real
 Ozaki-QW/old
 etc/half*
 etc/patch-complex
+sX_real.hpp

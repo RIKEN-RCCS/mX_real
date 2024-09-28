@@ -190,6 +190,19 @@ TwoProductFMA ( T const a, T const b, T &x, T &y ) NOEXCEPT
   y = std::fma(a, b, -x);
 }
 
+// ------------------------
+// Other DD-Mult Funcs.
+// ------------------------
+
+template < typename T > INLINE void constexpr
+Nagai_Mul ( T const a0, T const a1, T const b0, T const b1, T &x, T &y ) NOEXCEPT
+{
+  auto z = a0 * b1;                 // 1 1
+  auto t = std::fma( a1, b0, z );   // 1 2
+  x = std::fma( a0, b0, t );        // 1 2
+  y = std::fma( a0, b0, -x ) + t;   // 2 3  // total 5 cycles 8 flops
+}
+
 '''
     print( header )
 
@@ -1283,10 +1296,19 @@ def gen_mul( NA, NB, NC, ACC ) :
     if NC == 3 :
         line[0] = '!'
         line[1] = 'FMA a0 b0 c0 c1' # (c1)
-        line[2] = 'FMA a0 b1 c2 e2' # (c1,c2)(e2)
-        line[3] = 'FMA a1 b0 e3 e4' # (c1,c2,e3)(e2,e4)
-        line[4] = 'TWO c1 c2 c1 c2' # (c1,e3)(c2,e2,e4)
-        line[5] = 'TWO c1 e3 c1 e3' # (c1)(c2,e3,e2,e4)
+        if NA+NB == 3 :
+            if NA == 1 :
+                line[2] = 'FMA a0 b1 c2 e2' # (c1,c2)(e2)
+            else :
+                line[2] = 'FMA a1 b0 c2 e2' # (c1,c2)(e2)
+            line[3] = 'TWO c1 c2 c1 c2' # (c1)(c2,e2)
+            line[4] = 'LET e3 a2'
+            line[5] = 'LET e4 a2'
+        else :
+            line[2] = 'FMA a0 b1 c2 e2' # (c1,c2)(e2)
+            line[3] = 'FMA a1 b0 e3 e4' # (c1,c2,e3)(e2,e4)
+            line[4] = 'TWO c1 c2 c1 c2' # (c1,e3)(c2,e2,e4)
+            line[5] = 'TWO c1 e3 c1 e3' # (c1)(c2,e3,e2,e4)
 
         if ACC == 0 :
             line[6] = 'SUM 2 e0 a3 a2'
@@ -1302,127 +1324,154 @@ def gen_mul( NA, NB, NC, ACC ) :
 #            line[10] = 'MAD c2 a1 b1 c2' # (c1)(c2)
 #            line[11] = 'MAD c2 e0 b0 c2' # (c1)(c2)
         else :
-            line[6] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
+            line[6] = '!' # 'QQQ c0 c1 c0 c1' if NA*NB > 1 else '!'
 
             line[7] = 'FMA a0 b2 e5 e6' # (c1)(c2,e3,e2,e4,e5)(e6)
             line[8] = 'FMA a2 b0 e7 e8' # (c1)(c2,e3,e2,e4,e5,e7)(e6,e8)
             line[9] = 'FMA a1 b1 e9 e10' # (c1)(c2,e3,e2,e4,e5,e7,e9)(e6,e8,e10)
-            line[10] = 'TWO c2 e3 c2 e3' # (c1)(c2,e2,e4,e5,e7,e9)(e3,e6,e8,e10)
-            line[11] = 'TWO c2 e2 c2 e2' # (c1)(c2,e4,e5,e7,e9)(e2,e3,e6,e8,e10)
-            line[12] = 'TWO c2 e4 c2 e4' # (c1)(c2,e5,e7,e9)(e4,e2,e3,e6,e8,e10)
-            line[13] = 'TWO c2 e5 c2 e5' # (c1)(c2,e7,e9)(e5,e4,e2,e3,e6,e8,e10)
-            line[14] = 'TWO c2 e7 c2 e7' # (c1)(c2,e9)(e7,e5,e4,e2,e3,e6,e8,e10)
-            line[15] = 'TWO c2 e9 c2 e9' # (c1)(c2)(e9,e7,e5,e4,e2,e3,e6,e8,e10)
 
-            line[16] = 'SUM 9 e2 e2 e3 e4 e5 e6 e7 e8 e9 e10'  # (c1)(c2)(e2)
+            if NA+NB == 3 :
+                line[10] = 'ADD c2 c2 e2' # (c1)(c2,e2,e4,e5,e7,e9)(e6,e8,e10)
+                line[11] = 'LET e2 a3'    # (c1)(c2,e4,e5,e7,e9)(e6,e8,e10)
+                line[12] = '!'            # (c1)(c2,e4,e5,e7,e9)(e6,e8,e10)
+            else :
+                line[10] = 'TWO c2 e2 c2 e2' # (c1)(c2,e4,e5,e7,e9)(e2,e3,e6,e8,e10)
+                line[11] = 'TWO c2 e3 c2 e3' # (c1)(c2,e2,e4,e5,e7,e9)(e3,e6,e8,e10)
+                line[12] = '!'
+
+            line[13] = 'TWO c2 e4 c2 e4' # (c1)(c2,e5,e7,e9)(e4,e2,e3,e6,e8,e10)
+            line[14] = 'TWO c2 e5 c2 e5' # (c1)(c2,e7,e9)(e5,e4,e2,e3,e6,e8,e10)
+            line[15] = 'TWO c2 e7 c2 e7' # (c1)(c2,e9)(e7,e5,e4,e2,e3,e6,e8,e10)
+            line[16] = 'TWO c2 e9 c2 e9' # (c1)(c2)(e9,e7,e5,e4,e2,e3,e6,e8,e10)
+
+            line[17] = 'SUM 9 e2 e2 e3 e4 e5 e6 e7 e8 e9 e10'  # (c1)(c2)(e2)
 
             if NA == NB :
-                line[17] = 'MUL e2 e2 fp_const<T>::nhalf()' # (c1)(c2)(e2)
-                line[18] = 'MAD e3 a0 b3 e2' # (c1)(c2)(e3)
-                line[19] = 'MAD e4 a3 b0 e2' # (c1)(c2)(e4,e3)
-                line[20] = 'MAD e3 a1 b2 e3' # (c1)(c2)(e4,e3)
-                line[21] = 'MAD e4 a2 b1 e4' # (c1)(c2)(e4,e3)
-                line[22] = 'ADD e2 e3 e4' # (c1)(c2)(e2)
+                line[18] = 'MUL e2 e2 fp_const<T>::nhalf()' # (c1)(c2)(e2)
+                line[19] = 'MAD e3 a0 b3 e2' # (c1)(c2)(e3)
+                line[20] = 'MAD e4 a3 b0 e2' # (c1)(c2)(e4,e3)
+                line[21] = 'MAD e3 a1 b2 e3' # (c1)(c2)(e4,e3)
+                line[22] = 'MAD e4 a2 b1 e4' # (c1)(c2)(e4,e3)
+                line[23] = 'ADD e2 e3 e4' # (c1)(c2)(e2)
             else :
-                line[17] = 'MAD e2 a0 b3 e2' # (c1)(c2)(e2)
-                line[18] = 'MAD e2 a3 b0 e2' # (c1)(c2)(e2)
-                line[19] = 'MAD e2 a1 b2 e2' # (c1)(c2)(e2)
-                line[20] = 'MAD e2 a2 b1 e2' # (c1)(c2)(e2)
-                line[21] = '!'
+                line[18] = 'MAD e2 a0 b3 e2' # (c1)(c2)(e2)
+                line[19] = 'MAD e2 a3 b0 e2' # (c1)(c2)(e2)
+                line[20] = 'MAD e2 a1 b2 e2' # (c1)(c2)(e2)
+                line[21] = 'MAD e2 a2 b1 e2' # (c1)(c2)(e2)
                 line[22] = '!'
+                line[23] = '!'
 
-            line[23] = 'ADD c2 c2 e2' # (c1)(c2)
+            line[24] = 'ADD c2 c2 e2' # if NA+NB > 3 else '!' # (c1)(c2)
 
-            line[24] = 'QQQ c0 c1 c0 c1' if NA+NB > 2 else '!'
-            line[25] = 'QQQ c1 c2 c1 c2' if NA+NB > 2 else '!'
-            line[26] = 'QQQ c0 c1 c0 c1' if NA+NB > 1 else '!'
+            line[25] = 'QQQ c0 c1 c0 c1' if NA+NB > 2 else '!'
+            line[26] = 'QQQ c1 c2 c1 c2' if NA+NB > 2 else '!'
+            line[27] = 'QQQ c0 c1 c0 c1' if NA+NB > 2 else '!'
 
 
     if NC == 4 :
         line[0] = '!'
         line[1] = 'FMA a0 b0 c0 c1' # (c1)
 
-        line[2] = 'FMA a0 b1 c2 c3' # (c1,c2)(c3)
-        line[3] = 'FMA a1 b0 e3 e4' # (c1,c2,e3)(c3,e4)
-        line[4] = 'TWO c1 c2 c1 c2' # (c1,e3)(c2,c3,e4)
-        line[5] = 'TWO c1 e3 c1 e3' # (c1)(c2,e3,c3,e4)
+        if NA+NB == 3 :
+            if NA == 1 :
+                line[2] = 'FMA a0 b1 c2 e4' # (c1,c2)(e4)
+            else :
+                line[2] = 'FMA a1 b0 c2 e4' # (c1,c2)(e4)
+            line[3] = 'LET e3 a3'
+            line[4] = 'LET c3 b3'
+        else :
+            line[2] = 'FMA a0 b1 c2 c3' # (c1,c2)(c3)
+            line[3] = 'FMA a1 b0 e3 e4' # (c1,c2,e3)(c3,e4)
+            line[4] = '!'
+        line[5] = 'TWO c1 c2 c1 c2' # (c1,e3)(c2,c3,e4)
+        line[6] = 'TWO c1 e3 c1 e3' # (c1)(c2,e3,c3,e4)
 
-        line[6] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 and ACC > 0 else '!'
+        line[7] = 'QQQ c0 c1 c0 c1' if NA*NB > 1 and ACC > 0 else '!'
 
-        line[7] = 'FMA a0 b2 e5 e6' # (c1)(c2,e3,c3,e4,e5)(e6)
-        line[8] = 'FMA a1 b1 e7 e8' # (c1)(c2,e3,c3,e4,e5,e7)(e6,e8)
-        line[9] = 'FMA a2 b0 e9 e10' # (c1)(c2,e3,c3,e4,e5,e7,e9)(e6,e8,e10)
+        line[8] = 'FMA a0 b2 e5 e6' # (c1)(c2,e3,c3,e4,e5)(e6)
+        line[9] = 'FMA a1 b1 e7 e8' # (c1)(c2,e3,c3,e4,e5,e7)(e6,e8)
+        line[10] = 'FMA a2 b0 e9 e10' # (c1)(c2,e3,c3,e4,e5,e7,e9)(e6,e8,e10)
 
-        line[10] = 'TWO c2 e3 c2 e3' # (c1)(c2,c3,e4,e5,e7,e9)(e3,e6,e8,e10)
-        line[11] = 'TWO c2 c3 c2 c3' # (c1)(c2,e4,e5,e7,e9)(c3,e3,e6,e8,e10)
-        line[12] = 'TWO c2 e4 c2 e4' # (c1)(c2,e5,e7,e9)(e4,c3,e3,e6,e8,e10)
-        line[13] = 'TWO c2 e5 c2 e5' # (c1)(c2,e7,e9)(e5,e4,c3,e3,e6,e8,e10)
-        line[14] = 'TWO c2 e7 c2 e7' # (c1)(c2,e9)(e7,e5,e4,c3,e3,e6,e8,e10)
-        line[15] = 'TWO c2 e9 c2 e9' # (c1)(c2)(e9,e7,e5,e4,c3,e3,e6,e8,e10)
+        line[11] = 'TWO c2 e3 c2 e3' # (c1)(c2,c3,e4,e5,e7,e9)(e3,e6,e8,e10)
+        if NA+NB == 3 :
+            line[12] = 'ADD c2 e4 c2' # (c1)(c2,e5,e7,e9)(e6,e8,e10)
+            line[13] = 'LET e4 a3'
+        else:
+            line[12] = 'TWO c2 c3 c2 c3' # (c1)(c2,e4,e5,e7,e9)(c3,e3,e6,e8,e10)
+            line[13] = '!'
+        line[14] = 'TWO c2 e4 c2 e4' # (c1)(c2,e5,e7,e9)(e4,c3,e3,e6,e8,e10)
+        line[15] = 'TWO c2 e5 c2 e5' # (c1)(c2,e7,e9)(e5,e4,c3,e3,e6,e8,e10)
+        line[16] = 'TWO c2 e7 c2 e7' # (c1)(c2,e9)(e7,e5,e4,c3,e3,e6,e8,e10)
+        line[17] = 'TWO c2 e9 c2 e9' # (c1)(c2)(e9,e7,e5,e4,c3,e3,e6,e8,e10)
+
+        line[18] = '!'
 
         if ACC == 0 :
-            #line[16] = 'SUM 9 c3 c3 e3 e4 e5 e6 e7 e8 e9 e10' # (c1)(c2)(c3)
-            line[16] = '!'
-            line[17] = 'MAD c3 a0 b3 c3' # (c1)(c2)(c3)
-            line[18] = 'MAD c3 a1 b2 c3' # (c1)(c2)(c3)
-            line[19] = 'MAD c3 a2 b1 c3' # (c1)(c2)(c3)
-            line[20] = 'MAD c3 a3 b0 c3' # (c1)(c2)(c3)
-            line[21] = 'SUM 9 c3 c3 e3 e4 e5 e6 e7 e8 e9 e10' # (c1)(c2)(c3)
+            #line[19] = 'SUM 9 c3 c3 e3 e4 e5 e6 e7 e8 e9 e10' # (c1)(c2)(c3)
+            line[19] = '!'
+            line[20] = 'MAD c3 a0 b3 c3' # (c1)(c2)(c3)
+            line[21] = 'MAD c3 a1 b2 c3' # (c1)(c2)(c3)
+            line[22] = 'MAD c3 a2 b1 c3' # (c1)(c2)(c3)
+            line[23] = 'MAD c3 a3 b0 c3' # (c1)(c2)(c3)
+            line[24] = 'SUM 9 c3 c3 e3 e4 e5 e6 e7 e8 e9 e10' # (c1)(c2)(c3)
         else :
-            line[16] = 'QQQ c1 c2 c1 c2' if NA*NB > 1 else '!'
+            line[19] = 'QQQ c1 c2 c1 c2' if NA*NB > 1 else '!'
 
-            line[17] = 'TWO c3 e9 c3 e9' # (c1)(c2)(c3,e7,e5,e4,e3,e6,e8,e10)(e9)
-            line[18] = 'TWO c3 e7 c3 e7' # (c1)(c2)(c3,e5,e4,e3,e6,e8,e10)(e9,e7)
-            line[19] = 'TWO c3 e5 c3 e5' # (c1)(c2)(c3,e4,e3,e6,e8,e10)(e9,e7,e5)
-            line[20] = 'TWO c3 e4 c3 e4' # (c1)(c2)(c3,e3,e6,e8,e10)(e9,e7,e5,e4)
-            line[21] = 'TWO c3 e3 c3 e3' # (c1)(c2)(c3,e6,e8,e10)(e9,e7,e5,e4,e3)
-            line[22] = 'TWO c3 e6 c3 e6' # (c1)(c2)(c3,e8,e10)(e9,e7,e5,e4,e3,e6)
-            line[23] = 'TWO c3 e8 c3 e8' # (c1)(c2)(c3,e10)(e8,e9,e7,e5,e4,e3,e6)
-            line[24] = 'TWO c3 e10 c3 e10' # (c1)(c2)(c3)(e10,e8,e9,e7,e5,e4,e3,e6)
-            line[25] = 'SUM 8 e3 e3 e4 e5 e6 e7 e8 e9 e10' # (c1)(c2)(c3)(e3)
+            line[20] = 'TWO c3 e9 c3 e9' # (c1)(c2)(c3,e7,e5,e4,e3,e6,e8,e10)(e9)
+            line[21] = 'TWO c3 e7 c3 e7' # (c1)(c2)(c3,e5,e4,e3,e6,e8,e10)(e9,e7)
+            line[22] = 'TWO c3 e5 c3 e5' # (c1)(c2)(c3,e4,e3,e6,e8,e10)(e9,e7,e5)
+            line[23] = 'TWO c3 e4 c3 e4' # (c1)(c2)(c3,e3,e6,e8,e10)(e9,e7,e5,e4)
+            line[24] = 'TWO c3 e3 c3 e3' # (c1)(c2)(c3,e6,e8,e10)(e9,e7,e5,e4,e3)
+            line[25] = 'TWO c3 e6 c3 e6' # (c1)(c2)(c3,e8,e10)(e9,e7,e5,e4,e3,e6)
+            line[26] = 'TWO c3 e8 c3 e8' # (c1)(c2)(c3,e10)(e8,e9,e7,e5,e4,e3,e6)
+            line[27] = 'TWO c3 e10 c3 e10' # (c1)(c2)(c3)(e10,e8,e9,e7,e5,e4,e3,e6)
+            line[28] = 'SUM 8 e3 e3 e4 e5 e6 e7 e8 e9 e10' # (c1)(c2)(c3)(e3)
 
-            line[26] = 'FMA a0 b3 e4 e5' # (c1)(c2)(c3,e4)(e3,e5)
-            line[27] = 'FMA a1 b2 e6 e7' # (c1)(c2)(c3,e4,e6)(e3,e5,e7)
-            line[28] = 'FMA a2 b1 e8 e9' # (c1)(c2)(c3,e4,e6,e8)(e3,e5,e7,e9)
-            line[29] = 'FMA a3 b0 e10 e11' # (c1)(c2)(c3,e4,e6,e8,e10)(e3,e5,e7,e9,e11)
+            line[29] = '!'
+            line[30] = 'FMA a0 b3 e4 e5' # (c1)(c2)(c3,e4)(e3,e5)
+            line[31] = 'FMA a1 b2 e6 e7' # (c1)(c2)(c3,e4,e6)(e3,e5,e7)
+            line[32] = 'FMA a2 b1 e8 e9' # (c1)(c2)(c3,e4,e6,e8)(e3,e5,e7,e9)
+            line[33] = 'FMA a3 b0 e10 e11' # (c1)(c2)(c3,e4,e6,e8,e10)(e3,e5,e7,e9,e11)
 
-            line[30] = 'TWO e4 e10 e4 e10' # (c1)(c2)(c3,e4,e6,e8)(e10,e3,e5,e7,e9,e11)
-            line[31] = 'TWO e6 e8 e6 e8' # (c1)(c2)(c3,e4,e6)(e8,e10,e3,e5,e7,e9,e11)
-            line[32] = 'TWO e4 e6 e4 e6' # (c1)(c2)(e4,c3)(e6,e8,e10,e3,e5,e7,e9,e11)
-            line[33] = 'TWO c3 e4 c3 e4' # (c1)(c2)(c3)(e4,e6,e8,e10,e3,e5,e7,e9,e11)
+            line[34] = 'TWO e4 e10 e4 e10' # (c1)(c2)(c3,e4,e6,e8)(e10,e3,e5,e7,e9,e11)
+            line[35] = 'TWO e6 e8 e6 e8' # (c1)(c2)(c3,e4,e6)(e8,e10,e3,e5,e7,e9,e11)
+            line[36] = 'TWO e4 e6 e4 e6' # (c1)(c2)(e4,c3)(e6,e8,e10,e3,e5,e7,e9,e11)
+            line[37] = 'TWO c3 e4 c3 e4' # (c1)(c2)(c3)(e4,e6,e8,e10,e3,e5,e7,e9,e11)
+
+            line[38] = '!'
+            if NA == NB :
+                line[39] = 'ADD e5 e5 e11' # (c1)(c2)(c3)(e4,e6,e8,e10,e3,e5,e7)
+                line[40] = 'ADD e7 e7 e9'
+                line[41] = 'SUM 7 e2 e3 e4 e5 e6 e7 e8 e10' # (c1)(c2)(c3)(e2)
+            else :
+                line[39] = 'SUM 9 e2 e3 e4 e5 e6 e7 e8 e9 e10 e11' # (c1)(c2)(c3)(e2)
+                line[40] = '!'
+                line[41] = '!'
+
+            line[42] = 'QQQ c3 e2 c3 e2' if NA*NB > 4 else '!' # (c1)(c2)(c3)(e2)
+            line[43] = 'QQQ c2 c3 c2 c3' if NA*NB > 4 else '!'
 
             if NA == NB :
-                line[34] = 'ADD e5 e5 e11' # (c1)(c2)(c3)(e4,e6,e8,e10,e3,e5,e7)
-                line[35] = 'ADD e7 e7 e9'
-                line[36] = 'SUM 7 e2 e3 e4 e5 e6 e7 e8 e10' # (c1)(c2)(c3)(e2)
+                line[44] = 'MUL e3 e2 fp_const<T>::nhalf()' # (c1)(c2)(c3)(e3)
+                line[45] = 'MAD e0 a1 b3 e3' # (c1)(c2)(c3)(e0,e3)
+                line[46] = 'MAD e1 a3 b1 e3' # (c1)(c2)(c3)(e0,e1,e3)
+                line[47] = 'ADD e3 e0 e1' # (c1)(c2)(c3)(e3)
+                line[48] = 'MAD e3 a2 b2 e3' # (c1)(c2)(c3)(e3)
             else :
-                line[34] = 'SUM 9 e2 e3 e4 e5 e6 e7 e8 e9 e10 e11' # (c1)(c2)(c3)(e2)
-                line[35] = '!'
-                line[36] = '!'
+                line[44] = 'MAD e3 a1 b3 e2' # (c1)(c2)(c3)(e3)
+                line[45] = 'MAD e3 a2 b2 e3' # (c1)(c2)(c3)(e3)
+                line[46] = 'MAD e3 a3 b1 e3' # (c1)(c2)(c3)(e3)
+                line[47] = '!'
+                line[48] = '!'
+            line[49] = 'ADD c3 c3 e3' # (c1)(c2)(c3)
 
-            line[37] = 'QQQ c3 e2 c3 e2' if NA*NB > 4 else '!' # (c1)(c2)(c3)(e2)
-            line[38] = 'QQQ c2 c3 c2 c3' if NA*NB > 4 else '!'
-
-            if NA == NB :
-                line[39] = 'MUL e3 e2 fp_const<T>::nhalf()' # (c1)(c2)(c3)(e3)
-                line[40] = 'MAD e0 a1 b3 e3' # (c1)(c2)(c3)(e0,e3)
-                line[41] = 'MAD e1 a3 b1 e3' # (c1)(c2)(c3)(e0,e1,e3)
-                line[42] = 'ADD e3 e0 e1' # (c1)(c2)(c3)(e3)
-                line[43] = 'MAD e3 a2 b2 e3' # (c1)(c2)(c3)(e3)
-            else :
-                line[39] = 'MAD e3 a1 b3 e2' # (c1)(c2)(c3)(e3)
-                line[40] = 'MAD e3 a2 b2 e3' # (c1)(c2)(c3)(e3)
-                line[41] = 'MAD e3 a3 b1 e3' # (c1)(c2)(c3)(e3)
-                line[42] = '!'
-                line[43] = '!'
-            line[44] = 'ADD c3 c3 e3' # (c1)(c2)(c3)
-
-            line[45] = 'QQQ c0 c1 c0 c1' if NA+NB>3 else '!'
-            line[46] = 'QQQ c1 c2 c1 c2' if NA+NB>3 else '!'
-            line[47] = 'QQQ c2 c3 c2 c3' if NA+NB>3 else '!'
-            line[48] = 'QQQ c0 c1 c0 c1' if NA+NB>2 else '!'
-            line[49] = 'QQQ c1 c2 c1 c2' if NA+NB>2 else '!'
-            line[50] = 'QQQ c0 c1 c0 c1' if NA+NB>1 else '!'
+            line[50] = '!'
+            line[51] = 'QQQ c0 c1 c0 c1' if NA+NB>3 else '!'
+            line[52] = 'QQQ c1 c2 c1 c2' if NA+NB>3 else '!'
+            line[53] = 'QQQ c2 c3 c2 c3' if NA+NB>3 else '!'
+            line[54] = 'QQQ c0 c1 c0 c1' if NA+NB>2 else '!'
+            line[55] = 'QQQ c1 c2 c1 c2' if NA+NB>2 else '!'
+            line[56] = 'QQQ c0 c1 c0 c1' if NA+NB>2 else '!'
 
 
     line = INIT_propagate( line, NA, NB, NC )

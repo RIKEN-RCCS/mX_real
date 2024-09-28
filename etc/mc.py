@@ -13,7 +13,7 @@ def gen_comparison_op( description, op, not_op, func, Tc ) :
     print( '    template < typename T, Algorithm A >' )
     print( '    INLINE auto constexpr operator_{func} ( {m}X_real::{m}x_real<T,A> const& a, {m}X_real::{m}x_real<T,A> const& b ) NOEXCEPT {{'.format( m=mX_type(Tc), func=func ) )
     print( '      using TX = {m}X_real::{m}x_real<T,A>;'.format( m=mX_type(Tc), func=func ) )
-    print( '      int i=0; for(i=0; i<TX::L-1; i++) {' )
+    print( '      auto i=0; for(i=0; i<TX::L-1; i++) {' )
     print( '        if ( a.x[i] != b.x[i] ) {{ return a.x[i] {op} b.x[i]; }}'.format( op=op ) )
     print( '      }} return a.x[i] {op} b.x[i];'.format( op=op ) )
     print( '    }' )

@@ -56,6 +56,19 @@ namespace QxW {
     y = std::fma(a, b, -x);
   }
 
+  // ------------------------
+  // Other DD-Mult Funcs.
+  // ------------------------
+
+  template < typename T > INLINE void constexpr
+  Nagai_Mul ( T const a0, T const a1, T const b0, T const b1, T &x, T &y ) NOEXCEPT
+  {
+    auto z = a0 * b1;                 // 1 1
+    auto t = std::fma( a1, b0, z );   // 1 2
+    x = std::fma( a0, b0, t );        // 1 2
+    y = std::fma( a0, b0, -x ) + t;   // 2 3  // total 5 cycles 8 flops
+  }
+
 
 
   // ------------------------
@@ -1259,10 +1272,12 @@ namespace QxW {
   template < typename T > INLINE void constexpr
   mul_SW_PA_QQW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 ) NOEXCEPT
   {
+    T t0;
     TwoProductFMA( a0, b0, c0, c1 );
-    TwoProductFMA( a0, b1, c2, c3 );
+    TwoProductFMA( a0, b1, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
-    TwoSum( c2, c3, c2, c3 );
+    c2 = t0 + c2;
+    c3 = fp_const<T>::zero();
   }
 
   // mul: 1-3-1
@@ -1378,21 +1393,23 @@ namespace QxW {
   template < typename T > INLINE void constexpr
   mul_PA_SW_QTW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2 ) NOEXCEPT
   {
-    T t0, t1;
+    T t0;
     TwoProductFMA( a0, b0, c0, c1 );
-    TwoProductFMA( a1, b0, t0, t1 );
-    TwoSum( c1, t0, c1, t0 );
-    c2 = t1 + t0;
+    TwoProductFMA( a1, b0, c2, t0 );
+    TwoSum( c1, c2, c1, c2 );
+    c2 = t0 + c2;
   }
 
   // mul: 2-1-4
   template < typename T > INLINE void constexpr
   mul_PA_SW_QQW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 ) NOEXCEPT
   {
+    T t0;
     TwoProductFMA( a0, b0, c0, c1 );
-    TwoProductFMA( a1, b0, c2, c3 );
+    TwoProductFMA( a1, b0, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
-    TwoSum( c2, c3, c2, c3 );
+    c2 = t0 + c2;
+    c3 = fp_const<T>::zero();
   }
 
   // mul: 2-2-1
@@ -4482,7 +4499,6 @@ namespace QxW {
   mul_SW_SW_TW( T const a0, T const b0, T &c0, T &c1, T &c2 ) NOEXCEPT
   {
     TwoProductFMA( a0, b0, c0, c1 );
-    FastTwoSum( c0, c1, c0, c1 );
     c2 = fp_const<T>::zero();
   }
 
@@ -4491,7 +4507,6 @@ namespace QxW {
   mul_SW_SW_QW( T const a0, T const b0, T &c0, T &c1, T &c2, T &c3 ) NOEXCEPT
   {
     TwoProductFMA( a0, b0, c0, c1 );
-    FastTwoSum( c0, c1, c0, c1 );
     c2 = fp_const<T>::zero();
     c3 = fp_const<T>::zero();
   }
@@ -4526,8 +4541,6 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a0, b1, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
-    FastTwoSum( c0, c1, c0, c1 );
-    TwoSum( c2, t0, c2, t0 );
     c2 = c2 + t0;
     FastTwoSum( c0, c1, c0, c1 );
     FastTwoSum( c1, c2, c1, c2 );
@@ -4538,15 +4551,17 @@ namespace QxW {
   template < typename T > INLINE void constexpr
   mul_SW_DW_QW( T const a0, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3 ) NOEXCEPT
   {
+    T t0;
     TwoProductFMA( a0, b0, c0, c1 );
-    TwoProductFMA( a0, b1, c2, c3 );
+    TwoProductFMA( a0, b1, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
     FastTwoSum( c0, c1, c0, c1 );
-    TwoSum( c2, c3, c2, c3 );
+    c2 = t0 + c2;
     FastTwoSum( c1, c2, c1, c2 );
     FastTwoSum( c0, c1, c0, c1 );
     FastTwoSum( c1, c2, c1, c2 );
     FastTwoSum( c0, c1, c0, c1 );
+    c3 = fp_const<T>::zero();
   }
 
   // mul: 1-3-1
@@ -4582,7 +4597,6 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a0, b1, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a0, b2, t1, t2 );
     TwoSum( c2, t0, c2, t0 );
     TwoSum( c2, t1, c2, t1 );
@@ -4652,7 +4666,6 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a0, b1, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a0, b2, t1, t2 );
     TwoSum( c2, t0, c2, t0 );
     TwoSum( c2, t1, c2, t1 );
@@ -4722,8 +4735,6 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a1, b0, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
-    FastTwoSum( c0, c1, c0, c1 );
-    TwoSum( c2, t0, c2, t0 );
     c2 = c2 + t0;
     FastTwoSum( c0, c1, c0, c1 );
     FastTwoSum( c1, c2, c1, c2 );
@@ -4734,15 +4745,17 @@ namespace QxW {
   template < typename T > INLINE void constexpr
   mul_DW_SW_QW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3 ) NOEXCEPT
   {
+    T t0;
     TwoProductFMA( a0, b0, c0, c1 );
-    TwoProductFMA( a1, b0, c2, c3 );
+    TwoProductFMA( a1, b0, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
     FastTwoSum( c0, c1, c0, c1 );
-    TwoSum( c2, c3, c2, c3 );
+    c2 = t0 + c2;
     FastTwoSum( c1, c2, c1, c2 );
     FastTwoSum( c0, c1, c0, c1 );
     FastTwoSum( c1, c2, c1, c2 );
     FastTwoSum( c0, c1, c0, c1 );
+    c3 = fp_const<T>::zero();
   }
 
   // mul: 2-2-1
@@ -4783,10 +4796,9 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a1, b1, t3, t4 );
-    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t3, c2, t3 );
     t0 = t0 + t1 + t2 + t3 + t4;
@@ -4868,11 +4880,10 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a0, b2, t3, t4 );
     TwoProductFMA( a1, b1, t5, t6 );
-    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t3, c2, t3 );
     TwoSum( c2, t5, c2, t5 );
@@ -4966,11 +4977,10 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a0, b2, t3, t4 );
     TwoProductFMA( a1, b1, t5, t6 );
-    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t3, c2, t3 );
     TwoSum( c2, t5, c2, t5 );
@@ -5059,7 +5069,6 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a1, b0, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a2, b0, t1, t2 );
     TwoSum( c2, t0, c2, t0 );
     TwoSum( c2, t1, c2, t1 );
@@ -5136,11 +5145,10 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a2, b0, t3, t4 );
     TwoProductFMA( a1, b1, t5, t6 );
-    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t3, c2, t3 );
     TwoSum( c2, t5, c2, t5 );
@@ -5237,12 +5245,11 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a0, b2, t3, t4 );
     TwoProductFMA( a2, b0, t5, t6 );
     TwoProductFMA( a1, b1, t7, t8 );
-    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t3, c2, t3 );
     TwoSum( c2, t5, c2, t5 );
@@ -5350,12 +5357,11 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a0, b2, t3, t4 );
     TwoProductFMA( a2, b0, t5, t6 );
     TwoProductFMA( a1, b1, t7, t8 );
-    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t3, c2, t3 );
     TwoSum( c2, t5, c2, t5 );
@@ -5454,7 +5460,6 @@ namespace QxW {
     TwoProductFMA( a0, b0, c0, c1 );
     TwoProductFMA( a1, b0, c2, t0 );
     TwoSum( c1, c2, c1, c2 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a2, b0, t1, t2 );
     TwoSum( c2, t0, c2, t0 );
     TwoSum( c2, t1, c2, t1 );
@@ -5536,11 +5541,10 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a2, b0, t3, t4 );
     TwoProductFMA( a1, b1, t5, t6 );
-    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t3, c2, t3 );
     TwoSum( c2, t5, c2, t5 );
@@ -5640,12 +5644,11 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a0, b2, t3, t4 );
     TwoProductFMA( a2, b0, t5, t6 );
     TwoProductFMA( a1, b1, t7, t8 );
-    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t3, c2, t3 );
     TwoSum( c2, t5, c2, t5 );
@@ -5757,12 +5760,11 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
-    FastTwoSum( c0, c1, c0, c1 );
     TwoProductFMA( a0, b2, t3, t4 );
     TwoProductFMA( a2, b0, t5, t6 );
     TwoProductFMA( a1, b1, t7, t8 );
-    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );
     TwoSum( c2, t2, c2, t2 );
     TwoSum( c2, t3, c2, t3 );
     TwoSum( c2, t5, c2, t5 );

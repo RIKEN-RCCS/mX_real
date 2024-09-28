@@ -60,14 +60,14 @@ namespace @{m}@X_real {
     //
     INLINE T constexpr quick_Normalized () const NOEXCEPT {
       T s = x[0];
-      if ( A == Algorithm::Quasi ) for(int i=1; i<L; i++) { s += x[i]; }
+      if ( A == Algorithm::Quasi ) for(auto i=1; i<L; i++) { s += x[i]; }
       return s;
     }
     INLINE @{M}@X_REAL<> constexpr element_rotate () const NOEXCEPT {
-      T y[L]; for(int i=0; i<L; i++) { y[i] = x[i]; }
-      for(int i=0; i<L-1; i++) {
+      T y[L]; for(auto i=0; i<L; i++) { y[i] = x[i]; }
+      for(auto i=0; i<L-1; i++) {
         if ( ! fp<T>::is_zero( y[0] ) ) { return @{M}@X_REAL<>( y ); }
-        T t = y[0]; for(int j=0; j<L-1; j++) { y[j] = y[j+1]; } y[L-1] = t;
+        T t = y[0]; for(auto j=0; j<L-1; j++) { y[j] = y[j+1]; } y[L-1] = t;
       }
       return @{M}@X_REAL<>( y );
     }
@@ -78,32 +78,32 @@ namespace @{m}@X_real {
     //
     //
     INLINE constexpr @{m}@x_real() NOEXCEPT {
-      for(int i=0; i<L; i++) { x[i] = fp<T>::zero(); }
+      for(auto i=0; i<L; i++) { x[i] = fp<T>::zero(); }
     }
     INLINE constexpr @{m}@x_real( T const& x0@@{, T const& x@{i}@}@@ ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto t = x0@@{ + x@{i}@}@@;
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-        for(int i=0; i<L; i++) { x[i] = t; }
+        for(auto i=0; i<L; i++) { x[i] = t; }
       } else
 #endif
       { x[0] = x0;@@{ x[@{i}@] = x@{i}@;}@@ }
     }
     INLINE constexpr @{m}@x_real( T const &h ) NOEXCEPT {
-      { x[0] = h; for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
+      { x[0] = h; for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
     }
     template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE @{m}@x_real( Ts const &h ) NOEXCEPT {
-      { x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
+      { x[0] = T(h); for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
     }
     INLINE constexpr @{m}@x_real( T const *d ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-      auto t = d[0]; for(int i=1; i<L; i++) { t += d[1]; }
+      auto t = d[0]; for(auto i=1; i<L; i++) { t += d[1]; }
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-        for(int i=0; i<L; i++) { x[i] = t; }
+        for(auto i=0; i<L; i++) { x[i] = t; }
       } else
 #endif
-      for(int i=0; i<L; i++) { x[i] = d[i]; }
+      for(auto i=0; i<L; i++) { x[i] = d[i]; }
     }
 
 
@@ -117,13 +117,13 @@ namespace @{m}@X_real {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-        for(int i=0; i<L; i++) { x[i] = t; }
+        for(auto i=0; i<L; i++) { x[i] = t; }
       } else
 #endif
       {
         // rewritten in the copya and normalization process
-        int constexpr LL = TX::L;
-        bool constexpr need_normalize =
+        auto constexpr LL = TX::L;
+        auto constexpr need_normalize =
           ( A != Algorithm::Quasi && _A_ == Algorithm::Quasi );
         if ( L < LL ) {
           if ( _A_ == Algorithm::Quasi ) {
@@ -147,12 +147,12 @@ namespace @{m}@X_real {
     //
     //
     INLINE @{M}@X_REAL<> constexpr &operator=( T const& h )_LV_ NOEXCEPT {
-      x[0] = h; for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); }
+      x[0] = h; for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); }
       return *this;
     }
     template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE @{M}@X_REAL<> constexpr &operator=( Ts const& h )_LV_ NOEXCEPT {
-      x[0] = T(h); for(int i=1; i<L; i++) { x[i] = fp<T>::zero(); }
+      x[0] = T(h); for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); }
       return *this;
     }
     template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
@@ -162,13 +162,13 @@ namespace @{m}@X_real {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-        for(int i=0; i<L; i++) { x[i] = t; }
+        for(auto i=0; i<L; i++) { x[i] = t; }
       } else
 #endif
       {
         // rewritten in the copya and normalization process
-        int constexpr LL = _TX_<T,_A_>::L;
-        bool constexpr need_normalize = 
+        auto constexpr LL = _TX_<T,_A_>::L;
+        auto constexpr need_normalize = 
           ( A != Algorithm::Quasi && _A_ == Algorithm::Quasi );
         if ( L < LL ) {
           if ( _A_ == Algorithm::Quasi ) {
@@ -214,16 +214,16 @@ namespace @{m}@X_real {
     INLINE constexpr operator _TX_<T,_A_>() const NOEXCEPT {
       using TX = _TX_<T,_A_>;
       TX c;
-      int constexpr LL = TX::L;
+      auto constexpr LL = TX::L;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto const t = this->quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
-        for(int i=0; i<LL; i++) { c.x[i] = t; }
+        for(auto i=0; i<LL; i++) { c.x[i] = t; }
       } else
 #endif
       {
        // rewritten in the copya and normalization process
-        bool constexpr need_normalize = 
+        auto constexpr need_normalize = 
           ( _A_ != Algorithm::Quasi && A == Algorithm::Quasi );
         if ( LL < L ) {
           if ( A == Algorithm::Quasi ) {
@@ -280,25 +280,25 @@ namespace @{m}@X_real {
     }
     static INLINE @{M}@X_REAL<> constexpr min  () NOEXCEPT {
       T c = fp<T>::min();
-      for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
+      for(auto i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
       return @{M}@X_REAL<>{ c };
     }
     static INLINE @{M}@X_REAL<> constexpr safe_min  () NOEXCEPT {
       T c = fp<T>::min();
-      for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
+      for(auto i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
       c = std::sqrt( c );
       return @{M}@X_REAL<>{ c };
     }
     static INLINE @{M}@X_REAL<> constexpr critical_min  () NOEXCEPT {
       T c = fp<T>::denorm_min();
-      for(int i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
+      for(auto i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
       c = std::sqrt( c );
       return @{M}@X_REAL<>{ c };
     }
     static INLINE @{M}@X_REAL<> constexpr max  () NOEXCEPT {
       T c[L];
       c[0] = fp<T>::max();
-      for(int i=1; i<L; i++) c[i] = c[i-1] * ( fp<T>::epsilon() * fp<T>::nhalf() );
+      for(auto i=1; i<L; i++) c[i] = c[i-1] * ( fp<T>::epsilon() * fp<T>::nhalf() );
       return @{M}@X_REAL<>{ c };
     }
 
@@ -366,13 +366,13 @@ namespace @{m}@X_real {
   //
   template < typename T, Algorithm Aa >
   std::ostream& operator<< ( std::ostream& stream, @{m}@X_real::@{m}@x_real<T,Aa> const& a ) {
-    int constexpr LL = @{m}@X_real::@{m}@x_real<T,Aa>::L;
+    auto constexpr LL = @{m}@X_real::@{m}@x_real<T,Aa>::L;
 #if USE_MPREAL
     mpfr::mpreal t = mpfr::mpreal( a.x[0] );
-    for(int i=1; i<LL; i++) { t += mpfr::mpreal( a.x[i] ); }
+    for(auto i=1; i<LL; i++) { t += mpfr::mpreal( a.x[i] ); }
     stream << t;
 #else
-    for(int i=0; i<LL; i++) { stream << a.x[i] << ":"; }
+    for(auto i=0; i<LL; i++) { stream << a.x[i] << ":"; }
 #endif
     return stream;
   }
