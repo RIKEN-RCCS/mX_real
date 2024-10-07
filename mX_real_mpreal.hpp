@@ -95,6 +95,9 @@ namespace std {
   INLINE mpfr::mpreal const fma( mpfr::mpreal const& a, mpfr::mpreal const& b, mpfr::mpreal const& c ) NOEXCEPT {
     return mpfr::fma( a, b, c );
   }
+  INLINE auto const signbit( mpfr::mpreal const& a ) NOEXCEPT {
+    return mpfr::signbit( a );
+  }
 
 }
 

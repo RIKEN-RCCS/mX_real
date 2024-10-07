@@ -8,7 +8,7 @@ def init_ () :
 
 
 //
-// C++-fied version 2023.12.26 (refered to Ozaki's code)
+// C++-ified version 2023.12.26 (refered to Ozaki's code)
 //
 // This C++ code was automatically generated
 // referering to the idea by Katsuhisa Ozaki (Shibaura Institute of Technology)
@@ -38,6 +38,9 @@ template <> struct fp_const<float> {
   static INLINE auto constexpr nhalf() NOEXCEPT { return 0.5f; }
   static INLINE auto constexpr threehalves() NOEXCEPT { return 1.5f; }
 
+  //
+  // significant parameters based on IEE754
+  //
   static uint32_t constexpr FONE = 0x00000001;
   static uint32_t constexpr SBIT = FONE << (32-1); // 0x80000000;
   static uint32_t constexpr EONE = FONE << (23);   // 0x00800000;
@@ -55,7 +58,19 @@ template <> struct fp_const<float> {
     return x.a;
   }
 
+  static INLINE auto constexpr is_pow2( float const a ) NOEXCEPT {
+    //
+    // 'a' is either power of 2 or 0 or INF
+    //
+    auto frac = fp2uint( a ) & FRAC;
+    return ( frac == 0 );
+  }
+
   static INLINE auto constexpr ulp( float const a ) NOEXCEPT {
+    //
+    // returns the unit bit of the last place with the exponent factor of 'a'
+    // but if a is zero returns zero.
+    //
     if ( a == zero() ) return a;
     auto e = fp2uint( a );
     auto s = e & SBIT;
@@ -67,6 +82,10 @@ template <> struct fp_const<float> {
   }
   template < bool inverse = false >
   static INLINE auto constexpr exponent( float const a ) NOEXCEPT {
+    //
+    // returns the exponent part with the hidden top bit number component
+    // but if a is zero returns one.
+    //
     if ( a == zero() ) return one();
     auto e = fp2uint( a );
     e &= MASK;
@@ -75,6 +94,9 @@ template <> struct fp_const<float> {
     return uint2fp( e );
   }
   static INLINE auto constexpr exponenti( float const a ) NOEXCEPT {
+    //
+    // returns the inverse of exponent()
+    //
     return exponent<true>( a );
   }
 };
@@ -85,6 +107,9 @@ template <> struct fp_const<double> {
   static INLINE auto constexpr nhalf() NOEXCEPT { return 0.5; }
   static INLINE auto constexpr threehalves() NOEXCEPT { return 1.5; }
 
+  //
+  // significant parameters based on IEE754
+  //
   static uint64_t constexpr FONE = 0x0000000000000001;
   static uint64_t constexpr SBIT = FONE << (64-1); // 0x8000000000000000;
   static uint64_t constexpr EONE = FONE << (52);   // 0x0010000000000000;
@@ -102,7 +127,19 @@ template <> struct fp_const<double> {
     return x.a;
   }
 
+  static INLINE auto constexpr is_pow2( double const a ) NOEXCEPT {
+    //
+    // 'a' is either power of 2 or 0 or INF
+    //
+    auto frac = fp2uint( a ) & FRAC;
+    return ( frac == 0 );
+  }
+
   static INLINE auto constexpr ulp( double const a ) NOEXCEPT {
+    //
+    // returns the unit bit of the last place with the exponent factor of 'a'
+    // but if a is zero returns zero.
+    //
     if ( a == zero() ) return a;
     auto e = fp2uint( a );
     auto s = e & SBIT;
@@ -114,6 +151,10 @@ template <> struct fp_const<double> {
   }
   template < bool inverse = false >
   static INLINE auto constexpr exponent( double const a ) NOEXCEPT {
+    //
+    // returns the exponent part with the hidden top bit number component
+    // but if a is zero returns one.
+    //
     if ( a == zero() ) return one();
     auto e = fp2uint( a );
     e &= MASK;
@@ -122,6 +163,9 @@ template <> struct fp_const<double> {
     return uint2fp( e );
   }
   static INLINE auto constexpr exponenti( double const a ) NOEXCEPT {
+    //
+    // returns the inverse of exponent()
+    //
     return exponent<true>( a );
   }
 };
@@ -137,7 +181,7 @@ def init () :
 
 
 //
-// C++-fied version 2023.12.26 (refered to Ozaki's code)
+// C++-ified version 2023.12.26 (refered to Ozaki's code)
 //
 // This C++ code was automatically generated
 // referering to the idea by Katsuhisa Ozaki (Shibaura Institute of Technology)
@@ -201,6 +245,69 @@ Nagai_Mul ( T const a0, T const a1, T const b0, T const b1, T &x, T &y ) NOEXCEP
   auto t = std::fma( a1, b0, z );   // 1 2
   x = std::fma( a0, b0, t );        // 1 2
   y = std::fma( a0, b0, -x ) + t;   // 2 3  // total 5 cycles 8 flops
+}
+
+template < typename T > INLINE void constexpr
+Ya_mul_DW_DW_DW ( T const a0, T const a1, T const b0, T const b1, T &x, T &y ) NOEXCEPT
+{
+  //
+  // It perform slightly faster but inaccurate than the accurate version.
+  // Also, it would be slower but slightly accurate than the Sloppy version.
+  //
+  T q0, q1, q2, q3;
+  T w0, w1, w2;
+  T z0, z1, z2;
+  T y0, y1, y2;
+
+  //         [q3] = a1 * b1 
+  //     [q2, y2] = a0 * b1 + q3
+  //     [q1, y1] = a1 * b0 + q2
+  // [q0, y0]     = a0 * b0 + q1
+  // x = q0, y = y2 + y1 + y0
+
+  q3 = a1 * b1;                     // 1 1
+
+  q2 = std::fma( a0, b1, q3 );      // 1 2
+  FastTwoSum( -q2, q3, w2, z2 );    // 3 3
+  y2 = std::fma( a0, b1, w2 ) + z2; // 2 3
+
+  q1 = std::fma( a1, b0, q2 );      // 1 2
+  TwoSum    ( -q1, q2, w1, z1 );    // 6 6
+  y1 = std::fma( a1, b0, w1 ) + z1; // 2 3
+
+  q0 = std::fma( a0, b0, q1 );      // 1 2
+  FastTwoSum( -q0, q1, w0, z0 );    // 3 3
+  y0 = std::fma( a0, b0, w0 ) + z0; // 2 3
+
+  x = q0;
+  y = y2 + y1 + y0;                 // 2 2 // total 24 cycles 30 flops
+}
+
+template < typename T > INLINE void constexpr
+Ya_sqr_DW_DW ( T const a0, T const a1, T &x, T &y ) NOEXCEPT
+{
+  //
+  // It perform slightly faster but inaccurate than the accurate version.
+  // Also, it would be slower but slightly accurate than the sloppy version.
+  //
+  T q0, q1, q2, q3;
+  T w1, w0;
+  T z1, z0;
+  T y0, y1, y2;
+
+  q3 = a1 + a1;                     // 1 1
+  q2 = a1 * a1;                     // 1 1
+
+  q1 = std::fma( a0, q3, q2 );      // 1 2
+  FastTwoSum( -q1, q2, w1, z1 );    // 3 3
+  y1 = std::fma( a0, q3, w1 ) + z1; // 2 3
+
+  q0 = std::fma( a0, a0, q1 );      // 1 2
+  FastTwoSum( -q0, q1, w0, z0 );    // 3 3
+  y0 = std::fma( a0, a0, w0 ) + z0; // 2 3
+
+  x = q0;
+  y = y1 + y0;                      // 1 1 // total 15 cycles 19 flops
 }
 
 '''

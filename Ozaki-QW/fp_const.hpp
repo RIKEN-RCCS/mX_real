@@ -3,7 +3,7 @@
 
 
 //
-// C++-fied version 2023.12.26 (refered to Ozaki's code)
+// C++-ified version 2023.12.26 (refered to Ozaki's code)
 //
 // This C++ code was automatically generated
 // referering to the idea by Katsuhisa Ozaki (Shibaura Institute of Technology)
@@ -33,6 +33,9 @@ namespace QxW {
     static INLINE auto constexpr nhalf() NOEXCEPT { return 0.5f; }
     static INLINE auto constexpr threehalves() NOEXCEPT { return 1.5f; }
 
+    //
+    // significant parameters based on IEE754
+    //
     static uint32_t constexpr FONE = 0x00000001;
     static uint32_t constexpr SBIT = FONE << (32-1); // 0x80000000;
     static uint32_t constexpr EONE = FONE << (23);   // 0x00800000;
@@ -50,7 +53,19 @@ namespace QxW {
       return x.a;
     }
 
+    static INLINE auto constexpr is_pow2( float const a ) NOEXCEPT {
+      //
+      // 'a' is either power of 2 or 0 or INF
+      //
+      auto frac = fp2uint( a ) & FRAC;
+      return ( frac == 0 );
+    }
+
     static INLINE auto constexpr ulp( float const a ) NOEXCEPT {
+      //
+      // returns the unit bit of the last place with the exponent factor of 'a'
+      // but if a is zero returns zero.
+      //
       if ( a == zero() ) return a;
       auto e = fp2uint( a );
       auto s = e & SBIT;
@@ -62,6 +77,10 @@ namespace QxW {
     }
     template < bool inverse = false >
     static INLINE auto constexpr exponent( float const a ) NOEXCEPT {
+      //
+      // returns the exponent part with the hidden top bit number component
+      // but if a is zero returns one.
+      //
       if ( a == zero() ) return one();
       auto e = fp2uint( a );
       e &= MASK;
@@ -70,6 +89,9 @@ namespace QxW {
       return uint2fp( e );
     }
     static INLINE auto constexpr exponenti( float const a ) NOEXCEPT {
+      //
+      // returns the inverse of exponent()
+      //
       return exponent<true>( a );
     }
   };
@@ -80,6 +102,9 @@ namespace QxW {
     static INLINE auto constexpr nhalf() NOEXCEPT { return 0.5; }
     static INLINE auto constexpr threehalves() NOEXCEPT { return 1.5; }
 
+    //
+    // significant parameters based on IEE754
+    //
     static uint64_t constexpr FONE = 0x0000000000000001;
     static uint64_t constexpr SBIT = FONE << (64-1); // 0x8000000000000000;
     static uint64_t constexpr EONE = FONE << (52);   // 0x0010000000000000;
@@ -97,7 +122,19 @@ namespace QxW {
       return x.a;
     }
 
+    static INLINE auto constexpr is_pow2( double const a ) NOEXCEPT {
+      //
+      // 'a' is either power of 2 or 0 or INF
+      //
+      auto frac = fp2uint( a ) & FRAC;
+      return ( frac == 0 );
+    }
+
     static INLINE auto constexpr ulp( double const a ) NOEXCEPT {
+      //
+      // returns the unit bit of the last place with the exponent factor of 'a'
+      // but if a is zero returns zero.
+      //
       if ( a == zero() ) return a;
       auto e = fp2uint( a );
       auto s = e & SBIT;
@@ -109,6 +146,10 @@ namespace QxW {
     }
     template < bool inverse = false >
     static INLINE auto constexpr exponent( double const a ) NOEXCEPT {
+      //
+      // returns the exponent part with the hidden top bit number component
+      // but if a is zero returns one.
+      //
       if ( a == zero() ) return one();
       auto e = fp2uint( a );
       e &= MASK;
@@ -117,6 +158,9 @@ namespace QxW {
       return uint2fp( e );
     }
     static INLINE auto constexpr exponenti( double const a ) NOEXCEPT {
+      //
+      // returns the inverse of exponent()
+      //
       return exponent<true>( a );
     }
   };

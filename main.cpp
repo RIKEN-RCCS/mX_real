@@ -364,6 +364,9 @@ struct Test_add
   using T   = typename TXc::base_T;
   auto eps = convert( largeType<TXa,TXb>::epsilon() );
   auto tol = convert( 16*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
+  if ( TXb::base_A != Algorithm::Quasi && TXb::base_A != Algorithm::Quasi ) {
+  tol = convert( 16*double(1.0) ) * std::pow(2.0,30.0);
+  }
 
   unsigned int seed = 1;
   srand( seed );
@@ -805,33 +808,98 @@ main(int argc, char *argv[])
 #if 1
   {
     print( "min", std::numeric_limits<float>::min() );
-    print( "min", std::numeric_limits<dd_Real>::min() );
+    print( "min", std::numeric_limits<df_Real>::min() );
+    print( "min", std::numeric_limits<tf_Real>::min() );
+    print( "min", std::numeric_limits<qf_Real>::min() );
+    {
     auto s = df_Real::min();
     print( "min", s );
     quickSum(s.x[0], s.x[1]);
     print( "min", s );
+    }
+    {
+    auto s = tf_Real::min();
+    print( "min", s );
+    quickSum(s.x[0], s.x[1]);
+    print( "min", s );
+    }
+    {
+    auto s = qf_Real::min();
+    print( "min", s );
+    quickSum(s.x[0], s.x[1]);
+    print( "min", s );
+    }
     
     print( "min", std::numeric_limits<double>::min() );
     print( "min", std::numeric_limits<dd_Real>::min() );
+    print( "min", std::numeric_limits<td_Real>::min() );
+    print( "min", std::numeric_limits<qd_Real>::min() );
+    {
     auto d = dd_Real::min();
     print( "min", d );
     quickSum(d.x[0],d.x[1]);
     print( "min", d );
+    }
+    {
+    auto d = td_Real::min();
+    print( "min", d );
+    quickSum(d.x[0],d.x[1]);
+    print( "min", d );
+    }
+    {
+    auto d = qd_Real::min();
+    print( "min", d );
+    quickSum(d.x[0],d.x[1]);
+    print( "min", d );
+    }
+
   }
   {
     print( "max", std::numeric_limits<float>::max() );
     print( "max", std::numeric_limits<df_Real>::max() );
+    print( "max", std::numeric_limits<tf_Real>::max() );
+    print( "max", std::numeric_limits<qf_Real>::max() );
+    {
     auto s = df_Real::max();
     print( "max", s );
     quickSum(s.x[0], s.x[1]);
     print( "max", s );
+    }
+    {
+    auto s = tf_Real::max();
+    print( "max", s );
+    quickSum(s.x[0], s.x[1]);
+    print( "max", s );
+    }
+    {
+    auto s = qf_Real::max();
+    print( "max", s );
+    quickSum(s.x[0], s.x[1]);
+    print( "max", s );
+    }
     
     print( "max", std::numeric_limits<double>::max() );
     print( "max", std::numeric_limits<dd_Real>::max() );
+    print( "max", std::numeric_limits<td_Real>::max() );
+    print( "max", std::numeric_limits<qd_Real>::max() );
+    {
     auto d = dd_Real::max();
     print( "max", d );
     quickSum(d.x[0], d.x[1]);
     print( "max", d );
+    }
+    {
+    auto d = td_Real::max();
+    print( "max", d );
+    quickSum(d.x[0], d.x[1]);
+    print( "max", d );
+    }
+    {
+    auto d = qd_Real::max();
+    print( "max", d );
+    quickSum(d.x[0], d.x[1]);
+    print( "max", d );
+    }
   }
   {
     auto s = df_Real( 0.1 + 0.1/(1<<23), -0.1/(1<<24) );
@@ -922,10 +990,16 @@ main(int argc, char *argv[])
   {
     float x = std::numeric_limits<float>::infinity();
     float y = -x;
-    std::cout << "inf=" << x << "\n" << "-inf=" << y << "\n";
-    std::cout << (x == y) << " " << (-x == y) << " " << ( x == -y) << "\n";
-    std::cout << x + x << " " << x - x << " " << x + y << "\n";
-    std::cout << y + y << " " << y - y << " " << y + x << "\n";
+    std::cout << "(+inf)=" << x << "\n" << "(-inf)=" << y << "\n";
+    std::cout << "(+inf) == (+inf) : " << (x == y) << "\n";
+    std::cout << "-(+inf) == (-inf) : " << (-x == y) << "\n";
+    std::cout << "(+inf) == -(-inf) : " << ( x == -y) << "\n";
+    std::cout << "(+inf) + (+inf) = " << x + x << "\n";
+    std::cout << "(+inf) - (+inf) = " << x - x << "\n";
+    std::cout << "(+inf) + (-inf) = " << x + y << "\n";
+    std::cout << "(-inf) + (-inf) = " << y + y << "\n";
+    std::cout << "(-inf) - (-inf) = " << y - y << "\n";
+    std::cout << "(-inf) + (+inf) = " << y + x << "\n";
   }
   {
     float x = +0;

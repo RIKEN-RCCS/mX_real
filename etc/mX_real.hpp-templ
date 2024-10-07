@@ -27,28 +27,82 @@ template < typename T > void printTYPE() {
 #define	INLINE		__always_inline
 #define	NOEXCEPT	noexcept
 #endif
-#define	MX_REAL_USE_INF_NAN_EXCEPTION	0
+
+
+#define	MX_REAL_USE_INF_NAN_EXCEPTION	1
 #define	MX_REAL_OPTIMIZE_MUL_BY_SQR	1
 #define	MX_REAL_OPTIMIZE_MUL_BY_FAST	1
 #define	MX_REAL_OPTIMIZE_PROD_BY_POW2	1
 
 
+//
 // Trick to define MACROs for enabler in the template header part
+// The macros defined following section return boolean value
+//
+
+//
+// T_assert( boolean expression ): is the most common MACRO
+//
 #define T_assert(...)	std::enable_if_t< __VA_ARGS__, std::nullptr_t > = nullptr
+
+//
+// T_scalar( typename T ): checks whether T is included in scalar
+//                         (arithmetic={float, double, int, long, ...}+fp)
+// T_not_scalar( typename T ): returns not T_scalar
+//
 #define T_scalar(...)	T_assert( std::is_arithmetic< __VA_ARGS__ >::value || fp< __VA_ARGS__ >::value )
 #define T_not_scalar(...)	T_assert( ! std::is_arithmetic< __VA_ARGS__ >::value || fp< __VA_ARGS__ >::value )
-#define T_neq_Ts(...)	T_assert( ! std::is_same< __VA_ARGS__ >::value )
+
+//
+// T_eq_Ts( typename Ta, typename Tb ): returns whether Ta and Tb are the same
+// T_neq_Ts( typename Ta, typename Tb ): return not T_eq_Ts
+//
 #define T_eq_Ts(...)	T_assert( std::is_same< __VA_ARGS__ >::value )
+#define T_neq_Ts(...)	T_assert( ! std::is_same< __VA_ARGS__ >::value )
+
+//
+// T_fp( typename T ): returns T is fp defined in mX_real
+// T_not_fp( typename T ): returns not T_fp
+//
 #define T_fp(...)	T_assert( fp< __VA_ARGS__ >::value )
 #define T_not_fp(...)	T_assert( ! fp< __VA_ARGS__ >::value )
+
+//
+// T_mX( typename T ): returns T is the congruent type of {dtq}X_real
+// T_mX( typename T ): returns not T_mX
+//
 #define T_mX(...)	T_assert( check_mX_real< __VA_ARGS__ >::value )
 #define T_not_mX(...)	T_assert( ! check_mX_real< __VA_ARGS__ >::value )
+
+//
+// T_mX2( typename Ta, typename Tb ): returns Ta and Tb are T_mX and the both bases are the same
+// T_not_mX2( typename Ta, typename Tb ): returns not T_mX2
+//
 #define T_mX2(...)	T_assert( check_mX_bases< __VA_ARGS__ >::value )
 #define T_not_mX2(...)	T_assert( ! check_mX_bases< __VA_ARGS__ >::value )
+
+//
+// T_mX_fp( typename Ta, typename Tb ): returns whether Ta is T_mX satisfying Tb is its base
+// T_not_mX_fp( typename Ta, typename Tb ): returns not T_mX_fp
+//
 #define T_mX_fp(...)	T_assert( check_mX_base_Tfp< __VA_ARGS__ >::value )
 #define T_not_mX_fp(...)	T_assert( ! check_mX_base_Tfp< __VA_ARGS__ >::value )
+
+//
+// A_noQuasi( Algorithm A ): not Quasi { A != Quasi }
+//
 #define A_noQuasi(...)	T_assert( if_A_noQuasi< __VA_ARGS__ >::value )
-#define A_owAble(A,...)	T_assert( if_A_owAble< A,__VA_ARGS__ >::value )
+
+//
+// A_owAble( Algorithm Aa, Algorithm Ab ): possibility to use in the compound ops like <T,Aa>*=<T,Ab>
+// it is allowed if both IN-OUT are the same
+//                  (Aa == Ab)
+//               if OUT does not care the Accuracy and Normalization
+//                  (Aa == Quasi)
+//		 if IN-OUT are Normalized but OUT is inaccurate than IN
+//                  (Aa==Sloppy and Ab!=Quasi)
+//
+#define A_owAble(Aa,...)	T_assert( if_A_owAble< Aa,__VA_ARGS__ >::value )
 
 
 namespace mX_real {
@@ -79,24 +133,35 @@ namespace mX_real {
   //
   enum class Algorithm {
                         //
-                        Accurate = 0,
-                        Sloppy   = 1,
-                        Quasi    = 2,
+                        // smaller corresponds to an accurate algorithm
+                        //
+                        Accurate =  0,
+                        Sloppy   = 10,
+                        Quasi    = 20,
                         //
                         // name aliasing
+                        //
                         IEEE     = Accurate,
                         PairWise = Quasi,
                         PairArithmetic = Quasi,
                         Default  = Accurate
   };
+  std::string toString( Algorithm A ) NOEXCEPT {
+    if ( A==Algorithm::Quasi ) return "Quasi";
+    if ( A==Algorithm::Sloppy ) return "Sloppy";
+    if ( A==Algorithm::Accurate ) return "Accurate";
+    return "Unknow";
+  }
+
 
   template < Algorithm Aa = Algorithm::Accurate, Algorithm Ab = Algorithm::Accurate >
   struct commonAlgorithm {
     static Algorithm constexpr algorithm =
-      ( Aa == Algorithm::Accurate && Ab == Algorithm::Accurate ) ?
-      Algorithm::Accurate :
       ( Aa == Algorithm::Quasi || Ab == Algorithm::Quasi ) ?
-      Algorithm::Quasi : Algorithm::Sloppy;
+      Algorithm::Quasi :
+      ( Aa == Algorithm::Sloppy || Ab == Algorithm::Sloppy ) ?
+      Algorithm::Sloppy :
+      Algorithm::Accurate;
   };
 
   template < Algorithm A >
@@ -111,21 +176,18 @@ namespace mX_real {
       A == Algorithm::Accurate ? Algorithm::Sloppy : Algorithm::Quasi;
   };
 
-  std::string toString( Algorithm A ) NOEXCEPT {
-    if ( A==Algorithm::Quasi ) return "Quasi";
-    if ( A==Algorithm::Sloppy ) return "Sloppy";
-    if ( A==Algorithm::Accurate ) return "Accurate";
-    return "Unknow";
-  }
-
   template < Algorithm A >
   struct if_A_noQuasi { static bool constexpr value = ( A != Algorithm::Quasi ); };
   template < Algorithm Aa, Algorithm Ab >
   struct if_A_owAble { static bool constexpr value =
         ( Aa==Ab ) ||
  	( Aa==Algorithm::Quasi ) ||
-	( Aa==Algorithm::Sloppy && Ab!=Algorithm::Quasi ); };
+	( Aa==Algorithm::Sloppy && Ab<=Algorithm::Sloppy ); };
 
+
+  //
+  // Enum-Class definition of the internal Normalization mechanisms
+  //
   enum class NormalizeOption {
 			Regular      = 0,
     			Accurate     = 1,
@@ -136,6 +198,16 @@ namespace mX_real {
                         Unknown      = -1,
                         Default      = Regular
   };
+  std::string toString( NormalizeOption opt ) NOEXCEPT {
+    if ( opt==NormalizeOption::Regular ) return "Regular";
+    if ( opt==NormalizeOption::Accurate ) return "Accurate";
+    if ( opt==NormalizeOption::VsumForward ) return "VsumForward";
+    if ( opt==NormalizeOption::VQsumForward ) return "VQsumForward";
+    if ( opt==NormalizeOption::VsumReverse ) return "VsumReverse";
+    if ( opt==NormalizeOption::VQsumReverse ) return "VQsumReverse";
+    return "Unknow";
+  }
+
 
   //
   // generic terms (const, comparison funcs, and sign-bit ops)
@@ -154,6 +226,8 @@ namespace mX_real {
 
     static INLINE auto constexpr epsilon()    NOEXCEPT { return std::numeric_limits<@{X}@>::epsilon(); }
     static INLINE auto constexpr epsiloni()   NOEXCEPT { return one()/std::numeric_limits<@{X}@>::epsilon(); }
+    static INLINE auto constexpr connect_fp() NOEXCEPT { return std::numeric_limits<@{X}@>::epsilon()*nhalf(); }
+    static INLINE auto constexpr disconnect_fp() NOEXCEPT { return two()/std::numeric_limits<@{X}@>::epsilon(); }
     static INLINE auto constexpr nan()        NOEXCEPT { return std::numeric_limits<@{X}@>::quiet_NaN(); }
     static INLINE auto constexpr inf()        NOEXCEPT { return std::numeric_limits<@{X}@>::infinity(); }
     static INLINE auto constexpr denorm_min() NOEXCEPT { return std::numeric_limits<@{X}@>::denorm_min(); }
@@ -184,38 +258,57 @@ namespace mX_real {
   //
   template < typename T >
   INLINE auto constexpr twoSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) NOEXCEPT {
+  //
+  //   Notice:: if a or b is nearly max(), result would be NaN
+  //            if a or b is nearly min(), result would be underflow
+  //
     QxW::TwoSum( a, b, s, e );
   }
   template < typename T >
   INLINE auto constexpr twoSum ( T & __restrict__ a, T & __restrict__ b ) NOEXCEPT {
+  //
+  //   Notice:: if a or b is nearly max(), result would be NaN
+  //            if a or b is nearly min(), result would be underflow
+  //
     twoSum( a, b, a, b );
   }
 
   //
   template < typename T >
   INLINE auto constexpr quickSum ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) NOEXCEPT {
+  //
+  //   Notice:: if a or b is nearly max(), result would be NaN
+  //            if a or b is nearly min(), result would be underflow
+  //
     QxW::FastTwoSum( a, b, s, e );
   }
   template < typename T >
   INLINE auto constexpr quickSum ( T & __restrict__ a, T & __restrict__ b ) NOEXCEPT {
+  //
+  //   Notice:: if a or b is nearly max(), result would be NaN
+  //            if a or b is nearly min(), result would be underflow
+  //
     quickSum( a, b, a, b );
   }
 
   //
   template < typename T >
   INLINE auto constexpr twoProdFMA ( T const a, T const b, T & __restrict__ s, T & __restrict__ e ) NOEXCEPT {
+  //
+  //   Notice:: if a*b is nearly max(), result would be INF overflow
+  //
     QxW::TwoProductFMA( a, b, s, e );
   }
 
   //
   template < typename T >
-  INLINE auto constexpr copy_with_rounding( T * __restrict__ dest, T const * __restrict__ src, int const L, int const LL ) NOEXCEPT {
+  INLINE auto constexpr copy_with_rounding ( T * __restrict__ dest, T const * __restrict__ src, int const L, int const LL ) NOEXCEPT {
     if ( L <= LL ) {
-      for(int i=0; i<L; i++) { dest[i] = src[i]; }
+      for(auto i=0; i<L; i++) { dest[i] = src[i]; }
       if ( L < LL ) { dest[L-1] += src[L]; }
     } else {
-      for(int i=0; i<LL; i++) { dest[i] = src[i]; }
-      for(int i=LL; i<L; i++) { dest[i] = fp<T>::zero(); }
+      for(auto i=0; i<LL; i++) { dest[i] = src[i]; }
+      for(auto i=LL; i<L; i++) { dest[i] = fp<T>::zero(); }
     }
   }
 
@@ -260,13 +353,28 @@ namespace mX_real {
   //
   // Normalization policy
   // if O(|x0|)>O(|x1|)>... => quickSum in a decending (w.r.t. O(e)) order once
-  // not guaranteed => TwoSum in an ascending order, then quickSum up-and-down order once or more
+  // not guaranteed => TwoSum in an ascending order, then quickSum up-and-down
+  // order once or more like the bubble sort
   //
+  template < typename TX, T_mX(TX) >
+  INLINE auto constexpr quick_Normalized ( TX const& a ) NOEXCEPT {
+    using T = typename TX::base_T;
+    //
+    // if a is Normalized s = a.x[0]
+    // if a is not Normalized and INF s = sum a.x = INF
+    // if a is not Normalized and NAN s = sum a.x = NAN
+    //
+    T s = a.x[0];
+    if ( TX::base_A == Algorithm::Quasi ) {
+      for(auto i=1; i<TX::L; i++) { s += a.x[i]; }
+    }
+    return s;
+  }
   template < NormalizeOption Nopt = NormalizeOption::Regular, typename T, Algorithm A >
-  INLINE auto constexpr Normalize( dX_real::dx_real<T,A> & c ) NOEXCEPT {
+  INLINE auto constexpr Normalize ( dX_real::dx_real<T,A> & c ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    auto t = c.x[0] + c.x[1];
-    if ( std::isnan( t ) || std::isinf( t ) ) {
+    auto t = quick_Normalized( c );
+    if ( fp<T>::isnan( t ) || fp<T>::isinf( t ) || fp<T>::is_zero( t ) ) {
       c.x[0] = c.x[1] = t;
     } else
 #endif
@@ -291,10 +399,9 @@ namespace mX_real {
 	case NormalizeOption::Regular: {
         if ( A == Algorithm::Quasi ) {
           	twoSum( c.x[0], c.x[1] );
+	}
 		quickSum( c.x[0], c.x[1] );
-	} else {
-		quickSum( c.x[0], c.x[1] );
-	} } break;
+	} break;
 	case NormalizeOption::Unknown: { } break;
 	default: { } break;
 	}
@@ -302,10 +409,10 @@ namespace mX_real {
   }
   //
   template < NormalizeOption Nopt = NormalizeOption::Regular, typename T, Algorithm A >
-  INLINE auto constexpr Normalize( tX_real::tx_real<T,A> & c ) NOEXCEPT {
+  INLINE auto constexpr Normalize ( tX_real::tx_real<T,A> & c ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    auto t = c.x[0] + c.x[1] + c.x[2];
-    if ( std::isnan( t ) || std::isinf( t ) ) {
+    auto t = quick_Normalized( c );
+    if ( fp<T>::isnan( t ) || fp<T>::isinf( t ) || fp<T>::is_zero( t ) ) {
       c.x[0] = c.x[1] = c.x[2] = t;
     } else
 #endif
@@ -340,16 +447,11 @@ namespace mX_real {
           	twoSum( c.x[0], c.x[2] );
 		twoSum( c.x[0], c.x[1] );
 		twoSum( c.x[1], c.x[2] );
+	}
 		quickSum( c.x[1], c.x[2] );
 		quickSum( c.x[0], c.x[1] );
 		quickSum( c.x[1], c.x[2] );
-	} else {
-		twoSum( c.x[0], c.x[1] );
-		twoSum( c.x[1], c.x[2] );
-		quickSum( c.x[1], c.x[2] );
-		quickSum( c.x[0], c.x[1] );
-		quickSum( c.x[1], c.x[2] );
-	} } break;
+	} break;
 	case NormalizeOption::Unknown: { } break;
 	default: { } break;
         }
@@ -357,10 +459,10 @@ namespace mX_real {
   }
   //
   template < NormalizeOption Nopt = NormalizeOption::Regular, typename T, Algorithm A >
-  INLINE auto constexpr Normalize( qX_real::qx_real<T,A> & c ) NOEXCEPT {
+  INLINE auto constexpr Normalize ( qX_real::qx_real<T,A> & c ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-    auto t = c.x[0] + c.x[1] + c.x[2] + c.x[3];
-    if ( std::isnan( t ) || std::isinf( t ) ) {
+    auto t = quick_Normalized( c );
+    if ( fp<T>::isnan( t ) || fp<T>::isinf( t ) || fp<T>::is_zero( t ) ) {
       c.x[0] = c.x[1] = c.x[2] = c.x[3] = t;
     } else
 #endif
@@ -408,20 +510,14 @@ namespace mX_real {
 		twoSum( c.x[1], c.x[3] );
 		twoSum( c.x[1], c.x[2] );
 		twoSum( c.x[2], c.x[3] );
+	}
 		quickSum( c.x[2], c.x[3] );
 		quickSum( c.x[1], c.x[2] );
 		quickSum( c.x[0], c.x[1] );
 		quickSum( c.x[2], c.x[3] );
 		quickSum( c.x[1], c.x[2] );
 		quickSum( c.x[2], c.x[3] );
-	} else {
-		quickSum( c.x[2], c.x[3] );
-		quickSum( c.x[1], c.x[2] );
-		quickSum( c.x[0], c.x[1] );
-		quickSum( c.x[2], c.x[3] );
-		quickSum( c.x[1], c.x[2] );
-		quickSum( c.x[2], c.x[3] );
-	} } break;
+	} break;
 	case NormalizeOption::Unknown: { } break;
 	default: { } break;
         }
@@ -470,7 +566,7 @@ namespace mX_real {
   //
   //
   //
-  template < typename Ta, Algorithm Aa, int La, T_fp(Ta) >
+  template < typename Ta, Algorithm Aa, int La, T_fp(Ta), T_assert( (2 - 1 <= La) && (La <= 4 + 1) ) >
   struct mx_real_impl {
     using type = typename 
       std::conditional_t< (La <= 2), dX_real::dx_real<Ta,Aa>,

@@ -59,9 +59,7 @@ namespace @{m}@X_real {
     //
     //
     INLINE T constexpr quick_Normalized () const NOEXCEPT {
-      T s = x[0];
-      if ( A == Algorithm::Quasi ) for(auto i=1; i<L; i++) { s += x[i]; }
-      return s;
+      return mX_real::quick_Normalized( *this );
     }
     INLINE @{M}@X_REAL<> constexpr element_rotate () const NOEXCEPT {
       T y[L]; for(auto i=0; i<L; i++) { y[i] = x[i]; }
@@ -85,9 +83,13 @@ namespace @{m}@X_real {
       auto t = x0@@{ + x@{i}@}@@;
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
         for(auto i=0; i<L; i++) { x[i] = t; }
-      } else
+      }
+#else
+      if ( false ) { }
 #endif
-      { x[0] = x0;@@{ x[@{i}@] = x@{i}@;}@@ }
+      else {
+        x[0] = x0;@@{ x[@{i}@] = x@{i}@;}@@
+      }
     }
     INLINE constexpr @{m}@x_real( T const &h ) NOEXCEPT {
       { x[0] = h; for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
@@ -101,9 +103,13 @@ namespace @{m}@X_real {
       auto t = d[0]; for(auto i=1; i<L; i++) { t += d[1]; }
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
         for(auto i=0; i<L; i++) { x[i] = t; }
-      } else
+      }
+#else
+      if ( false ) { }
 #endif
-      for(auto i=0; i<L; i++) { x[i] = d[i]; }
+      else {
+        for(auto i=0; i<L; i++) { x[i] = d[i]; }
+      }
     }
 
 
@@ -118,9 +124,11 @@ namespace @{m}@X_real {
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
         for(auto i=0; i<L; i++) { x[i] = t; }
-      } else
+      }
+#else
+      if ( false ) { }
 #endif
-      {
+      else {
         // rewritten in the copya and normalization process
         auto constexpr LL = TX::L;
         auto constexpr need_normalize =
@@ -163,9 +171,11 @@ namespace @{m}@X_real {
       auto const t = h.quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
         for(auto i=0; i<L; i++) { x[i] = t; }
-      } else
+      }
+#else
+      if ( false ) { }
 #endif
-      {
+      else {
         // rewritten in the copya and normalization process
         auto constexpr LL = _TX_<T,_A_>::L;
         auto constexpr need_normalize = 
@@ -219,9 +229,11 @@ namespace @{m}@X_real {
       auto const t = this->quick_Normalized();
       if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
         for(auto i=0; i<LL; i++) { c.x[i] = t; }
-      } else
+      }
+#else
+      if ( false ) { }
 #endif
-      {
+      else {
        // rewritten in the copya and normalization process
         auto constexpr need_normalize = 
           ( _A_ != Algorithm::Quasi && A == Algorithm::Quasi );
@@ -264,41 +276,93 @@ namespace @{m}@X_real {
     // Some constants such as NAN, INF are compatible to the format
     // defined in the QD library by Bailey and Hida
     //
+    // For example,
+    //    NAN = { NAN, NAN, ... } could be aligned with the same sign
+    //                            case of mixtured sign, it presents NAN...
+    //    INF = { INF, INF, ... } must align with the same sign
+    //                            case of mixtured sign, it turns to -NAN
+    //                            after the Normalization.
+    //
 @@@{ func zero one two nhalf
     static INLINE @{M}@X_REAL<> constexpr @{func}@ () NOEXCEPT { return @{M}@X_REAL<>{ fp<T>::@{func}@() }; }
 }@@@
 @@@{ func nan inf
     static INLINE @{M}@X_REAL<> constexpr @{func}@ () NOEXCEPT { T c = fp<T>::@{func}@(); return @{M}@X_REAL<>{ c@@{, c}@@ }; }
 }@@@
+    //
+    // epsilon() : machine epsilon, specifically,
+    //             it is defined by the ulp of a contiguous full-bit
+    //             representation
+    //
+    //             1.11B+0 + 1.11B-{E+1} + 1.11B-{2(E+1)}
+    //               EPS = 0.01B-{2(E+1)} = 1.00B-{2(E+1)+E}
+    //
     static INLINE @{M}@X_REAL<> constexpr epsilon () NOEXCEPT {
-      T c = fp<T>::epsilon() * fp<T>::nhalf(); c = (c @@{* c}@@) * 2;
+      T c = fp<T>::connect_fp(); c = (c @@{* c}@@) * 2;
       return @{M}@X_REAL<>{ c };
     }
+
+    //
+    // denormal_min() : minimum of the denormal floating point
+    //                  representation with sign aligment
+    //                  it is always the same as denormal_min of the
+    //                  single word
+    //
     static INLINE @{M}@X_REAL<> constexpr denorm_min  () NOEXCEPT {
       T c = fp<T>::denorm_min();
       return @{M}@X_REAL<>{ c };
     }
+
+    //
+    // min() : minimum of the normalized floating point representation
+    //         if its last component is regarded as min<T>() with a full-bit
+    //         data concatination and normalization 
+    //
+    //         for example,
+    //           1.11B+{K} + 1.11B-{K+(E+1)} ... + std::min<T>()
+    //           1.00B-{K} * (EPS/2)^{L-1} = min<T>()
+    //           min() = 1.00B-{K} = min<T>()*(EPS/2)^{L-1}
+    //                 = min<T>() / (EPS/2)^{L-1}
+    //         case of dX
+    //           X = min() / EPS * 2 = min() * epslioni() * 2
+    //
     static INLINE @{M}@X_REAL<> constexpr min  () NOEXCEPT {
       T c = fp<T>::min();
-      for(auto i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
+      for(auto i=1; i<L; i++) { c = c * ( fp<T>::disconnect_fp() ); }
       return @{M}@X_REAL<>{ c };
     }
+
+    //
+    // safe_min() : minimum of the normalized floating point representation
+    //         if its squared number is the same as min()
+    //
     static INLINE @{M}@X_REAL<> constexpr safe_min  () NOEXCEPT {
       T c = fp<T>::min();
-      for(auto i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
+      for(auto i=1; i<L; i++) { c = c * ( fp<T>::disconnect_fp() ); }
       c = std::sqrt( c );
       return @{M}@X_REAL<>{ c };
     }
+
+    //
+    // critical_min() : minimum of the denormalized floating point
+    //         representation if its squared number is the same as denorm_min()
+    //
     static INLINE @{M}@X_REAL<> constexpr critical_min  () NOEXCEPT {
       T c = fp<T>::denorm_min();
-      for(auto i=1; i<L; i++) c = c * ( fp<T>::epsiloni() * 2 );
+      for(auto i=1; i<L; i++) { c = c * ( fp<T>::disconnect_fp() ); }
       c = std::sqrt( c );
       return @{M}@X_REAL<>{ c };
     }
+
+    //
+    // max() : maximum of the normalized floating point representation
+    //         it is usually defined by the full bit pattern with the same
+    //         exponent component of the max<T>() 
+    //
     static INLINE @{M}@X_REAL<> constexpr max  () NOEXCEPT {
       T c[L];
       c[0] = fp<T>::max();
-      for(auto i=1; i<L; i++) c[i] = c[i-1] * ( fp<T>::epsilon() * fp<T>::nhalf() );
+      for(auto i=1; i<L; i++) { c[i] = c[i-1] * ( fp<T>::connect_fp() ); }
       return @{M}@X_REAL<>{ c };
     }
 

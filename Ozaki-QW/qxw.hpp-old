@@ -73,63 +73,54 @@ namespace QxW {
   Ya_mul_DW_DW_DW ( T const a0, T const a1, T const b0, T const b1, T &x, T &y ) NOEXCEPT
   {
     //
-    // It perform slightly faster but inaccurate than the accurate version.
-    // Also, it would be slower but slightly accurate than the Sloppy version.
+    // It might perform slightly faster but inaccurate than accurate version.
+    // Also, it would be slower but slightly accurate than Sloppy version.
     //
-    T q0, q1, q2, q3;
-    T w0, w1, w2;
-    T z0, z1, z2;
-    T y0, y1, y2;
+    T p, q;
+    T w, z;
 
-    //         [q3] = a1 * b1 
-    //     [q2, y2] = a0 * b1 + q3
-    //     [q1, y1] = a1 * b0 + q2
-    // [q0, y0]     = a0 * b0 + q1
-    // x = q0, y = y2 + y1 + y0
+    q = a1 * b1;                   // 1 1
 
-    q3 = a1 * b1;                     // 1 1
+    // [p, y] = a0 * b1 + q
+    p = std::fma( a0, b1, q );     // 1 2
+    FastTwoSum( -p, q, w, z );     // 3 3
+    y = std::fma( a0, b1, w ) + z; // 2 3
 
-    q2 = std::fma( a0, b1, q3 );      // 1 2
-    FastTwoSum( -q2, q3, w2, z2 );    // 3 3 |q2|>|q3|
-    y2 = std::fma( a0, b1, w2 ) + z2; // 2 3
+    // [q, y] = a1 * b0 + p
+    q = std::fma( a1, b0, p );     // 1 2
+    TwoSum( -q, p, w, z );         // 6 6
+    y+= std::fma( a1, b0, w ) + z; // 3 4
 
-    q1 = std::fma( a1, b0, q2 );      // 1 2
-    TwoSum    ( -q1, q2, w1, z1 );    // 6 6 |q1|~|q2|
-    y1 = std::fma( a1, b0, w1 ) + z1; // 2 3
+    // [p, y] = a0 * b0 + q
+    p = std::fma( a0, b0, q );     // 1 2
+    FastTwoSum( -p, q, w, z );     // 3 3
+    y+= std::fma( a0, b0, w ) + z; // 3 4  // total 24 cycles 30 flops
 
-    q0 = std::fma( a0, b0, q1 );      // 1 2
-    FastTwoSum( -q0, q1, w0, z0 );    // 3 3 |q0|>|q1|
-    y0 = std::fma( a0, b0, w0 ) + z0; // 2 3
-
-    x = q0;
-    y = y2 + y1 + y0;                 // 2 2 // total 24 cycles 30 flops
+    x = p;
   }
 
   template < typename T > INLINE void constexpr
   Ya_sqr_DW_DW ( T const a0, T const a1, T &x, T &y ) NOEXCEPT
   {
     //
-    // It perform slightly faster but inaccurate than the accurate version.
+    // It might perform slightly faster but inaccurate than the accurate version.
     // Also, it would be slower but slightly accurate than the sloppy version.
     //
-    T q0, q1, q2, q3;
-    T w1, w0;
-    T z1, z0;
-    T y0, y1, y2;
+    T p, q;
+    T w, z;
 
-    q3 = a1 + a1;                     // 1 1
-    q2 = a1 * a1;                     // 1 1
+    p = a1 * a1;                   // 1 1
+    y = a0 * fp_const<T>::two();   // 1 1
 
-    q1 = std::fma( a0, q3, q2 );      // 1 2
-    FastTwoSum( -q1, q2, w1, z1 );    // 3 3
-    y1 = std::fma( a0, q3, w1 ) + z1; // 2 3
+    q = std::fma( y, a1, p );      // 1 2
+    FastTwoSum( -q, p, w, z );     // 3 3
+    y = std::fma( y, a1, w ) + z;  // 2 3
 
-    q0 = std::fma( a0, a0, q1 );      // 1 2
-    FastTwoSum( -q0, q1, w0, z0 );    // 3 3
-    y0 = std::fma( a0, a0, w0 ) + z0; // 2 3
+    p = std::fma( a0, a0, q );     // 1 2
+    FastTwoSum( -p, q, w, z );     // 3 3
+    y+= std::fma( a0, a0, w ) + z; // 3 4  // total 15 cycles 19 flops
 
-    x = q0;
-    y = y1 + y0;                      // 1 1 // total 15 cycles 19 flops
+    x = p;
   }
 
 

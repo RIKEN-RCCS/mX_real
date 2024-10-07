@@ -109,7 +109,7 @@ def gen_op_ow_operator( Tc, description, func, op, commutable ) :
     print( 'INLINE auto constexpr operator{op}= ( {m}X_real::{m}x_real<T,A> & a, T const& b ) NOEXCEPT {{'.format( m=mX_type(Tc), op=op ) )
     if func == 'mul' or func =='div' :
         print( '#if MX_REAL_OPTIMIZE_PROD_BY_POW2' )
-        print( '  if ( ( QxW::fp_const<T>::fp2uint( b ) & QxW::fp_const<T>::FRAC ) == 0 ) {' )
+        print( '  if ( QxW::fp_const<T>::is_pow2( b ) ) {' )
         print( '    return {m}X_real::operator_{func}_ow_pow2 ( a, b );'.format( m=mX_type(Tc), func=func ) )
         print( '  } else' )
         print( '#endif' )
@@ -124,7 +124,7 @@ def gen_op_ow_operator( Tc, description, func, op, commutable ) :
     print( 'INLINE auto constexpr operator{op}= ( {m}X_real::{m}x_real<T,A> & a, Ts const& b ) NOEXCEPT {{'.format( m=mX_type(Tc), op=op ) )
     if func == 'mul' or func =='div' :
         print( '#if MX_REAL_OPTIMIZE_PROD_BY_POW2' )
-        print( '  if ( ( QxW::fp_const<T>::fp2uint( T(b) ) & QxW::fp_const<T>::FRAC ) == 0 ) {' )
+        print( '  if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {' )
         print( '    return {m}X_real::operator_{func}_ow_pow2 ( a, b );'.format( m=mX_type(Tc), func=func ) )
         print( '  } else' )
         print( '#endif' )
