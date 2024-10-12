@@ -1,6 +1,4 @@
-#ifndef MX_REAL_MPFR_CONVERT_H
-#define MX_REAL_MPFR_CONVERT_H
-
+#pragma once
 
 #if 0
 #include <boost/type_index.hpp>
@@ -146,5 +144,4 @@ namespace mX_real {
 #endif
 
 }
-#endif
 

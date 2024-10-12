@@ -39,6 +39,7 @@ NVCC = nvcc
 
 
 #CCFLAGS := $(CCFLAGS) -O3 -Wall -I./ -include mX_real.hpp
+CCFLAGS_HEADER := $(CCFLAGS) -O3 -I./
 CCFLAGS := $(CCFLAGS) -O3 -I./ -include mX_real.hpp
 ifeq (x$(cxx),xicpx)
 LDFLAGS = -qopenmp -lquadmath -lm
@@ -83,7 +84,7 @@ test.o: test.cu mX_real.hpp
 
 
 $(OPT_HEADER): mX_real.hpp Ozaki-QW/qxw.hpp dX_real.hpp tX_real.hpp qX_real.hpp
-	$(CXX) -c  -x c++-header -o $(OPT_HEADER) mX_real.hpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
+	$(CXX) -c  -x c++-header -o $(OPT_HEADER) mX_real.hpp $(CCFLAGS_HEADER) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
 mX_real.hpp dX_real.hpp tX_real.hpp qX_real.hpp:
 	cd etc; make clean; make
 Ozaki-QW/qxw.hpp:

@@ -1,5 +1,4 @@
-#ifndef	MX_REAL_STD_H
-#define	MX_REAL_STD_H
+#pragma once
 
 #include "mX_real.hpp"
 
@@ -220,4 +219,3 @@ namespace std {
   
 }
 
-#endif

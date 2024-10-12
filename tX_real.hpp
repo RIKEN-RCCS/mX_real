@@ -1,5 +1,4 @@
-#ifndef	TX_REAL_H
-#define	TX_REAL_H
+#pragma once
 
 #include "mX_real.hpp"
 
@@ -45,6 +44,7 @@ namespace mX_real {
       using type_with_Algorithm = TX_REAL<_A_>;
       //
       using typeAccurate   = type_with_Algorithm<Algorithm::Accurate>;
+      using typeWeakAccurate   = type_with_Algorithm<Algorithm::WeakAccurate>;
       using typeSloppy   = type_with_Algorithm<Algorithm::Sloppy>;
       using typeQuasi   = type_with_Algorithm<Algorithm::Quasi>;
       //
@@ -393,12 +393,12 @@ namespace mX_real {
         return TX_REAL<>::abs(a);
       }
       static INLINE TX_REAL<> rand () NOEXCEPT;
-      static INLINE bool constexpr isinf ( TX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr isnan ( TX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_negative ( TX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_zero ( TX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr signbit ( TX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_positive ( TX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr isinf ( TX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_zero ( TX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_negative ( TX_REAL<> const& a ) NOEXCEPT;
       //
 
 
@@ -408,12 +408,12 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () NOEXCEPT { mX_real::Normalize( *this ); }
       //
-      INLINE bool constexpr isinf () const NOEXCEPT { return TX_REAL<>::isinf( *this ); }
       INLINE bool constexpr isnan () const NOEXCEPT { return TX_REAL<>::isnan( *this ); }
-      INLINE bool constexpr is_negative () const NOEXCEPT { return TX_REAL<>::is_negative( *this ); }
-      INLINE bool constexpr is_zero () const NOEXCEPT { return TX_REAL<>::is_zero( *this ); }
       INLINE bool constexpr signbit () const NOEXCEPT { return TX_REAL<>::signbit( *this ); }
       INLINE bool constexpr is_positive () const NOEXCEPT { return TX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr isinf () const NOEXCEPT { return TX_REAL<>::isinf( *this ); }
+      INLINE bool constexpr is_zero () const NOEXCEPT { return TX_REAL<>::is_zero( *this ); }
+      INLINE bool constexpr is_negative () const NOEXCEPT { return TX_REAL<>::is_negative( *this ); }
       //
 
 
@@ -449,6 +449,8 @@ namespace mX_real {
     template < typename TX >
     using type_Accurate = type_with_Algorithm_impl<TX, Algorithm::Accurate>;
     template < typename TX >
+    using type_WeakAccurate = type_with_Algorithm_impl<TX, Algorithm::WeakAccurate>;
+    template < typename TX >
     using type_Sloppy   = type_with_Algorithm_impl<TX, Algorithm::Sloppy>;
     template < typename TX >
     using type_Quasi    = type_with_Algorithm_impl<TX, Algorithm::Quasi>;
@@ -461,6 +463,8 @@ namespace mX_real {
     template < typename T >
     using tX_real_accurate = tX_real::tx_real<T,Algorithm::Accurate>;
     template < typename T >
+    using tX_real_weakaccurate = tX_real::tx_real<T,Algorithm::WeakAccurate>;
+    template < typename T >
     using tX_real_sloppy   = tX_real::tx_real<T,Algorithm::Sloppy>;
     template < typename T >
     using tX_real_quasi    = tX_real::tx_real<T,Algorithm::Quasi>;
@@ -471,16 +475,16 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isnan ( tX_real::tx_real<T,Aa> const& a ) NOEXCEPT {
-      return fp<T>::isnan( a.quick_Normalized() );
+    INLINE auto constexpr isinf ( tX_real::tx_real<T,Aa> const& a ) NOEXCEPT {
+      return fp<T>::isinf( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
     INLINE auto constexpr signbit ( tX_real::tx_real<T,Aa> const& a ) NOEXCEPT {
       return fp<T>::signbit( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isinf ( tX_real::tx_real<T,Aa> const& a ) NOEXCEPT {
-      return fp<T>::isinf( a.quick_Normalized() );
+    INLINE auto constexpr isnan ( tX_real::tx_real<T,Aa> const& a ) NOEXCEPT {
+      return fp<T>::isnan( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_zero ( tX_real::tx_real<T,Aa> const& a ) NOEXCEPT {
@@ -627,7 +631,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::add_QW_QW_TW ( _QX_(a), _QX_(b), _TX_(c) );
       } else {
         QxW::add_QQW_QQW_QTW ( _QX_(a), _QX_(b), _TX_(c) );
@@ -640,7 +644,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::add_QW_TW_TW ( _QX_(a), _TX_(b), _TX_(c) );
       } else {
         QxW::add_QQW_QTW_QTW ( _QX_(a), _TX_(b), _TX_(c) );
@@ -653,7 +657,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::add_QW_DW_TW ( _QX_(a), _DX_(b), _TX_(c) );
       } else {
         QxW::add_QQW_PA_QTW ( _QX_(a), _DX_(b), _TX_(c) );
@@ -665,7 +669,7 @@ namespace mX_real {
     INLINE auto constexpr operator_add_body ( qX_real::qx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::add_QW_SW_TW ( _QX_(a), _SX_(b), _TX_(c) );
       } else {
         QxW::add_QQW_SW_QTW ( _QX_(a), _SX_(b), _TX_(c) );
@@ -682,7 +686,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::add_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(c) );
       } else {
         QxW::add_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(c) );
@@ -695,7 +699,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::add_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(c) );
       } else {
         QxW::add_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(c) );
@@ -707,7 +711,7 @@ namespace mX_real {
     INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::add_TW_SW_TW ( _TX_(a), _SX_(b), _TX_(c) );
       } else {
         QxW::add_QTW_SW_QTW ( _TX_(a), _SX_(b), _TX_(c) );
@@ -728,7 +732,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::add_DW_DW_TW ( _DX_(a), _DX_(b), _TX_(c) );
       } else {
         QxW::add_PA_PA_QTW ( _DX_(a), _DX_(b), _TX_(c) );
@@ -740,7 +744,7 @@ namespace mX_real {
     INLINE auto constexpr operator_add_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::add_DW_SW_TW ( _DX_(a), _SX_(b), _TX_(c) );
       } else {
         QxW::add_PA_SW_QTW ( _DX_(a), _SX_(b), _TX_(c) );
@@ -764,7 +768,7 @@ namespace mX_real {
     INLINE auto constexpr operator_add_body ( T const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::add_SW_SW_TW ( _SX_(a), _SX_(b), _TX_(c) );
       } else {
         QxW::add_SW_SW_QTW ( _SX_(a), _SX_(b), _TX_(c) );
@@ -880,7 +884,7 @@ namespace mX_real {
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_ow_body ( tX_real::tx_real<T,Aa> & a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::add_TW_QW_TW ( _TX_(a), _QX_(b), _TX_(a) );
       } else {
         QxW::add_QTW_QQW_QTW ( _TX_(a), _QX_(b), _TX_(a) );
@@ -891,7 +895,7 @@ namespace mX_real {
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_ow_body ( tX_real::tx_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::add_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(a) );
       } else {
         QxW::add_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(a) );
@@ -902,7 +906,7 @@ namespace mX_real {
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_ow_body ( tX_real::tx_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::add_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(a) );
       } else {
         QxW::add_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(a) );
@@ -912,7 +916,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm Aa >
     INLINE auto constexpr operator_add_ow_body ( tX_real::tx_real<T,Aa> & a, T const& b ) NOEXCEPT {
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::add_TW_SW_TW ( _TX_(a), _SX_(b), _TX_(a) );
       } else {
         QxW::add_QTW_SW_QTW ( _TX_(a), _SX_(b), _TX_(a) );
@@ -992,7 +996,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
           QxW::sqr_QW_TW ( _QX_(a), _TX_(c) );
@@ -1023,7 +1027,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::mul_QW_TW_TW ( _QX_(a), _TX_(b), _TX_(c) );
       } else {
         QxW::mul_QQW_QTW_QTW ( _QX_(a), _TX_(b), _TX_(c) );
@@ -1036,7 +1040,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::mul_QW_DW_TW ( _QX_(a), _DX_(b), _TX_(c) );
       } else {
         QxW::mul_QQW_PA_QTW ( _QX_(a), _DX_(b), _TX_(c) );
@@ -1048,7 +1052,7 @@ namespace mX_real {
     INLINE auto constexpr operator_mul_body ( qX_real::qx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::mul_QW_SW_TW ( _QX_(a), _SX_(b), _TX_(c) );
       } else {
         QxW::mul_QQW_SW_QTW ( _QX_(a), _SX_(b), _TX_(c) );
@@ -1065,7 +1069,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
           QxW::sqr_TW_TW ( _TX_(a), _TX_(c) );
@@ -1096,7 +1100,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::mul_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(c) );
       } else {
         QxW::mul_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(c) );
@@ -1108,7 +1112,7 @@ namespace mX_real {
     INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::mul_TW_SW_TW ( _TX_(a), _SX_(b), _TX_(c) );
       } else {
         QxW::mul_QTW_SW_QTW ( _TX_(a), _SX_(b), _TX_(c) );
@@ -1129,7 +1133,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
           QxW::sqr_DW_TW ( _DX_(a), _TX_(c) );
@@ -1159,7 +1163,7 @@ namespace mX_real {
     INLINE auto constexpr operator_mul_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::mul_DW_SW_TW ( _DX_(a), _SX_(b), _TX_(c) );
       } else {
         QxW::mul_PA_SW_QTW ( _DX_(a), _SX_(b), _TX_(c) );
@@ -1183,7 +1187,7 @@ namespace mX_real {
     INLINE auto constexpr operator_mul_body ( T const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
           QxW::sqr_SW_TW ( _SX_(a), _TX_(c) );
@@ -1381,7 +1385,7 @@ namespace mX_real {
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_mul_ow_body ( tX_real::tx_real<T,Aa> & a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::mul_TW_QW_TW ( _TX_(a), _QX_(b), _TX_(a) );
       } else {
         QxW::mul_QTW_QQW_QTW ( _TX_(a), _QX_(b), _TX_(a) );
@@ -1392,7 +1396,7 @@ namespace mX_real {
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_mul_ow_body ( tX_real::tx_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::mul_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(a) );
       } else {
         QxW::mul_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(a) );
@@ -1403,7 +1407,7 @@ namespace mX_real {
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_mul_ow_body ( tX_real::tx_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::mul_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(a) );
       } else {
         QxW::mul_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(a) );
@@ -1413,7 +1417,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm Aa >
     INLINE auto constexpr operator_mul_ow_body ( tX_real::tx_real<T,Aa> & a, T const& b ) NOEXCEPT {
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::mul_TW_SW_TW ( _TX_(a), _SX_(b), _TX_(a) );
       } else {
         QxW::mul_QTW_SW_QTW ( _TX_(a), _SX_(b), _TX_(a) );
@@ -1494,7 +1498,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_QW_QW_TW ( _QX_(a), _QX_(b), _TX_(c) );
       } else {
         QxW::div_QQW_QQW_QTW ( _QX_(a), _QX_(b), _TX_(c) );
@@ -1507,7 +1511,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_QW_TW_TW ( _QX_(a), _TX_(b), _TX_(c) );
       } else {
         QxW::div_QQW_QTW_QTW ( _QX_(a), _TX_(b), _TX_(c) );
@@ -1520,7 +1524,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_QW_DW_TW ( _QX_(a), _DX_(b), _TX_(c) );
       } else {
         QxW::div_QQW_PA_QTW ( _QX_(a), _DX_(b), _TX_(c) );
@@ -1532,7 +1536,7 @@ namespace mX_real {
     INLINE auto constexpr operator_div_body ( qX_real::qx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::div_QW_SW_TW ( _QX_(a), _SX_(b), _TX_(c) );
       } else {
         QxW::div_QQW_SW_QTW ( _QX_(a), _SX_(b), _TX_(c) );
@@ -1545,7 +1549,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_TW_QW_TW ( _TX_(a), _QX_(b), _TX_(c) );
       } else {
         QxW::div_QTW_QQW_QTW ( _TX_(a), _QX_(b), _TX_(c) );
@@ -1558,7 +1562,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(c) );
       } else {
         QxW::div_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(c) );
@@ -1571,7 +1575,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(c) );
       } else {
         QxW::div_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(c) );
@@ -1583,7 +1587,7 @@ namespace mX_real {
     INLINE auto constexpr operator_div_body ( tX_real::tx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::div_TW_SW_TW ( _TX_(a), _SX_(b), _TX_(c) );
       } else {
         QxW::div_QTW_SW_QTW ( _TX_(a), _SX_(b), _TX_(c) );
@@ -1596,7 +1600,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_DW_QW_TW ( _DX_(a), _QX_(b), _TX_(c) );
       } else {
         QxW::div_PA_QQW_QTW ( _DX_(a), _QX_(b), _TX_(c) );
@@ -1609,7 +1613,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_DW_TW_TW ( _DX_(a), _TX_(b), _TX_(c) );
       } else {
         QxW::div_PA_QTW_QTW ( _DX_(a), _TX_(b), _TX_(c) );
@@ -1622,7 +1626,7 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_DW_DW_TW ( _DX_(a), _DX_(b), _TX_(c) );
       } else {
         QxW::div_PA_PA_QTW ( _DX_(a), _DX_(b), _TX_(c) );
@@ -1634,7 +1638,7 @@ namespace mX_real {
     INLINE auto constexpr operator_div_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::div_DW_SW_TW ( _DX_(a), _SX_(b), _TX_(c) );
       } else {
         QxW::div_PA_SW_QTW ( _DX_(a), _SX_(b), _TX_(c) );
@@ -1646,7 +1650,7 @@ namespace mX_real {
     INLINE auto constexpr operator_div_body ( T const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Ab>;
       TX c;
-      if ( Ab == Algorithm::Accurate ) {
+      if ( Ab <= Algorithm::WeakAccurate ) {
         QxW::div_SW_QW_TW ( _SX_(a), _QX_(b), _TX_(c) );
       } else {
         QxW::div_SW_QQW_QTW ( _SX_(a), _QX_(b), _TX_(c) );
@@ -1658,7 +1662,7 @@ namespace mX_real {
     INLINE auto constexpr operator_div_body ( T const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Ab>;
       TX c;
-      if ( Ab == Algorithm::Accurate ) {
+      if ( Ab <= Algorithm::WeakAccurate ) {
         QxW::div_SW_TW_TW ( _SX_(a), _TX_(b), _TX_(c) );
       } else {
         QxW::div_SW_QTW_QTW ( _SX_(a), _TX_(b), _TX_(c) );
@@ -1670,7 +1674,7 @@ namespace mX_real {
     INLINE auto constexpr operator_div_body ( T const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Ab>;
       TX c;
-      if ( Ab == Algorithm::Accurate ) {
+      if ( Ab <= Algorithm::WeakAccurate ) {
         QxW::div_SW_DW_TW ( _SX_(a), _DX_(b), _TX_(c) );
       } else {
         QxW::div_SW_PA_QTW ( _SX_(a), _DX_(b), _TX_(c) );
@@ -1682,7 +1686,7 @@ namespace mX_real {
     INLINE auto constexpr operator_div_body ( T const& a, T const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_SW_SW_TW ( _SX_(a), _SX_(b), _TX_(c) );
       } else {
         QxW::div_SW_SW_QTW ( _SX_(a), _SX_(b), _TX_(c) );
@@ -1856,7 +1860,7 @@ namespace mX_real {
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_ow_body ( tX_real::tx_real<T,Aa> & a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_TW_QW_TW ( _TX_(a), _QX_(b), _TX_(a) );
       } else {
         QxW::div_QTW_QQW_QTW ( _TX_(a), _QX_(b), _TX_(a) );
@@ -1867,7 +1871,7 @@ namespace mX_real {
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_ow_body ( tX_real::tx_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(a) );
       } else {
         QxW::div_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(a) );
@@ -1878,7 +1882,7 @@ namespace mX_real {
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_ow_body ( tX_real::tx_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(a) );
       } else {
         QxW::div_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(a) );
@@ -1888,7 +1892,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm Aa >
     INLINE auto constexpr operator_div_ow_body ( tX_real::tx_real<T,Aa> & a, T const& b ) NOEXCEPT {
-      if ( Aa == Algorithm::Accurate ) {
+      if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::div_TW_SW_TW ( _TX_(a), _SX_(b), _TX_(a) );
       } else {
         QxW::div_QTW_SW_QTW ( _TX_(a), _SX_(b), _TX_(a) );
@@ -2042,7 +2046,7 @@ namespace mX_real {
     INLINE auto constexpr operator_sqrt_body ( qX_real::qx_real<T,A> const& a ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::sqrt_QW_TW ( _QX_(a), _TX_(c) );
       } else {
         QxW::sqrt_QQW_QTW ( _QX_(a), _TX_(c) );
@@ -2054,7 +2058,7 @@ namespace mX_real {
     INLINE auto constexpr operator_sqrt_body ( tX_real::tx_real<T,A> const& a ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::sqrt_TW_TW ( _TX_(a), _TX_(c) );
       } else {
         QxW::sqrt_QTW_QTW ( _TX_(a), _TX_(c) );
@@ -2066,7 +2070,7 @@ namespace mX_real {
     INLINE auto constexpr operator_sqrt_body ( dX_real::dx_real<T,A> const& a ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::sqrt_DW_TW ( _DX_(a), _TX_(c) );
       } else {
         QxW::sqrt_PA_QTW ( _DX_(a), _TX_(c) );
@@ -2078,7 +2082,7 @@ namespace mX_real {
     INLINE auto constexpr operator_sqrt_body ( T const& a ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A == Algorithm::Accurate ) {
+      if ( A <= Algorithm::WeakAccurate ) {
         QxW::sqrt_SW_TW ( _SX_(a), _TX_(c) );
       } else {
         QxW::sqrt_SW_QTW ( _SX_(a), _TX_(c) );
@@ -2199,7 +2203,7 @@ namespace mX_real {
       if ( flag ) { return e; }
 #endif
       if ( A == Algorithm::Quasi ) {
-        using TT = typename  TX::type_Accurate;
+        using TT = typename TX::type_Accurate;
         return TX{ tX_real::operator_fmin_body( TT{ a }, TT{ b } ) };
       } else {
         return tX_real::operator_fmin_body( a, b );
@@ -2331,6 +2335,4 @@ namespace mX_real {
   }
 }
 
-
-#endif
 

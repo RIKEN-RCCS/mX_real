@@ -3,9 +3,7 @@ import re
 
 def init_ () :
 
-    header = '''#ifndef QXW_FP_H
-#define QXW_FP_H
-
+    header = '''#pragma once
 
 //
 // C++-ified version 2023.12.26 (refered to Ozaki's code)
@@ -171,13 +169,11 @@ template <> struct fp_const<double> {
 };
 
 }
-#endif
 '''
     print( header )
 
 def init () :
-    header = '''#ifndef QXW_H
-#define QXW_H
+    header = '''#pragma once
 
 
 //

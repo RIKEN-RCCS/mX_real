@@ -1,5 +1,4 @@
-#ifndef MX_REAL_QD_DD_H
-#define MX_REAL_QD_DD_H
+#pragma once
 
 #include <qd/dd_real.h>
 #include <qd/qd_real.h>
@@ -56,6 +55,4 @@ namespace std {
   }
 
 }
-
-#endif
 

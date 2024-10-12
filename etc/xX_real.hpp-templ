@@ -1,5 +1,4 @@
-#ifndef	@{M}@X_REAL_H
-#define	@{M}@X_REAL_H
+#pragma once
 
 #include "mX_real.hpp"
 
@@ -44,7 +43,7 @@ namespace @{m}@X_real {
     template < Algorithm _A_ >
     using type_with_Algorithm = @{M}@X_REAL<_A_>;
     //
-@@@{ A Accurate Sloppy Quasi
+@@@{ A Accurate WeakAccurate Sloppy Quasi
     using type@{A}@   = type_with_Algorithm<Algorithm::@{A}@>;
 }@@@
     //
@@ -401,6 +400,8 @@ namespace @{m}@X_real {
   template < typename TX >
   using type_Accurate = type_with_Algorithm_impl<TX, Algorithm::Accurate>;
   template < typename TX >
+  using type_WeakAccurate = type_with_Algorithm_impl<TX, Algorithm::WeakAccurate>;
+  template < typename TX >
   using type_Sloppy   = type_with_Algorithm_impl<TX, Algorithm::Sloppy>;
   template < typename TX >
   using type_Quasi    = type_with_Algorithm_impl<TX, Algorithm::Quasi>;
@@ -412,6 +413,8 @@ namespace @{m}@X_real {
   //
   template < typename T >
   using @{m}@X_real_accurate = @{m}@X_real::@{m}@x_real<T,Algorithm::Accurate>;
+  template < typename T >
+  using @{m}@X_real_weakaccurate = @{m}@X_real::@{m}@x_real<T,Algorithm::WeakAccurate>;
   template < typename T >
   using @{m}@X_real_sloppy   = @{m}@X_real::@{m}@x_real<T,Algorithm::Sloppy>;
   template < typename T >
@@ -444,6 +447,4 @@ namespace @{m}@X_real {
 }
 }
 
-
-#endif
 

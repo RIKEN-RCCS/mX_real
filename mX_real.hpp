@@ -1,5 +1,4 @@
-#ifndef MX_REAL_H
-#define MX_REAL_H
+#pragma once
 
 #include <assert.h>
 
@@ -136,6 +135,7 @@ namespace mX_real {
                         // smaller corresponds to an accurate algorithm
                         //
                         Accurate =  0,
+                        WeakAccurate =  5,
                         Sloppy   = 10,
                         Quasi    = 20,
                         //
@@ -147,9 +147,10 @@ namespace mX_real {
                         Default  = Accurate
   };
   std::string toString( Algorithm A ) NOEXCEPT {
-    if ( A==Algorithm::Quasi ) return "Quasi";
-    if ( A==Algorithm::Sloppy ) return "Sloppy";
     if ( A==Algorithm::Accurate ) return "Accurate";
+    if ( A==Algorithm::WeakAccurate ) return "WeakAccurate";
+    if ( A==Algorithm::Sloppy ) return "Sloppy";
+    if ( A==Algorithm::Quasi ) return "Quasi";
     return "Unknow";
   }
 
@@ -161,29 +162,37 @@ namespace mX_real {
       Algorithm::Quasi :
       ( Aa == Algorithm::Sloppy || Ab == Algorithm::Sloppy ) ?
       Algorithm::Sloppy :
+      ( Aa == Algorithm::WeakAccurate || Ab == Algorithm::WeakAccurate ) ?
+      Algorithm::WeakAccurate :
       Algorithm::Accurate;
   };
 
   template < Algorithm A >
   struct accurateAlgorithm {
     static Algorithm constexpr algorithm =
-      A == Algorithm::Quasi ? Algorithm::Sloppy : Algorithm::Accurate;
+      A == Algorithm::Quasi  ? Algorithm::Sloppy :
+      A == Algorithm::Sloppy ? Algorithm::WeakAccurate :
+      Algorithm::Accurate;
   };
 
   template < Algorithm A >
   struct inaccurateAlgorithm {
     static Algorithm constexpr algorithm =
-      A == Algorithm::Accurate ? Algorithm::Sloppy : Algorithm::Quasi;
+      A == Algorithm::Accurate     ? Algorithm::WeakAccurate :
+      A == Algorithm::WeakAccurate ? Algorithm::Sloppy :
+      Algorithm::Quasi;
   };
 
   template < Algorithm A >
   struct if_A_noQuasi { static bool constexpr value = ( A != Algorithm::Quasi ); };
   template < Algorithm Aa, Algorithm Ab >
   struct if_A_owAble { static bool constexpr value =
-      ( Aa==Ab ) ||
-    ( Aa==Algorithm::Quasi ) ||
-    ( Aa==Algorithm::Sloppy && Ab<=Algorithm::Sloppy ); };
-
+      //   A W S Q
+      // A o x x x
+      // W o o x x
+      // S o o o x
+      // Q o o o o
+      ( Aa >= Ab ); };
 
   //
   // Enum-Class definition of the internal Normalization mechanisms
@@ -652,28 +661,33 @@ namespace mX_real {
 
 //
 using df_Real        = mX_real::dX_real::dX_real_accurate<float>;
+using df_Real_weakaccurate = mX_real::dX_real::dX_real_weakaccurate<float>;
 using df_Real_sloppy = mX_real::dX_real::dX_real_sloppy<float>;
 using df_Real_quasi  = mX_real::dX_real::dX_real_quasi<float>;
 
 using dd_Real        = mX_real::dX_real::dX_real_accurate<double>;
+using dd_Real_weakaccurate = mX_real::dX_real::dX_real_weakaccurate<double>;
 using dd_Real_sloppy = mX_real::dX_real::dX_real_sloppy<double>;
 using dd_Real_quasi  = mX_real::dX_real::dX_real_quasi<double>;
 
 using tf_Real        = mX_real::tX_real::tX_real_accurate<float>;
+using tf_Real_weakaccurate = mX_real::tX_real::tX_real_weakaccurate<float>;
 using tf_Real_sloppy = mX_real::tX_real::tX_real_sloppy<float>;
 using tf_Real_quasi  = mX_real::tX_real::tX_real_quasi<float>;
 
 using td_Real        = mX_real::tX_real::tX_real_accurate<double>;
+using td_Real_weakaccurate = mX_real::tX_real::tX_real_weakaccurate<double>;
 using td_Real_sloppy = mX_real::tX_real::tX_real_sloppy<double>;
 using td_Real_quasi  = mX_real::tX_real::tX_real_quasi<double>;
 
 using qf_Real        = mX_real::qX_real::qX_real_accurate<float>;
+using qf_Real_weakaccurate = mX_real::qX_real::qX_real_weakaccurate<float>;
 using qf_Real_sloppy = mX_real::qX_real::qX_real_sloppy<float>;
 using qf_Real_quasi  = mX_real::qX_real::qX_real_quasi<float>;
 
 using qd_Real        = mX_real::qX_real::qX_real_accurate<double>;
+using qd_Real_weakaccurate = mX_real::qX_real::qX_real_weakaccurate<double>;
 using qd_Real_sloppy = mX_real::qX_real::qX_real_sloppy<double>;
 using qd_Real_quasi  = mX_real::qX_real::qX_real_quasi<double>;
 
-#endif
 

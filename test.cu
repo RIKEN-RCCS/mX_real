@@ -51,7 +51,7 @@ __global__ void benchmark( T * const  __restrict__ out_ ) {
 }
 
 int main( int argc, char *argv[] ) {
-  dd_Real_sloppy *x = nullptr;
+  dd_Real_weakaccurate *x = nullptr;
   benchmark <<< 1, 1 >>> ( x );
 }
 

@@ -63,7 +63,7 @@ def gen_op_body( Tc, description, func, op, commutable ) :
             print( line )
 
             print( '  TX c;' )
-            print( '  if ( A == Algorithm::Accurate ) {' )
+            print( '  if ( A <= Algorithm::WeakAccurate ) {' )
             print( caller_head( '    QxW::{}'.format(func), Ta,Tc,1, 'a','c' ) )
             print( '  } else {' )
             print( caller_head( '    QxW::{}'.format(func), Ta,Tc,0, 'a','c' ) )
@@ -317,7 +317,7 @@ def gen_fmin ( Tc ) :
     print( '  if ( flag ) { return e; }' )
     print( '#endif' )
     print( '  if ( A == Algorithm::Quasi ) {' )
-    print( '    using TT = typename  TX::type_Accurate;' )
+    print( '    using TT = typename TX::type_Accurate;' )
     print( '    return TX{{ {m}X_real::operator_fmin_body( TT{{ a }}, TT{{ b }} ) }};'.format( m=mX_type(Tc) ) )
     print( '  } else {' )
     print( '    return {m}X_real::operator_fmin_body( a, b );'.format( m=mX_type(Tc) ) )

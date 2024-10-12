@@ -82,17 +82,17 @@ def gen_op_body( Tc, description, func, op, commutable ) :
             print( line )
 
             print( '  TX c;' )
-            print( '  if ( A{a} == Algorithm::Accurate ) {{'.format( a=A ) )
+            print( '  if ( A{a} <= Algorithm::WeakAccurate ) {{'.format( a=A ) )
 
             if func == 'mul' and Ta == Tb :
                 print( '#if MX_REAL_OPTIMIZE_MUL_BY_SQR' )
                 print( '  if ( (void *)(&a) == (void *)(&b) ) {' )
                 if Ta == 2 and Tb == 2 and Tc == 2 :
-                    print( '#if MX_REAL_OPTIMIZE_MUL_BY_FAST' )
+                    print( 'if ( A{a} == Algorithm::WeakAccurate ) {{'.format( a=A) )
                     print( caller_head( '    QxW::{}'.format('Ya_sqr'), Ta,-1,Tc,1, 'a','b','c' ) )
-                    print( '#else' )
+                    print( '} else {' )
                     print( caller_head( '    QxW::{}'.format('sqr'), Ta,-1,Tc,1, 'a','b','c' ) )
-                    print( '#endif' )
+                    print( '}' )
                 else :
                     print( caller_head( '    QxW::{}'.format('sqr'), Ta,-1,Tc,1, 'a','b','c' ) )
                 print( '  }' )
@@ -101,11 +101,11 @@ def gen_op_body( Tc, description, func, op, commutable ) :
                 print( '#endif' )
                 print( '  else {' )
                 if Ta == 2 and Tb == 2 and Tc == 2 :
-                    print( '#if MX_REAL_OPTIMIZE_MUL_BY_FAST' )
+                    print( 'if ( A{a} == Algorithm::WeakAccurate ) {{'.format( a=A) )
                     print( caller_head( '    QxW::{}'.format('Ya_mul'), Ta,Tb,Tc,1, 'a','b','c' ) )
-                    print( '#else' )
+                    print( '} else {' )
                     print( caller_head( '    QxW::{}'.format('mul'), Ta,Tb,Tc,1, 'a','b','c' ) )
-                    print( '#endif' )
+                    print( '}' )
                 else :
                     print( caller_head( '    QxW::{}'.format('mul'), Ta,Tb,Tc,1, 'a','b','c' ) )
                 print( '  }' )

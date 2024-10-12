@@ -1,6 +1,4 @@
-#ifndef QXW_FP_H
-#define QXW_FP_H
-
+#pragma once
 
 //
 // C++-ified version 2023.12.26 (refered to Ozaki's code)
@@ -166,5 +164,4 @@ namespace QxW {
   };
 
 }
-#endif
 

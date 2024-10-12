@@ -1,5 +1,4 @@
-#ifndef MX_REAL_MPREAL_H
-#define MX_REAL_MPREAL_H
+#pragma once
 
 #include <mpreal.h>
 
@@ -101,5 +100,4 @@ namespace std {
 
 }
 
-#endif
 

@@ -1,8 +1,6 @@
 def init () :
 
-    header = '''#ifndef QXW_H
-#define QXW_H
-
+    header = '''#pragma once
 
 //
 // C++-fied version 2023.12.26 (refered to Ozaki's code)
@@ -111,7 +109,6 @@ def final () :
 
 }
 
-#endif
 '''
     print( header )
 
@@ -1137,7 +1134,6 @@ if __name__ == '__main__' :
     print( '}' )
     print( '' )
     print( '' )
-    print( '#endif' )
 
 
 

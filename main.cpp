@@ -363,9 +363,16 @@ struct Test_add
   using TXc = largeType<TXa,TXb>;
   using T   = typename TXc::base_T;
   auto eps = convert( largeType<TXa,TXb>::epsilon() );
+  auto eps_worst = convert( fp<typename TXa::base_T>::epsilon() );
+
+  /*
+  res = ( pow(2.0, 30.0) * sqrt(eps * eps_worst) );
+  res / eps = tol = pow(2.0, 30.0) * sqrt(eps_worst/eps);
+  */
+
   auto tol = convert( 16*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
   if ( TXb::base_A != Algorithm::Quasi && TXb::base_A != Algorithm::Quasi ) {
-  tol = convert( 16*double(1.0) ) * std::pow(2.0,30.0);
+  tol = convert( std::pow(2.0,15.0) * double( std::sqrt(eps_worst/eps) ) );
   }
 
   unsigned int seed = 1;
@@ -574,52 +581,52 @@ main(int argc, char *argv[])
   auto alpha = sqrt( mp_real(2) );
   
   ForFor < Test_add,
-	 df_Real_quasi, df_Real_sloppy, df_Real,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
 	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
 	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
   ForFor < Test_add,
-	 dd_Real_quasi, dd_Real_sloppy, dd_Real,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
 	 td_Real_quasi, td_Real_sloppy, td_Real,
 	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
   ForFor < Test_mul,
-	 df_Real_quasi, df_Real_sloppy, df_Real,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
 	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
 	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
   ForFor < Test_mul,
-	 dd_Real_quasi, dd_Real_sloppy, dd_Real,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
 	 td_Real_quasi, td_Real_sloppy, td_Real,
 	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
   ForFor < Test_div,
-	 df_Real_quasi, df_Real_sloppy, df_Real,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
 	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
 	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
   ForFor < Test_div,
-	 dd_Real_quasi, dd_Real_sloppy, dd_Real,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
 	 td_Real_quasi, td_Real_sloppy, td_Real,
 	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
   For    < Test_sqr,
-	 df_Real_quasi, df_Real_sloppy, df_Real,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
 	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
 	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
   For    < Test_sqr,
-	 dd_Real_quasi, dd_Real_sloppy, dd_Real,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
 	 td_Real_quasi, td_Real_sloppy, td_Real,
 	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
   For    < Test_sqrt,
-	 df_Real_quasi, df_Real_sloppy, df_Real,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
 	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
 	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
   For    < Test_sqrt,
-	 dd_Real_quasi, dd_Real_sloppy, dd_Real,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
 	 td_Real_quasi, td_Real_sloppy, td_Real,
 	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
@@ -1101,6 +1108,7 @@ main(int argc, char *argv[])
   verify<float>         ( L, alpha, x, y, z );
   verify<df_Real_quasi> ( L, alpha, x, y, z );
   verify<df_Real_sloppy>( L, alpha, x, y, z );
+  verify<df_Real_weakaccurate>( L, alpha, x, y, z );
   verify<df_Real>       ( L, alpha, x, y, z );
   verify<double>        ( L, alpha, x, y, z );
   verify<tf_Real_quasi> ( L, alpha, x, y, z );

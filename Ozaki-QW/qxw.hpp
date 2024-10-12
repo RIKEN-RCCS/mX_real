@@ -1,5 +1,4 @@
-#ifndef QXW_H
-#define QXW_H
+#pragma once
 
 
 //
@@ -90,15 +89,15 @@ namespace QxW {
     q3 = a1 * b1;                     // 1 1
 
     q2 = std::fma( a0, b1, q3 );      // 1 2
-    FastTwoSum( -q2, q3, w2, z2 );    // 3 3 |q2|>|q3|
+    FastTwoSum( -q2, q3, w2, z2 );    // 3 3
     y2 = std::fma( a0, b1, w2 ) + z2; // 2 3
 
     q1 = std::fma( a1, b0, q2 );      // 1 2
-    TwoSum    ( -q1, q2, w1, z1 );    // 6 6 |q1|~|q2|
+    TwoSum    ( -q1, q2, w1, z1 );    // 6 6
     y1 = std::fma( a1, b0, w1 ) + z1; // 2 3
 
     q0 = std::fma( a0, b0, q1 );      // 1 2
-    FastTwoSum( -q0, q1, w0, z0 );    // 3 3 |q0|>|q1|
+    FastTwoSum( -q0, q1, w0, z0 );    // 3 3
     y0 = std::fma( a0, b0, w0 ) + z0; // 2 3
 
     x = q0;
@@ -8014,4 +8013,3 @@ namespace QxW {
 }
 
 
-#endif

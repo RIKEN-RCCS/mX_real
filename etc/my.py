@@ -67,7 +67,7 @@ def gen_op_ow_body( Tc, description, func, op, commutable ) :
        A = commonA( Ta, Tb )
        if Ta > 1 and Tb > 1 :
            print( '  Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;' )
-       print( '  if ( A{a} == Algorithm::Accurate ) {{'.format( a=A ) )
+       print( '  if ( A{a} <= Algorithm::WeakAccurate ) {{'.format( a=A ) )
        print( caller_head( '    QxW::{}'.format(func), Ta,Tb,Tc,1, 'a','b','a' ) )
        print( '  } else {' )
        print( caller_head( '    QxW::{}'.format(func), Ta,Tb,Tc,0, 'a','b','a' ) )

@@ -1,5 +1,4 @@
-#ifndef MX_REAL_IO_H
-#define MX_REAL_IO_H
+#pragma once
 
 #include <stdio.h>
 #include <omp.h>
@@ -227,7 +226,5 @@ auto print ( std::string message, T const &x ) {
   printf(" _QD : %016lx %016lx %016lx %016lx %26.19Le\n", d[0], d[1], d[2], d[3], xx);
 #endif
 }
-#endif
-
 #endif
 
