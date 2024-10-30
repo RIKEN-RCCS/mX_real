@@ -16,14 +16,14 @@ using namespace mX_real;
 //
 enum class _Matrix_format_ {
   //
-  Column_Major = 0,
-  Row_Major    = 1,
+  Column_Major,
+  Row_Major,
   Default      = Column_Major
 };
 
 //
 //
-template < typename T, _Matrix_format_ format=_Matrix_format_::Default, bool Check_Index_Row=false, bool Check_Index_Column=false >
+template < typename T, _Matrix_format_ format=_Matrix_format_::Default, bool Check_Index_Row=false, bool Check_Index_Column=false, bool Check_Parameters=false >
 struct _Matrix_ {
   private:
     using pure_T   = typename std::remove_const_t<T>;
@@ -47,10 +47,12 @@ struct _Matrix_ {
       Column_size( column_size ),
       leading_dim( ld )
     {
-	assert( pointer != nullptr );
-	assert( Row_size > 0 );
-	assert( Column_size > 0 );
-	assert( leading_dim >= Row_size );
+      if ( Check_Parameters ) {
+        assert( pointer != nullptr );
+        assert( Row_size > 0 );
+        assert( Column_size > 0 );
+        assert( leading_dim >= ( format == _Matrix_format_::Column_Major ? Row_size : Column_size ) );
+      }
     }
 
     _Matrix_( int64_t const row_size, int64_t const column_size, int64_t const ld ) :
@@ -60,10 +62,12 @@ struct _Matrix_ {
       Column_size( column_size ),
       leading_dim( ld )
     {
-	assert( pointer != nullptr );
-	assert( Row_size > 0 );
-	assert( Column_size > 0 );
-	assert( leading_dim >= Row_size );
+      if ( Check_Parameters ) {
+        assert( pointer != nullptr );
+        assert( Row_size > 0 );
+        assert( Column_size > 0 );
+        assert( leading_dim >= ( format == _Matrix_format_::Column_Major ? Row_size : Column_size ) );
+      }
     }
 
     _Matrix_( T * const ptr, int64_t const row_size, int64_t const column_size ) :
@@ -74,10 +78,12 @@ struct _Matrix_ {
       Column_size( column_size ),
       leading_dim( row_size )
     {
-	assert( pointer != nullptr );
-	assert( Row_size > 0 );
-	assert( Column_size > 0 );
-	assert( leading_dim >= Row_size );
+      if ( Check_Parameters ) {
+        assert( pointer != nullptr );
+        assert( Row_size > 0 );
+        assert( Column_size > 0 );
+        assert( leading_dim >= ( format == _Matrix_format_::Column_Major ? Row_size : Column_size ) );
+      }
     }
 
     _Matrix_( int64_t const row_size, int64_t const column_size ) :
@@ -87,10 +93,12 @@ struct _Matrix_ {
       Column_size( column_size ),
       leading_dim( row_size )
     {
-	assert( pointer != nullptr );
-	assert( Row_size > 0 );
-	assert( Column_size > 0 );
-	assert( leading_dim >= Row_size );
+      if ( Check_Parameters ) {
+        assert( pointer != nullptr );
+        assert( Row_size > 0 );
+        assert( Column_size > 0 );
+        assert( leading_dim >= ( format == _Matrix_format_::Column_Major ? Row_size : Column_size ) );
+      }
     }
 
     _Matrix_( T * const ptr, int64_t const row_size ) :
@@ -101,10 +109,12 @@ struct _Matrix_ {
       Column_size( row_size ),
       leading_dim( row_size )
     {
-	assert( pointer != nullptr );
-	assert( Row_size > 0 );
-	assert( Column_size > 0 );
-	assert( leading_dim >= Row_size );
+      if ( Check_Parameters ) {
+        assert( pointer != nullptr );
+        assert( Row_size > 0 );
+        assert( Column_size > 0 );
+        assert( leading_dim >= ( format == _Matrix_format_::Column_Major ? Row_size : Column_size ) );
+      }
     }
 
     _Matrix_( int64_t const row_size ) :
@@ -114,10 +124,12 @@ struct _Matrix_ {
       Column_size( row_size ),
       leading_dim( row_size )
     {
-	assert( pointer != nullptr );
-	assert( Row_size > 0 );
-	assert( Column_size > 0 );
-	assert( leading_dim >= Row_size );
+      if ( Check_Parameters ) {
+        assert( pointer != nullptr );
+        assert( Row_size > 0 );
+        assert( Column_size > 0 );
+        assert( leading_dim >= ( format == _Matrix_format_::Column_Major ? Row_size : Column_size ) );
+      }
     }
 
     ~_Matrix_() {
@@ -231,14 +243,15 @@ struct DOUBLE {
 template < typename REAL >
 void benchmark( int const& N ) {
   
-  auto * a = new REAL[N*N];
-  auto * b = new REAL[N*N];
-  auto * c = new REAL[N*N];
+  auto const LDX = ((N+32-1)>>5)<<5;
+  auto * a = new REAL[N*LDX];
+  auto * b = new REAL[N*LDX];
+  auto * c = new REAL[N*LDX];
   REAL alpha, beta;
   
-  _Matrix_<REAL> a_( a, N, N, N );
-  _Matrix_<REAL> b_( b, N, N, N );
-  _Matrix_<REAL> c_( c, N, N, N );
+  _Matrix_<REAL> a_( a, N, N, LDX );
+  _Matrix_<REAL> b_( b, N, N, LDX );
+  _Matrix_<REAL> c_( c, N, N, LDX );
 
   for(int i=0; i<N; i++){
     for(int j=0; j<N; j++){
@@ -697,23 +710,41 @@ if ( alpha != const_ZERO ) {
 	  //
 	  //
 if ( alpha == const_ZERO && beta == const_ZERO ) {
+
           for(int i=i_; i<Ni_; i++) {
+#pragma omp simd
             for(int j=j_; j<Nj_; j++) {
               c_(j+0,i+0) = const_ZERO;
             } // j
 	  }
+
 } else if ( alpha == const_ZERO && beta != const_ZERO ) {
-          for(int i=i_; i<Ni_; i++) {
+
+          for(int i=i_; i<Ni__; i+=D_i) {
+#pragma omp simd
+            for(int j=j_; j<Nj_; j++) {
+#pragma unroll
+              for(int dI=0; dI<D_i; dI++) {
+                c_(j+0,i+dI) *= beta;
+              } // dI
+            } // j
+          } // i
+          for(int i=Ni__; i<Ni_; i++) {
+#pragma omp simd
             for(int j=j_; j<Nj_; j++) {
               c_(j+0,i+0) *= beta;
             } // j
-          } // i
+	  } // i
+
 } else if ( alpha != const_ZERO && beta != const_ZERO ) {
+
           for(int i=i_; i<Ni_; i++) {
+#pragma omp simd
             for(int j=j_; j<Nj_; j++) {
               c_(j+0,i+0) = C(j-j_+0,i-i_+0);
             } // j
           } // i
+
 }
 	  //
 	  //
@@ -745,6 +776,7 @@ if ( alpha == const_ZERO && beta == const_ZERO ) {
 int
 main(int argc, char *argv[])
 {
+  if ( argc <= 1 ) exit(1);
   int dtype = atoi( argv[1] );
   while ( 1 ) {
     int N;
