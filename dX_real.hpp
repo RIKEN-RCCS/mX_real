@@ -339,28 +339,6 @@ namespace mX_real {
       }
 
       //
-      // safe_min() : minimum of the normalized floating point representation
-      //         if its squared number is the same as min()
-      //
-      static INLINE DX_REAL<> constexpr safe_min  () NOEXCEPT {
-        T c = fp<T>::min();
-        for(auto i=1; i<L; i++) { c = c * ( fp<T>::disconnect_fp() ); }
-        c = std::sqrt( c );
-        return DX_REAL<>{ c };
-      }
-
-      //
-      // critical_min() : minimum of the denormalized floating point
-      //         representation if its squared number is the same as denorm_min()
-      //
-      static INLINE DX_REAL<> constexpr critical_min  () NOEXCEPT {
-        T c = fp<T>::denorm_min();
-        for(auto i=1; i<L; i++) { c = c * ( fp<T>::disconnect_fp() ); }
-        c = std::sqrt( c );
-        return DX_REAL<>{ c };
-      }
-
-      //
       // max() : maximum of the normalized floating point representation
       //         it is usually defined by the full bit pattern with the same
       //         exponent component of the max<T>() 
@@ -372,6 +350,15 @@ namespace mX_real {
         return DX_REAL<>{ c };
       }
 
+      //
+      // safe_min() : the smallest positive number such that 1/safe_min
+      //              does not overflow.
+      //              it is always the same as min of T of the single word
+      //
+      static INLINE DX_REAL<> constexpr safe_min  () NOEXCEPT {
+        T c = fp<T>::min();
+        return DX_REAL<>{ c };
+      }
 
       //
       // static member funtions
@@ -393,12 +380,12 @@ namespace mX_real {
         return DX_REAL<>::abs(a);
       }
       static INLINE DX_REAL<> rand () NOEXCEPT;
-      static INLINE bool constexpr isinf ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr isnan ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_positive ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_negative ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr signbit ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_zero ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_positive ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr signbit ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr isnan ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_negative ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr isinf ( DX_REAL<> const& a ) NOEXCEPT;
       //
 
 
@@ -408,12 +395,12 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () NOEXCEPT { mX_real::Normalize( *this ); }
       //
-      INLINE bool constexpr isinf () const NOEXCEPT { return DX_REAL<>::isinf( *this ); }
-      INLINE bool constexpr isnan () const NOEXCEPT { return DX_REAL<>::isnan( *this ); }
-      INLINE bool constexpr is_positive () const NOEXCEPT { return DX_REAL<>::is_positive( *this ); }
-      INLINE bool constexpr is_negative () const NOEXCEPT { return DX_REAL<>::is_negative( *this ); }
-      INLINE bool constexpr signbit () const NOEXCEPT { return DX_REAL<>::signbit( *this ); }
       INLINE bool constexpr is_zero () const NOEXCEPT { return DX_REAL<>::is_zero( *this ); }
+      INLINE bool constexpr is_positive () const NOEXCEPT { return DX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr signbit () const NOEXCEPT { return DX_REAL<>::signbit( *this ); }
+      INLINE bool constexpr isnan () const NOEXCEPT { return DX_REAL<>::isnan( *this ); }
+      INLINE bool constexpr is_negative () const NOEXCEPT { return DX_REAL<>::is_negative( *this ); }
+      INLINE bool constexpr isinf () const NOEXCEPT { return DX_REAL<>::isinf( *this ); }
       //
 
 
@@ -479,12 +466,12 @@ namespace mX_real {
       return fp<T>::isnan( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isinf ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
-      return fp<T>::isinf( a.quick_Normalized() );
-    }
-    template < typename T, Algorithm Aa >
     INLINE auto constexpr signbit ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
       return fp<T>::signbit( a.quick_Normalized() );
+    }
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr isinf ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
+      return fp<T>::isinf( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_zero ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {

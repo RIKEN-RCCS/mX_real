@@ -332,28 +332,6 @@ namespace @{m}@X_real {
     }
 
     //
-    // safe_min() : minimum of the normalized floating point representation
-    //         if its squared number is the same as min()
-    //
-    static INLINE @{M}@X_REAL<> constexpr safe_min  () NOEXCEPT {
-      T c = fp<T>::min();
-      for(auto i=1; i<L; i++) { c = c * ( fp<T>::disconnect_fp() ); }
-      c = std::sqrt( c );
-      return @{M}@X_REAL<>{ c };
-    }
-
-    //
-    // critical_min() : minimum of the denormalized floating point
-    //         representation if its squared number is the same as denorm_min()
-    //
-    static INLINE @{M}@X_REAL<> constexpr critical_min  () NOEXCEPT {
-      T c = fp<T>::denorm_min();
-      for(auto i=1; i<L; i++) { c = c * ( fp<T>::disconnect_fp() ); }
-      c = std::sqrt( c );
-      return @{M}@X_REAL<>{ c };
-    }
-
-    //
     // max() : maximum of the normalized floating point representation
     //         it is usually defined by the full bit pattern with the same
     //         exponent component of the max<T>() 
@@ -365,6 +343,15 @@ namespace @{m}@X_real {
       return @{M}@X_REAL<>{ c };
     }
 
+    //
+    // safe_min() : the smallest positive number such that 1/safe_min
+    //              does not overflow.
+    //              it is always the same as min of T of the single word
+    //
+    static INLINE @{M}@X_REAL<> constexpr safe_min  () NOEXCEPT {
+      T c = fp<T>::min();
+      return @{M}@X_REAL<>{ c };
+    }
 
 @@include "@{m}@x_members.hpp"
 

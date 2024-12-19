@@ -67,8 +67,14 @@ public:
   static void run () { run0_impl < void, Tlist_base... > (); }
 };
 
-
-
+template < typename TX, T_mX(TX) >
+TX random_number() {
+  using T = typename TX::base_T;
+  using TX_accurate = typename TX::type_with_Algorithm<Algorithm::Accurate>;
+  auto r = TX{ 2*TX_accurate::rand() -TX_accurate::one() };
+  auto f = std::pow(2.0,double(rand()%60)-30.0);
+  return r * f;
+}
 template < typename T >
 T nrm2( int const& L, T const* x ) {
   T z = 0;
@@ -355,33 +361,35 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
 
 
 template < typename TXa, typename TXb >
+mp_real get_tol() {
+  using TXc = largeType<TXa,TXb>;
+  using TXd = smallType<TXa,TXb>;
+  using T   = typename TXc::base_T;
+  Algorithm A = commonAlgorithm<TXa::base_A,TXb::base_A>::algorithm;
+  int ext = 4 * (TXd::L + (A!=Algorithm::Accurate)) * (TXc::L - TXd::L + 1) + 2;
+  auto tol  = convert( std::ldexp( 1.0, ext ) );
+  return tol;
+}
+
+template < typename TXa, typename TXb >
 struct Test_add
 {
   template < T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T, typename TXb::base_T>::value ) >
   static void run()
   {
-  using TXc = largeType<TXa,TXb>;
-  using T   = typename TXc::base_T;
-  auto eps = convert( largeType<TXa,TXb>::epsilon() );
-  auto eps_worst = convert( fp<typename TXa::base_T>::epsilon() );
-
-  /*
-  res = ( pow(2.0, 30.0) * sqrt(eps * eps_worst) );
-  res / eps = tol = pow(2.0, 30.0) * sqrt(eps_worst/eps);
-  */
-
-  auto tol = convert( 16*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
-  if ( TXb::base_A != Algorithm::Quasi && TXb::base_A != Algorithm::Quasi ) {
-  tol = convert( std::pow(2.0,15.0) * double( std::sqrt(eps_worst/eps) ) );
-  }
+  using T = typename TXa::base_T;
+  Algorithm const A = commonAlgorithm<TXa::base_A,TXb::base_A>::algorithm;
+  using TXc = typename largeType<TXa,TXb>::type_with_Algorithm<A>;
+  auto eps  = convert( TXc::epsilon() );
+  auto tol  = get_tol<TXa,TXb>();
 
   unsigned int seed = 1;
   srand( seed );
 
   auto res = -eps;
   for(int i=1;i<10000;i++){
-    auto a = (2*TXa::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
-    auto b = (2*TXb::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
+    auto a = random_number<TXa>();
+    auto b = random_number<TXb>();
     auto c = a + b;
 
     auto a_ = convert( a );
@@ -411,18 +419,19 @@ struct Test_mul
   template < T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T, typename TXb::base_T>::value ) >
   static void run()
   {
-  using TXc = largeType<TXa,TXb>;
-  using T   = typename TXc::base_T;
-  auto eps = convert( largeType<TXa,TXb>::epsilon() );
-  auto tol = convert( 16*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
+  using T = typename TXa::base_T;
+  Algorithm const A = commonAlgorithm<TXa::base_A,TXb::base_A>::algorithm;
+  using TXc = typename largeType<TXa,TXb>::type_with_Algorithm<A>;
+  auto eps  = convert( TXc::epsilon() );
+  auto tol  = get_tol<TXa,TXb>();
 
   unsigned int seed = 1;
   srand( seed );
 
   auto res = -eps;
   for(int i=1;i<10000;i++){
-    auto a = (2*TXa::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
-    auto b = (2*TXb::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
+    auto a = random_number<TXa>();
+    auto b = random_number<TXb>();
     auto c = a * b;
 
     auto a_ = convert( a );
@@ -452,18 +461,19 @@ struct Test_div
   template < T_mX(TXa), T_mX(TXb), T_assert( std::is_same<typename TXa::base_T, typename TXb::base_T>::value ) >
   static void run()
   {
-  using TXc = largeType<TXa,TXb>;
-  using T   = typename TXc::base_T;
-  auto eps = convert( largeType<TXa,TXb>::epsilon() );
-  auto tol = convert( 16*double(1.0) / double( fp<T>::epsilon() ) );
+  using T = typename TXa::base_T;
+  Algorithm const A = commonAlgorithm<TXa::base_A,TXb::base_A>::algorithm;
+  using TXc = typename largeType<TXa,TXb>::type_with_Algorithm<A>;
+  auto eps  = convert( TXc::epsilon() );
+  auto tol  = get_tol<TXa,TXb>(); tol = tol*tol;
 
   unsigned int seed = 1;
   srand( seed );
 
   auto res = -eps;
   for(int i=1;i<10000;i++){
-    auto a = (2*TXa::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
-    auto b = (2*TXb::rand()-TXa::one()) * std::pow(2.0,double(rand()%60)-30.0);
+    auto a = random_number<TXa>();
+    auto b = random_number<TXb>();
     auto c = a / b;
 
     auto a_ = convert( a );
@@ -493,17 +503,17 @@ struct Test_sqr
   template < T_mX(TXa) >
   static void run()
   {
+  using T = typename TXa::base_T;
   using TXc = TXa;
-  using T   = typename TXc::base_T;
-  auto eps = convert( TXa::epsilon() );
-  auto tol = convert( 16*double(1.0) / double( std::sqrt( fp<T>::epsilon() ) ) );
+  auto eps  = convert( TXa::epsilon() );
+  auto tol  = get_tol<TXa,TXa>();
 
   unsigned int seed = 1;
   srand( seed );
 
   auto res = -eps;
   for(int i=1;i<10000;i++){
-    auto a = TXa::rand() * std::pow(2.0,double(rand()%60)-30.0);
+    auto a = random_number<TXa>();
     auto c = a * a;
 
     auto a_ = convert( a );
@@ -533,10 +543,10 @@ struct Test_sqrt
   template < T_mX(TXa) >
   static void run()
   {
+  using T = typename TXa::base_T;
   using TXc = TXa;
-  using T   = typename TXc::base_T;
-  auto eps = convert( TXa::epsilon() );
-  auto tol = convert( 16*double(1.0) / double( fp<T>::epsilon() ) );
+  auto eps  = convert( TXa::epsilon() );
+  auto tol  = get_tol<TXa,TXa>();
 
   unsigned int seed = 1;
   srand( seed );
@@ -631,6 +641,47 @@ main(int argc, char *argv[])
 	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
 
+  {
+    print( "epsilon=", df_Real::epsilon() );
+    print( "epsilon=", tf_Real::epsilon() );
+    print( "epsilon=", qf_Real::epsilon() );
+
+    print( "epsilon=", dd_Real::epsilon() );
+    print( "epsilon=", td_Real::epsilon() );
+    print( "epsilon=", qd_Real::epsilon() );
+
+    print( "denorm_min=", df_Real::denorm_min() );
+    print( "denorm_min=", tf_Real::denorm_min() );
+    print( "denorm_min=", qf_Real::denorm_min() );
+
+    print( "denorm_min=", dd_Real::denorm_min() );
+    print( "denorm_min=", td_Real::denorm_min() );
+    print( "denorm_min=", qd_Real::denorm_min() );
+
+    print( "min=", df_Real::min() );
+    print( "min=", tf_Real::min() );
+    print( "min=", qf_Real::min() );
+
+    print( "min=", dd_Real::min() );
+    print( "min=", td_Real::min() );
+    print( "min=", qd_Real::min() );
+
+    print( "max=", df_Real::max() );
+    print( "max=", tf_Real::max() );
+    print( "max=", qf_Real::max() );
+
+    print( "max=", dd_Real::max() );
+    print( "max=", td_Real::max() );
+    print( "max=", qd_Real::max() );
+
+    print( "safe_min=", df_Real::safe_min() );
+    print( "safe_min=", tf_Real::safe_min() );
+    print( "safe_min=", qf_Real::safe_min() );
+
+    print( "safe_min=", dd_Real::safe_min() );
+    print( "safe_min=", td_Real::safe_min() );
+    print( "safe_min=", qd_Real::safe_min() );
+  }
   {
     auto cp = df_Real_quasi( 1); cp.x[1] = fp<float>::epsilon()/4;
     auto cn = df_Real_quasi(-1); cn.x[1] = fp<float>::epsilon()/4;

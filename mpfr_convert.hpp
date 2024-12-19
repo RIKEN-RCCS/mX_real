@@ -48,6 +48,7 @@ namespace mX_real {
   template < typename T, T_not_mX(T) >
   T convert( mpfr::mpreal const& x ) {
     auto s = (T)((double)x);
+#if 0
     if ( s != zero<T>() ) {
       mpfr::mpreal S = (double)s;
       if ( std::is_same<T,float>::value ) {
@@ -56,6 +57,7 @@ namespace mX_real {
         }
       }
     }
+#endif
     return s;
   }
 
@@ -79,6 +81,7 @@ namespace mX_real {
         X = X * ex;
         mpfr::mpreal S = (double)s;
 
+#if 0
         //
 	// check whether rounding up already done or not,
 	// if done, we must do rounding back to avoid a double-rounding
@@ -86,6 +89,7 @@ namespace mX_real {
         if ( (s > 0 && S > X) || (s < 0 && S < X) ) {
           s = s - QxW::fp_const<_T>::ulp( s );
         }
+#endif
 
 	//
 	// eliminate the higher bit part from the originial

@@ -28,7 +28,6 @@ std_mX_real.hpp: std_mX_real.hpp-templ std_head
 	python3 mm.py std_mX_real.hpp-templ 2 >> std_mX_real.hpp
 	python3 mm.py std_mX_real.hpp-templ 3 >> std_mX_real.hpp
 	python3 mm.py std_mX_real.hpp-templ 4 >> std_mX_real.hpp
-	echo '#endif' >> std_mX_real.hpp
 	emacs --script indent.el std_mX_real.hpp
 	awk '/_LV_/{ gsub(/)_LV_/,")\\&");}{ print }' std_mX_real.hpp > std_mX_real.hpp-
 	mv std_mX_real.hpp- std_mX_real.hpp
