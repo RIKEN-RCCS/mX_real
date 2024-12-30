@@ -366,11 +366,14 @@ namespace mX_real {
       }
 
       //
-      // max() : maximum of the normalized floating point representation
-      //         it is usually defined by the full bit pattern with the same
-      //         exponent component of the max<T>() 
+      // maxmax() : maximum of the normalized floating point representation
+      //         it could be defined by the full bit pattern with the same
+      //         exponent component of the max<T>(), however,
+      //         carry-up by the nearest-even rounding violates
+      //            max() + zero() == max()
+      //         thus, max() and mamax() are seperately defined.
       //
-      static INLINE TX_REAL<> constexpr max  () NOEXCEPT {
+      static INLINE TX_REAL<> constexpr maxmax  () NOEXCEPT {
         TX_REAL<> c;
         T p = fp<T>::max();
         T q = fp<T>::connect_fp();
@@ -379,13 +382,41 @@ namespace mX_real {
       }
 
       //
-      // safe_min() : the smallest positive number such that 1/safe_min
-      //              does not overflow.
+      // max() : maximum of the normalized floating point representation
+      //         it does not violate the essential equality such that
+      //
+      //            max() + zero() == max().
+      //
+      static INLINE TX_REAL<> constexpr max  () NOEXCEPT {
+        TX_REAL<> c;
+        T p = fp<T>::max();
+        T q = fp<T>::connect_fp() * fp<T>::nhalf();
+        c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = c.x[i-1] * q; }
+        return c;
+      }
+
+      //
+      // safe_min() : the smallest positive normalized number such that
+      //              1/safe_min does not overflow.
       //              it is always the same as min of T of the single word
       //
       static INLINE TX_REAL<> constexpr safe_min  () NOEXCEPT {
         TX_REAL<> c;
         T p = fp<T>::min();
+        T q = fp<T>::zero();
+        c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
+        return c;
+      }
+
+      //
+      // safe_max() : the largest positive number such that
+      //              1/safe_max is normalized.
+      //
+      static INLINE TX_REAL<> constexpr safe_max  () NOEXCEPT {
+        TX_REAL<> c;
+        auto exp_size = QxW::fp_const<T>::MASK - QxW::fp_const<T>::RINF - 1;
+        exp_size >>= QxW::fp_const<T>::SOFF;
+        T p = (1 << exp_size) * fp<T>::one() / fp<T>::safe_min();
         T q = fp<T>::zero();
         c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
         return c;

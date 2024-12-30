@@ -39,15 +39,18 @@ template <> struct fp_const<float> {
   //
   // significant parameters based on IEE754
   //
+  static uint32_t constexpr SOFW = sizeof(float)*8;
+  static uint32_t constexpr SOFF = std::numeric_limits<float>::digits - 1;
+  static uint32_t constexpr SOFE = SOFW - SOFF - 1;
   static uint32_t constexpr BONE = 0x00000001;
-  static uint32_t constexpr SBIT = BONE << (32-1); // 0x80000000;
-  static uint32_t constexpr EONE = BONE << (23);   // 0x00800000;
+  static uint32_t constexpr SBIT = BONE << (SOFW-1); // 0x80000000;
+  static uint32_t constexpr EONE = BONE << SOFF;   // 0x00800000;
   static uint32_t constexpr MASK = SBIT - EONE;    // 0x7f800000;
   static uint32_t constexpr FRAC = EONE - BONE;    // 0x007fffff;
   static uint32_t constexpr RINF = MASK - EONE;    // 0x7f000000;
-  static uint32_t constexpr XONE = EONE * 23;      // 0x0b800000;
+  static uint32_t constexpr XONE = EONE * SOFF;    // 0x0b800000;
 
-  static uint32_t constexpr FONE = EONE * ((1<<7)-1); // 0x3f800000;
+  static uint32_t constexpr FONE = EONE * ((1<<SOFE)-1); // 0x3f800000;
   static uint32_t constexpr PWRP = FONE + XONE;    // 0x4b000000;
   static uint32_t constexpr PWRN = FONE - XONE;    // 0x34000000;
 
@@ -131,14 +134,17 @@ template <> struct fp_const<double> {
   //
   // significant parameters based on IEE754
   //
+  static uint32_t constexpr SOFW = sizeof(double)*8;
+  static uint64_t constexpr SOFF = std::numeric_limits<double>::digits - 1;
+  static uint64_t constexpr SOFE = SOFW - SOFF - 1;
   static uint64_t constexpr BONE = 0x0000000000000001;
-  static uint64_t constexpr SBIT = BONE << (64-1); // 0x8000000000000000;
-  static uint64_t constexpr EONE = BONE << (52);   // 0x0010000000000000;
+  static uint64_t constexpr SBIT = BONE << (SOFW-1); // 0x8000000000000000;
+  static uint64_t constexpr EONE = BONE << SOFF;   // 0x0010000000000000;
   static uint64_t constexpr MASK = SBIT - EONE;    // 0x7ff0000000000000;
   static uint64_t constexpr FRAC = EONE - BONE;    // 0x000fffffffffffff;
   static uint64_t constexpr RINF = MASK - EONE;    // 0x7fe0000000000000;
-  static uint64_t constexpr XONE = EONE * 52;      // 0x0340000000000000;
-  static uint64_t constexpr FONE = EONE * ((1<<11)-1); // 0x3ff0000000000000;
+  static uint64_t constexpr XONE = EONE * SOFF;    // 0x0340000000000000;
+  static uint64_t constexpr FONE = EONE * ((1<<SOFE)-1); // 0x3ff0000000000000;
   static uint64_t constexpr PWRP = FONE + XONE;    // 0x4330000000000000;
   static uint64_t constexpr PWRN = FONE - XONE;    // 0x3cb0000000000000;
 
@@ -155,6 +161,12 @@ template <> struct fp_const<double> {
     //
     // 'a' is either power of 2 or 0 or INF
     //
+#if 1
+    auto x = fp2uint( a ) & ( MASK | FRAC );
+    if ( ( x & (x - 1) ) == 0 ) return true;
+    auto z = x & MASK;
+    return ( z == x ) || ( z == MASK );
+#else
     if ( a == zero() ) return true;
 
     auto x = std::fabs(a);
@@ -164,6 +176,7 @@ template <> struct fp_const<double> {
 
     auto frac = fp2uint( x ) & FRAC;
     return ( frac == 0 );
+#endif
   }
 
   static INLINE auto constexpr ulp( double const a ) NOEXCEPT {

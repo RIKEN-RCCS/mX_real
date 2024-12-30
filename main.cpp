@@ -210,7 +210,7 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
 
   auto o_prec = std::cout.precision();
   std::cout << std::scientific
-            << std::setprecision(32);
+            << std::setprecision(45);
 
   {
     auto * w = new T[ITR];
@@ -893,22 +893,22 @@ main(int argc, char *argv[])
     print( "min", std::numeric_limits<tf_Real>::min() );
     print( "min", std::numeric_limits<qf_Real>::min() );
     {
-    auto s = df_Real::min();
-    print( "min", s );
-    quickSum(s.x[0], s.x[1]);
-    print( "min", s );
+      auto s = df_Real::min();
+      print( "min", s );
+      quickSum(s.x[0], s.x[1]);
+      print( "min", s );
     }
     {
-    auto s = tf_Real::min();
-    print( "min", s );
-    quickSum(s.x[0], s.x[1]);
-    print( "min", s );
+      auto s = tf_Real::min();
+      print( "min", s );
+      quickSum(s.x[0], s.x[1]);
+      print( "min", s );
     }
     {
-    auto s = qf_Real::min();
-    print( "min", s );
-    quickSum(s.x[0], s.x[1]);
-    print( "min", s );
+      auto s = qf_Real::min();
+      print( "min", s );
+      quickSum(s.x[0], s.x[1]);
+      print( "min", s );
     }
     
     print( "min", std::numeric_limits<double>::min() );
@@ -916,22 +916,22 @@ main(int argc, char *argv[])
     print( "min", std::numeric_limits<td_Real>::min() );
     print( "min", std::numeric_limits<qd_Real>::min() );
     {
-    auto d = dd_Real::min();
-    print( "min", d );
-    quickSum(d.x[0],d.x[1]);
-    print( "min", d );
+      auto d = dd_Real::min();
+      print( "min", d );
+      quickSum(d.x[0],d.x[1]);
+      print( "min", d );
     }
     {
-    auto d = td_Real::min();
-    print( "min", d );
-    quickSum(d.x[0],d.x[1]);
-    print( "min", d );
+      auto d = td_Real::min();
+      print( "min", d );
+      quickSum(d.x[0],d.x[1]);
+      print( "min", d );
     }
     {
-    auto d = qd_Real::min();
-    print( "min", d );
-    quickSum(d.x[0],d.x[1]);
-    print( "min", d );
+      auto d = qd_Real::min();
+      print( "min", d );
+      quickSum(d.x[0],d.x[1]);
+      print( "min", d );
     }
 
   }
@@ -941,22 +941,22 @@ main(int argc, char *argv[])
     print( "max", std::numeric_limits<tf_Real>::max() );
     print( "max", std::numeric_limits<qf_Real>::max() );
     {
-    auto s = df_Real::max();
-    print( "max", s );
-    quickSum(s.x[0], s.x[1]);
-    print( "max", s );
+      auto s = df_Real::max();
+      print( "max", s );
+      quickSum(s.x[0], s.x[1]);
+      print( "max", s );
     }
     {
-    auto s = tf_Real::max();
-    print( "max", s );
-    quickSum(s.x[0], s.x[1]);
-    print( "max", s );
+      auto s = tf_Real::max();
+      print( "max", s );
+      quickSum(s.x[0], s.x[1]);
+      print( "max", s );
     }
     {
-    auto s = qf_Real::max();
-    print( "max", s );
-    quickSum(s.x[0], s.x[1]);
-    print( "max", s );
+      auto s = qf_Real::max();
+      print( "max", s );
+      quickSum(s.x[0], s.x[1]);
+      print( "max", s );
     }
     
     print( "max", std::numeric_limits<double>::max() );
@@ -964,22 +964,22 @@ main(int argc, char *argv[])
     print( "max", std::numeric_limits<td_Real>::max() );
     print( "max", std::numeric_limits<qd_Real>::max() );
     {
-    auto d = dd_Real::max();
-    print( "max", d );
-    quickSum(d.x[0], d.x[1]);
-    print( "max", d );
+      auto d = dd_Real::max();
+      print( "max", d );
+      quickSum(d.x[0], d.x[1]);
+      print( "max", d );
     }
     {
-    auto d = td_Real::max();
-    print( "max", d );
-    quickSum(d.x[0], d.x[1]);
-    print( "max", d );
+      auto d = td_Real::max();
+      print( "max", d );
+      quickSum(d.x[0], d.x[1]);
+      print( "max", d );
     }
     {
-    auto d = qd_Real::max();
-    print( "max", d );
-    quickSum(d.x[0], d.x[1]);
-    print( "max", d );
+      auto d = qd_Real::max();
+      print( "max", d );
+      quickSum(d.x[0], d.x[1]);
+      print( "max", d );
     }
   }
   {
@@ -998,6 +998,63 @@ main(int argc, char *argv[])
     print( "sqrt s", dX_real::sqrt( s ) );
     print( "sqrt s", tX_real::sqrt( s ) );
     print( "sqrt s", qX_real::sqrt( s ) );
+
+    {
+      auto s = df_Real::zero();
+      s.x[0] = fp<float>::min() / 128;
+      auto q = sqrt( s );
+      print( "min", s );
+      print( "sqrt min", q );
+      print( "sqr(sqrt min)", q*q );
+      print( "|s-q*q|",s-q*q );
+    }
+    {
+      auto s = tf_Real::zero();
+      s.x[0] = fp<float>::min() / 128;
+      auto q = sqrt( s );
+      print( "min", s );
+      print( "sqrt min", q );
+      print( "sqr(sqrt min)", q*q );
+      print( "|s-q*q|",s-q*q );
+    }
+    {
+      auto s = qf_Real::zero();
+      s.x[0] = fp<float>::min() / 128;
+      auto q = sqrt( s );
+      print( "min", s );
+      print( "sqrt min", q );
+      print( "sqr(sqrt min)", q*q );
+      print( "|s-q*q|",s-q*q );
+    }
+
+    {
+      auto s = dd_Real::zero();
+      s.x[0] = fp<double>::min() / 128;
+      auto q = sqrt( s );
+      print( "min", s );
+      print( "sqrt min", q );
+      print( "sqr(sqrt min)", q*q );
+      print( "|s-q*q|",s-q*q );
+    }
+    {
+      auto s = td_Real::zero();
+      s.x[0] = fp<double>::min() / 128;
+      auto q = sqrt( s );
+      print( "min", s );
+      print( "sqrt min", q );
+      print( "sqr(sqrt min)", q*q );
+      print( "|s-q*q|",s-q*q );
+    }
+    {
+      auto s = qd_Real::zero();
+      s.x[0] = fp<double>::min() / 128;
+      auto q = sqrt( s );
+      print( "min", s );
+      print( "sqrt min", q );
+      print( "sqr(sqrt min)", q*q );
+      print( "|s-q*q|",s-q*q );
+    }
+
     float a = 0.1;
     float b = 0.3;
     print( "mul ", a * b );

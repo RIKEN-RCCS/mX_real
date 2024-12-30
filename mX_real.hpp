@@ -134,17 +134,18 @@ namespace mX_real {
                         //
                         // smaller corresponds to an accurate algorithm
                         //
-                        Accurate =  0,
+                        Accurate     =  0,
                         WeakAccurate =  5,
-                        Sloppy   = 10,
-                        Quasi    = 20,
+                        Sloppy       = 10,
+                        Quasi        = 20,
+
                         //
                         // name aliasing
                         //
-                        IEEE     = Accurate,
-                        PairWise = Quasi,
+                        IEEE           = Accurate,
+                        PairWise       = Quasi,
                         PairArithmetic = Quasi,
-                        Default  = Accurate
+                        Default        = Accurate
   };
   std::string toString( Algorithm A ) NOEXCEPT {
     if ( A==Algorithm::Accurate ) return "Accurate";
@@ -158,13 +159,17 @@ namespace mX_real {
   template < Algorithm Aa = Algorithm::Accurate, Algorithm Ab = Algorithm::Accurate >
   struct commonAlgorithm {
     static Algorithm constexpr algorithm =
-      ( Aa == Algorithm::Quasi || Ab == Algorithm::Quasi ) ?
-      Algorithm::Quasi :
-      ( Aa == Algorithm::Sloppy || Ab == Algorithm::Sloppy ) ?
-      Algorithm::Sloppy :
-      ( Aa == Algorithm::WeakAccurate || Ab == Algorithm::WeakAccurate ) ?
-      Algorithm::WeakAccurate :
-      Algorithm::Accurate;
+#if 1
+      Aa > Ab ? Aa : Ab;
+#else
+    ( Aa == Algorithm::Quasi || Ab == Algorithm::Quasi ) ?
+    Algorithm::Quasi :
+    ( Aa == Algorithm::Sloppy || Ab == Algorithm::Sloppy ) ?
+    Algorithm::Sloppy :
+    ( Aa == Algorithm::WeakAccurate || Ab == Algorithm::WeakAccurate ) ?
+    Algorithm::WeakAccurate :
+    Algorithm::Accurate;
+#endif
   };
 
   template < Algorithm A >
@@ -184,7 +189,8 @@ namespace mX_real {
   };
 
   template < Algorithm A >
-  struct if_A_noQuasi { static bool constexpr value = ( A != Algorithm::Quasi ); };
+  struct if_A_noQuasi { static bool constexpr value =
+      ( A != Algorithm::Quasi ); };
   template < Algorithm Aa, Algorithm Ab >
   struct if_A_owAble { static bool constexpr value =
       //   A W S Q
