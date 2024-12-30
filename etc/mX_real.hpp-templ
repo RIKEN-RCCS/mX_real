@@ -28,7 +28,7 @@ template < typename T > void printTYPE() {
 #endif
 
 
-#define	MX_REAL_USE_INF_NAN_EXCEPTION	1
+#define	MX_REAL_USE_INF_NAN_EXCEPTION	0
 #define	MX_REAL_OPTIMIZE_MUL_BY_SQR	1
 #define	MX_REAL_OPTIMIZE_MUL_BY_FAST	1
 #define	MX_REAL_OPTIMIZE_PROD_BY_POW2	1

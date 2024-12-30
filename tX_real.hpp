@@ -289,12 +289,30 @@ namespace mX_real {
       //                            case of mixtured sign, it turns to -NAN
       //                            after the Normalization.
       //
-      static INLINE TX_REAL<> constexpr zero () NOEXCEPT { return TX_REAL<>{ fp<T>::zero() }; }
-      static INLINE TX_REAL<> constexpr one () NOEXCEPT { return TX_REAL<>{ fp<T>::one() }; }
-      static INLINE TX_REAL<> constexpr two () NOEXCEPT { return TX_REAL<>{ fp<T>::two() }; }
-      static INLINE TX_REAL<> constexpr nhalf () NOEXCEPT { return TX_REAL<>{ fp<T>::nhalf() }; }
-      static INLINE TX_REAL<> constexpr nan () NOEXCEPT { T c = fp<T>::nan(); return TX_REAL<>{ c, c, c }; }
-      static INLINE TX_REAL<> constexpr inf () NOEXCEPT { T c = fp<T>::inf(); return TX_REAL<>{ c, c, c }; }
+      static INLINE TX_REAL<> constexpr zero () NOEXCEPT {
+        return TX_REAL<>{ fp<T>::zero() };
+      }
+      static INLINE TX_REAL<> constexpr one () NOEXCEPT {
+        return TX_REAL<>{ fp<T>::one() };
+      }
+      static INLINE TX_REAL<> constexpr two () NOEXCEPT {
+        return TX_REAL<>{ fp<T>::two() };
+      }
+      static INLINE TX_REAL<> constexpr nhalf () NOEXCEPT {
+        return TX_REAL<>{ fp<T>::nhalf() };
+      }
+      static INLINE TX_REAL<> constexpr nan () NOEXCEPT {
+        TX_REAL<> c;
+        T p = fp<T>::nan();
+        for(auto i=0; i<L; i++) { c.x[i] = p; }
+        return c;
+      }
+      static INLINE TX_REAL<> constexpr inf () NOEXCEPT {
+        TX_REAL<> c;
+        T p = fp<T>::inf();
+        for(auto i=0; i<L; i++) { c.x[i] = p; }
+        return c;
+      }
       //
       // epsilon() : machine epsilon, specifically,
       //             it is defined by the ulp of a contiguous full-bit
@@ -304,8 +322,11 @@ namespace mX_real {
       //               EPS = 0.01B-{2(E+1)} = 1.00B-{2(E+1)+E}
       //
       static INLINE TX_REAL<> constexpr epsilon () NOEXCEPT {
-        T c = fp<T>::connect_fp(); c = (c * c* c) * 2;
-        return TX_REAL<>{ c };
+        TX_REAL<> c;
+        T p = fp<T>::connect_fp(); p = ( p * p* p) * 2;
+        T q = fp<T>::zero();
+        c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
+        return c;
       }
 
       //
@@ -315,8 +336,11 @@ namespace mX_real {
       //                  single word
       //
       static INLINE TX_REAL<> constexpr denorm_min  () NOEXCEPT {
-        T c = fp<T>::denorm_min();
-        return TX_REAL<>{ c };
+        TX_REAL<> c;
+        T p = fp<T>::denorm_min();
+        T q = fp<T>::zero();
+        c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
+        return c;
       }
 
       //
@@ -333,9 +357,12 @@ namespace mX_real {
       //           X = min() / EPS * 2 = min() * epslioni() * 2
       //
       static INLINE TX_REAL<> constexpr min  () NOEXCEPT {
-        T c = fp<T>::min();
-        for(auto i=1; i<L; i++) { c = c * ( fp<T>::disconnect_fp() ); }
-        return TX_REAL<>{ c };
+        TX_REAL<> c;
+        T p = fp<T>::min();
+        T q = fp<T>::zero();
+        for(auto i=1; i<L; i++) { p *= ( fp<T>::disconnect_fp() ); }
+        c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
+        return c;
       }
 
       //
@@ -344,10 +371,11 @@ namespace mX_real {
       //         exponent component of the max<T>() 
       //
       static INLINE TX_REAL<> constexpr max  () NOEXCEPT {
-        T c[L];
-        c[0] = fp<T>::max();
-        for(auto i=1; i<L; i++) { c[i] = c[i-1] * ( fp<T>::connect_fp() ); }
-        return TX_REAL<>{ c };
+        TX_REAL<> c;
+        T p = fp<T>::max();
+        T q = fp<T>::connect_fp();
+        c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = c.x[i-1] * q; }
+        return c;
       }
 
       //
@@ -356,8 +384,11 @@ namespace mX_real {
       //              it is always the same as min of T of the single word
       //
       static INLINE TX_REAL<> constexpr safe_min  () NOEXCEPT {
-        T c = fp<T>::min();
-        return TX_REAL<>{ c };
+        TX_REAL<> c;
+        T p = fp<T>::min();
+        T q = fp<T>::zero();
+        c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
+        return c;
       }
 
       //

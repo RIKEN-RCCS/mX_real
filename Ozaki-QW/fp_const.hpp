@@ -34,13 +34,17 @@ namespace QxW {
     //
     // significant parameters based on IEE754
     //
-    static uint32_t constexpr FONE = 0x00000001;
-    static uint32_t constexpr SBIT = FONE << (32-1); // 0x80000000;
-    static uint32_t constexpr EONE = FONE << (23);   // 0x00800000;
+    static uint32_t constexpr BONE = 0x00000001;
+    static uint32_t constexpr SBIT = BONE << (32-1); // 0x80000000;
+    static uint32_t constexpr EONE = BONE << (23);   // 0x00800000;
     static uint32_t constexpr MASK = SBIT - EONE;    // 0x7f800000;
-    static uint32_t constexpr FRAC = EONE - FONE;    // 0x007fffff;
+    static uint32_t constexpr FRAC = EONE - BONE;    // 0x007fffff;
     static uint32_t constexpr RINF = MASK - EONE;    // 0x7f000000;
     static uint32_t constexpr XONE = EONE * 23;      // 0x0b800000;
+
+    static uint32_t constexpr FONE = EONE * ((1<<7)-1); // 0x3f800000;
+    static uint32_t constexpr PWRP = FONE + XONE;    // 0x4b000000;
+    static uint32_t constexpr PWRN = FONE - XONE;    // 0x34000000;
 
     static INLINE auto constexpr fp2uint( float const a ) NOEXCEPT {
       union { float a; uint32_t e; } x = { .a = a };
@@ -55,6 +59,13 @@ namespace QxW {
       //
       // 'a' is either power of 2 or 0 or INF
       //
+      if ( a == zero() ) return true;
+
+      auto x = std::fabs(a);
+      // check if denormal floating point number
+      auto is_small = ( x <= uint2fp( EONE ) );
+      x *= ( is_small ? uint2fp( PWRP ) : one() );
+
       auto frac = fp2uint( a ) & FRAC;
       return ( frac == 0 );
     }
@@ -65,26 +76,38 @@ namespace QxW {
       // but if a is zero returns zero.
       //
       if ( a == zero() ) return a;
+
       auto e = fp2uint( a );
       auto s = e & SBIT;
       e &= MASK;
       e -= XONE;
+
       if ( e & SBIT ) { e = 0; } // underflow
       e = e | s; // allow -0
+
       return uint2fp( e );
     }
     template < bool inverse = false >
     static INLINE auto constexpr exponent( float const a ) NOEXCEPT {
       //
-      // returns the exponent part with the hidden top bit number component
-      // but if a is zero returns one.
+      // returns the exponent part considering the denormalized case
+      // but if a is zero, INF, or NaN, it returns one.
       //
       if ( a == zero() ) return one();
-      auto e = fp2uint( a );
-      e &= MASK;
+
+      auto x = std::fabs(a);
+      // check if denormal floating point number
+      auto is_small = ( x <= uint2fp( EONE ) );
+      x *= ( is_small ? uint2fp( PWRP ) : one() );
+      auto e = fp2uint( x ) & MASK;
+
+      // check if INF or NaN
       if ( e == MASK ) return one();
       if ( inverse ) e = RINF - e;
-      return uint2fp( e );
+
+      auto r = uint2fp( e );
+      r *= ( is_small ? uint2fp( inverse ? PWRP : PWRN ) : one() );
+      return r;
     }
     static INLINE auto constexpr exponenti( float const a ) NOEXCEPT {
       //
@@ -103,13 +126,16 @@ namespace QxW {
     //
     // significant parameters based on IEE754
     //
-    static uint64_t constexpr FONE = 0x0000000000000001;
-    static uint64_t constexpr SBIT = FONE << (64-1); // 0x8000000000000000;
-    static uint64_t constexpr EONE = FONE << (52);   // 0x0010000000000000;
+    static uint64_t constexpr BONE = 0x0000000000000001;
+    static uint64_t constexpr SBIT = BONE << (64-1); // 0x8000000000000000;
+    static uint64_t constexpr EONE = BONE << (52);   // 0x0010000000000000;
     static uint64_t constexpr MASK = SBIT - EONE;    // 0x7ff0000000000000;
-    static uint64_t constexpr FRAC = EONE - FONE;    // 0x000fffffffffffff;
+    static uint64_t constexpr FRAC = EONE - BONE;    // 0x000fffffffffffff;
     static uint64_t constexpr RINF = MASK - EONE;    // 0x7fe0000000000000;
     static uint64_t constexpr XONE = EONE * 52;      // 0x0340000000000000;
+    static uint64_t constexpr FONE = EONE * ((1<<11)-1); // 0x3ff0000000000000;
+    static uint64_t constexpr PWRP = FONE + XONE;    // 0x4330000000000000;
+    static uint64_t constexpr PWRN = FONE - XONE;    // 0x3cb0000000000000;
 
     static INLINE auto constexpr fp2uint( double const a ) NOEXCEPT {
       union { double a; uint64_t e; } x = { .a = a };
@@ -124,7 +150,14 @@ namespace QxW {
       //
       // 'a' is either power of 2 or 0 or INF
       //
-      auto frac = fp2uint( a ) & FRAC;
+      if ( a == zero() ) return true;
+
+      auto x = std::fabs(a);
+      // check if denormal floating point number
+      auto is_small = ( x <= uint2fp( EONE ) );
+      x *= ( is_small ? uint2fp( PWRP ) : one() );
+
+      auto frac = fp2uint( x ) & FRAC;
       return ( frac == 0 );
     }
 
@@ -134,26 +167,38 @@ namespace QxW {
       // but if a is zero returns zero.
       //
       if ( a == zero() ) return a;
+
       auto e = fp2uint( a );
       auto s = e & SBIT;
       e &= MASK;
       e -= XONE;
+
       if ( e & SBIT ) { e = 0; } // underflow
       e = e | s; // allow -0
+
       return uint2fp( e );
     }
     template < bool inverse = false >
     static INLINE auto constexpr exponent( double const a ) NOEXCEPT {
       //
-      // returns the exponent part with the hidden top bit number component
-      // but if a is zero returns one.
+      // returns the exponent part considering the denormalized case
+      // but if a is zero, INF, or NaN, it returns one.
       //
       if ( a == zero() ) return one();
-      auto e = fp2uint( a );
-      e &= MASK;
+
+      auto x = std::fabs(a);
+      // check if denormal floating point number
+      auto is_small = ( x <= uint2fp( EONE ) );
+      x *= ( is_small ? uint2fp( PWRP ) : one() );
+      auto e = fp2uint( x ) & MASK;
+
+      // check if INF or NaN
       if ( e == MASK ) return one();
       if ( inverse ) e = RINF - e;
-      return uint2fp( e );
+
+      auto r = uint2fp( e );
+      r *= ( is_small ? uint2fp( inverse ? PWRP : PWRN ) : one() );
+      return r;
     }
     static INLINE auto constexpr exponenti( double const a ) NOEXCEPT {
       //

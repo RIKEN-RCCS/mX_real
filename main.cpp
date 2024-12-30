@@ -581,6 +581,24 @@ main(int argc, char *argv[])
   std::cout << std::scientific << std::setprecision(15);
   mp_real::set_default_prec(64*4);
   
+  print( "one=", QxW::fp_const<double>::one() );
+  print( "zero=", QxW::fp_const<double>::zero() );
+  print( "fmin=", std::numeric_limits<double>::min() );
+  print( "xone=", std::ldexp(std::numeric_limits<double>::min(),52) );
+  print( "pw52=", std::ldexp((double)1,+52) );
+  print( "p-52=", std::ldexp((double)1,-52) );
+  printf( "PWRP=\t%016lx\n", QxW::fp_const<double>::PWRP );
+  printf( "PWRN=\t%016lx\n", QxW::fp_const<double>::PWRN );
+
+  print( "one=", QxW::fp_const<float>::one() );
+  print( "zero=", QxW::fp_const<float>::zero() );
+  print( "fmin=", std::numeric_limits<float>::min() );
+  print( "xone=", std::ldexp(std::numeric_limits<float>::min(),23) );
+  print( "pw23=", std::ldexp((float)1,+23) );
+  print( "p-23=", std::ldexp((float)1,-23) );
+  printf( "PWRP=\t%08x\n", QxW::fp_const<float>::PWRP );
+  printf( "PWRN=\t%08x\n", QxW::fp_const<float>::PWRN );
+
   int constexpr L = 1000*1000;
   int const     M = (int)sqrt((double)L);
   
@@ -665,6 +683,11 @@ main(int argc, char *argv[])
     print( "min=", dd_Real::min() );
     print( "min=", td_Real::min() );
     print( "min=", qd_Real::min() );
+
+    print( "connect=", fp<float>::connect_fp() );
+    print( "connect=", fp<double>::connect_fp() );
+    print( "disconnect=", fp<float>::disconnect_fp() );
+    print( "disconnect=", fp<double>::disconnect_fp() );
 
     print( "max=", df_Real::max() );
     print( "max=", tf_Real::max() );

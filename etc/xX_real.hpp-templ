@@ -283,10 +283,17 @@ namespace @{m}@X_real {
     //                            after the Normalization.
     //
 @@@{ func zero one two nhalf
-    static INLINE @{M}@X_REAL<> constexpr @{func}@ () NOEXCEPT { return @{M}@X_REAL<>{ fp<T>::@{func}@() }; }
+    static INLINE @{M}@X_REAL<> constexpr @{func}@ () NOEXCEPT {
+      return @{M}@X_REAL<>{ fp<T>::@{func}@() };
+    }
 }@@@
 @@@{ func nan inf
-    static INLINE @{M}@X_REAL<> constexpr @{func}@ () NOEXCEPT { T c = fp<T>::@{func}@(); return @{M}@X_REAL<>{ c@@{, c}@@ }; }
+    static INLINE @{M}@X_REAL<> constexpr @{func}@ () NOEXCEPT {
+      @{M}@X_REAL<> c;
+      T p = fp<T>::@{func}@();
+      for(auto i=0; i<L; i++) { c.x[i] = p; }
+      return c;
+    }
 }@@@
     //
     // epsilon() : machine epsilon, specifically,
@@ -297,8 +304,11 @@ namespace @{m}@X_real {
     //               EPS = 0.01B-{2(E+1)} = 1.00B-{2(E+1)+E}
     //
     static INLINE @{M}@X_REAL<> constexpr epsilon () NOEXCEPT {
-      T c = fp<T>::connect_fp(); c = (c @@{* c}@@) * 2;
-      return @{M}@X_REAL<>{ c };
+      @{M}@X_REAL<> c;
+      T p = fp<T>::connect_fp(); p = ( p @@{* p}@@) * 2;
+      T q = fp<T>::zero();
+      c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
+      return c;
     }
 
     //
@@ -308,8 +318,11 @@ namespace @{m}@X_real {
     //                  single word
     //
     static INLINE @{M}@X_REAL<> constexpr denorm_min  () NOEXCEPT {
-      T c = fp<T>::denorm_min();
-      return @{M}@X_REAL<>{ c };
+      @{M}@X_REAL<> c;
+      T p = fp<T>::denorm_min();
+      T q = fp<T>::zero();
+      c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
+      return c;
     }
 
     //
@@ -326,9 +339,12 @@ namespace @{m}@X_real {
     //           X = min() / EPS * 2 = min() * epslioni() * 2
     //
     static INLINE @{M}@X_REAL<> constexpr min  () NOEXCEPT {
-      T c = fp<T>::min();
-      for(auto i=1; i<L; i++) { c = c * ( fp<T>::disconnect_fp() ); }
-      return @{M}@X_REAL<>{ c };
+      @{M}@X_REAL<> c;
+      T p = fp<T>::min();
+      T q = fp<T>::zero();
+      for(auto i=1; i<L; i++) { p *= ( fp<T>::disconnect_fp() ); }
+      c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
+      return c;
     }
 
     //
@@ -337,10 +353,11 @@ namespace @{m}@X_real {
     //         exponent component of the max<T>() 
     //
     static INLINE @{M}@X_REAL<> constexpr max  () NOEXCEPT {
-      T c[L];
-      c[0] = fp<T>::max();
-      for(auto i=1; i<L; i++) { c[i] = c[i-1] * ( fp<T>::connect_fp() ); }
-      return @{M}@X_REAL<>{ c };
+      @{M}@X_REAL<> c;
+      T p = fp<T>::max();
+      T q = fp<T>::connect_fp();
+      c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = c.x[i-1] * q; }
+      return c;
     }
 
     //
@@ -349,8 +366,11 @@ namespace @{m}@X_real {
     //              it is always the same as min of T of the single word
     //
     static INLINE @{M}@X_REAL<> constexpr safe_min  () NOEXCEPT {
-      T c = fp<T>::min();
-      return @{M}@X_REAL<>{ c };
+      @{M}@X_REAL<> c;
+      T p = fp<T>::min();
+      T q = fp<T>::zero();
+      c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
+      return c;
     }
 
 @@include "@{m}@x_members.hpp"
