@@ -7,6 +7,7 @@
 #include <bitset>
 #include <limits>
 #include <math.h>
+#include <cstdint>
 
 #ifdef USE_MPREAL
 #include <mpreal.h>
@@ -227,6 +228,11 @@ namespace mX_real {
   //
   // generic terms (const, comparison funcs, and sign-bit ops)
   //
+#if ( defined(__llvm__) || defined(__clang__) ) && (__cplusplus < 202302L)
+#define	__constexpr__	const
+#else
+#define	__constexpr__	constexpr
+#endif
 @@@{ X float double
   template <>
   struct fp<@{X}@> {
@@ -253,18 +259,18 @@ namespace mX_real {
     static INLINE auto constexpr digits10()     NOEXCEPT { return std::numeric_limits<@{X}@>::digits10; }
     static INLINE auto constexpr max_digits10() NOEXCEPT { return std::numeric_limits<@{X}@>::max_digits10; }
 
-    static INLINE auto constexpr isinf       ( @{X}@ const& a ) NOEXCEPT { return std::isinf( a ); }
-    static INLINE auto constexpr isnan       ( @{X}@ const& a ) NOEXCEPT { return std::isnan( a ); }
-    static INLINE auto constexpr copysign    ( @{X}@ const& a, @{X}@ const& b ) NOEXCEPT { return std::copysign( a, b ); }
-    static INLINE auto constexpr signbit     ( @{X}@ const& a ) NOEXCEPT { return std::signbit( a ); }
-    static INLINE auto constexpr is_zero     ( @{X}@ const& a ) NOEXCEPT { return (a == fp<@{X}@>::zero()); }
-    static INLINE auto constexpr is_positive ( @{X}@ const& a ) NOEXCEPT { return (a >  fp<@{X}@>::zero()); }
-    static INLINE auto constexpr is_negative ( @{X}@ const& a ) NOEXCEPT { return (a <  fp<@{X}@>::zero()); }
+    static INLINE auto __constexpr__ isinf       ( @{X}@ const& a ) NOEXCEPT { return std::isinf( a ); }
+    static INLINE auto __constexpr__ isnan       ( @{X}@ const& a ) NOEXCEPT { return std::isnan( a ); }
+    static INLINE auto __constexpr__ copysign    ( @{X}@ const& a, @{X}@ const& b ) NOEXCEPT { return std::copysign( a, b ); }
+    static INLINE auto __constexpr__ signbit     ( @{X}@ const& a ) NOEXCEPT { return std::signbit( a ); }
+    static INLINE auto __constexpr__ is_zero     ( @{X}@ const& a ) NOEXCEPT { return (a == fp<@{X}@>::zero()); }
+    static INLINE auto __constexpr__ is_positive ( @{X}@ const& a ) NOEXCEPT { return (a >  fp<@{X}@>::zero()); }
+    static INLINE auto __constexpr__ is_negative ( @{X}@ const& a ) NOEXCEPT { return (a <  fp<@{X}@>::zero()); }
   };
   //
 }@@@
+#undef	__constexpr__
   //
-#undef STATIC_VAR
   //
 
 

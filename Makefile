@@ -2,7 +2,14 @@ ifeq (x$(CXX),x)
 	CXX = g++
 endif
 ifeq (x$(CXX),xg++)
-	CXX = g++-11
+	#CXX = g++-9 # ok
+	#CXX = g++-10 # ok
+	#CXX = g++-11 # ok
+	#CXX = g++-13 # ok
+	#CXX = clang++
+	#CXX = clang++-10 # ok
+	#CXX = clang++-11
+	CXX = clang++-12
 	cxx = g++
 endif
 ifeq (x$(CXX),xicpx)
@@ -13,21 +20,6 @@ ifneq (x$(shell which $(CXX) 2>&1 | grep 'which'),x)
 	CXX = g++
 endif
 
-OPT_HEADER = mX_real.hpp.gch
-ifeq (x$(CXX),xg++)
-OPT_HEADER := mX_real.hpp.gch
-endif
-ifeq (x$(CXX),xicpx)
-CXXVER = $(shell icpx --version | awk '/Compiler/{ V=$$NF; gsub(/[\(\)]/,"",V); split(V,a,"."); print a[1]; exit;}' )
-ifeq (x$(CXXVER),x2023)
-OPT_HEADER := mX_real.hpp.gch
-endif
-ifeq (x$(CXXVER),x2024)
-OPT_HEADER := mX_real.hpp.pchi
-endif
-endif
-
-#CXX := $(CXX)
 CXX := $(CXX) --std=c++14
 #CXX := $(CXX) --std=c++17
 #CXX := $(CXX) --std=c++2a
@@ -40,7 +32,8 @@ NVCC = nvcc
 
 #CCFLAGS := $(CCFLAGS) -O3 -Wall -I./ -include mX_real.hpp
 CCFLAGS_HEADER := $(CCFLAGS) -O3 -I./
-CCFLAGS := $(CCFLAGS) -O3 -I./ -include mX_real.hpp
+#CCFLAGS := $(CCFLAGS) -O3 -I./ -include mX_real.hpp
+CCFLAGS := $(CCFLAGS) -O3 -I./
 ifeq (x$(cxx),xicpx)
 LDFLAGS = -qopenmp -lquadmath -lm
 else
@@ -67,15 +60,18 @@ MPFR_CCFLAGS = -I./mpreal/
 MPFR_LDFLAGS = -lmpfr -lgmp
 
 
-all: Ozaki-QW/qxw.hpp mX_real.hpp dX_real.hpp tX_real.hpp qX_real.hpp
+OPT_HEADERS = Ozaki-QW/qxw.hpp Ozaki-QW/fp_const.hpp \
+	mX_real.hpp dX_real.hpp tX_real.hpp qX_real.hpp
 
+
+all: $(OPT_HEADERS)
 
 bench: a.out sample.exe
 a.out: main.o
 	$(CXX) -o a.out main.o $(LDFLAGS) $(QD_LDFLAGS) $(MPFR_LDFLAGS)
-main.o: mpreal qd_real main.cpp $(OPT_HEADER)
+main.o: mpreal qd_real main.cpp $(OPT_HEADERS)
 	$(CXX) -c main.cpp $(CCFLAGS) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
-sample.exe: mpreal sample.cpp $(OPT_HEADER)
+sample.exe: mpreal sample.cpp $(OPT_HEADERS)
 	$(CXX) -S sample.cpp $(CCFLAGS) $(MPFR_CCFLAGS) $(MPFR_LDFLAGS)
 	$(CXX) -o sample.exe sample.cpp $(CCFLAGS) $(MPFR_CCFLAGS) $(MPFR_LDFLAGS)
 test.o: test.cu mX_real.hpp
@@ -83,12 +79,10 @@ test.o: test.cu mX_real.hpp
 	$(NVCC) -I./ -c test.cu
 
 
-$(OPT_HEADER): mX_real.hpp Ozaki-QW/qxw.hpp dX_real.hpp tX_real.hpp qX_real.hpp
-	$(CXX) -c  -x c++-header -o $(OPT_HEADER) mX_real.hpp $(CCFLAGS_HEADER) $(QD_CCFLAGS) $(MPFR_CCFLAGS)
-mX_real.hpp dX_real.hpp tX_real.hpp qX_real.hpp:
-	cd etc; make clean; make
-Ozaki-QW/qxw.hpp:
+$(OPT_HEADERS):
 	cd Ozaki-QW; make
+	cd etc; make clean; make
+	touch $(OPT_HEADER)
 
 
 qd_real:

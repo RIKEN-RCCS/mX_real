@@ -70,11 +70,12 @@ public:
 template < typename TX, T_mX(TX) >
 TX random_number() {
   using T = typename TX::base_T;
-  using TX_accurate = typename TX::type_with_Algorithm<Algorithm::Accurate>;
+  using TX_accurate = typename TX::typeAccurate;
   auto r = TX{ 2*TX_accurate::rand() -TX_accurate::one() };
   auto f = std::pow(2.0,double(rand()%60)-30.0);
   return r * f;
 }
+
 template < typename T >
 T nrm2( int const& L, T const* x ) {
   T z = 0;
@@ -210,7 +211,7 @@ void verify( int const &L, mp_real const& Alpha, mp_real *X, mp_real *Y, mp_real
 
   auto o_prec = std::cout.precision();
   std::cout << std::scientific
-            << std::setprecision(45);
+            << std::setprecision(32);
 
   {
     auto * w = new T[ITR];
@@ -379,7 +380,7 @@ struct Test_add
   {
   using T = typename TXa::base_T;
   Algorithm const A = commonAlgorithm<TXa::base_A,TXb::base_A>::algorithm;
-  using TXc = typename largeType<TXa,TXb>::type_with_Algorithm<A>;
+  using TXc = typename largeType<TXa,TXb>::template type_with_Algorithm<A>;
   auto eps  = convert( TXc::epsilon() );
   auto tol  = get_tol<TXa,TXb>();
 
@@ -421,7 +422,7 @@ struct Test_mul
   {
   using T = typename TXa::base_T;
   Algorithm const A = commonAlgorithm<TXa::base_A,TXb::base_A>::algorithm;
-  using TXc = typename largeType<TXa,TXb>::type_with_Algorithm<A>;
+  using TXc = typename largeType<TXa,TXb>::template type_with_Algorithm<A>;
   auto eps  = convert( TXc::epsilon() );
   auto tol  = get_tol<TXa,TXb>();
 
@@ -463,7 +464,7 @@ struct Test_div
   {
   using T = typename TXa::base_T;
   Algorithm const A = commonAlgorithm<TXa::base_A,TXb::base_A>::algorithm;
-  using TXc = typename largeType<TXa,TXb>::type_with_Algorithm<A>;
+  using TXc = typename largeType<TXa,TXb>::template type_with_Algorithm<A>;
   auto eps  = convert( TXc::epsilon() );
   auto tol  = get_tol<TXa,TXb>(); tol = tol*tol;
 
@@ -553,7 +554,8 @@ struct Test_sqrt
 
   auto res = -eps;
   for(int i=1;i<10000;i++){
-    auto a = TXa::rand() * std::pow(2.0,double(rand()%60)-30.0);
+//    auto a = TXa::rand() * std::pow(2.0,double(rand()%60)-30.0);
+    auto a = fabs( random_number<TXa>() );
     auto c = sqrt( a );
 
     auto a_ = convert( a );

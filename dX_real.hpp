@@ -443,11 +443,11 @@ namespace mX_real {
       }
       static INLINE DX_REAL<> rand () NOEXCEPT;
       static INLINE bool constexpr is_zero ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_positive ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr signbit ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr isnan ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_negative ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr isinf ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_positive ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_negative ( DX_REAL<> const& a ) NOEXCEPT;
       //
 
 
@@ -458,11 +458,11 @@ namespace mX_real {
       INLINE void constexpr Normalize () NOEXCEPT { mX_real::Normalize( *this ); }
       //
       INLINE bool constexpr is_zero () const NOEXCEPT { return DX_REAL<>::is_zero( *this ); }
-      INLINE bool constexpr is_positive () const NOEXCEPT { return DX_REAL<>::is_positive( *this ); }
       INLINE bool constexpr signbit () const NOEXCEPT { return DX_REAL<>::signbit( *this ); }
       INLINE bool constexpr isnan () const NOEXCEPT { return DX_REAL<>::isnan( *this ); }
-      INLINE bool constexpr is_negative () const NOEXCEPT { return DX_REAL<>::is_negative( *this ); }
       INLINE bool constexpr isinf () const NOEXCEPT { return DX_REAL<>::isinf( *this ); }
+      INLINE bool constexpr is_positive () const NOEXCEPT { return DX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr is_negative () const NOEXCEPT { return DX_REAL<>::is_negative( *this ); }
       //
 
 
@@ -524,6 +524,10 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa >
+    INLINE auto constexpr isinf ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
+      return fp<T>::isinf( a.quick_Normalized() );
+    }
+    template < typename T, Algorithm Aa >
     INLINE auto constexpr isnan ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
       return fp<T>::isnan( a.quick_Normalized() );
     }
@@ -532,20 +536,16 @@ namespace mX_real {
       return fp<T>::signbit( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isinf ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
-      return fp<T>::isinf( a.quick_Normalized() );
-    }
-    template < typename T, Algorithm Aa >
     INLINE bool constexpr is_zero ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
       return a.quick_Normalized() == fp<T>::zero();
     }
     template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_positive ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
-      return a.quick_Normalized() > fp<T>::zero();
-    }
-    template < typename T, Algorithm Aa >
     INLINE bool constexpr is_negative ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
       return a.quick_Normalized() < fp<T>::zero();
+    }
+    template < typename T, Algorithm Aa >
+    INLINE bool constexpr is_positive ( dX_real::dx_real<T,Aa> const& a ) NOEXCEPT {
+      return a.quick_Normalized() > fp<T>::zero();
     }
     //
     template < typename T, Algorithm A >

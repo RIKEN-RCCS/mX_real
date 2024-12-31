@@ -18,6 +18,7 @@ def init_ () :
 
 #include <stdio.h>
 #include <math.h>
+#include <cstdint>
 
 
 namespace QxW {
@@ -258,22 +259,52 @@ namespace QxW {
 template < typename T > INLINE void constexpr
 TwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
 {
+#if defined(__llvm__) || defined(__clang__)
+#if __clang_major__ >= 11
+#pragma clang fp reassociate(off)
+#endif
+#if __clang_major__ <= 10
+#pragma clang optimize off
+#endif
+#endif
+
   //
   // basic cost is 6 flops and 6 cycles per a signle call
   //
   x = a + b;
   auto z = x - a;
   y = (a - (x - z)) + (b - z);
+
+#if defined(__llvm__) || defined(__clang__)
+#if __clang_major__ <= 10
+#pragma clang optimize on
+#endif
+#endif
 }
 
 template < typename T > INLINE void constexpr
 FastTwoSum ( T const a, T const b, T &x, T &y ) NOEXCEPT
 {
+#if defined(__llvm__) || defined(__clang__)
+#if __clang_major__ >= 11
+#pragma clang fp reassociate(off)
+#endif
+#if __clang_major__ <= 10
+#pragma clang optimize off
+#endif
+#endif
+
   //
   // basic cost is 3 flops and 3 cycles per a signle call
   //
   x = a + b;
   y = (a - x) + b;
+
+#if defined(__llvm__) || defined(__clang__)
+#if __clang_major__ <= 10
+#pragma clang optimize on
+#endif
+#endif
 }
 
 template < typename T > INLINE void constexpr

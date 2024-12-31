@@ -115,9 +115,11 @@ namespace mX_real {
       auto s = (double)X;
       mpfr::mpreal S = s;
       if ( i<NX-1 ) {
+#if 0
         if ( (X > 0 && S > X) || (X < 0 && S < X) ) {
            s = s - QxW::fp_const<double>::ulp( s );
         }
+#endif
         X = X - (double)s;
       }
       t.x[i] = s;
@@ -136,9 +138,11 @@ namespace mX_real {
       auto s = (double)X;
       mpfr::mpreal S = s;
       if ( i<NX-1 ) {
+#if 0
         if ( (X > 0 && S > X) || (X < 0 && S < X) ) {
            s = s - QxW::fp_const<double>::ulp( s );
         }
+#endif
         X = X - (double)s;
       }
       t.x[i] = s;

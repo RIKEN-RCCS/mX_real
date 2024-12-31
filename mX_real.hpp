@@ -7,6 +7,7 @@
 #include <bitset>
 #include <limits>
 #include <math.h>
+#include <cstdint>
 
 #ifdef USE_MPREAL
 #include <mpreal.h>
@@ -227,6 +228,11 @@ namespace mX_real {
   //
   // generic terms (const, comparison funcs, and sign-bit ops)
   //
+#if ( defined(__llvm__) || defined(__clang__) ) && (__cplusplus < 202302L)
+#define	__constexpr__	const
+#else
+#define	__constexpr__	constexpr
+#endif
   template <>
   struct fp<float> {
     static bool   constexpr value = true;
@@ -252,13 +258,13 @@ namespace mX_real {
     static INLINE auto constexpr digits10()     NOEXCEPT { return std::numeric_limits<float>::digits10; }
     static INLINE auto constexpr max_digits10() NOEXCEPT { return std::numeric_limits<float>::max_digits10; }
 
-    static INLINE auto constexpr isinf       ( float const& a ) NOEXCEPT { return std::isinf( a ); }
-    static INLINE auto constexpr isnan       ( float const& a ) NOEXCEPT { return std::isnan( a ); }
-    static INLINE auto constexpr copysign    ( float const& a, float const& b ) NOEXCEPT { return std::copysign( a, b ); }
-    static INLINE auto constexpr signbit     ( float const& a ) NOEXCEPT { return std::signbit( a ); }
-    static INLINE auto constexpr is_zero     ( float const& a ) NOEXCEPT { return (a == fp<float>::zero()); }
-    static INLINE auto constexpr is_positive ( float const& a ) NOEXCEPT { return (a >  fp<float>::zero()); }
-    static INLINE auto constexpr is_negative ( float const& a ) NOEXCEPT { return (a <  fp<float>::zero()); }
+    static INLINE auto __constexpr__ isinf       ( float const& a ) NOEXCEPT { return std::isinf( a ); }
+    static INLINE auto __constexpr__ isnan       ( float const& a ) NOEXCEPT { return std::isnan( a ); }
+    static INLINE auto __constexpr__ copysign    ( float const& a, float const& b ) NOEXCEPT { return std::copysign( a, b ); }
+    static INLINE auto __constexpr__ signbit     ( float const& a ) NOEXCEPT { return std::signbit( a ); }
+    static INLINE auto __constexpr__ is_zero     ( float const& a ) NOEXCEPT { return (a == fp<float>::zero()); }
+    static INLINE auto __constexpr__ is_positive ( float const& a ) NOEXCEPT { return (a >  fp<float>::zero()); }
+    static INLINE auto __constexpr__ is_negative ( float const& a ) NOEXCEPT { return (a <  fp<float>::zero()); }
   };
   //
   template <>
@@ -286,17 +292,17 @@ namespace mX_real {
     static INLINE auto constexpr digits10()     NOEXCEPT { return std::numeric_limits<double>::digits10; }
     static INLINE auto constexpr max_digits10() NOEXCEPT { return std::numeric_limits<double>::max_digits10; }
 
-    static INLINE auto constexpr isinf       ( double const& a ) NOEXCEPT { return std::isinf( a ); }
-    static INLINE auto constexpr isnan       ( double const& a ) NOEXCEPT { return std::isnan( a ); }
-    static INLINE auto constexpr copysign    ( double const& a, double const& b ) NOEXCEPT { return std::copysign( a, b ); }
-    static INLINE auto constexpr signbit     ( double const& a ) NOEXCEPT { return std::signbit( a ); }
-    static INLINE auto constexpr is_zero     ( double const& a ) NOEXCEPT { return (a == fp<double>::zero()); }
-    static INLINE auto constexpr is_positive ( double const& a ) NOEXCEPT { return (a >  fp<double>::zero()); }
-    static INLINE auto constexpr is_negative ( double const& a ) NOEXCEPT { return (a <  fp<double>::zero()); }
+    static INLINE auto __constexpr__ isinf       ( double const& a ) NOEXCEPT { return std::isinf( a ); }
+    static INLINE auto __constexpr__ isnan       ( double const& a ) NOEXCEPT { return std::isnan( a ); }
+    static INLINE auto __constexpr__ copysign    ( double const& a, double const& b ) NOEXCEPT { return std::copysign( a, b ); }
+    static INLINE auto __constexpr__ signbit     ( double const& a ) NOEXCEPT { return std::signbit( a ); }
+    static INLINE auto __constexpr__ is_zero     ( double const& a ) NOEXCEPT { return (a == fp<double>::zero()); }
+    static INLINE auto __constexpr__ is_positive ( double const& a ) NOEXCEPT { return (a >  fp<double>::zero()); }
+    static INLINE auto __constexpr__ is_negative ( double const& a ) NOEXCEPT { return (a <  fp<double>::zero()); }
   };
   //
+#undef	__constexpr__
   //
-#undef STATIC_VAR
   //
 
 
