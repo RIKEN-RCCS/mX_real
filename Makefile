@@ -7,10 +7,13 @@ ifeq (x$(CXX),xg++)
 	#CXX = g++-10 # ok
 	#CXX = g++-11 # ok
 	CXX = g++-13 # ok
+	cxx = g++
+endif
+ifeq (x$(CXX),xclang++)
 	#CXX = clang++ # v10 # ok
 	#CXX = clang++-10 # ok
 	#CXX = clang++-11 # ok
-	#CXX = clang++-12 # ok
+	CXX = clang++-12 # ok
 	cxx = g++
 endif
 ifeq (x$(CXX),xicpx)
