@@ -81,8 +81,8 @@ sample.exe: mpreal sample.cpp $(OPT_HEADERS)
 	$(CXX) -S sample.cpp $(CCFLAGS) $(MPFR_CCFLAGS) $(MPFR_LDFLAGS)
 	$(CXX) -o sample.exe sample.cpp $(CCFLAGS) $(MPFR_CCFLAGS) $(MPFR_LDFLAGS)
 test.o: test.cu mX_real.hpp
-	$(NVCC) -I./ --ptx test.cu
-	$(NVCC) -I./ -c test.cu
+	$(NVCC) -I./ -O3 -g --fmad=true --expt-relaxed-constexpr --ptx test.cu
+	$(NVCC) -I./ -O3 -g --fmad=true --expt-relaxed-constexpr -c test.cu
 
 
 $(OPT_HEADERS):

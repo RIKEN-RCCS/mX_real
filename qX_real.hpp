@@ -426,12 +426,12 @@ namespace mX_real {
       // static member funtions
       // their definitions are below outside of the struct definition block
       //
-      static INLINE QX_REAL<> constexpr abs ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE QX_REAL<> constexpr abs ( TX_REAL<> const& a ) NOEXCEPT;
-      static INLINE QX_REAL<> constexpr abs ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE QX_REAL<> constexpr sqrt ( DX_REAL<> const& a ) NOEXCEPT;
       static INLINE QX_REAL<> constexpr sqrt ( TX_REAL<> const& a ) NOEXCEPT;
       static INLINE QX_REAL<> constexpr sqrt ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE QX_REAL<> constexpr abs ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE QX_REAL<> constexpr abs ( TX_REAL<> const& a ) NOEXCEPT;
+      static INLINE QX_REAL<> constexpr abs ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE QX_REAL<> constexpr fabs ( DX_REAL<> const& a ) NOEXCEPT {
         return QX_REAL<>::abs(a);
       }
@@ -442,12 +442,12 @@ namespace mX_real {
         return QX_REAL<>::abs(a);
       }
       static INLINE QX_REAL<> rand () NOEXCEPT;
-      static INLINE bool constexpr is_zero ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr isnan ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_positive ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr signbit ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr isinf ( QX_REAL<> const& a ) NOEXCEPT;
       static INLINE bool constexpr is_negative ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr signbit ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_zero ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr isinf ( QX_REAL<> const& a ) NOEXCEPT;
       //
 
 
@@ -457,12 +457,12 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () NOEXCEPT { mX_real::Normalize( *this ); }
       //
-      INLINE bool constexpr is_zero () const NOEXCEPT { return QX_REAL<>::is_zero( *this ); }
       INLINE bool constexpr isnan () const NOEXCEPT { return QX_REAL<>::isnan( *this ); }
       INLINE bool constexpr is_positive () const NOEXCEPT { return QX_REAL<>::is_positive( *this ); }
-      INLINE bool constexpr signbit () const NOEXCEPT { return QX_REAL<>::signbit( *this ); }
-      INLINE bool constexpr isinf () const NOEXCEPT { return QX_REAL<>::isinf( *this ); }
       INLINE bool constexpr is_negative () const NOEXCEPT { return QX_REAL<>::is_negative( *this ); }
+      INLINE bool constexpr signbit () const NOEXCEPT { return QX_REAL<>::signbit( *this ); }
+      INLINE bool constexpr is_zero () const NOEXCEPT { return QX_REAL<>::is_zero( *this ); }
+      INLINE bool constexpr isinf () const NOEXCEPT { return QX_REAL<>::isinf( *this ); }
       //
 
 
@@ -528,12 +528,12 @@ namespace mX_real {
       return fp<T>::isinf( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isnan ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
-      return fp<T>::isnan( a.quick_Normalized() );
-    }
-    template < typename T, Algorithm Aa >
     INLINE auto constexpr signbit ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
       return fp<T>::signbit( a.quick_Normalized() );
+    }
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr isnan ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
+      return fp<T>::isnan( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
     INLINE bool constexpr is_positive ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
@@ -1051,7 +1051,7 @@ namespace mX_real {
           QxW::sqr_QW_QW ( _QX_(a), _QX_(c) );
         }
 #else
-        if ( false ) { }
+        if ( false ) { return a; } // dummy
 #endif
         else {
           QxW::mul_QW_QW_QW ( _QX_(a), _QX_(b), _QX_(c) );
@@ -1062,7 +1062,7 @@ namespace mX_real {
           QxW::sqr_QQW_QQW ( _QX_(a), _QX_(c) );
         }
 #else
-        if ( false ) { }
+        if ( false ) { return a; } // dummy
 #endif
         else {
           QxW::mul_QQW_QQW_QQW ( _QX_(a), _QX_(b), _QX_(c) );
@@ -1124,7 +1124,7 @@ namespace mX_real {
           QxW::sqr_TW_QW ( _TX_(a), _QX_(c) );
         }
 #else
-        if ( false ) { }
+        if ( false ) { return a; } // dummy
 #endif
         else {
           QxW::mul_TW_TW_QW ( _TX_(a), _TX_(b), _QX_(c) );
@@ -1135,7 +1135,7 @@ namespace mX_real {
           QxW::sqr_QTW_QQW ( _TX_(a), _QX_(c) );
         }
 #else
-        if ( false ) { }
+        if ( false ) { return a; } // dummy
 #endif
         else {
           QxW::mul_QTW_QTW_QQW ( _TX_(a), _TX_(b), _QX_(c) );
@@ -1188,7 +1188,7 @@ namespace mX_real {
           QxW::sqr_DW_QW ( _DX_(a), _QX_(c) );
         }
 #else
-        if ( false ) { }
+        if ( false ) { return a; } // dummy
 #endif
         else {
           QxW::mul_DW_DW_QW ( _DX_(a), _DX_(b), _QX_(c) );
@@ -1199,7 +1199,7 @@ namespace mX_real {
           QxW::sqr_PA_QQW ( _DX_(a), _QX_(c) );
         }
 #else
-        if ( false ) { }
+        if ( false ) { return a; } // dummy
 #endif
         else {
           QxW::mul_PA_PA_QQW ( _DX_(a), _DX_(b), _QX_(c) );
@@ -1242,7 +1242,7 @@ namespace mX_real {
           QxW::sqr_SW_QW ( _SX_(a), _QX_(c) );
         }
 #else
-        if ( false ) { }
+        if ( false ) { return a; } // dummy
 #endif
         else {
           QxW::mul_SW_SW_QW ( _SX_(a), _SX_(b), _QX_(c) );
@@ -1253,7 +1253,7 @@ namespace mX_real {
           QxW::sqr_SW_QQW ( _SX_(a), _QX_(c) );
         }
 #else
-        if ( false ) { }
+        if ( false ) { return a; } // dummy
 #endif
         else {
           QxW::mul_SW_SW_QQW ( _SX_(a), _SX_(b), _QX_(c) );
@@ -1401,7 +1401,7 @@ namespace mX_real {
         return qX_real::operator_mul_pow2 ( a, b );
       }
 #else
-      if ( false ) { }
+      if ( false ) { return a; } // dummy
 #endif
       else {
         return qX_real::operator_mul ( a, b );
@@ -1414,7 +1414,7 @@ namespace mX_real {
         return qX_real::operator_mul_pow2 ( a, b );
       }
 #else
-      if ( false ) { }
+      if ( false ) { return a; } // dummy
 #endif
       else {
         return qX_real::operator_mul ( a, T(b) );
@@ -1876,7 +1876,7 @@ namespace mX_real {
         return qX_real::operator_div_pow2 ( a, b );
       }
 #else
-      if ( false ) { }
+      if ( false ) { return a; } // dummy
 #endif
       else {
         return qX_real::operator_div ( a, b );
@@ -1889,7 +1889,7 @@ namespace mX_real {
         return qX_real::operator_div_pow2 ( a, b );
       }
 #else
-      if ( false ) { }
+      if ( false ) { return a; } // dummy
 #endif
       else {
         return qX_real::operator_div ( a, T(b) );

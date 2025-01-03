@@ -37,7 +37,17 @@ namespace QxW {
     //
     // basic cost is 6 flops and 6 cycles per a signle call
     //
+#if defined(__CUDA_ARCH__)
+    if ( std::is_same<T,double>::value ) {
+      x = __dadd_rn(a, b);
+    } else if ( std::is_same<T,float>::value ) {
+      x = __fadd_rn(a, b);
+    } else {
+      x = a + b;
+    }
+#else
     x = a + b;
+#endif
     auto z = x - a;
     y = (a - (x - z)) + (b - z);
 
@@ -63,7 +73,17 @@ namespace QxW {
     //
     // basic cost is 3 flops and 3 cycles per a signle call
     //
+#if defined(__CUDA_ARCH__)
+    if ( std::is_same<T,double>::value ) {
+      x = __dadd_rn(a, b);
+    } else if ( std::is_same<T,float>::value ) {
+      x = __fadd_rn(a, b);
+    } else {
+      x = a + b;
+    }
+#else
     x = a + b;
+#endif
     y = (a - x) + b;
 
 #if defined(__llvm__) || defined(__clang__)
@@ -76,6 +96,7 @@ namespace QxW {
   template < typename T > INLINE void constexpr
   TwoProductFMA ( T const a, T const b, T &x, T &y ) NOEXCEPT
   {
+
     //
     // basic cost is 3 flops but 2 cycles per a signle call
     // (fma with negative arg is expected to be replaced by a sigle instruction
@@ -83,6 +104,7 @@ namespace QxW {
     //
     x = a * b;
     y = std::fma(a, b, -x);
+
   }
 
   // ------------------------
