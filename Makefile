@@ -2,18 +2,19 @@ ifeq (x$(CXX),x)
 	CXX = g++
 endif
 ifeq (x$(CXX),xg++)
+	#CXX = g++ # v9 # ok
 	#CXX = g++-9 # ok
 	#CXX = g++-10 # ok
 	#CXX = g++-11 # ok
-	#CXX = g++-13 # ok
-	#CXX = clang++
+	CXX = g++-13 # ok
+	#CXX = clang++ # v10 # ok
 	#CXX = clang++-10 # ok
-	#CXX = clang++-11
-	CXX = clang++-12
+	#CXX = clang++-11 # ok
+	#CXX = clang++-12 # ok
 	cxx = g++
 endif
 ifeq (x$(CXX),xicpx)
-	CXX = icpx
+	CXX = icpx # 2023.2 # ok
 	cxx = icpx
 endif
 ifneq (x$(shell which $(CXX) 2>&1 | grep 'which'),x)
@@ -24,7 +25,8 @@ CXX := $(CXX) --std=c++14
 #CXX := $(CXX) --std=c++17
 #CXX := $(CXX) --std=c++2a
 ifeq (x$(cxx),xicpx)
-        CXX := $(CXX) -fp-model strict
+       CXX := $(CXX) -fp-model strict \
+	-Wno-unused-command-line-argument
 endif
 
 NVCC = nvcc
@@ -35,18 +37,19 @@ CCFLAGS_HEADER := $(CCFLAGS) -O3 -I./
 #CCFLAGS := $(CCFLAGS) -O3 -I./ -include mX_real.hpp
 CCFLAGS := $(CCFLAGS) -O3 -I./
 ifeq (x$(cxx),xicpx)
-LDFLAGS = -qopenmp -lquadmath -lm
+	LDFLAGS = -qopenmp -lquadmath -lm \
+	-Wno-unused-command-line-argument
 else
-LDFLAGS = -fopenmp -lquadmath -lm
+	LDFLAGS = -fopenmp -lquadmath -lm
 endif
 
 # Optimizations
 #CCFLAGS := $(CCFLAGS) -mfma -mavx2
 CCFLAGS := $(CCFLAGS) -mfma -mavx2 -mavx512f
 ifeq (x$(cxx),xicpx)
-CCFLAGS := $(CCFLAGS) -qopenmp
+	CCFLAGS := $(CCFLAGS) -qopenmp
 else
-CCFLAGS := $(CCFLAGS) -fopenmp
+	CCFLAGS := $(CCFLAGS) -fopenmp
 endif
 
 # QD

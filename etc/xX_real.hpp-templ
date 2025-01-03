@@ -398,7 +398,7 @@ namespace @{m}@X_real {
       @{M}@X_REAL<> c;
       auto exp_size = QxW::fp_const<T>::MASK - QxW::fp_const<T>::RINF - 1;
       exp_size >>= QxW::fp_const<T>::SOFF;
-      T p = (1 << exp_size) * fp<T>::one() / fp<T>::safe_min();
+      T p = (1 << exp_size) * fp<T>::one() / fp<T>::min();
       T q = fp<T>::zero();
       c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
       return c;

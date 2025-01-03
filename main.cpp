@@ -371,6 +371,16 @@ mp_real get_tol() {
   return tol;
 }
 
+template < typename TXa >
+struct Test_sizeof
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    print( "sizeof", TXa(sizeof(TXa)) );
+  }
+};
+
 template < typename TXa, typename TXb >
 struct Test_add
 {
@@ -574,6 +584,259 @@ struct Test_sqrt
   }
 };
 
+template < typename TXa >
+struct Test_NaN
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    print( "nan=", TXa::nan() );
+  }
+};
+
+template < typename TXa >
+struct Test_inf
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    print( "inf=", TXa::inf() );
+  }
+};
+
+template < typename TXa >
+struct Test_epsilon
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    print( "epsilon=", TXa::epsilon() );
+  }
+};
+
+template < typename TXa >
+struct Test_denorm_min
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    print( "denorm_min=", TXa::denorm_min() );
+  }
+};
+
+template < typename TXa >
+struct Test_min
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    print( "min=", TXa::min() );
+  }
+};
+
+template < typename TXa >
+struct Test_maxmax
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    print( "maxmax=", TXa::maxmax() );
+  }
+};
+
+template < typename TXa >
+struct Test_max
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    print( "max=", TXa::max() );
+  }
+};
+
+template < typename TXa >
+struct Test_safe_min
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    print( "safe_min=", TXa::safe_min() );
+  }
+};
+
+template < typename TXa >
+struct Test_safe_max
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    print( "safe_max=", TXa::safe_max() );
+  }
+};
+
+template < typename TXa >
+struct Test_rand
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    for(int i=1;i<=5;i++){
+      std::srand(i);
+      print( "rand=", TXa::rand() );
+    }
+  }
+};
+
+template < typename TXa >
+struct Test_Quasi_Accurate
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    using T = typename TXa::base_T;
+    using TX_quasi = typename TXa::typeAccurate;
+    using TX_accurate = typename TXa::typeQuasi;
+
+    auto cp = TX_quasi( 1024);
+    auto cn = TX_quasi(-1024);
+    auto s = fp<T>::epsilon()/4;
+    for(int i=1; i<TXa::L; i++) {
+    	cn.x[i] = cp.x[i] = s;
+	s *= fp<T>::epsilon()/2;
+    }
+    print( "Quasi cp=", cp );
+    print( "Quasi cn=", cn );
+    auto c = cp + cn;
+    print( "Quasi c= cp + cn", c );
+    auto xp = TX_accurate( cp );
+    auto xn = TX_accurate( cn );
+    auto x = xp + xn;
+    print( "Acc cp=", xp );
+    print( "Acc cn=", xn );
+    print( "Acc cx = Acc(cp) + Acc(cn)", x );
+    print( "Acc(cp+cn) =", TX_accurate(cp+cn) );
+    c = cp+cn;
+    Normalize<NormalizeOption::VsumForward>( c );
+    print( "Normalize(c) =", c );
+  }
+};
+
+template < typename TXa >
+struct Test_Normalize
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    using T = typename TXa::base_T;
+    TXa r;
+    {
+      TXa r0 = TXa::rand();
+      TXa r1 = TXa::rand();
+      for(int i=1; i<TXa::L; i++) { r0.x[i] -= r1.x[TXa::L-1-i]*4096; }
+      r0.x[TXa::L-1] *= TXa::epsilon().x[0];
+      r = r0;
+      print( "normalize test", r );
+    }
+    {
+    	NormalizeOption constexpr Nopt = NormalizeOption::Regular;
+    	auto x = r; Normalize<Nopt>( x );
+    	print( "normalize"+toString(Nopt), x );
+    }
+    {
+    	NormalizeOption constexpr Nopt = NormalizeOption::Accurate;
+    	auto x = r; Normalize<Nopt>(x);
+    	print( "normalize"+toString(Nopt), x );
+    }
+    {
+    	NormalizeOption constexpr Nopt = NormalizeOption::Accurate;
+    	auto x = r; Normalize<Nopt>(x); Normalize<Nopt>(x);
+    	print( "normalize^2"+toString(Nopt), x );
+    }
+    {
+    	NormalizeOption constexpr Nopt = NormalizeOption::Accurate;
+    	auto x = r; Normalize<Nopt>(x); Normalize<Nopt>(x); Normalize<Nopt>(x);
+    	print( "normalize^3"+toString(Nopt), x );
+    }
+    {
+    	NormalizeOption constexpr Nopt = NormalizeOption::VsumForward;
+    	auto x = r; Normalize<Nopt>(x);
+    	print( "normalize(Maybe NG)"+toString(Nopt), x );
+    }
+    {
+    	NormalizeOption constexpr Nopt = NormalizeOption::VQsumForward;
+    	auto x = r; Normalize<Nopt>(x);
+    	print( "normalize(Maybe NG)"+toString(Nopt), x );
+    }
+    {
+    	NormalizeOption constexpr Nopt = NormalizeOption::VsumReverse;
+    	auto x = r; Normalize<Nopt>(x);
+    	print( "normalize(Maybe NG)"+toString(Nopt), x );
+    }
+    {
+    	NormalizeOption constexpr Nopt = NormalizeOption::VQsumReverse;
+    	auto x = r; Normalize<Nopt>(x);
+    	print( "normalize(Maybe NG)"+toString(Nopt), x );
+    }
+  }
+};
+
+template < typename TXa >
+struct Test_min_Normalize
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    using T = typename TXa::base_T;
+    TXa r = TXa::min();
+    print( "min=", r );
+    Normalize(r);
+    print( "Normaize(min)=", r );
+  }
+};
+
+template < typename TXa >
+struct Test_max_Normalize
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    using T = typename TXa::base_T;
+    TXa r = TXa::max();
+    print( "max=", r );
+    Normalize(r);
+    print( "Normaize(max)=", r );
+  }
+};
+
+template < typename TXa >
+struct Test_sqrt_tiny
+{
+  template < T_mX(TXa) >
+  static void run()
+  {
+    using T = typename TXa::base_T;
+    {
+      auto s = TXa::rand();
+      print( "rand", s );
+      for(int i=0;i<TXa::L;i++) {
+      	s.x[i] *= fp<T>::min() * 4096;
+      }
+      auto r = fp<T>::denorm_min();
+      auto f = fp<T>::epsilon(); f = sqrt(sqrt(f));
+      for(int i=TXa::L-1;i>=0;i--) {
+        s.x[TXa::L-1]+=r; r/=f;
+      }
+      if ( TXa::base_A != Algorithm::Quasi ) { Normalize( s ); }
+      auto q = sqrt( s );
+      print( "<min", s );
+      print( "sqrt <min", q );
+      print( "sqr(sqrt <min)", q*q );
+      print( "|s-q*q|",s-q*q );
+    }
+  }
+};
+
+
 
 int
 main(int argc, char *argv[])
@@ -589,6 +852,8 @@ main(int argc, char *argv[])
   print( "p-52=", std::ldexp((double)1,-52) );
   printf( "PWRP=\t%016lx\n", QxW::fp_const<double>::PWRP );
   printf( "PWRN=\t%016lx\n", QxW::fp_const<double>::PWRN );
+  print( "connect=", fp<double>::connect_fp() );
+  print( "disconnect=", fp<double>::disconnect_fp() );
 
   print( "one=", QxW::fp_const<float>::one() );
   print( "zero=", QxW::fp_const<float>::zero() );
@@ -598,6 +863,8 @@ main(int argc, char *argv[])
   print( "p-23=", std::ldexp((float)1,-23) );
   printf( "PWRP=\t%08x\n", QxW::fp_const<float>::PWRP );
   printf( "PWRN=\t%08x\n", QxW::fp_const<float>::PWRN );
+  print( "connect=", fp<float>::connect_fp() );
+  print( "disconnect=", fp<float>::disconnect_fp() );
 
   int constexpr L = 1000*1000;
   int const     M = (int)sqrt((double)L);
@@ -608,6 +875,16 @@ main(int argc, char *argv[])
   
   auto alpha = sqrt( mp_real(2) );
   
+  For    < Test_sizeof,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
+
+  For    < Test_sizeof,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
+
   ForFor < Test_add,
 	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
 	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
@@ -658,444 +935,140 @@ main(int argc, char *argv[])
 	 td_Real_quasi, td_Real_sloppy, td_Real,
 	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
+  For    < Test_NaN,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-  {
-    print( "epsilon=", df_Real::epsilon() );
-    print( "epsilon=", tf_Real::epsilon() );
-    print( "epsilon=", qf_Real::epsilon() );
+  For    < Test_NaN,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-    print( "epsilon=", dd_Real::epsilon() );
-    print( "epsilon=", td_Real::epsilon() );
-    print( "epsilon=", qd_Real::epsilon() );
+  For    < Test_inf,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-    print( "denorm_min=", df_Real::denorm_min() );
-    print( "denorm_min=", tf_Real::denorm_min() );
-    print( "denorm_min=", qf_Real::denorm_min() );
+  For    < Test_inf,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-    print( "denorm_min=", dd_Real::denorm_min() );
-    print( "denorm_min=", td_Real::denorm_min() );
-    print( "denorm_min=", qd_Real::denorm_min() );
+  For    < Test_epsilon,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-    print( "min=", df_Real::min() );
-    print( "min=", tf_Real::min() );
-    print( "min=", qf_Real::min() );
+  For    < Test_epsilon,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-    print( "min=", dd_Real::min() );
-    print( "min=", td_Real::min() );
-    print( "min=", qd_Real::min() );
+  For    < Test_denorm_min,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-    print( "connect=", fp<float>::connect_fp() );
-    print( "connect=", fp<double>::connect_fp() );
-    print( "disconnect=", fp<float>::disconnect_fp() );
-    print( "disconnect=", fp<double>::disconnect_fp() );
+  For    < Test_denorm_min,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-    print( "max=", df_Real::max() );
-    print( "max=", tf_Real::max() );
-    print( "max=", qf_Real::max() );
+  For    < Test_min,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-    print( "max=", dd_Real::max() );
-    print( "max=", td_Real::max() );
-    print( "max=", qd_Real::max() );
+  For    < Test_min,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-    print( "safe_min=", df_Real::safe_min() );
-    print( "safe_min=", tf_Real::safe_min() );
-    print( "safe_min=", qf_Real::safe_min() );
+  For    < Test_maxmax,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-    print( "safe_min=", dd_Real::safe_min() );
-    print( "safe_min=", td_Real::safe_min() );
-    print( "safe_min=", qd_Real::safe_min() );
-  }
+  For    < Test_maxmax,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-  //
-  {
-    auto cp = df_Real_quasi( 1024); cp.x[1] = fp<float>::epsilon()/4;
-    auto cn = df_Real_quasi(-1024); cn.x[1] = fp<float>::epsilon()/4;
-    print( "Quasi cp=", cp );
-    print( "Quasi cn=", cn );
-    auto c = cp + cn;
-    print( "Quasi c= cp + cn", c );
-    auto xp = df_Real( cp );
-    auto xn = df_Real( cn );
-    auto x = xp + xn;
-    print( "Acc cp=", xp );
-    print( "Acc cn=", xn );
-    print( "Acc cx = Acc(cp) + Acc(cn)", x );
-    print( "Acc(cp+cn) =", df_Real(cp+cn) );
-    c = cp+cn;
-    Normalize<NormalizeOption::VsumForward>( c );
-    print( "Normalize(c) =", c );
-  }
-  //
-  {
-    auto cp = tf_Real_quasi( 1024); cp.x[1] = fp<float>::epsilon()/4;
-    auto cn = tf_Real_quasi(-1024); cn.x[1] = fp<float>::epsilon()/4;
-    print( "Quasi cp=", cp );
-    print( "Quasi cn=", cn );
-    auto c = cp + cn;
-    print( "Quasi c= cp + cn", c );
-    auto xp = tf_Real( cp );
-    auto xn = tf_Real( cn );
-    auto x = xp + xn;
-    print( "Acc cp=", xp );
-    print( "Acc cn=", xn );
-    print( "Acc cx = Acc(cp) + Acc(cn)", x );
-    print( "Acc(cp+cn) =", tf_Real(cp+cn) );
-    c = cp+cn;
-    Normalize<NormalizeOption::VsumForward>( c );
-    print( "Normalize(c) =", c );
-  }
-  //
-  {
-    auto cp = qf_Real_quasi( 1024); cp.x[1] = fp<float>::epsilon()/4;
-    auto cn = qf_Real_quasi(-1024); cn.x[1] = fp<float>::epsilon()/4;
-    print( "Quasi cp=", cp );
-    print( "Quasi cn=", cn );
-    auto c = cp + cn;
-    print( "Quasi c= cp + cn", c );
-    auto xp = qf_Real( cp );
-    auto xn = qf_Real( cn );
-    auto x = xp + xn;
-    print( "Acc cp=", xp );
-    print( "Acc cn=", xn );
-    print( "Acc cx = Acc(cp) + Acc(cn)", x );
-    print( "Acc(cp+cn) =", qf_Real(cp+cn) );
-    c = cp+cn;
-    Normalize<NormalizeOption::VsumForward>( c );
-    print( "Normalize(c) =", c );
-  }
+  For    < Test_max,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-  for(int i=1;i<3;i++){
-    std::srand(i); print( "rand", df_Real::rand() );
-    std::srand(i); print( "rand", tf_Real::rand() );
-    std::srand(i); print( "rand", qf_Real::rand() );
-    std::srand(i); print( "rand", dd_Real::rand() );
-    std::srand(i); print( "rand", td_Real::rand() );
-    std::srand(i); print( "rand", qd_Real::rand() );
-  }
-  {
-    print( "eps", std::numeric_limits<double>::epsilon() );
-    print( "eps", std::pow( (double)2, -(double)52 ) );
-    print( "eps", std::numeric_limits<dd_Real>::epsilon() );
-    print( "eps", std::pow( (double)2, -(double)105 ) );
-    print( "eps", std::numeric_limits<td_Real>::epsilon() );
-    print( "eps", std::pow( (double)2, -(double)158 ) );
-    print( "eps", std::numeric_limits<qd_Real>::epsilon() );
-    print( "eps", std::pow( (double)2, -(double)211 ) );
-    
-    print( "eps", std::numeric_limits<float>::epsilon() );
-    print( "eps", std::pow( (float)2, -(float)23 ) );
-    print( "eps", std::numeric_limits<df_Real>::epsilon() );
-    print( "eps", std::pow( (float)2, -(float)47 ) );
-    print( "eps", std::numeric_limits<tf_Real>::epsilon() );
-    print( "eps", std::pow( (float)2, -(float)71 ) );
-    print( "eps", std::numeric_limits<qf_Real>::epsilon() );
-    print( "eps", std::pow( (float)2, -(float)95 ) );
-  }
-  //
-  {
-    auto r0 = tf_Real::rand();
-    auto r1 = tf_Real::rand();
-    r0.x[1] -= r1.x[1]*4096;
-    r0.x[2] -= r1.x[2]*4096;
-    tf_Real r, x;
+  For    < Test_max,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-    r.x[0] =  1*r0.x[0];
-    r.x[1] =  1*r0.x[1];
-    r.x[2] =  1*r0.x[2];
+  For    < Test_safe_min,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-    x = r;
-    print( "normalize test C0", x );
-    //QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    //QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    //print( "normalize test C1", x );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    print( "normalize test C2", x );
-    
-    x = r;
-    print( "normalize test D0", x );
-    //QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    //QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    //print( "normalize test D1", x );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test D2", x );
-    
-    //
+  For    < Test_safe_min,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-    r.x[0] =  9*r0.x[0];
-    r.x[1] = -9*r0.x[0];
-    r.x[2] =  1*r0.x[2];
+  For    < Test_safe_max,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-    x = r;
-    print( "normalize test C0", x );
-    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test C1", x );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    print( "normalize test C2", x );
-    
-    x = r;
-    print( "normalize test D0", x );
-    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test D1", x );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test D2", x );
-    
-    //
+  For    < Test_safe_max,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-    r.x[0] =  9*r0.x[0];
-    r.x[1] =  1*r0.x[2];
-    r.x[2] = -9*r0.x[0];
+  For    < Test_rand,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
 
-    x = r;
-    print( "normalize test C0", x );
-    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test C1", x );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test C2", x );
-    
-    x = r;
-    print( "normalize test D0", x );
-    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test D1", x );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    print( "normalize test D2", x );
-    
-    //
+  For    < Test_rand,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
 
-    r.x[0] =  1*r0.x[2];
-    r.x[1] =  9*r0.x[0];
-    r.x[2] = -9*r0.x[0];
+  For    < Test_Quasi_Accurate,
+	 df_Real, tf_Real, qf_Real > :: run();
 
-    x = r;
-    print( "normalize test C0", x );
-    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test C1", x );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test C2", x );
-    
-    x = r;
-    print( "normalize test D0", x );
-    QxW::TwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::TwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    print( "normalize test D1", x );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    QxW::FastTwoSum( x.x[0], x.x[1], x.x[0], x.x[1] );
-    QxW::FastTwoSum( x.x[1], x.x[2], x.x[1], x.x[2] );
-    print( "normalize test D2", x );
-    
-  }
-#if 1
-  {
-    print( "min", std::numeric_limits<float>::min() );
-    print( "min", std::numeric_limits<df_Real>::min() );
-    print( "min", std::numeric_limits<tf_Real>::min() );
-    print( "min", std::numeric_limits<qf_Real>::min() );
-    {
-      auto s = df_Real::min();
-      print( "min", s );
-      quickSum(s.x[0], s.x[1]);
-      print( "min", s );
-    }
-    {
-      auto s = tf_Real::min();
-      print( "min", s );
-      quickSum(s.x[0], s.x[1]);
-      print( "min", s );
-    }
-    {
-      auto s = qf_Real::min();
-      print( "min", s );
-      quickSum(s.x[0], s.x[1]);
-      print( "min", s );
-    }
-    
-    print( "min", std::numeric_limits<double>::min() );
-    print( "min", std::numeric_limits<dd_Real>::min() );
-    print( "min", std::numeric_limits<td_Real>::min() );
-    print( "min", std::numeric_limits<qd_Real>::min() );
-    {
-      auto d = dd_Real::min();
-      print( "min", d );
-      quickSum(d.x[0],d.x[1]);
-      print( "min", d );
-    }
-    {
-      auto d = td_Real::min();
-      print( "min", d );
-      quickSum(d.x[0],d.x[1]);
-      print( "min", d );
-    }
-    {
-      auto d = qd_Real::min();
-      print( "min", d );
-      quickSum(d.x[0],d.x[1]);
-      print( "min", d );
-    }
+  For    < Test_Quasi_Accurate,
+	 dd_Real, td_Real, qd_Real > :: run();
 
-  }
-  {
-    print( "max", std::numeric_limits<float>::max() );
-    print( "max", std::numeric_limits<df_Real>::max() );
-    print( "max", std::numeric_limits<tf_Real>::max() );
-    print( "max", std::numeric_limits<qf_Real>::max() );
-    {
-      auto s = df_Real::max();
-      print( "max", s );
-      quickSum(s.x[0], s.x[1]);
-      print( "max", s );
-    }
-    {
-      auto s = tf_Real::max();
-      print( "max", s );
-      quickSum(s.x[0], s.x[1]);
-      print( "max", s );
-    }
-    {
-      auto s = qf_Real::max();
-      print( "max", s );
-      quickSum(s.x[0], s.x[1]);
-      print( "max", s );
-    }
-    
-    print( "max", std::numeric_limits<double>::max() );
-    print( "max", std::numeric_limits<dd_Real>::max() );
-    print( "max", std::numeric_limits<td_Real>::max() );
-    print( "max", std::numeric_limits<qd_Real>::max() );
-    {
-      auto d = dd_Real::max();
-      print( "max", d );
-      quickSum(d.x[0], d.x[1]);
-      print( "max", d );
-    }
-    {
-      auto d = td_Real::max();
-      print( "max", d );
-      quickSum(d.x[0], d.x[1]);
-      print( "max", d );
-    }
-    {
-      auto d = qd_Real::max();
-      print( "max", d );
-      quickSum(d.x[0], d.x[1]);
-      print( "max", d );
-    }
-  }
-  {
-    auto s = df_Real( 0.1 + 0.1/(1<<23), -0.1/(1<<24) );
-    print( "test negative", s );
-    quickSum( s.x[0], s.x[1] );
-    print( "test negative", s );
-    quickSum( s.x[0], s.x[1] );
-    print( "test negative", s );
-    print( "sqrt f+s", dX_real::sqrt( df_Real_quasi( 0.1f ) + s ) );
-    print( "sqrt f+s", dX_real::sqrt( df_Real_sloppy( 0.1f ) + s ) );
-    print( "sqrt f+s", dX_real::sqrt( df_Real( 0.1f ) + s ) );
-    print( "sqrt f", dX_real::sqrt( 0.1f ) );
-    print( "sqrt f", tX_real::sqrt( 0.1f ) );
-    print( "sqrt f", qX_real::sqrt( 0.1f ) );
-    print( "sqrt s", dX_real::sqrt( s ) );
-    print( "sqrt s", tX_real::sqrt( s ) );
-    print( "sqrt s", qX_real::sqrt( s ) );
+  For    < Test_Normalize,
+	 dd_Real_quasi, td_Real_quasi, qd_Real_quasi > :: run();
 
-    {
-      auto s = df_Real::rand();
-      print( "rand", s );
-      s.x[0] *= fp<float>::min() * 4096;
-      s.x[1] *= fp<float>::min() * 4096;
-      auto q = sqrt( s );
-      print( "<min", s );
-      print( "sqrt <min", q );
-      print( "sqr(sqrt <min)", q*q );
-      print( "|s-q*q|",s-q*q );
-    }
-    {
-      auto s = tf_Real::rand();
-      print( "rand", s );
-      s.x[0] *= fp<float>::min() * 4096;
-      s.x[1] *= fp<float>::min() * 4096;
-      s.x[2] *= fp<float>::min() * 4096;
-      auto q = sqrt( s );
-      print( "<min", s );
-      print( "sqrt <min", q );
-      print( "sqr(sqrt <min)", q*q );
-      print( "|s-q*q|",s-q*q );
-    }
-    {
-      auto s = qf_Real::rand();
-      print( "rand", s );
-      s.x[0] *= fp<float>::min() * 4096;
-      s.x[1] *= fp<float>::min() * 4096;
-      s.x[2] *= fp<float>::min() * 4096;
-      s.x[3] *= fp<float>::min() * 4096;
-      auto q = sqrt( s );
-      print( "<min", s );
-      print( "sqrt <min", q );
-      print( "sqr(sqrt <min)", q*q );
-      print( "|s-q*q|",s-q*q );
-    }
+  For    < Test_Normalize,
+	 df_Real_quasi, tf_Real_quasi, qf_Real_quasi > :: run();
 
-    {
-      auto s = dd_Real::rand();
-      print( "rand", s );
-      s.x[0] *= fp<double>::min() * 4096;
-      s.x[1] *= fp<double>::min() * 4096;
-      auto q = sqrt( s );
-      print( "<min", s );
-      print( "sqrt <min", q );
-      print( "sqr(sqrt <min)", q*q );
-      print( "|s-q*q|",s-q*q );
-    }
-    {
-      auto s = td_Real::rand();
-      print( "rand", s );
-      s.x[0] *= fp<double>::min() * 4096;
-      s.x[1] *= fp<double>::min() * 4096;
-      s.x[2] *= fp<double>::min() * 4096;
-      auto q = sqrt( s );
-      print( "<min", s );
-      print( "sqrt <min", q );
-      print( "sqr(sqrt <min)", q*q );
-      print( "|s-q*q|",s-q*q );
-    }
-    {
-      auto s = qd_Real::rand();
-      print( "rand", s );
-      s.x[0] *= fp<double>::min() * 4096;
-      s.x[1] *= fp<double>::min() * 4096;
-      s.x[2] *= fp<double>::min() * 4096;
-      s.x[3] *= fp<double>::min() * 4096;
-      auto q = sqrt( s );
-      print( "<min", s );
-      print( "sqrt <min", q );
-      print( "sqr(sqrt <min)", q*q );
-      print( "|s-q*q|",s-q*q );
-    }
+  For    < Test_min_Normalize,
+	 dd_Real_quasi, td_Real_quasi, qd_Real_quasi > :: run();
 
-    float a = 0.1;
-    float b = 0.3;
-    print( "mul ", a * b );
-    print( "mulx", dX_real::operator_mul(a,b) );
-    print( "add ", a + b );
-    print( "addx", dX_real::operator_add(a,b) );
-  }
+  For    < Test_min_Normalize,
+	 df_Real_quasi, tf_Real_quasi, qf_Real_quasi > :: run();
+
+  For    < Test_max_Normalize,
+	 dd_Real_quasi, td_Real_quasi, qd_Real_quasi > :: run();
+
+  For    < Test_max_Normalize,
+	 df_Real_quasi, tf_Real_quasi, qf_Real_quasi > :: run();
+
+  For    < Test_sqrt_tiny,
+	 df_Real_quasi, df_Real_sloppy, df_Real_weakaccurate, df_Real,
+	 tf_Real_quasi, tf_Real_sloppy, tf_Real,
+	 qf_Real_quasi, qf_Real_sloppy, qf_Real > :: run();
+
+  For    < Test_sqrt_tiny,
+	 dd_Real_quasi, dd_Real_sloppy, dd_Real_weakaccurate, dd_Real,
+	 td_Real_quasi, td_Real_sloppy, td_Real,
+	 qd_Real_quasi, qd_Real_sloppy, qd_Real > :: run();
+
 #if 0
   {
     // check ow operators with different Algorithm
@@ -1153,159 +1126,232 @@ main(int argc, char *argv[])
       print( ">>", c3 );
     }
   }
-  {
-    float x = std::numeric_limits<float>::quiet_NaN();
-    float y = -x;
-    std::cout << "nan=" << x << "\n" << "-nan=" << y << "\n";
-    std::cout << (x == y) << " " << (-x == y) << " " << ( x == -y) << "\n";
-  }
+
   {
     float x = std::numeric_limits<float>::infinity();
     float y = -x;
-    std::cout << "(+inf)=" << x << "\n" << "(-inf)=" << y << "\n";
+    float z = 0.;
+    float w = -z;
+
+    std::cout << "(+inf)=" << x << "\n";
+    std::cout << "(-inf)=" << y << "\n";
+    std::cout << "(+0)=" << z << "\n";
+    std::cout << "(-0)=" << w << "\n";
+
     std::cout << "(+inf) == (+inf) : " << (x == y) << "\n";
     std::cout << "-(+inf) == (-inf) : " << (-x == y) << "\n";
     std::cout << "(+inf) == -(-inf) : " << ( x == -y) << "\n";
+    std::cout << "(+0) == (+0) : " << (z == w) << "\n";
+    std::cout << "-(+0) == (-0) : " << (-z == w) << "\n";
+    std::cout << "(+0) == -(-0) : " << ( z == -w) << "\n";
+
     std::cout << "(+inf) + (+inf) = " << x + x << "\n";
     std::cout << "(+inf) - (+inf) = " << x - x << "\n";
     std::cout << "(+inf) + (-inf) = " << x + y << "\n";
     std::cout << "(-inf) + (-inf) = " << y + y << "\n";
     std::cout << "(-inf) - (-inf) = " << y - y << "\n";
     std::cout << "(-inf) + (+inf) = " << y + x << "\n";
+
+    std::cout << "(+inf) * (+inf) = " << x * x << "\n";
+    std::cout << "(+inf) * (-inf) = " << x * y << "\n";
+    std::cout << "(-inf) * (+inf) = " << y * x << "\n";
+    std::cout << "(-inf) * (-inf) = " << y * y << "\n";
+    std::cout << "(+inf) * (+0) = " << x * z << "\n";
+    std::cout << "(+inf) * (-0) = " << x * w << "\n";
+    std::cout << "(-inf) * (+0) = " << y * z << "\n";
+    std::cout << "(-inf) * (-0) = " << y * w << "\n";
+
+    std::cout << "(+inf) / (+inf) = " << x / x << "\n";
+    std::cout << "(+inf) / (-inf) = " << x / y << "\n";
+    std::cout << "(-inf) / (+inf) = " << y / x << "\n";
+    std::cout << "(-inf) / (-inf) = " << y / y << "\n";
+    std::cout << "(+0) / (+inf) = " << z / x << "\n";
+    std::cout << "(+0) / (-inf) = " << z / y << "\n";
+    std::cout << "(-0) / (+inf) = " << w / x << "\n";
+    std::cout << "(-0) / (-inf) = " << w / y << "\n";
+    std::cout << "(+inf) / (+0) = " << x / z << "\n";
+    std::cout << "(+inf) / (-0) = " << x / w << "\n";
+    std::cout << "(-inf) / (+0) = " << y / z << "\n";
+    std::cout << "(-inf) / (-0) = " << y / w << "\n";
+    std::cout << "(+0) / (+0) = " << z / z << "\n";
+    std::cout << "(+0) / (-0) = " << z / w << "\n";
+    std::cout << "(-0) / (+0) = " << w / z << "\n";
+    std::cout << "(-0) / (-0) = " << w / w << "\n";
+
+    std::cout << "abs(+inf) = " << fabs( x ) << "\n";
+    std::cout << "abs(-inf) = " << fabs( y ) << "\n";
+    std::cout << "abs(+0) = " << fabs( z ) << "\n";
+    std::cout << "abs(-0) = " << fabs( w ) << "\n";
+
+    std::cout << "sqrt(+inf) = " << sqrt( x ) << "\n";
+    std::cout << "sqrt(-inf) = " << sqrt( y ) << "\n";
+    std::cout << "sqrt(+0) = " << sqrt( z ) << "\n";
+    std::cout << "sqrt(-0) = " << sqrt( w ) << "\n";
   }
   {
-    float x = +0;
-    float y = -x;
-    std::cout << "+0=" << x << "\n" << "-0=" << y << "\n";
-    std::cout << (x == y) << " " << (-x == y) << " " << ( x == -y) << "\n";
+    double x = std::numeric_limits<double>::infinity();
+    double y = -x;
+    double z = 0.;
+    double w = -z;
+
+    std::cout << "(+inf)=" << x << "\n";
+    std::cout << "(-inf)=" << y << "\n";
+    std::cout << "(+0)=" << z << "\n";
+    std::cout << "(-0)=" << w << "\n";
+
+    std::cout << "(+inf) == (+inf) : " << (x == y) << "\n";
+    std::cout << "-(+inf) == (-inf) : " << (-x == y) << "\n";
+    std::cout << "(+inf) == -(-inf) : " << ( x == -y) << "\n";
+    std::cout << "(+0) == (+0) : " << (z == w) << "\n";
+    std::cout << "-(+0) == (-0) : " << (-z == w) << "\n";
+    std::cout << "(+0) == -(-0) : " << ( z == -w) << "\n";
+
+    std::cout << "(+inf) + (+inf) = " << x + x << "\n";
+    std::cout << "(+inf) - (+inf) = " << x - x << "\n";
+    std::cout << "(+inf) + (-inf) = " << x + y << "\n";
+    std::cout << "(-inf) + (-inf) = " << y + y << "\n";
+    std::cout << "(-inf) - (-inf) = " << y - y << "\n";
+    std::cout << "(-inf) + (+inf) = " << y + x << "\n";
+
+    std::cout << "(+inf) * (+inf) = " << x * x << "\n";
+    std::cout << "(+inf) * (-inf) = " << x * y << "\n";
+    std::cout << "(-inf) * (+inf) = " << y * x << "\n";
+    std::cout << "(-inf) * (-inf) = " << y * y << "\n";
+    std::cout << "(+inf) * (+0) = " << x * z << "\n";
+    std::cout << "(+inf) * (-0) = " << x * w << "\n";
+    std::cout << "(-inf) * (+0) = " << y * z << "\n";
+    std::cout << "(-inf) * (-0) = " << y * w << "\n";
+
+    std::cout << "(+inf) / (+inf) = " << x / x << "\n";
+    std::cout << "(+inf) / (-inf) = " << x / y << "\n";
+    std::cout << "(-inf) / (+inf) = " << y / x << "\n";
+    std::cout << "(-inf) / (-inf) = " << y / y << "\n";
+    std::cout << "(+0) / (+inf) = " << z / x << "\n";
+    std::cout << "(+0) / (-inf) = " << z / y << "\n";
+    std::cout << "(-0) / (+inf) = " << w / x << "\n";
+    std::cout << "(-0) / (-inf) = " << w / y << "\n";
+    std::cout << "(+inf) / (+0) = " << x / z << "\n";
+    std::cout << "(+inf) / (-0) = " << x / w << "\n";
+    std::cout << "(-inf) / (+0) = " << y / z << "\n";
+    std::cout << "(-inf) / (-0) = " << y / w << "\n";
+    std::cout << "(+0) / (+0) = " << z / z << "\n";
+    std::cout << "(+0) / (-0) = " << z / w << "\n";
+    std::cout << "(-0) / (+0) = " << w / z << "\n";
+    std::cout << "(-0) / (-0) = " << w / w << "\n";
+
+    std::cout << "abs(+inf) = " << fabs( x ) << "\n";
+    std::cout << "abs(-inf) = " << fabs( y ) << "\n";
+    std::cout << "abs(+0) = " << fabs( z ) << "\n";
+    std::cout << "abs(-0) = " << fabs( w ) << "\n";
+
+    std::cout << "sqrt(+inf) = " << sqrt( x ) << "\n";
+    std::cout << "sqrt(-inf) = " << sqrt( y ) << "\n";
+    std::cout << "sqrt(+0) = " << sqrt( z ) << "\n";
+    std::cout << "sqrt(-0) = " << sqrt( w ) << "\n";
+  }
+  {
+    dd_Real x = dd_Real::inf();
+    dd_Real y = -x;
+    dd_Real z = dd_Real::zero();
+    dd_Real w = -z;
+
+    std::cout << "(+inf)=" << x << "\n";
+    std::cout << "(-inf)=" << y << "\n";
+    std::cout << "(+0)=" << z << "\n";
+    std::cout << "(-0)=" << w << "\n";
+
+    std::cout << "(+inf) == (+inf) : " << (x == y) << "\n";
+    std::cout << "-(+inf) == (-inf) : " << (-x == y) << "\n";
+    std::cout << "(+inf) == -(-inf) : " << ( x == -y) << "\n";
+    std::cout << "(+0) == (+0) : " << (z == w) << "\n";
+    std::cout << "-(+0) == (-0) : " << (-z == w) << "\n";
+    std::cout << "(+0) == -(-0) : " << ( z == -w) << "\n";
+
+    std::cout << "(+inf) + (+inf) = " << x + x << "\n";
+    std::cout << "(+inf) - (+inf) = " << x - x << "\n";
+    std::cout << "(+inf) + (-inf) = " << x + y << "\n";
+    std::cout << "(-inf) + (-inf) = " << y + y << "\n";
+    std::cout << "(-inf) - (-inf) = " << y - y << "\n";
+    std::cout << "(-inf) + (+inf) = " << y + x << "\n";
+
+    std::cout << "(+inf) * (+inf) = " << x * x << "\n";
+    std::cout << "(+inf) * (-inf) = " << x * y << "\n";
+    std::cout << "(-inf) * (+inf) = " << y * x << "\n";
+    std::cout << "(-inf) * (-inf) = " << y * y << "\n";
+    std::cout << "(+inf) * (+0) = " << x * z << "\n";
+    std::cout << "(+inf) * (-0) = " << x * w << "\n";
+    std::cout << "(-inf) * (+0) = " << y * z << "\n";
+    std::cout << "(-inf) * (-0) = " << y * w << "\n";
+
+    std::cout << "(+inf) / (+inf) = " << x / x << "\n";
+    std::cout << "(+inf) / (-inf) = " << x / y << "\n";
+    std::cout << "(-inf) / (+inf) = " << y / x << "\n";
+    std::cout << "(-inf) / (-inf) = " << y / y << "\n";
+    std::cout << "(+0) / (+inf) = " << z / x << "\n";
+    std::cout << "(+0) / (-inf) = " << z / y << "\n";
+    std::cout << "(-0) / (+inf) = " << w / x << "\n";
+    std::cout << "(-0) / (-inf) = " << w / y << "\n";
+    std::cout << "(+inf) / (+0) = " << x / z << "\n";
+    std::cout << "(+inf) / (-0) = " << x / w << "\n";
+    std::cout << "(-inf) / (+0) = " << y / z << "\n";
+    std::cout << "(-inf) / (-0) = " << y / w << "\n";
+    std::cout << "(+0) / (+0) = " << z / z << "\n";
+    std::cout << "(+0) / (-0) = " << z / w << "\n";
+    std::cout << "(-0) / (+0) = " << w / z << "\n";
+    std::cout << "(-0) / (-0) = " << w / w << "\n";
+
+    std::cout << "abs(+inf) = " << fabs( x ) << "\n";
+    std::cout << "abs(-inf) = " << fabs( y ) << "\n";
+    std::cout << "abs(+0) = " << fabs( z ) << "\n";
+    std::cout << "abs(-0) = " << fabs( w ) << "\n";
+
+    std::cout << "sqrt(+inf) = " << sqrt( x ) << "\n";
+    std::cout << "sqrt(-inf) = " << sqrt( y ) << "\n";
+    std::cout << "sqrt(+0) = " << sqrt( z ) << "\n";
+    std::cout << "sqrt(-0) = " << sqrt( w ) << "\n";
   }
   
-  {
-    float e = 1;
-    print( "one1=", e );
-    e = e - std::numeric_limits<float>::epsilon()/2;
-    print( "one1-u1=", e );
-    
-    df_Real f = df_Real( e,e*std::numeric_limits<float>::epsilon()/2 );;
-    print( "(one1-u1,(one1-u1)*u1)=", f );
-    
-    df_Real c = df_Real(1);
-    print( "one2=", c );
-    c = c - df_Real::epsilon() * df_Real::nhalf();
-    print( "one2-u2=", c );
-    
-    c = c - f;
-    print( "(one2-u2)-(one1-u1,(one1-u1)*u1)=", c );
-    
-    c = f + df_Real::epsilon() * df_Real::nhalf();
-    c = f + df_Real::widerType::epsilon() * df_Real::widerType::nhalf();
-    print( "one2-u2=", c );
-  }
-
-#if 1
-  if ( 1 ) {
-    using MP = typename mX_real::dX_real::dx_real<mpfr::mpreal>;
-    MP a = MP::two() + MP::rand();
-    MP b = MP::nhalf() + MP::rand();
-    MP c = abs((a + b) * (a - b));
-    MP d = sqrt(c);
-    std::cout << a << " " << b << "\n";
-    std::cout << c << " " << d << "\n";
-    std::cout << double(c) << " " << sqrt(double(c)) << "\n";
-  }
-#endif
-
-  {
-    double s = fp<double>::two() - fp<double>::epsilon();
-    print( "2    ", fp<double>::two() );
-    print( "2-eps", s );
-    print( "2-eps+eps/2", s + fp<double>::epsilon()/2 );
-  }
-  
-  {
-    auto d = td_Real( 0.1 );
-    auto f = tf_Real( 0.1 );
-    auto du = dd_Real( 0.1 );
-    auto fu = df_Real( 0.1 );
-    auto ds = 0.2;
-    auto fs = 0.1f;
-    //
-    print( "d=", d );
-    print( "f=", f );
-    d *= d;
-    print( "(d*=d)=", d );
-    d += d;
-    print( "(d+=d)=", d );
-    d /= d;
-    print( "(d/=d)=", d );
-    f *= f;
-    print( "(f*=f)=", f );
-    f += f;
-    print( "(f+=f)=", f );
-    f /= f;
-    print( "(f/=f)=", f );
-    //
-    // d *= f; // error :: un-defined op
-    // f *= d; // error :: un-defined op
-    //
-    d *= du;
-    print( "(d*=du(0.2,0))=", d );
-    f *= fu;
-    print( "(f*=fu(0.1,0))=", f );
-    //
-    d *= ds;
-    print( "(d*=ds(0.2))=", d );
-    d *= fs;
-    print( "(d*=fs(0.1))=", d );
-    f *= fs;
-    print( "(f*=fs(0.1))=", f );
-    f *= ds;
-    print( "(f*=ds(0.2))=", f );
-  }
 
   init( L, alpha, x, y, z );
   
   std::cout << " BLAS1  : Vector length    = " << L <<"\n",
-    std::cout << " BLAS2&3: Matrix dimension = " << M << " x " << M << "\n",
-    std::cout << " - elapsed time - : func : - Relative Error in binary & EXP compounded format in [DS]P - \n";
+  std::cout << " BLAS2&3: Matrix dimension = " << M << " x " << M << "\n",
+  std::cout << " - elapsed time - : func : - Relative Error in binary & EXP compounded format in [DS]P - \n";
   
 #if 1
-  verify<float>         ( L, alpha, x, y, z );
-  verify<df_Real_quasi> ( L, alpha, x, y, z );
-  verify<df_Real_sloppy>( L, alpha, x, y, z );
+  verify<float>          ( L, alpha, x, y, z );
+  verify<df_Real_quasi>  ( L, alpha, x, y, z );
+  verify<df_Real_sloppy> ( L, alpha, x, y, z );
   verify<df_Real_weakaccurate>( L, alpha, x, y, z );
-  verify<df_Real>       ( L, alpha, x, y, z );
-  verify<double>        ( L, alpha, x, y, z );
-  verify<tf_Real_quasi> ( L, alpha, x, y, z );
-  verify<tf_Real_sloppy>( L, alpha, x, y, z );
-  verify<tf_Real>       ( L, alpha, x, y, z );
-  verify<qf_Real_quasi> ( L, alpha, x, y, z );
-  verify<qf_Real_sloppy>( L, alpha, x, y, z );
-  verify<qf_Real>       ( L, alpha, x, y, z );
+  verify<df_Real>        ( L, alpha, x, y, z );
+  verify<double>         ( L, alpha, x, y, z );
+  verify<tf_Real_quasi>  ( L, alpha, x, y, z );
+  verify<tf_Real_sloppy> ( L, alpha, x, y, z );
+  verify<tf_Real>        ( L, alpha, x, y, z );
+  verify<qf_Real_quasi>  ( L, alpha, x, y, z );
+  verify<qf_Real_sloppy> ( L, alpha, x, y, z );
+  verify<qf_Real>        ( L, alpha, x, y, z );
   
-  verify<dd_Real_quasi> ( L, alpha, x, y, z );
-  verify<dd_Real_sloppy>( L, alpha, x, y, z );
+  verify<dd_Real_quasi>  ( L, alpha, x, y, z );
+  verify<dd_Real_sloppy> ( L, alpha, x, y, z );
 #ifdef  _QD_DD_REAL_H
-  verify<dd_real>       ( L, alpha, x, y, z ); // DD native
+  verify<dd_real>        ( L, alpha, x, y, z ); // DD native
 #endif
-  verify<dd_Real>       ( L, alpha, x, y, z );
-  verify<td_Real_quasi> ( L, alpha, x, y, z );
-  verify<td_Real_sloppy>( L, alpha, x, y, z );
-  verify<td_Real>       ( L, alpha, x, y, z );
-  verify<qd_Real_quasi> ( L, alpha, x, y, z );
-  verify<qd_Real_sloppy>( L, alpha, x, y, z );
+  verify<dd_Real>        ( L, alpha, x, y, z );
+  verify<td_Real_quasi>  ( L, alpha, x, y, z );
+  verify<td_Real_sloppy> ( L, alpha, x, y, z );
+  verify<td_Real>        ( L, alpha, x, y, z );
+  verify<qd_Real_quasi>  ( L, alpha, x, y, z );
+  verify<qd_Real_sloppy> ( L, alpha, x, y, z );
 #ifdef  _QD_QD_REAL_H
-  verify<qd_real>       ( L, alpha, x, y, z ); // QD native
+  verify<qd_real>        ( L, alpha, x, y, z ); // QD native
 #endif
 #endif
-  verify<qd_Real>       ( L, alpha, x, y, z );
+  verify<qd_Real>        ( L, alpha, x, y, z );
   
   std::cout << std::endl;
+  std::cout.flush();
   
-#endif
-  
-//  using dd_mpreal = dX_real::dx_real<mpfr::mpreal>;
-//  verify<dd_mpreal> ( L, alpha, x, y, z );
 
   delete [] x;
   delete [] y;

@@ -136,6 +136,8 @@ def gen_op_stub_sqrt( Tc, description, func, op, commutable ) :
     print( '  if ( flag ) { return e; }' )
     print( '#else' )
     print( '  if ( a.is_zero() ) {{ return {m}X_real::mX_real<TXa>{{ a }}; }}'.format( m=mX_type(Tc) ) )
+    print( '  if ( a.is_negative() ) {{ return {m}X_real::mX_real<TXa>::nan(); }};'.format( m=mX_type(Tc) ) )
+    print( '  if ( a.isinf() ) {{ return {m}X_real::mX_real<TXa>::inf(); }}'.format( m=mX_type(Tc) ) )
     print( '#endif' )
     print( '  Algorithm constexpr A = TXa::base_A;' )
     print( '  if ( A != Algorithm::Quasi ) {' )
