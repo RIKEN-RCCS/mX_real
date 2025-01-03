@@ -2371,10 +2371,14 @@ namespace mX_real {
     template < typename T, Algorithm Aa >
     std::ostream& operator<< ( std::ostream& stream, tX_real::tx_real<T,Aa> const& a ) {
       auto constexpr LL = tX_real::tx_real<T,Aa>::L;
+      using TX = tX_real::tx_real<T,Aa>;
 #if USE_MPREAL
       mpfr::mpreal t = mpfr::mpreal( a.x[0] );
       for(auto i=1; i<LL; i++) { t += mpfr::mpreal( a.x[i] ); }
+      int new_precision = std::numeric_limits<TX>::digits10;
+      int old_precision = stream.precision( new_precision );
       stream << t;
+      stream.precision( old_precision );
 #else
       for(auto i=0; i<LL; i++) { stream << a.x[i] << ":"; }
 #endif

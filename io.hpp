@@ -44,7 +44,8 @@ namespace mX_real {
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]);
     std::cout << message;
     printf(" %cDF : %08x %08x ", toString(A)[0], d[0], d[1]);
-    std::cout << xx << "\n";
+//    std::cout << xx << "\n";
+    std::cout << x << "\n";
 #else
     long double xx =
       (long double)x.x[1] +
@@ -62,7 +63,8 @@ namespace mX_real {
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]);
     std::cout << message;
     printf(" %cDD : %016lx %016lx ", toString(A)[0], d[0], d[1]);
-    std::cout << xx << "\n";
+//    std::cout << xx << "\n";
+    std::cout << x << "\n";
 #else
     long double xx =
       (long double)x.x[1] +
@@ -84,7 +86,8 @@ namespace mX_real {
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]); xx += double(x.x[2]);
     std::cout << message;
     printf(" %cTF : %08x %08x %08x ", toString(A)[0], d[0], d[1], d[2]);
-    std::cout << xx << "\n";
+//    std::cout << xx << "\n";
+    std::cout << x << "\n";
 #else
     long double xx = (long double)x.x[2]
       + (long double)x.x[1]
@@ -101,7 +104,8 @@ namespace mX_real {
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]); xx += double(x.x[2]);
     std::cout << message;
     printf(" %cTD : %016lx %016lx %016lx ", toString(A)[0], d[0], d[1], d[2]);
-    std::cout << xx << "\n";
+//    std::cout << xx << "\n";
+    std::cout << x << "\n";
 #else
     long double xx = (long double)x.x[2]
       + (long double)x.x[1]
@@ -123,7 +127,8 @@ namespace mX_real {
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]); xx += double(x.x[2]); xx += double(x.x[3]);
     std::cout << message;
     printf(" %cQF : %08x %08x %08x %08x ", toString(A)[0], d[0], d[1], d[2], d[3]);
-    std::cout << xx << "\n";
+//    std::cout << xx << "\n";
+    std::cout << x << "\n";
 #else
     long double xx = (long double)x.x[3]
       + (long double)x.x[2]
@@ -141,7 +146,8 @@ namespace mX_real {
     mpfr::mpreal xx = double(x.x[0]); xx += double(x.x[1]); xx += double(x.x[2]); xx += double(x.x[3]);
     std::cout << message;
     printf(" %cQD : %016lx %016lx %016lx %016lx ", toString(A)[0], d[0], d[1], d[2], d[3]);
-    std::cout << xx << "\n";
+//    std::cout << xx << "\n";
+    std::cout << x << "\n";
 #else
     long double xx = (long double)x.x[3]
       + (long double)x.x[2]

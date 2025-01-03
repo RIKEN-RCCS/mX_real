@@ -365,7 +365,6 @@ template < typename TXa, typename TXb >
 mp_real get_tol() {
   using TXc = largeType<TXa,TXb>;
   using TXd = smallType<TXa,TXb>;
-  using T   = typename TXc::base_T;
   Algorithm A = commonAlgorithm<TXa::base_A,TXb::base_A>::algorithm;
   int ext = 4 * (TXd::L + (A!=Algorithm::Accurate)) * (TXc::L - TXd::L + 1) + 2;
   auto tol  = convert( std::ldexp( 1.0, ext ) );
@@ -380,9 +379,9 @@ struct Test_add
   {
   using T = typename TXa::base_T;
   Algorithm const A = commonAlgorithm<TXa::base_A,TXb::base_A>::algorithm;
-  using TXc = typename largeType<TXa,TXb>::template type_with_Algorithm<A>;
-  auto eps  = convert( TXc::epsilon() );
-  auto tol  = get_tol<TXa,TXb>();
+  using TX = typename largeType<TXa,TXb>::template type_with_Algorithm<A>;
+  auto eps = convert( TX::epsilon() );
+  auto tol = get_tol<TXa,TXb>();
 
   unsigned int seed = 1;
   srand( seed );
@@ -406,7 +405,7 @@ struct Test_add
 
   char sa[64]; TYPE_name<TXa>( sa );
   char sb[64]; TYPE_name<TXb>( sb );
-  char sc[64]; TYPE_name<TXc>( sc );
+  char sc[64]; TYPE_name<TX >( sc );
   std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
           << " : ADD " << std::string( sa ) << " + " << std::string( sb ) << " => " << std::string( sc )
 	  << " :: Res=" << res << " Eps=" << eps << " Tol=" << tol << " "
@@ -422,9 +421,9 @@ struct Test_mul
   {
   using T = typename TXa::base_T;
   Algorithm const A = commonAlgorithm<TXa::base_A,TXb::base_A>::algorithm;
-  using TXc = typename largeType<TXa,TXb>::template type_with_Algorithm<A>;
-  auto eps  = convert( TXc::epsilon() );
-  auto tol  = get_tol<TXa,TXb>();
+  using TX = typename largeType<TXa,TXb>::template type_with_Algorithm<A>;
+  auto eps = convert( TX::epsilon() );
+  auto tol = get_tol<TXa,TXb>();
 
   unsigned int seed = 1;
   srand( seed );
@@ -448,7 +447,7 @@ struct Test_mul
 
   char sa[64]; TYPE_name<TXa>( sa );
   char sb[64]; TYPE_name<TXb>( sb );
-  char sc[64]; TYPE_name<TXc>( sc );
+  char sc[64]; TYPE_name<TX >( sc );
   std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
           << " : MUL " << std::string( sa ) << " * " << std::string( sb ) << " => " << std::string( sc )
 	  << " :: Res=" << res << " Eps=" << eps << " Tol=" << tol << " "
@@ -464,9 +463,9 @@ struct Test_div
   {
   using T = typename TXa::base_T;
   Algorithm const A = commonAlgorithm<TXa::base_A,TXb::base_A>::algorithm;
-  using TXc = typename largeType<TXa,TXb>::template type_with_Algorithm<A>;
-  auto eps  = convert( TXc::epsilon() );
-  auto tol  = get_tol<TXa,TXb>(); tol = tol*tol;
+  using TX = typename largeType<TXa,TXb>::template type_with_Algorithm<A>;
+  auto eps = convert( TX::epsilon() );
+  auto tol = get_tol<TXa,TXb>(); tol = tol*tol;
 
   unsigned int seed = 1;
   srand( seed );
@@ -490,7 +489,7 @@ struct Test_div
 
   char sa[64]; TYPE_name<TXa>( sa );
   char sb[64]; TYPE_name<TXb>( sb );
-  char sc[64]; TYPE_name<TXc>( sc );
+  char sc[64]; TYPE_name<TX >( sc );
   std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
           << " : DIV " << std::string( sa ) << " / " << std::string( sb ) << " => " << std::string( sc )
 	  << " :: Res=" << res << " Eps=" << eps << " Tol=" << tol << " "
@@ -505,9 +504,9 @@ struct Test_sqr
   static void run()
   {
   using T = typename TXa::base_T;
-  using TXc = TXa;
-  auto eps  = convert( TXa::epsilon() );
-  auto tol  = get_tol<TXa,TXa>();
+  using TX = TXa;
+  auto eps = convert( TX::epsilon() );
+  auto tol = get_tol<TXa,TXa>();
 
   unsigned int seed = 1;
   srand( seed );
@@ -530,7 +529,7 @@ struct Test_sqr
   }
 
   char sa[64]; TYPE_name<TXa>( sa );
-  char sc[64]; TYPE_name<TXc>( sc );
+  char sc[64]; TYPE_name<TX >( sc );
   std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
 	  << " : SQR  " << std::string( sa ) << " => " << std::string( sc )
 	  << " :: Res=" << res << " Eps=" << eps << " Tol=" << tol << " "
@@ -545,16 +544,15 @@ struct Test_sqrt
   static void run()
   {
   using T = typename TXa::base_T;
-  using TXc = TXa;
-  auto eps  = convert( TXa::epsilon() );
-  auto tol  = get_tol<TXa,TXa>();
+  using TX = TXa;
+  auto eps = convert( TX::epsilon() );
+  auto tol = get_tol<TXa,TXa>();
 
   unsigned int seed = 1;
   srand( seed );
 
   auto res = -eps;
   for(int i=1;i<10000;i++){
-//    auto a = TXa::rand() * std::pow(2.0,double(rand()%60)-30.0);
     auto a = fabs( random_number<TXa>() );
     auto c = sqrt( a );
 
@@ -568,7 +566,7 @@ struct Test_sqrt
     res = fmax( res, g_ );
   }
   char sa[64]; TYPE_name<TXa>( sa );
-  char sc[64]; TYPE_name<TXc>( sc );
+  char sc[64]; TYPE_name<TX >( sc );
   std::cout << ( res <= tol ? "[ PASS  ]" : "[ FALSE ]" )
 	  << " : SQRT " << std::string( sa ) << " => " << std::string( sc )
 	  << " :: Res=" << res << " Eps=" << eps << " Tol=" << tol << " "
@@ -707,49 +705,65 @@ main(int argc, char *argv[])
     print( "safe_min=", td_Real::safe_min() );
     print( "safe_min=", qd_Real::safe_min() );
   }
+
+  //
   {
-    auto cp = df_Real_quasi( 1); cp.x[1] = fp<float>::epsilon()/4;
-    auto cn = df_Real_quasi(-1); cn.x[1] = fp<float>::epsilon()/4;
+    auto cp = df_Real_quasi( 1024); cp.x[1] = fp<float>::epsilon()/4;
+    auto cn = df_Real_quasi(-1024); cn.x[1] = fp<float>::epsilon()/4;
     print( "Quasi cp=", cp );
     print( "Quasi cn=", cn );
     auto c = cp + cn;
     print( "Quasi c= cp + cn", c );
-    auto cx = df_Real( cp ) + df_Real( cn );
-    print( "Acc cx = Acc(cp) + Acc(cn)", cx );
+    auto xp = df_Real( cp );
+    auto xn = df_Real( cn );
+    auto x = xp + xn;
+    print( "Acc cp=", xp );
+    print( "Acc cn=", xn );
+    print( "Acc cx = Acc(cp) + Acc(cn)", x );
     print( "Acc(cp+cn) =", df_Real(cp+cn) );
     c = cp+cn;
     Normalize<NormalizeOption::VsumForward>( c );
     print( "Normalize(c) =", c );
   }
+  //
   {
-    auto cp = tf_Real_quasi( 1024);
-    cp.x[1] = fp<float>::epsilon()*4;
-    cp.x[2] = fp<float>::epsilon()/64;
-    auto cn = tf_Real_quasi(-1024);
-    cn.x[1] = fp<float>::epsilon()*4;
-    cn.x[2] = fp<float>::epsilon()/64;
+    auto cp = tf_Real_quasi( 1024); cp.x[1] = fp<float>::epsilon()/4;
+    auto cn = tf_Real_quasi(-1024); cn.x[1] = fp<float>::epsilon()/4;
     print( "Quasi cp=", cp );
     print( "Quasi cn=", cn );
     auto c = cp + cn;
     print( "Quasi c= cp + cn", c );
-    Normalize( cp );
-    print( "Normalize( cp )", cp );
-    Normalize( cn );
-    print( "Normalize( cn )", cn );
-    print( "Normal( cp ) + Normal( cn )", cp+cn );
-    auto cx = tf_Real( cp ) + tf_Real( cn );
-    print( "Acc cx = Acc(cp) + Acc(cn)", cx );
+    auto xp = tf_Real( cp );
+    auto xn = tf_Real( cn );
+    auto x = xp + xn;
+    print( "Acc cp=", xp );
+    print( "Acc cn=", xn );
+    print( "Acc cx = Acc(cp) + Acc(cn)", x );
     print( "Acc(cp+cn) =", tf_Real(cp+cn) );
     c = cp+cn;
     Normalize<NormalizeOption::VsumForward>( c );
     print( "Normalize(c) =", c );
+  }
+  //
+  {
+    auto cp = qf_Real_quasi( 1024); cp.x[1] = fp<float>::epsilon()/4;
+    auto cn = qf_Real_quasi(-1024); cn.x[1] = fp<float>::epsilon()/4;
+    print( "Quasi cp=", cp );
+    print( "Quasi cn=", cn );
+    auto c = cp + cn;
+    print( "Quasi c= cp + cn", c );
+    auto xp = qf_Real( cp );
+    auto xn = qf_Real( cn );
+    auto x = xp + xn;
+    print( "Acc cp=", xp );
+    print( "Acc cn=", xn );
+    print( "Acc cx = Acc(cp) + Acc(cn)", x );
+    print( "Acc(cp+cn) =", qf_Real(cp+cn) );
     c = cp+cn;
-    Normalize<NormalizeOption::VQsumForward>( c );
-    print( "Normalize(c) =", c );
-    c = cp+cn;
-    Normalize<NormalizeOption::Regular>( c );
+    Normalize<NormalizeOption::VsumForward>( c );
     print( "Normalize(c) =", c );
   }
+
   for(int i=1;i<3;i++){
     std::srand(i); print( "rand", df_Real::rand() );
     std::srand(i); print( "rand", tf_Real::rand() );
@@ -1002,58 +1016,76 @@ main(int argc, char *argv[])
     print( "sqrt s", qX_real::sqrt( s ) );
 
     {
-      auto s = df_Real::zero();
-      s.x[0] = fp<float>::min() / 128;
+      auto s = df_Real::rand();
+      print( "rand", s );
+      s.x[0] *= fp<float>::min() * 4096;
+      s.x[1] *= fp<float>::min() * 4096;
       auto q = sqrt( s );
-      print( "min", s );
-      print( "sqrt min", q );
-      print( "sqr(sqrt min)", q*q );
+      print( "<min", s );
+      print( "sqrt <min", q );
+      print( "sqr(sqrt <min)", q*q );
       print( "|s-q*q|",s-q*q );
     }
     {
-      auto s = tf_Real::zero();
-      s.x[0] = fp<float>::min() / 128;
+      auto s = tf_Real::rand();
+      print( "rand", s );
+      s.x[0] *= fp<float>::min() * 4096;
+      s.x[1] *= fp<float>::min() * 4096;
+      s.x[2] *= fp<float>::min() * 4096;
       auto q = sqrt( s );
-      print( "min", s );
-      print( "sqrt min", q );
-      print( "sqr(sqrt min)", q*q );
+      print( "<min", s );
+      print( "sqrt <min", q );
+      print( "sqr(sqrt <min)", q*q );
       print( "|s-q*q|",s-q*q );
     }
     {
-      auto s = qf_Real::zero();
-      s.x[0] = fp<float>::min() / 128;
+      auto s = qf_Real::rand();
+      print( "rand", s );
+      s.x[0] *= fp<float>::min() * 4096;
+      s.x[1] *= fp<float>::min() * 4096;
+      s.x[2] *= fp<float>::min() * 4096;
+      s.x[3] *= fp<float>::min() * 4096;
       auto q = sqrt( s );
-      print( "min", s );
-      print( "sqrt min", q );
-      print( "sqr(sqrt min)", q*q );
+      print( "<min", s );
+      print( "sqrt <min", q );
+      print( "sqr(sqrt <min)", q*q );
       print( "|s-q*q|",s-q*q );
     }
 
     {
-      auto s = dd_Real::zero();
-      s.x[0] = fp<double>::min() / 128;
+      auto s = dd_Real::rand();
+      print( "rand", s );
+      s.x[0] *= fp<double>::min() * 4096;
+      s.x[1] *= fp<double>::min() * 4096;
       auto q = sqrt( s );
-      print( "min", s );
-      print( "sqrt min", q );
-      print( "sqr(sqrt min)", q*q );
+      print( "<min", s );
+      print( "sqrt <min", q );
+      print( "sqr(sqrt <min)", q*q );
       print( "|s-q*q|",s-q*q );
     }
     {
-      auto s = td_Real::zero();
-      s.x[0] = fp<double>::min() / 128;
+      auto s = td_Real::rand();
+      print( "rand", s );
+      s.x[0] *= fp<double>::min() * 4096;
+      s.x[1] *= fp<double>::min() * 4096;
+      s.x[2] *= fp<double>::min() * 4096;
       auto q = sqrt( s );
-      print( "min", s );
-      print( "sqrt min", q );
-      print( "sqr(sqrt min)", q*q );
+      print( "<min", s );
+      print( "sqrt <min", q );
+      print( "sqr(sqrt <min)", q*q );
       print( "|s-q*q|",s-q*q );
     }
     {
-      auto s = qd_Real::zero();
-      s.x[0] = fp<double>::min() / 128;
+      auto s = qd_Real::rand();
+      print( "rand", s );
+      s.x[0] *= fp<double>::min() * 4096;
+      s.x[1] *= fp<double>::min() * 4096;
+      s.x[2] *= fp<double>::min() * 4096;
+      s.x[3] *= fp<double>::min() * 4096;
       auto q = sqrt( s );
-      print( "min", s );
-      print( "sqrt min", q );
-      print( "sqr(sqrt min)", q*q );
+      print( "<min", s );
+      print( "sqrt <min", q );
+      print( "sqr(sqrt <min)", q*q );
       print( "|s-q*q|",s-q*q );
     }
 
