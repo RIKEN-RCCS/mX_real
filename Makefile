@@ -104,7 +104,7 @@ mpreal:
 
 
 clean:
-	-\rm *.o a.out *.s sample.exe sample.exe-* *.gch *.pchi *.tmp
+	-\rm *.o a.out *.s sample.exe sample.exe-* *.tmp
        
 distclean:
 	-make clean

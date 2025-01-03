@@ -7,7 +7,6 @@ G=`expr $OMP_NUM_THREADS - 1`
 VER=1
 
 for cxx in g++ clang++ icpx; do
-	\rm mX_real.hpp.gch
 	\rm sample.exe
 	CXX=$cxx make sample.exe
 	cp sample.exe sample.exe-$cxx
