@@ -1,32 +1,24 @@
+#CXX = g++-11 --std=c++14
+#CXX = g++-10 --std=c++14
+#CXX = g++ --std=c++14
+#CXX = g++ --std=c++17
+#CXX = icpx --std=c++14 -fp-model strict -vec
 ifeq (x$(CXX),x)
 	CXX = g++
 endif
 ifeq (x$(CXX),xg++)
-	#CXX = g++ # v9 # ok
-	#CXX = g++-9 # ok
-	#CXX = g++-10 # ok
-	#CXX = g++-11 # ok
-	CXX = g++-13 # ok
-	cxx = g++
-endif
-ifeq (x$(CXX),xclang++)
-	#CXX = clang++ # v10 # ok
-	#CXX = clang++-10 # ok
-	#CXX = clang++-11 # ok
-	CXX = clang++-12 # ok
+	CXX = g++-11
 	cxx = g++
 endif
 ifeq (x$(CXX),xicpx)
-	CXX = icpx # 2023.2 # ok
+	CXX = icpx
 	cxx = icpx
 endif
 ifneq (x$(shell which $(CXX) 2>&1 | grep 'which'),x)
-	CXX = g++
+test	CXX = g++
 endif
 
 CXX := $(CXX) --std=c++14
-#CXX := $(CXX) --std=c++17
-#CXX := $(CXX) --std=c++2a
 ifeq (x$(cxx),xicpx)
        CXX := $(CXX) -fp-model strict \
 	-Wno-unused-command-line-argument
@@ -41,6 +33,7 @@ CCFLAGS_HEADER := $(CCFLAGS) -O3 -I./
 CCFLAGS := $(CCFLAGS) -O3 -I./
 ifeq (x$(cxx),xicpx)
 	LDFLAGS = -qopenmp -lquadmath -lm \
+
 	-Wno-unused-command-line-argument
 else
 	LDFLAGS = -fopenmp -lquadmath -lm
@@ -65,12 +58,20 @@ CCFLAGS := $(CCFLAGS) -DUSE_MPREAL=1
 MPFR_CCFLAGS = -I./mpreal/
 MPFR_LDFLAGS = -lmpfr -lgmp
 
+# library of MPFR
+LIBMPFR = -L$(HOME)/lib -lmpfr
 
 OPT_HEADERS = Ozaki-QW/qxw.hpp Ozaki-QW/fp_const.hpp \
 	mX_real.hpp dX_real.hpp tX_real.hpp qX_real.hpp
 
 
 all: $(OPT_HEADERS)
+
+test: test.o
+	$(CXX) -g -o test test.o $(LIBMPFR)
+
+test.o: test.cpp
+	$(CXX) -g -c test.cpp
 
 bench: a.out sample.exe
 a.out: main.o
@@ -80,9 +81,9 @@ main.o: mpreal qd_real main.cpp $(OPT_HEADERS)
 sample.exe: mpreal sample.cpp $(OPT_HEADERS)
 	$(CXX) -S sample.cpp $(CCFLAGS) $(MPFR_CCFLAGS) $(MPFR_LDFLAGS)
 	$(CXX) -o sample.exe sample.cpp $(CCFLAGS) $(MPFR_CCFLAGS) $(MPFR_LDFLAGS)
-test.o: test.cu mX_real.hpp
-	$(NVCC) -I./ -O3 -g --fmad=true --expt-relaxed-constexpr --ptx test.cu
-	$(NVCC) -I./ -O3 -g --fmad=true --expt-relaxed-constexpr -c test.cu
+#test.o: test.cu mX_real.hpp
+#	$(NVCC) -I./ -O3 -g --fmad=true --expt-relaxed-constexpr --ptx test.cu
+#	$(NVCC) -I./ -O3 -g --fmad=true --expt-relaxed-constexpr -c test.cu
 
 
 $(OPT_HEADERS):
@@ -105,7 +106,7 @@ mpreal:
 
 clean:
 	-\rm *.o a.out *.s sample.exe sample.exe-* *.tmp
-       
+
 distclean:
 	-make clean
 	-cd etc; make distclean

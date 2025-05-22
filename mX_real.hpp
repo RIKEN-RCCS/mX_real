@@ -1,7 +1,7 @@
 #pragma once
 
 #include <assert.h>
-
+#include <cfenv>
 #include <iosfwd>
 #include <sstream>
 #include <bitset>
@@ -19,12 +19,16 @@ template < typename T > void printTYPE() {
   std::cout << boost::typeindex::type_id_with_cvr<T>().pretty_name(); }
 #endif
 
+#define MPFR_REAL_DATA_PUBLIC 1
+#define MPFR_REAL_ENABLE_CONV_OPS 1
+#include "real.hpp"
+typedef mpfr::real<14, MPFR_RNDN> mpfrfp;
 
 #if defined(__NVCC__)
 #define	INLINE		__host__ __device__ __forceinline__
 #define	NOEXCEPT	/**/
 #else
-#define	INLINE		__always_inline
+#define	INLINE		//__always_inline
 #define	NOEXCEPT	noexcept
 #endif
 
@@ -300,6 +304,147 @@ namespace mX_real {
     static INLINE auto __constexpr__ is_positive ( double const& a ) NOEXCEPT { return (a >  fp<double>::zero()); }
     static INLINE auto __constexpr__ is_negative ( double const& a ) NOEXCEPT { return (a <  fp<double>::zero()); }
   };
+
+  template<>
+  struct fp<mpfrfp> {
+      //      explicit operator double() const { mpfrfp x = *this; double xx = mpfr_get_d(x._x, MPFR_RNDN); return xx;}	
+      //      explicit operator float() const { mpfrfp x = *this; float xx = mpfr_get_flt(x._x, MPFR_RNDN); return xx;}
+
+    static bool   constexpr value = true;
+
+    static mpfrfp const zero() { return mpfrfp(0);}  //
+    static mpfrfp const one() { return mpfrfp(1);}    //
+    static mpfrfp const two() { return mpfrfp(2);}    //
+    static mpfrfp const nhalf() { return mpfrfp(0.5);}  //
+    static mpfrfp const threehalves() { return mpfrfp(1.5);}  //
+    static mpfrfp const nan() { mpfrfp p; mpfr_set_nan(p._x); return p;}
+    static mpfrfp const inf() { mpfrfp p; mpfr_set_inf(p._x, 1); return p;}    
+    
+    static INLINE bool isinf       ( mpfrfp  const a ) {
+      return static_cast<bool>(mpfr_inf_p(a._x));
+      //    return std::isinf( a );
+    }
+    static INLINE bool isnan       ( mpfrfp  const a ) {
+      return static_cast<bool>(mpfr_nan_p(a._x));      
+      //      return std::isnan( a );
+    }
+    static INLINE bool is_zero ( mpfrfp  const a ) {
+      return static_cast<bool>(mpfr_zero_p(a._x));      
+    }
+
+    static INLINE mpfrfp copysign    ( mpfrfp  const a, mpfrfp  const b ) {
+      mpfrfp c;
+      mpfr_copysign(c._x, a._x, b._x, MPFR_RNDN);
+      return c;
+      //return std::copysign( a, b );
+    }
+    static INLINE bool signbit     ( mpfrfp  const a ) {
+      return static_cast<bool>(mpfr_signbit(a._x));
+      //      return std::signbit( a );
+    }
+    static INLINE bool s_zero     ( mpfrfp  const a ) {
+      return a == mpfrfp(0); //fp<mpfrfp>::zero;
+    }
+    static INLINE bool is_positive ( mpfrfp  const a ) {
+      return a >  mpfrfp(0); //fp<mpfrfp>::zero;
+    }
+    static INLINE bool is_negative ( mpfrfp  const a ) {
+      return a <  mpfrfp(0); // fp<mpfrfp>::zero;
+    }
+    static INLINE mpfrfp fabs ( mpfrfp const a ) {
+      mpfrfp b;
+      mpfr_abs(b._x, a._x, MPFR_RNDN);
+      return b;
+    }
+    static INLINE mpfrfp sqrt ( mpfrfp const a ) {
+      mpfrfp b;
+      mpfr_sqrt(b._x, a._x, MPFR_RNDN);
+      return b;
+    }
+    static INLINE mpfrfp fma ( mpfrfp const a, mpfrfp const b, mpfrfp const c ) {
+      mpfrfp d;
+//      fprintf(stderr, "%s %d : fp_const<mpfrfp>::fma\n", __FILE__, __LINE__);
+      mpfr_fma(d._x, a._x, b._x, c._x, MPFR_RNDN);
+      return d;
+    }
+    static INLINE auto const rand () {
+      mpfrfp a;
+      gmp_randstate_t state;
+      gmp_randinit_default(state);
+      mpfr_urandom(a._x,state, MPFR_RNDN);
+      return a;
+    }
+    static INLINE mpfrfp exponent( mpfrfp const a ) {
+      if ( a == mpfrfp(0) ) return mpfrfp(1); // zero ) return one;
+      mpfr_exp_t ix; // mpfr_exp_t = short/int/long
+      ix = mpfr_get_exp(a._x);
+      double y = pow(2.0, (double)ix);
+      mpfrfp b;
+      mpfr_init_set_d(b._x, y, MPFR_RNDN);
+      return b;
+      //      
+      //      uint64_t e = *(uint64_t *)&a;
+      //      e &= 0x7ff0000000000000;
+      //      if ( e == 0x7ff0000000000000 ) return one;
+      //      return *(mpfrfp *)&e;
+    }
+    static INLINE mpfrfp exponenti( mpfrfp const a ) {
+      if ( a == mpfrfp(0) ) return mpfrfp(1); // if ( a == zero ) return one;
+      mpfr_exp_t ix;  // mpfr_exp_t = short/int/long
+      ix = mpfr_get_exp(a._x);
+      double y = pow(0.5, (double)ix);
+      mpfrfp b;
+      mpfr_init_set_d(b._x, y, MPFR_RNDN);
+      return b;
+      //      uint64_t e = *(uint64_t *)&a;
+      //      e &= 0x7ff0000000000000;
+      //      if ( e == 0x7ff0000000000000 ) return one;
+      //      e = 0x7fe0000000000000 - e;
+      //      return *(mpfrfp *)&e;
+    }
+
+    static INLINE mpfrfp get_nan()
+    {
+      mpfrfp x;
+      mpfr_set_nan(x._x);
+      return x;
+    }
+
+    static INLINE mpfrfp get_inf()
+    {
+      mpfrfp x;
+      mpfr_set_inf(x._x, 1);
+      return x;
+    }
+
+    static INLINE mpfrfp get_epsilon()
+    {
+      mpfrfp x(0);
+      return x;
+    }
+
+    static INLINE mpfrfp get_epsiloni()
+    {
+      mpfrfp x(0);
+      return x;
+    }
+
+    static INLINE mpfrfp get_denorm_min()
+    {
+      mpfrfp x(0);
+      return x;
+    }
+    static INLINE mpfrfp get_min()
+    {
+      mpfrfp x(0);
+      return x;
+    }
+    static INLINE mpfrfp get_max()
+    {
+      mpfrfp x(0);
+      return x;
+    }
+    };
   //
 #undef	__constexpr__
   //
@@ -367,9 +512,11 @@ namespace mX_real {
 
 
   // for cross-reference
+  namespace sX_real { template < typename T, Algorithm A > struct sx_real; }  
   namespace dX_real { template < typename T, Algorithm A > struct dx_real; }
   namespace tX_real { template < typename T, Algorithm A > struct tx_real; }
   namespace qX_real { template < typename T, Algorithm A > struct qx_real; }
+  namespace pX_real { template < typename T, Algorithm A > struct px_real; }  
 
 #if __cplusplus < 201703L
 #define	_BOOL_const_type(...)	std::integral_constant<bool, __VA_ARGS__ >
@@ -378,18 +525,26 @@ namespace mX_real {
 #endif
   //
   template < typename T, Algorithm A >
+  struct check_mX_real< sX_real::sx_real<T,A> > : _BOOL_const_type(fp<T>::value){};  
+  template < typename T, Algorithm A >
   struct check_mX_real< dX_real::dx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
   template < typename T, Algorithm A >
   struct check_mX_real< tX_real::tx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
   template < typename T, Algorithm A >
   struct check_mX_real< qX_real::qx_real<T,A> > : _BOOL_const_type(fp<T>::value){};
+  template < typename T, Algorithm A >
+  struct check_mX_real< pX_real::px_real<T,A> > : _BOOL_const_type(fp<T>::value){};  
   //
+  template < typename T, Algorithm A >
+  struct base_mX_real< sX_real::sx_real<T,A> > { using type = T; };
   template < typename T, Algorithm A >
   struct base_mX_real< dX_real::dx_real<T,A> > { using type = T; };
   template < typename T, Algorithm A >
   struct base_mX_real< tX_real::tx_real<T,A> > { using type = T; };
   template < typename T, Algorithm A >
   struct base_mX_real< qX_real::qx_real<T,A> > { using type = T; };
+  template < typename T, Algorithm A >
+  struct base_mX_real< pX_real::px_real<T,A> > { using type = T; };
   //
   template < typename TX, typename Ts >
   struct check_mX_base_Tfp : _BOOL_const_type(
@@ -428,11 +583,22 @@ namespace mX_real {
     return s;
   }
   template < NormalizeOption Nopt = NormalizeOption::Regular, typename T, Algorithm A >
+  INLINE auto constexpr Normalize ( sX_real::sx_real<T,A> & c ) NOEXCEPT {
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    auto t = quick_Normalized( c );
+    if ( fp<T>::isnan( t ) || fp<T>::isinf( t ) || fp<T>::is_zero( t ) ) {
+      c.x[0] = t;
+    } else
+#endif
+      { }
+  }
+  
+  template < NormalizeOption Nopt = NormalizeOption::Regular, typename T, Algorithm A >
   INLINE auto constexpr Normalize ( dX_real::dx_real<T,A> & c ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     auto t = quick_Normalized( c );
     if ( fp<T>::isnan( t ) || fp<T>::isinf( t ) || fp<T>::is_zero( t ) ) {
-      c.x[0] = c.x[1] = t;
+      c.x[0] = t;
     } else
 #endif
       {
@@ -580,25 +746,310 @@ namespace mX_real {
         }
       }
   }
+  //
+  template < NormalizeOption Nopt = NormalizeOption::Regular, typename T, Algorithm A >
+  INLINE auto constexpr Normalize ( pX_real::px_real<T,A> & c ) NOEXCEPT {
+#if MX_REAL_USE_INF_NAN_EXCEPTION
+    auto t = quick_Normalized( c );
+    if ( fp<T>::isnan( t ) || fp<T>::isinf( t ) || fp<T>::is_zero( t ) ) {
+      c.x[0] = c.x[1] = c.x[2] = c.x[3] = c.x[4] = t;
+    } else
+#endif
+      {
+	switch ( Nopt ) {
+	case NormalizeOption::VsumForward: {
+          twoSum( c.x[0], c.x[1] );
+          twoSum( c.x[1], c.x[2] );
+          twoSum( c.x[2], c.x[3] );
+          twoSum( c.x[3], c.x[4] );	  
+	} break;
+	case NormalizeOption::VQsumForward: {
+          quickSum( c.x[0], c.x[1] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[3], c.x[4] );	  
+	} break;
+	case NormalizeOption::VsumReverse: {
+          twoSum( c.x[3], c.x[4] );	  
+          twoSum( c.x[2], c.x[3] );
+          twoSum( c.x[1], c.x[2] );
+          twoSum( c.x[0], c.x[1] );
+	} break;
+	case NormalizeOption::VQsumReverse: {
+          quickSum( c.x[3], c.x[4] );	  
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[0], c.x[1] );
+	} break;
+	case NormalizeOption::Accurate: {
+          twoSum( c.x[0], c.x[4] );	  
+          twoSum( c.x[0], c.x[3] );
+          twoSum( c.x[0], c.x[2] );
+          twoSum( c.x[0], c.x[1] );
+          twoSum( c.x[1], c.x[4] );	  
+          twoSum( c.x[1], c.x[3] );
+          twoSum( c.x[1], c.x[2] );
+          twoSum( c.x[3], c.x[4] );	  
+          twoSum( c.x[2], c.x[3] );
+          twoSum( c.x[3], c.x[4] );
+          quickSum( c.x[3], c.x[4] );	  
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[0], c.x[1] );
+          quickSum( c.x[3], c.x[4] );	  
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[3], c.x[4] );
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[3], c.x[4] );	  
+	} break;
+	case NormalizeOption::Regular: {
+          if ( A == Algorithm::Quasi ) {
+            twoSum( c.x[0], c.x[4] );	    
+            twoSum( c.x[0], c.x[3] );
+            twoSum( c.x[0], c.x[2] );
+            twoSum( c.x[0], c.x[1] );
+            twoSum( c.x[1], c.x[4] );	    
+            twoSum( c.x[1], c.x[3] );
+            twoSum( c.x[1], c.x[2] );
+            twoSum( c.x[2], c.x[4] );	    
+            twoSum( c.x[2], c.x[3] );
+            twoSum( c.x[3], c.x[4] );	    
+          }
+          quickSum( c.x[3], c.x[4] );	  
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[0], c.x[1] );
+          quickSum( c.x[3], c.x[4] );	  
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[1], c.x[2] );
+          quickSum( c.x[3], c.x[4] );	  	  
+          quickSum( c.x[2], c.x[3] );
+          quickSum( c.x[3], c.x[4] );	  
+	} break;
+	case NormalizeOption::Unknown: { } break;
+	default: { } break;
+        }
+      }
+  }
 
 }
 
 // helper macros to extend argument list elements passing into the raw QxW style
-#define _SX_(a)	a
+#define _SX_(a)	a.x[0]
 #define _DX_(a) a.x[0], a.x[1]
 #define _TX_(a) a.x[0], a.x[1], a.x[2]
 #define _QX_(a) a.x[0], a.x[1], a.x[2], a.x[3]
+#define _PX_(a) a.x[0], a.x[1], a.x[2], a.x[3], a.x[4]
 
+namespace mX_real {
+  template<typename T, typename std::enable_if<
+			 std::is_same<T, mpfrfp>::value, 
+			 std::nullptr_t>::type = nullptr > 
+  INLINE void clear_underflow()
+  {
+      mpfr_clear_underflow();
+  }
+  template<typename T, typename std::enable_if<
+			 std::is_same<T, float>::value ||
+			 std::is_same<T, double>::value,
+			 std::nullptr_t>::type = nullptr > 
+  INLINE void clear_underflow()
+  {
+    std::feclearexcept(FE_UNDERFLOW);
+  }
+
+  template<typename T,	typename std::enable_if<
+			  std::is_same<T, mpfrfp>::value, 
+			  std::nullptr_t>::type = nullptr > 
+  INLINE void underflow_p(char *st)
+  {
+    if (mpfr_underflow_p()) {
+      fprintf(stderr, "%s underflow\n", st);
+    }      
+  }
+  template<typename T, typename std::enable_if<
+			 std::is_same<T, float>::value ||
+			 std::is_same<T, double>::value,
+			 std::nullptr_t>::type = nullptr > 
+  INLINE void underflow_p(char *st)
+  {
+    if ( (bool)std::fetestexcept(FE_UNDERFLOW)) {
+      fprintf(stderr, "%s underflow\n", st);
+    }      
+  }
+
+  template<typename T>
+  int16_t getexp(T &a)
+  {
+    return a.iexp;
+  }
+
+  template<typename T>  
+  void setexp(T &a, int16_t ia)
+  {
+    a.iexp = ia;
+  }
+#if 0
+  template <typename T, Algorithm A, typename std::enable_if<
+					std::is_same<T, float>::value,
+					std::nullptr_t>::type = nullptr>
+  void trunclast(pX_real::px_real<T, A> &x)
+  {
+    // truncate L=4 th (last 5th) by 7 bits
+  }
+#endif					
+  template<typename T, typename std::enable_if<
+			std::is_same<typename T::base_T, mpfrfp>::value,
+			 std::nullptr_t>::type = nullptr > 
+  INLINE void trunclast(T &x)
+  {
+#if 0
+    mpfr::real<10, MPFR_RNDN> tmp10;
+    mpfrfp tmp14;
+    const int L1 = T::L - 1;
+    mpfr_set(tmp10._x, (x.x[L1])._x, MPFR_RNDN);
+    mpfr_set(tmp14._x, tmp10._x, MPFR_RNDN);
+    x.x[L1] = tmp14;
+#endif
+  }
+  template<typename T, typename std::enable_if<
+			!std::is_same<typename T::base_T, mpfrfp>::value,
+			 std::nullptr_t>::type = nullptr >
+  INLINE void trunclast(T &a)
+  { } 					
+
+  template<typename T, T_fp(T)>
+  INLINE void trunclast(T &a)
+  {  }
+#if 0  
+  template <typename T, Algorithm A, typename std::enable_if<
+					! std::is_same<T, mpfrfp>::value,
+					std::nullptr_t>::type = nullptr >
+  void trunclast(pX_real::px_real<T, A> &x)
+  {}
+
+  template <typename T, Algorithm A, typename std::enable_if<
+					std::is_same<T, mpfrfp>::value,
+					std::nullptr_t>::type = nullptr
+  > void trunclast(pX_real::px_real<T, A> &x)
+  {}
+  #endif
+  template<typename T, typename std::enable_if<
+			 (std::is_same<typename T::base_T, float>::value ||
+			  std::is_same<typename T::base_T, double>::value), 
+			 std::nullptr_t>::type = nullptr > 
+  INLINE void scaling(T &a,
+		      const int16_t ia = static_cast<int16_t>(0))
+  {
+    using Ts = typename T::base_T;
+    int iexp0, iexp1, iexp2 ;
+    {
+      Ts y = frexp(a.x[0], &iexp0);    // frexp for both float and double
+      a.iexp = static_cast<int16_t>(iexp0) + ia; // ia is used as an offset
+      Ts a0 = a.x[0];                         // needs to be replaced by 
+      for (int i = 1; i < T::L; i++) {       // quickNormalize
+	a0 += a.x[i];
+      }
+      iexp2 = iexp1 = a.iexp;
+//    iexp1 *= static_cast<int>(a0 * 9007199254740992.0); // 2^53      
+//    iexp1 *= static_cast<int>(a0 * 16777216.0f);// 2^24 idea from Nitadori-san
+//    a.iexp = (iexp1 == 0) ? 0 : iexp2;     // a[] == 0 => a.iexp = 0
+      a.iexp = (a0 == fp<Ts>::zero()) ? 0 : iexp2;
+      a.x[0] = y;
+      for (int i = 1; i < T::L; i++) {
+	int iexpi;
+	Ts yi = frexp(a.x[i], &iexpi);        // frexp for both float and double
+	a.x[i] = ldexp(yi, (iexpi - iexp0)); // ldexp for both float and double
+      }
+    }
+  }
+
+  template<typename T, typename std::enable_if<
+			 std::is_same<typename T::base_T, mpfrfp>::value, 
+			 std::nullptr_t>::type = nullptr >
+  INLINE void scaling(T &a, 
+		      const int16_t ia = static_cast<int16_t>(0))
+  {
+    int iexp0, iexp1, iexp2;
+    {
+      iexp0 = mpfr_get_exp(a.x[0]._x);
+      a.iexp = static_cast<int16_t>(iexp0) + ia; // ia is used as an offset
+      mpfrfp a0 = a.x[0];
+      for (int i = 1; i < T::L; i++) {
+	a0 += a.x[i];  // floating point addition
+      }
+      iexp2 = iexp1 = a.iexp;
+//    iexp1 *= static_cast<int>(a0 * 9007199254740992.0); // 2^53            
+//    iexp1 *= static_cast<int>(mpfr_get_d(a0._x, MPFR_RNDN) * 16384.0); // 2^14
+//    a.iexp = (iexp1 == 0) ? 0 : iexp2;     // a[] == 0 => a.iexp = 0  
+      a.iexp = (a0 == fp<mpfrfp>::zero() ? 0 : iexp2);
+      //      fprintf(stderr, "%s %d %d %d\n", __FILE__, __LINE__, static_cast<int>(ia), static_cast<int>(a.iexp));
+      mpfr_set_exp(a.x[0]._x, 0);
+      for (int i = 1; i < T::L; i++) {
+	int iexpi = mpfr_get_exp(a.x[i]._x) - iexp0;
+	mpfr_set_exp(a.x[i]._x, iexpi);
+      }
+    }
+  }
+
+  template<typename T, typename std::enable_if<
+			 (!std::is_same<typename T::base_T, float>::value &&
+			  !std::is_same<typename T::base_T, double>::value &&
+			  !std::is_same<typename T::base_T, mpfrfp>::value),
+			 std::nullptr_t>::type = nullptr > 
+  INLINE void sclaing(T &a, const int16_t ia  = static_cast<int16_t>(0))
+  {  }
+
+  template<typename T, T_fp(T)>
+  INLINE void sclaing(T &a, const int16_t ia = static_cast<int16_t>(0))
+  {  }
+					
+  template<typename T,  typename std::enable_if<
+			  (std::is_same<typename T::base_T, double>::value ||
+			   std::is_same<typename T::base_T, float>::value ),
+			   std::nullptr_t>::type = nullptr > 
+INLINE void rescaling(T &a, const int16_t ia)
+  {
+    for (int i = 0; i < T::L; i++) {
+      int iexpi;
+      double yi = frexp(a.x[i], &iexpi);  // frexp for both float/double
+      iexpi += static_cast<int>(ia);
+      a.x[i] = ldexp(yi, iexpi);          // ldexp for both float/double
+    }
+  }
+
+  template<typename T, 
+           typename std::enable_if<std::is_same<typename T::base_T, mpfrfp>::value, std::nullptr_t>::type = nullptr > INLINE void rescaling(T &a, const int16_t ia)
+  {
+    for (int i = 0; i < T::L; i++) {
+      int iexpi = mpfr_get_exp(a.x[i]._x) + static_cast<int>(ia);
+      mpfr_set_exp(a.x[i]._x, iexpi);
+    }
+  }
+
+  template<typename T, typename std::enable_if<
+			 (!std::is_same<typename T::base_T, float>::value &&
+			  !std::is_same<typename T::base_T, double>::value &&
+			  !std::is_same<typename T::base_T, mpfrfp>::value),
+			 std::nullptr_t>::type = nullptr > 
+INLINE void resclaing(T &a, const int16_t ia)
+  {  }
+}
 //
+#include "sX_real.hpp"
 #include "dX_real.hpp"
 #include "tX_real.hpp"
 #include "qX_real.hpp"
+#include "pX_real.hpp"
 //
 
 #undef	_SX_
 #undef	_DX_
 #undef	_TX_
 #undef	_QX_
+#undef	_PX_
+#undef	_HX_
 
 
 namespace mX_real {
@@ -673,33 +1124,51 @@ namespace mX_real {
 
 //
 using df_Real        = mX_real::dX_real::dX_real_accurate<float>;
-using df_Real_weakaccurate = mX_real::dX_real::dX_real_weakaccurate<float>;
 using df_Real_sloppy = mX_real::dX_real::dX_real_sloppy<float>;
 using df_Real_quasi  = mX_real::dX_real::dX_real_quasi<float>;
 
 using dd_Real        = mX_real::dX_real::dX_real_accurate<double>;
-using dd_Real_weakaccurate = mX_real::dX_real::dX_real_weakaccurate<double>;
 using dd_Real_sloppy = mX_real::dX_real::dX_real_sloppy<double>;
 using dd_Real_quasi  = mX_real::dX_real::dX_real_quasi<double>;
 
+using dmpfr_Real        = mX_real::dX_real::dX_real_accurate<mpfrfp>;
+using dmpfr_Real_sloppy = mX_real::dX_real::dX_real_sloppy<mpfrfp>;
+using dmpfr_Real_quasi  = mX_real::dX_real::dX_real_quasi<mpfrfp>;
+
+
 using tf_Real        = mX_real::tX_real::tX_real_accurate<float>;
-using tf_Real_weakaccurate = mX_real::tX_real::tX_real_weakaccurate<float>;
 using tf_Real_sloppy = mX_real::tX_real::tX_real_sloppy<float>;
 using tf_Real_quasi  = mX_real::tX_real::tX_real_quasi<float>;
 
 using td_Real        = mX_real::tX_real::tX_real_accurate<double>;
-using td_Real_weakaccurate = mX_real::tX_real::tX_real_weakaccurate<double>;
 using td_Real_sloppy = mX_real::tX_real::tX_real_sloppy<double>;
 using td_Real_quasi  = mX_real::tX_real::tX_real_quasi<double>;
 
+using tmpfr_Real        = mX_real::tX_real::tX_real_accurate<mpfrfp>;
+using tmpfr_Real_sloppy = mX_real::tX_real::tX_real_sloppy<mpfrfp>;
+using tmpfr_Real_quasi  = mX_real::tX_real::tX_real_quasi<mpfrfp>;
+
 using qf_Real        = mX_real::qX_real::qX_real_accurate<float>;
-using qf_Real_weakaccurate = mX_real::qX_real::qX_real_weakaccurate<float>;
 using qf_Real_sloppy = mX_real::qX_real::qX_real_sloppy<float>;
 using qf_Real_quasi  = mX_real::qX_real::qX_real_quasi<float>;
 
 using qd_Real        = mX_real::qX_real::qX_real_accurate<double>;
-using qd_Real_weakaccurate = mX_real::qX_real::qX_real_weakaccurate<double>;
 using qd_Real_sloppy = mX_real::qX_real::qX_real_sloppy<double>;
 using qd_Real_quasi  = mX_real::qX_real::qX_real_quasi<double>;
 
+using qmpfr_Real        = mX_real::qX_real::qX_real_accurate<mpfrfp>;
+using qmpfr_Real_sloppy = mX_real::qX_real::qX_real_sloppy<mpfrfp>;
+using qmpfr_Real_quasi  = mX_real::qX_real::qX_real_quasi<mpfrfp>;
+
+using pf_Real        = mX_real::pX_real::pX_real_accurate<float>;
+using pf_Real_sloppy = mX_real::pX_real::pX_real_sloppy<float>;
+using pf_Real_quasi  = mX_real::pX_real::pX_real_quasi<float>;
+
+using pd_Real        = mX_real::pX_real::pX_real_accurate<double>;
+using pd_Real_sloppy = mX_real::pX_real::pX_real_sloppy<double>;
+using pd_Real_quasi  = mX_real::pX_real::pX_real_quasi<double>;
+
+using pmpfr_Real        = mX_real::pX_real::pX_real_accurate<mpfrfp>;
+using pmpfr_Real_sloppy = mX_real::pX_real::pX_real_sloppy<mpfrfp>;
+using pmpfr_Real_quasi  = mX_real::pX_real::pX_real_quasi<mpfrfp>;
 

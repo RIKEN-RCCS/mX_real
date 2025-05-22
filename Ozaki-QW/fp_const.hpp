@@ -119,6 +119,16 @@ namespace QxW {
       //
       return exponent<true>( a );
     }
+    static INLINE auto fract_exp(float const a, int16_t *iexp) NOEXCEPT {
+      int iiexp(0);
+      float aa = frexpf(a, &iiexp);
+      *iexp = static_cast<int16_t>(iiexp);
+      return aa;
+    }
+    static INLINE auto set_exp( float const a, int16_t const iexp) NOEXCEPT {
+      return ldexpf(a, static_cast<int>(iexp));
+    }
+
   };
   template <> struct fp_const<double> {
     static INLINE auto constexpr zero() NOEXCEPT { return 0.0; }
@@ -220,7 +230,57 @@ namespace QxW {
       //
       return exponent<true>( a );
     }
-  };
+    static INLINE auto fract_exp(double const a, int16_t *iexp) NOEXCEPT {
+      int iiexp(0);
+      double aa = frexp(a, &iiexp);
+      *iexp = static_cast<int16_t>(iiexp);
+      return aa;
+    }
+    static INLINE auto set_exp(double const a, int16_t const iexp) NOEXCEPT {
+      return ldexp(a, static_cast<int>(iexp));
+    }
 
+  };
+#if 1
+  template <> struct fp_const<mpfrfp> {
+    static INLINE auto const zero() NOEXCEPT { return mpfrfp(0); }
+    static INLINE auto const one()  NOEXCEPT { return mpfrfp(1); }
+    static INLINE auto const two()  NOEXCEPT { return mpfrfp(2); }
+    static INLINE auto const nhalf() NOEXCEPT { return mpfrfp(0.5); }
+    static INLINE auto const threehalves() NOEXCEPT { return mpfrfp(1.5); }
+    static INLINE mpfrfp const exponent( mpfrfp const a ) {
+      if ( a == mpfrfp(0) ) return mpfrfp(1); // zero ) return one;
+      mpfr_exp_t ix; // mpfr_exp_t = short/int/long
+      ix = mpfr_get_exp(a._x);
+      double y = pow(2.0, (double)ix);
+      mpfrfp b;
+      mpfr_init_set_d(b._x, y, MPFR_RNDN);
+      return b;
+    }
+    static INLINE mpfrfp const exponenti( mpfrfp const a ) {
+      if ( a == mpfrfp(0) ) return mpfrfp(1); // if ( a == zero ) return one;
+      mpfr_exp_t ix;  // mpfr_exp_t = short/int/long
+      ix = mpfr_get_exp(a._x);
+      double y = pow(0.5, (double)ix);
+      mpfrfp b;
+      mpfr_init_set_d(b._x, y, MPFR_RNDN);
+      return b;
+    }
+    static INLINE auto const ulp( mpfrfp const a ) NOEXCEPT { return mpfrfp(0);}
+
+    static INLINE auto fract_exp(mpfrfp const a, int16_t *iexp) NOEXCEPT {
+      mpfrfp aa(a);
+      *iexp = static_cast<int16_t>(mpfr_get_exp(a._x));
+      mpfr_set_exp(aa._x, 0);
+      return aa;
+    }
+    
+    static INLINE auto set_exp(mpfrfp const a, int16_t const iexp) NOEXCEPT {
+      mpfrfp aa(a);
+      mpfr_set_exp(aa._x, static_cast<int>(iexp));
+      return aa;
+    }
+  };
+#endif
 }
 

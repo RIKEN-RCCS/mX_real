@@ -36,7 +36,7 @@ namespace mX_real {
     public:
       static int constexpr L = 3;
       T x[L];
-
+      int16_t iexp = 0;
       //
       //
       //
@@ -50,8 +50,8 @@ namespace mX_real {
       //
       using accurateType   = type_with_Algorithm<accurateAlgorithm<A>::algorithm>;
       using inaccurateType = type_with_Algorithm<inaccurateAlgorithm<A>::algorithm>;
-      using narrowerType   = typename std::conditional_t< 3>=4, tX_real::tx_real<T,A>, dX_real::dx_real<T,A> >;
-      using widerType      = typename std::conditional_t< 3==2, tX_real::tx_real<T,A>, qX_real::qx_real<T,A> >;
+      //      using narrowerType   = typename std::conditional_t< 3>=4, tX_real::tx_real<T,A>, dX_real::dx_real<T,A> >;
+      //      using widerType      = typename std::conditional_t< 3==2, tX_real::tx_real<T,A>, qX_real::qx_real<T,A> >;
 
 
       //
@@ -61,15 +61,18 @@ namespace mX_real {
       INLINE T constexpr quick_Normalized () const NOEXCEPT {
         return mX_real::quick_Normalized( *this );
       }
-      INLINE TX_REAL<> constexpr element_rotate () const NOEXCEPT {
-        T y[L]; for(auto i=0; i<L; i++) { y[i] = x[i]; }
+      INLINE DX_REAL<> constexpr element_rotate () const NOEXCEPT {
+	using TX = tX_real::tx_real<T, A>;
+	TX y;
+	//        T y[L];
+	for(auto i=0; i<L; i++) { y.x[i] = x[i]; }
         for(auto i=0; i<L-1; i++) {
-          if ( ! fp<T>::is_zero( y[0] ) ) { return TX_REAL<>( y ); }
-          T t = y[0]; for(auto j=0; j<L-1; j++) { y[j] = y[j+1]; } y[L-1] = t;
+          if ( ! fp<T>::is_zero( y.x[0] ) ) { return y; } //
+          T t = y.x[0]; for(auto j=0; j<L-1; j++) { y.x[j] = y.x[j+1]; } y.x[L-1] = t;
+	  scaling(y, iexp);
         }
-        return TX_REAL<>( y );
+	return y;
       }
-
 
       //
       // Simple constructors
@@ -90,14 +93,59 @@ namespace mX_real {
         else {
           x[0] = x0; x[1] = x1; x[2] = x2;
         }
+	scaling(*this);	
       }
       INLINE constexpr tx_real( T const &h ) NOEXCEPT {
         { x[0] = h; for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
+	scaling(*this);	
       }
+
       template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
       INLINE tx_real( Ts const &h ) NOEXCEPT {
-        { x[0] = T(h); for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
+	Ts X = QxW::fp_const<Ts>::fract_exp(h, &iexp);
+#if 0
+	for (auto i = 0; i < L; i++) {
+	  //	  T s(X); // constructor with cast from Ts to T
+	  T s;
+	  s = static_cast<T>(X);  // cast Ts to T
+	  if (i < L - 1 && s != QxW::fp_const<T>::zero()) {
+	    T e = QxW::fp_const<T>::exponent(s);
+	    T ex = QxW::fp_const<T>::exponenti(s);   // e = 1/ex inverse
+	    Ts es(e);  // e is power of two
+	    Ts exs(ex);
+	    s = s * ex;
+	    X = X * exs;
+	    X = (X - static_cast<Ts>(s)) * es;
+	    s = s * e;
+	  }
+	  x[i] = s;
+	} // loop :: i
+#else
+	int16_t iXexp = int16_t(0);
+	for (auto i = 0; i < L; i++) {
+	  T s = static_cast<T>(X);
+	  int16_t iX0exp;
+	  if (i < L - 1 && s != QxW::fp_const<T>::zero()) {
+	    X = X - static_cast<Ts>(s);
+	    X = QxW::fp_const<Ts>::fract_exp(X, &iX0exp);
+	  }
+	  if (s == QxW::fp_const<T>::zero()) {
+	    x[i] = QxW::fp_const<T>::zero();
+	  }
+	  else {
+	    x[i] = QxW::fp_const<T>::set_exp(s, iXexp);
+	    iXexp += iX0exp;
+	  }
+	} // loop : ii
+#endif
+	scaling(*this, iexp);
       }
+	
+//      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+//      INLINE tx_real( Ts const &h ) NOEXCEPT {
+//        { x[0] = T(h); for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
+//	scaling(*this);		
+//      }
       INLINE constexpr tx_real( T const *d ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
         auto t = d[0]; for(auto i=1; i<L; i++) { t += d[1]; }
@@ -110,6 +158,7 @@ namespace mX_real {
         else {
           for(auto i=0; i<L; i++) { x[i] = d[i]; }
         }
+	scaling(*this);
       }
 
 
@@ -138,14 +187,18 @@ namespace mX_real {
               auto s = h;
               mX_real::Normalize<NormalizeOption::Accurate>( s );
               mX_real::copy_with_rounding( x, s.x, L, LL );
+	      iexp = s.iexp;	      
             } else {
               mX_real::copy_with_rounding( x, h.x, L, LL );
+	      iexp = h.iexp;	      
             }
             if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Accurate>( *this ); }
           } else {
             mX_real::copy_with_rounding( x, h.x, L, LL );
             if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Regular>( *this ); }
           }
+	  scaling( *this, iexp);
+	  trunclast(*this);
         }
       }
 
@@ -156,11 +209,13 @@ namespace mX_real {
       //
       INLINE TX_REAL<> constexpr &operator=( T const& h )& NOEXCEPT {
         x[0] = h; for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); }
+	scaling( *this);
         return *this;
       }
       template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
       INLINE TX_REAL<> constexpr &operator=( Ts const& h )& NOEXCEPT {
         x[0] = T(h); for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); }
+	scaling( *this); 
         return *this;
       }
       template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
@@ -185,14 +240,20 @@ namespace mX_real {
               auto s = h;
               mX_real::Normalize<NormalizeOption::Accurate>( s );
               mX_real::copy_with_rounding( x, s.x, L, LL );
+	      iexp = s.iexp;
             } else {
               mX_real::copy_with_rounding( x, h.x, L, LL );
+	      iexp = h.iexp;	      
             }
-            if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Regular>( *this ); }
+            if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Regular>( *this ); 
+	    }
           } else {
             mX_real::copy_with_rounding( x, h.x, L, LL );
+	    iexp = h.iexp;	      
             if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Accurate>( *this ); }
           }
+	  scaling(*this, iexp);
+	  turnclast(*this);	  
         }
         return *this;
       }
@@ -204,21 +265,25 @@ namespace mX_real {
       //
       explicit
       INLINE constexpr operator T() const NOEXCEPT {
+	T s;
         if ( A == Algorithm::Quasi ) {
-          return this->quick_Normalized();
-        } else {
-          return x[0];
+	  s = this->quick_Normalized();
+        } else { // truncation becuase of disjoint data
+          s = x[0];
         }
+	return ldexp(s, iexp);
       }
+
       template < typename Ts, T_fp(Ts), T_neq_Ts(T,Ts) >
       explicit
       INLINE constexpr operator Ts() const NOEXCEPT {
-        if ( A == Algorithm::Quasi ) {
-          return Ts(this->quick_Normalized());
-        } else {
-          return Ts(x[0]);
-        }
+	Ts s = static_cast<Ts>(x[0]);
+	for (auto i = 1; i < L; i++) {
+	  s += static_cast<Ts>(x[i]);
+	}
+	return ldexp(s, iexp);
       }
+
       template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
       explicit
       INLINE constexpr operator _TX_<T,_A_>() const NOEXCEPT {
@@ -242,19 +307,41 @@ namespace mX_real {
               auto s = *this;
               mX_real::Normalize<NormalizeOption::Accurate>( s );
               mX_real::copy_with_rounding( c.x, s.x, LL, L );
+	      c.iexp = s.iexp;	    	      	      
             } else {
               mX_real::copy_with_rounding( c.x, x, LL, L );
+	      c.iexp = iexp;	    	    	      
             }
             if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Regular>( c ); }
           } else {
             mX_real::copy_with_rounding( c.x, x, LL, L );
             if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Accurate>( c ); }
           }
+	  scaling(c);
+	  trunclast(c);
         }
         return c;
       }
+#if 0
+      // convert to single floating point number
+      explicit operator double() const
+      {
+	double s = 0.0;
+	for(int i=0; i< L; i++) {
+	  s += static_cast<double>(x[i]);
+	}
+	return ldexp(s, iexp);
+      }
 
-
+      explicit operator float() const
+      {
+	float s = 0.0f;
+	for(int i=0; i< L; i++) {
+	  s += static_cast<float>(x[i]);
+	}
+	return ldexpf(s, iexp);
+      }
+#endif
       //
       // unneccessary operators are invalidaded
       //
@@ -581,9 +668,14 @@ namespace mX_real {
     template < typename T, Algorithm A >
     INLINE auto constexpr operator_eq ( tX_real::tx_real<T,A> const& a, tX_real::tx_real<T,A> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
-      auto i=0; for(i=0; i<TX::L-1; i++) {
-        if ( a.x[i] != b.x[i] ) { return a.x[i] == b.x[i]; }
-      } return a.x[i] == b.x[i];
+      if (a.iexp == b.iexp) {            
+	auto i=0; for(i=0; i<TX::L-1; i++) {
+	  if ( a.x[i] != b.x[i] ) { return a.x[i] == b.x[i]; }
+	} return a.x[i] == b.x[i];
+      }
+      else {
+	return 0; //(a.iexp == b.iexp);
+      }
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator== ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
@@ -607,9 +699,14 @@ namespace mX_real {
     template < typename T, Algorithm A >
     INLINE auto constexpr operator_gt ( tX_real::tx_real<T,A> const& a, tX_real::tx_real<T,A> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
-      auto i=0; for(i=0; i<TX::L-1; i++) {
-        if ( a.x[i] != b.x[i] ) { return a.x[i] > b.x[i]; }
-      } return a.x[i] > b.x[i];
+      if (a.iexp == b.iexp) {      
+	auto i=0; for(i=0; i<TX::L-1; i++) {
+	  if ( a.x[i] != b.x[i] ) { return a.x[i] > b.x[i]; }
+	} return a.x[i] > b.x[i];
+      }
+      else {
+	return static_cast<int>(a.iexp > b.iexp) ;
+      }
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator> ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
@@ -633,10 +730,15 @@ namespace mX_real {
     template < typename T, Algorithm A >
     INLINE auto constexpr operator_lt ( tX_real::tx_real<T,A> const& a, tX_real::tx_real<T,A> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
-      auto i=0; for(i=0; i<TX::L-1; i++) {
-        if ( a.x[i] != b.x[i] ) { return a.x[i] < b.x[i]; }
-      } return a.x[i] < b.x[i];
-    }
+      if (a.iexp == b.iexp) {      
+	auto i = 0; for(i=0; i<TX::L-1; i++) {
+	  if ( a.x[i] != b.x[i] ) { return a.x[i] < b.x[i]; }
+	} return static_cast<int>(a.x[i] < b.x[i]);
+      }
+      else {
+	return static_cast<int>(a.iexp < b.iexp);
+      }
+    }      
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator< ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
@@ -658,7 +760,10 @@ namespace mX_real {
     //
     template < typename T, Algorithm Aa >
     INLINE auto constexpr reversed_sign ( tX_real::tx_real<T,Aa> const& a ) NOEXCEPT {
-      return tX_real::tx_real<T,Aa>( -a.x[0],-a.x[1],-a.x[2] );
+      //      return tX_real::tx_real<T,Aa>( -a.x[0],-a.x[1],-a.x[2] );
+      tX_real::tx_real<T,Aa> b( -a.x[0], -a.x[1], -a.x[2]);
+      b.iexp = a.iexp;
+      return b;      
     }
     //
     template < typename T, Algorithm Aa >
@@ -674,7 +779,7 @@ namespace mX_real {
     //
     // Addition
     //
-    //
+    // Q-Q-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_body ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
@@ -688,6 +793,7 @@ namespace mX_real {
       }
       return c;
     }
+    // Q-T-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_body ( qX_real::qx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
@@ -701,6 +807,7 @@ namespace mX_real {
       }
       return c;
     }
+    // Q-D-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_body ( qX_real::qx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
@@ -714,8 +821,9 @@ namespace mX_real {
       }
       return c;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_add_body ( qX_real::qx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+    // Q-S-T
+    template < typename T, Algorithm Aa, Algorithm Ab >
+    INLINE auto constexpr operator_add_body ( qX_real::qx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
@@ -730,34 +838,111 @@ namespace mX_real {
     INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       return operator_add_body ( b, a );
     }
+    // T-T-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A <= Algorithm::WeakAccurate ) {
-        QxW::add_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(c) );
-      } else {
-        QxW::add_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(c) );
-        if ( A != Algorithm::Quasi ) { Normalize( c ); }
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
+#ifdef CHECK_UNDERFLOW		
+      clear_underflow<T>();
+#endif
+      if (ia < ib) {
+	TX aa(a);
+	rescaling(aa, (ia - ib));
+	if ( A <= Algorithm::WeakAccurate ) {	  	  	
+	  QxW::add_TW_TW_TW ( _TX_(aa), _TX_(b), _TX_(c) );
+	} else {
+	  QxW::add_QTW_QTW_QTW ( _TX_(aa), _TX_(b), _TX_(c) );
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
+	scaling(c, ib); // c.iexp = 0
       }
+      else if (ia > ib) {
+	TX bb(b);
+	rescaling(bb, (ib - ia));
+	if ( A <= Algorithm::WeakAccurate ) {	  	  	
+	  QxW::add_TW_TW_TW ( _TX_(a), _TX_(bb), _TX_(c) );
+	} else {	  
+	  QxW::add_QTW_QTW_QTW ( _TX_(a), _TX_(bb), _TX_(c) );
+	}
+	if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	scaling(c, ia); // c.iexp = 0
+      }
+      else {
+	if ( A <= Algorithm::WeakAccurate ) {	  	  	
+	  QxW::add_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(c) );
+	} else {	  
+	  QxW::add_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(c) );
+	}
+	if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	scaling(c, ia); // c.iexp = 0
+      }
+#ifdef CHECK_UNDERFLOW	
+      char errbuf[128];
+      snprintf(errbuf, 128, "%s %d add", __FILE__, __LINE__);
+      underflow_p<T>(errbuf);
+#endif
+      trunclast(c);      
       return c;
+      //        QxW::add_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(c) );
+      //        if ( A != Algorithm::Quasi ) { Normalize( c ); }
     }
+    // T-D-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
-      TX c;
-      if ( A <= Algorithm::WeakAccurate ) {
-        QxW::add_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(c) );
-      } else {
-        QxW::add_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(c) );
-        if ( A != Algorithm::Quasi ) { Normalize( c ); }
+      TX c;	      
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
+#ifdef CHECK_UNDERFLOW		
+      clear_underflow<T>();
+#endif
+      if (ia < ib) {
+	TX aa(a);
+	rescaling(aa, (ia - ib));
+	if ( A <= Algorithm::WeakAccurate ) {	  	  	
+	  QxW::add_TW_DW_TW ( _TX_(aa), _DX_(b), _TX_(c) );
+	} else {
+	  QxW::add_QTW_PA_QTW ( _TX_(aa), _DX_(b), _TX_(c) );
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
+	scaling(c, ib); // c.iexp = 0
       }
+      else if (ia > ib) {
+	TX bb(b);
+	rescaling(bb, (ib - ia));
+	if ( A <= Algorithm::WeakAccurate ) {	  	  	
+	  QxW::add_TW_DW_TW ( _TX_(a), _DX_(bb), _TX_(c) );
+	} else {	
+	  QxW::add_QTW_PA_QTW ( _TX_(a), _DX_(bb), _TX_(c) );
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
+	scaling(c, ia); // c.iexp = 0
+      } else {
+	if ( A <= Algorithm::WeakAccurate ) {	  	  	
+	  QxW::add_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(c) );
+	}
+	else {
+	  QxW::add_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(c) );
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
+	scaling(c, ia); // c.iexp = 0
+      }
+#ifdef CHECK_UNDERFLOW	
+	char errbuf[128];
+	snprintf(errbuf, 128, "%s %d add", __FILE__, __LINE__);
+	underflow_p<T>(errbuf);
+#endif
+      trunclast(c);      
       return c;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+ // T-S-T
+    template < typename T, Algorithm Aa, Algorithm Ab >
+    INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
@@ -789,8 +974,8 @@ namespace mX_real {
       }
       return c;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_add_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa, Algorithm Ab >
+    INLINE auto constexpr operator_add_body ( dX_real::dx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
@@ -814,7 +999,7 @@ namespace mX_real {
       return operator_add_body ( b, a );
     }
     template < typename T, Algorithm A, T_fp(T) >
-    INLINE auto constexpr operator_add_body ( T const& a, T const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_body (sX_real::sx_real<T,A> const& a, sX_real::sx_real<T,A> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
@@ -941,30 +1126,88 @@ namespace mX_real {
       }
       return a;
     }
+    // T-T-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_ow_body ( tX_real::tx_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      if ( A <= Algorithm::WeakAccurate ) {
-        QxW::add_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(a) );
-      } else {
-        QxW::add_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(a) );
-        if ( A != Algorithm::Quasi ) { Normalize( a ); }
+      using TX = tX_real::tx_real<T,A>;            
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
+      if (ia < ib) {
+	rescaling(a, (ia - ib));
+	if ( A <= Algorithm::WeakAccurate ) {	    
+	  QxW::add_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(a) );
+	} else {
+	  QxW::add_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(a) );
+	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
+	}
+	scaling(a, ib);
       }
+      else if(ia > ib) {
+	TX bb(b);
+	rescaling(bb, (ib - ia));
+	if ( A <= Algorithm::WeakAccurate ) {	    
+	  QxW::add_TW_TW_TW ( _TX_(a), _TX_(bb), _TX_(a) );
+	} else {	  
+	  QxW::add_QTW_QTW_QTW ( _TX_(a), _TX_(bb), _TX_(a) );
+	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
+	}
+	scaling(a, ia);
+      }
+      else {
+	if ( A <= Algorithm::WeakAccurate ) {	    
+	  QxW::add_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(a) );
+	} else {	  
+	  QxW::add_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(a) );
+	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
+	}
+	scaling(a, ia);
+      }
+      trunclast(a);      
       return a;
     }
+    // T-D-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_ow_body ( tX_real::tx_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      if ( A <= Algorithm::WeakAccurate ) {
-        QxW::add_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(a) );
-      } else {
-        QxW::add_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(a) );
-        if ( A != Algorithm::Quasi ) { Normalize( a ); }
+      using TX = tX_real::tx_real<T,A>;            
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
+      if (ia < ib) {
+	rescaling(a, (ia - ib));
+	if ( A <= Algorithm::WeakAccurate ) {
+	  QxW::add_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(a) );
+	} else {
+	  QxW::add_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(a) );
+	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
+	}
+	scaling(a, ib);	
       }
+      else if (ia > ib) {
+	TX bb(b);
+	rescaling(bb, (ib - ia));	
+	if ( A <= Algorithm::WeakAccurate ) {
+	  QxW::add_TW_DW_TW ( _TX_(a), _DX_(bb), _TX_(a) );
+	} else {
+	  QxW::add_QTW_PA_QTW ( _TX_(a), _DX_(bb), _TX_(a) );
+	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
+	}
+	scaling(a, ia);	
+      }
+      else {
+	if ( A <= Algorithm::WeakAccurate ) {
+	  QxW::add_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(a) );
+	} else {
+	  QxW::add_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(a) );
+	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
+	}
+	scaling(a, ia);
+      }
+      trunclast(a);
       return a;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_add_ow_body ( tX_real::tx_real<T,Aa> & a, T const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa, Algorithm Ab >
+    INLINE auto constexpr operator_add_ow_body ( tX_real::tx_real<T,Aa> & a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
       if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::add_TW_SW_TW ( _TX_(a), _SX_(b), _TX_(a) );
       } else {
@@ -1097,8 +1340,8 @@ namespace mX_real {
       }
       return c;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_mul_body ( qX_real::qx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa, Algorithm Ab>
+    INLINE auto constexpr operator_mul_body ( qX_real::qx_real<T,Aa> const& a, sX_real::sx_real<T,Aa> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
@@ -1113,11 +1356,14 @@ namespace mX_real {
     INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       return operator_mul_body ( b, a );
     }
+    // T-T-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
       if ( A <= Algorithm::WeakAccurate ) {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
@@ -1142,23 +1388,30 @@ namespace mX_real {
         }
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
+      sclaing(c, (ia + ib));
+      trunclast(c);
       return c;
     }
+    // T-D-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
       if ( A <= Algorithm::WeakAccurate ) {
         QxW::mul_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(c) );
       } else {
         QxW::mul_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(c) );
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
+      sclaing(c, (ia + ib));
+      turnclast(c);
       return c;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa, Algorithm Ab  >
+    INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
@@ -1208,8 +1461,8 @@ namespace mX_real {
       }
       return c;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_mul_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa, Algorithm Ab  >
+    INLINE auto constexpr operator_mul_body ( dX_real::dx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
@@ -1233,7 +1486,7 @@ namespace mX_real {
       return operator_mul_body ( b, a );
     }
     template < typename T, Algorithm A, T_fp(T) >
-    INLINE auto constexpr operator_mul_body ( T const& a, T const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_body ( sX_real::sx_real<T,A> const& a, sX_real::sx_real<T,A> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
@@ -1379,8 +1632,9 @@ namespace mX_real {
       auto e = tX_real::operator_mul_exception ( sa, b, flag );
       if ( flag ) { return e; }
 #endif
+      using TX = dX_real::dx_real<T,A>;                  
       auto c = b;
-      for(auto i=0; i<3; i++) {
+      for(auto i=0; i<TX::L; i++) {
         c.x[i] *= sa;
       }
       return c;
@@ -1442,30 +1696,40 @@ namespace mX_real {
       }
       return a;
     }
+    // T-T-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_mul_ow_body ( tX_real::tx_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
       if ( A <= Algorithm::WeakAccurate ) {
         QxW::mul_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(a) );
       } else {
         QxW::mul_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(a) );
         if ( A != Algorithm::Quasi ) { Normalize( a ); }
       }
+      scaling(a, (ia + ib));
+      trunclast(a);
       return a;
     }
+    // T-D-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_mul_ow_body ( tX_real::tx_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
       if ( A <= Algorithm::WeakAccurate ) {
         QxW::mul_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(a) );
       } else {
         QxW::mul_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(a) );
         if ( A != Algorithm::Quasi ) { Normalize( a ); }
       }
+      scaling(a, (ia + ib));
+      trunclast(a);
       return a;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_mul_ow_body ( tX_real::tx_real<T,Aa> & a, T const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa, Algorithm Ab  >
+    INLINE auto constexpr operator_mul_ow_body ( tX_real::tx_real<T,Aa> & a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
       if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::mul_TW_SW_TW ( _TX_(a), _SX_(b), _TX_(a) );
       } else {
@@ -1537,7 +1801,87 @@ namespace mX_real {
         }
     }
     //
+    // FMA
+    // T-T-T
+    template < typename T, Algorithm A, Algorithm Ab>
+    void  madd_( tX_real::tx_real<T,A> const & a, tX_real::tx_real<T,Ab> const& b, tX_real::tx_real<T,A> & c) NOEXCEPT {
+      using TX = tX_real::tx_real<T,A>;
+      TX ab;
+      
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
+      int16_t ic = getexp(c);
+#ifdef CHECK_UNDERFLOW	      
+      clear_underflow<T>();
+#endif
+      QxW::mul_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(ab) );
+      if (ia + ib < ic) {
+	rescaling(ab, ((ia + ib) - ic));
+        QxW::add_QTW_QTW_QTW(_TX_(c), _TX_(ab), _TX_(c));
+	if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	scaling(c, ic);        	
+      }
+      else if (ia + ib > ic) {
+	rescaling(c, (ic - (ia + ib)));
+        QxW::add_QTW_QTW_QTW(_TX_(c), _TX_(ab), _TX_(c));
+	if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	scaling(c, (ia + ib));      
+      }
+      else { // (ia + ib) == ic
+        QxW::add_QTW_QTW_QTW(_TX_(c), _TX_(ab), _TX_(c));
+	if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	scaling(c, (ia + ib));     
+      }
+#ifdef CHECK_UNDERFLOW	
+      char errbuf[128];
+      snprintf(errbuf, 128, "%s %d madd", __FILE__, __LINE__);
+      underflow_p<T>(errbuf);
+#endif
+      trunclast(c);      
+    }
 
+    // T-D-T        
+    template < typename T, Algorithm A, Algorithm Ab>
+    void  madd_( tX_real::tx_real<T,A> const & a, dX_real::dx_real<T,Ab> const& b, tX_real::tx_real<T,A> & c) NOEXCEPT {
+      //      fprintf(stderr, "%s %d : QxW::madd_PA_QTW_QTW \n", __FILE__, __LINE__);
+      using TX = tX_real::tx_real<T,A>;
+      TX ab;
+      
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
+      int16_t ic = getexp(c);
+#ifdef CHECK_UNDERFLOW	      
+      clear_underflow<T>();
+#endif
+      QxW::mul_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(ab) );
+      if (ia + ib < ic) {
+	rescaling(ab, (ia + ib) - ic);
+        QxW::add_QTW_QTW_QTW(_TX_(c), _TX_(ab), _TX_(c));
+	if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	scaling(c, ic);        	
+      }
+      else if (ia + ib > ic) {
+	rescaling(c, ic - (ia + ib));
+        QxW::add_QTW_QTW_QTW(_TX_(c), _TX_(ab), _TX_(c));
+	if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	scaling(c, (ia + ib));      
+      }
+      else { // (ia + ib) == ic
+        QxW::add_QTW_QTW_QTW(_TX_(c), _TX_(ab), _TX_(c));
+	if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	scaling(c, ic);      
+      }
+#ifdef CHECK_UNDERFLOW	      
+      char errbuf[128];
+      snprintf(errbuf, 128, "%s %d madd", __FILE__, __LINE__);
+      underflow_p<T>(errbuf);
+#endif
+    }
+    //
+    template < typename T, Algorithm A, Algorithm Ab>
+    void  madd_( dX_real::dx_real<T,Ab> const& a, tX_real::tx_real<T,A> const & b, tX_real::tx_real<T,A> & c) NOEXCEPT {
+      madd_(b, a, c);
+    }
     //
     // Division
     //
@@ -1581,8 +1925,8 @@ namespace mX_real {
       }
       return c;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_div_body ( qX_real::qx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa, Algorithm Ab  >
+    INLINE auto constexpr operator_div_body ( qX_real::qx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
@@ -1606,34 +1950,45 @@ namespace mX_real {
       }
       return c;
     }
+    // T-T-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_body ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);	
       if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(c) );
       } else {
         QxW::div_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(c) );
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
+      scaling(c, (ia - ib));	
+      trunclast(c);
       return c;
     }
+    // T-D-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_body ( tX_real::tx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;
       TX c;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);	
       if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(c) );
       } else {
         QxW::div_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(c) );
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
+      scaling(c, (ia - ib));	
+      trunclast(c);
       return c;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_div_body ( tX_real::tx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+    //
+    template < typename T, Algorithm Aa, Algorithm Ab  >
+    INLINE auto constexpr operator_div_body ( tX_real::tx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
@@ -1683,8 +2038,8 @@ namespace mX_real {
       }
       return c;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_div_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa, Algorithm Ab  >
+    INLINE auto constexpr operator_div_body ( dX_real::dx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
@@ -1695,8 +2050,8 @@ namespace mX_real {
       }
       return c;
     }
-    template < typename T, Algorithm Ab >
-    INLINE auto constexpr operator_div_body ( T const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa, Algorithm Ab >
+    INLINE auto constexpr operator_div_body ( sX_real::sx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Ab>;
       TX c;
       if ( Ab <= Algorithm::WeakAccurate ) {
@@ -1707,8 +2062,8 @@ namespace mX_real {
       }
       return c;
     }
-    template < typename T, Algorithm Ab >
-    INLINE auto constexpr operator_div_body ( T const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa , Algorithm Ab >
+    INLINE auto constexpr operator_div_body ( sX_real::sx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Ab>;
       TX c;
       if ( Ab <= Algorithm::WeakAccurate ) {
@@ -1719,8 +2074,8 @@ namespace mX_real {
       }
       return c;
     }
-    template < typename T, Algorithm Ab >
-    INLINE auto constexpr operator_div_body ( T const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa, Algorithm Ab >
+    INLINE auto constexpr operator_div_body ( sX_real::sx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,Ab>;
       TX c;
       if ( Ab <= Algorithm::WeakAccurate ) {
@@ -1732,7 +2087,7 @@ namespace mX_real {
       return c;
     }
     template < typename T, Algorithm A, T_fp(T) >
-    INLINE auto constexpr operator_div_body ( T const& a, T const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_body ( sX_real::sx_real<T,A> const& a, sX_real::sx_real<T,A> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
@@ -1904,8 +2259,6 @@ namespace mX_real {
       return tX_real::operator_div ( T(a), b );
     }
     //
-
-    //
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_ow_body ( tX_real::tx_real<T,Aa> & a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
@@ -1917,30 +2270,40 @@ namespace mX_real {
       }
       return a;
     }
+    // T-T-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_ow_body ( tX_real::tx_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);	      
       if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_TW_TW_TW ( _TX_(a), _TX_(b), _TX_(a) );
       } else {
         QxW::div_QTW_QTW_QTW ( _TX_(a), _TX_(b), _TX_(a) );
         if ( A != Algorithm::Quasi ) { Normalize( a ); }
       }
+      scaling(a, (ia - ib));	
+      trunclast(a);
       return a;
     }
+    // T-D-T
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_ow_body ( tX_real::tx_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);	
       if ( A <= Algorithm::WeakAccurate ) {
         QxW::div_TW_DW_TW ( _TX_(a), _DX_(b), _TX_(a) );
       } else {
         QxW::div_QTW_PA_QTW ( _TX_(a), _DX_(b), _TX_(a) );
         if ( A != Algorithm::Quasi ) { Normalize( a ); }
       }
+      scaling(a, (ia - ib));	
+      trunclast(a);
       return a;
     }
-    template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator_div_ow_body ( tX_real::tx_real<T,Aa> & a, T const& b ) NOEXCEPT {
+    template < typename T, Algorithm Aa, Algorithm Ab  >
+    INLINE auto constexpr operator_div_ow_body ( tX_real::tx_real<T,Aa> & a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
       if ( Aa <= Algorithm::WeakAccurate ) {
         QxW::div_TW_SW_TW ( _TX_(a), _SX_(b), _TX_(a) );
       } else {
@@ -1979,7 +2342,8 @@ namespace mX_real {
     }
     template < typename T, Algorithm A >
     INLINE auto constexpr operator_div_ow_pow2 ( tX_real::tx_real<T,A> & a, T const& b ) NOEXCEPT {
-      for(auto i=0; i<3; i++) {
+      using TX = dX_real::dx_real<T,A>;                  
+      for(auto i=0; i<TX::L; i++) {
         a.x[i] /= b;
       }
       return a;
@@ -2103,32 +2467,72 @@ namespace mX_real {
       }
       return c;
     }
+    // T-T
     template < typename T, Algorithm A >
     INLINE auto constexpr operator_sqrt_body ( tX_real::tx_real<T,A> const& a ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A <= Algorithm::WeakAccurate ) {
-        QxW::sqrt_TW_TW ( _TX_(a), _TX_(c) );
-      } else {
-        QxW::sqrt_QTW_QTW ( _TX_(a), _TX_(c) );
-        if ( A != Algorithm::Quasi ) { Normalize( c ); }
+      int16_t ia =  getexp(a);
+      if (ia % 2 == 0) {
+	ia = ia / 2;	
+	if ( A <= Algorithm::WeakAccurate ) {
+	  QxW::sqrt_TW_TW ( _TX_(a), _TX_(c) );
+	} else {
+	  QxW::sqrt_QTW_QTW ( _TX_(a), _TX_(c) );
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
       }
+      else {
+	ia = (ia - 1) / 2;
+	TX aa(a);
+	for (int i = 0; i < TX::L; i++) { // == bit shift
+	  aa.x[i] *= fp<T>::two();
+	}	
+	if ( A <= Algorithm::WeakAccurate ) {
+	  QxW::sqrt_TW_TW ( _TX_(aa), _TX_(c) );
+	} else {
+	  QxW::sqrt_QTW_QTW ( _TX_(aa), _TX_(c) );
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
+      }
+      scaling(c, ia);
+      trunclast(c);
       return c;
     }
+    // D-T
     template < typename T, Algorithm A >
     INLINE auto constexpr operator_sqrt_body ( dX_real::dx_real<T,A> const& a ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
-      if ( A <= Algorithm::WeakAccurate ) {
-        QxW::sqrt_DW_TW ( _DX_(a), _TX_(c) );
-      } else {
-        QxW::sqrt_PA_QTW ( _DX_(a), _TX_(c) );
-        if ( A != Algorithm::Quasi ) { Normalize( c ); }
+      int16_t ia =  getexp(a);
+      if (ia % 2 == 0) {
+	ia = ia / 2;	
+	if ( A <= Algorithm::WeakAccurate ) {
+	  QxW::sqrt_DW_TW ( _DX_(a), _TX_(c) );
+	} else {
+	  QxW::sqrt_PA_QTW ( _DX_(a), _TX_(c) );
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
       }
+      else {
+	ia = (ia - 1) / 2;
+	TX aa(a);
+	for (int i = 0; i < TX::L; i++) { // == bit shift
+	  aa.x[i] *= fp<T>::two();
+	}	
+	if ( A <= Algorithm::WeakAccurate ) {
+	  QxW::sqrt_DW_TW ( _DX_(aa), _TX_(c) );
+	} else {
+	  QxW::sqrt_PA_QTW ( _DX_(aa), _TX_(c) );
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
+      }
+      scaling(c, ia);
+      trunclast(c);
       return c;
     }
     template < Algorithm A, typename T, T_fp(T) >
-    INLINE auto constexpr operator_sqrt_body ( T const& a ) NOEXCEPT {
+    INLINE auto constexpr operator_sqrt_body ( sX_real::sx_real<T,A> const& a ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {

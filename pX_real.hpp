@@ -4,10 +4,10 @@
 
 
 namespace mX_real {
-  namespace qX_real {
+  namespace pX_real {
 
     template < typename T, Algorithm A=Algorithm::Accurate >
-    struct qx_real {
+    struct px_real {
 
       static_assert( fp<T>::value,
                      "The base type must be a pre-defined type such as float or double." );
@@ -19,7 +19,7 @@ namespace mX_real {
       static Algorithm constexpr base_A = A;
 
       //
-      // {DX,TX,QX}_REAL are shortcut type only within qx_real
+      // {DX,TX,PX}_REAL are shortcut type only within px_real
       //
       //
     private:
@@ -29,19 +29,21 @@ namespace mX_real {
       using TX_REAL = tX_real::tx_real<T,_A_>;
       template < Algorithm _A_=A >
       using QX_REAL = qX_real::qx_real<T,_A_>;
+      template < Algorithm _A_=A >
+      using PX_REAL = pX_real::px_real<T,_A_>;
 
       //
       //
       //
     public:
-      static int constexpr L = 4;
+      static int constexpr L = 5;
       T x[L];
       int16_t iexp = 0;
       //
       //
       //
       template < Algorithm _A_ >
-      using type_with_Algorithm = QX_REAL<_A_>;
+      using type_with_Algorithm = PX_REAL<_A_>;
       //
       using typeAccurate   = type_with_Algorithm<Algorithm::Accurate>;
       using typeWeakAccurate   = type_with_Algorithm<Algorithm::WeakAccurate>;
@@ -51,7 +53,7 @@ namespace mX_real {
       using accurateType   = type_with_Algorithm<accurateAlgorithm<A>::algorithm>;
       using inaccurateType = type_with_Algorithm<inaccurateAlgorithm<A>::algorithm>;
       //      using narrowerType   = typename std::conditional_t< 4>=4, tX_real::tx_real<T,A>, dX_real::dx_real<T,A> >;
-      //      using widerType      = typename std::conditional_t< 4==2, tX_real::tx_real<T,A>, qX_real::qx_real<T,A> >;
+      //      using widerType      = typename std::conditional_t< 4==2, tX_real::tx_real<T,A>, pX_real::px_real<T,A> >;
 
 
       //
@@ -61,8 +63,8 @@ namespace mX_real {
       INLINE T constexpr quick_Normalized () const NOEXCEPT {
         return mX_real::quick_Normalized( *this );
       }
-      INLINE QX_REAL<> constexpr element_rotate () const NOEXCEPT {
-	using TX = qX_real::qx_real<T, A>;
+      INLINE DX_REAL<> constexpr element_rotate () const NOEXCEPT {
+	using TX = dX_real::dx_real<T, A>;
 	TX y;
 	//        T y[L];
 	for(auto i=0; i<L; i++) { y.x[i] = x[i]; }
@@ -78,12 +80,12 @@ namespace mX_real {
       // Simple constructors
       //
       //
-      INLINE constexpr qx_real() NOEXCEPT {
+      INLINE constexpr px_real() NOEXCEPT {
         for(auto i=0; i<L; i++) { x[i] = fp<T>::zero(); }
       }
-      INLINE constexpr qx_real( T const& x0, T const& x1, T const& x2, T const& x3 ) NOEXCEPT {
+      INLINE constexpr px_real( T const& x0, T const& x1, T const& x2, T const& x3, T const & x4 ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
-        auto t = x0 + x1 + x2 + x3;
+        auto t = x0 + x1 + x2 + x3 + x4;
         if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
           for(auto i=0; i<L; i++) { x[i] = t; }
         }
@@ -91,21 +93,23 @@ namespace mX_real {
         if ( false ) { }
 #endif
         else {
-          x[0] = x0; x[1] = x1; x[2] = x2; x[3] = x3;
+          x[0] = x0; x[1] = x1; x[2] = x2; x[3] = x3; x[4] = x4;
         }
 	scaling(*this);	
       }
-      INLINE constexpr qx_real( T const &h ) NOEXCEPT {
+      INLINE constexpr px_real( T const &h ) NOEXCEPT {
         { x[0] = h; for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
       }
 
       template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-      INLINE qx_real( Ts const &h ) NOEXCEPT {
+      INLINE px_real( Ts const &h ) NOEXCEPT {
 	Ts X;
 	X = QxW::fp_const<Ts>::fract_exp(h, &iexp);
-#if 1
+#if 0
 	for (auto i = 0; i < L; i++) {
-	  T s = static_cast<T>(X);  // cast Ts to T
+	  //	  T s(X); // constructor with cast from Ts to T
+	  T s;
+	  s = static_cast<T>(X);  // cast Ts to T
 	  if (i < L - 1 && s != QxW::fp_const<T>::zero()) {
 	    T e = QxW::fp_const<T>::exponent(s);
 	    T ex = QxW::fp_const<T>::exponenti(s);   // e = 1/ex inverse
@@ -118,25 +122,6 @@ namespace mX_real {
 	  }
 	  x[i] = s;
 	} // loop :: i
-#else
-#if 1
-	for (auto i = 0; i < L; i++) {
-	  T s = static_cast<T>(X);
-	  int16_t isexp;
-	  if (i < L - 1 && s != QxW::fp_const<T>::zero()) {
-	    s = QxW::fp_const<Ts>::fract_exp(s, &isexp);
-	    X = QxW::fp_const<T>::set_exp(X, 0);
-	    X = X - static_cast<Ts>(s);
-	    X = QxW::fp_const<T>::set_exp(X, isexp);
-	    s = QxW::fp_const<T>::set_exp(s, isexp);	    	    
-	  }
-	  if (s == QxW::fp_const<T>::zero()) {
-	    x[i] = QxW::fp_const<T>::zero();
-	  }
-	  else {
-	    x[i] = s;
-	  }
-	} // loop : ii
 #else
 	int16_t iXexp = int16_t(0);
 	for (auto i = 0; i < L; i++) {
@@ -155,14 +140,14 @@ namespace mX_real {
 	  }
 	} // loop : ii
 #endif
-#endif
 	scaling(*this, iexp);	
       }
+
 //      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-//      INLINE qx_real( Ts const &h ) NOEXCEPT {
+//      INLINE px_real( Ts const &h ) NOEXCEPT {
 //        { x[0] = T(h); for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
 //      }
-      INLINE constexpr qx_real( T const *d ) NOEXCEPT {
+      INLINE constexpr px_real( T const *d ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
         auto t = d[0]; for(auto i=1; i<L; i++) { t += d[1]; }
         if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -182,7 +167,7 @@ namespace mX_real {
       //
       //
       template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
-      INLINE constexpr qx_real( _TX_<T,_A_> const& h ) NOEXCEPT {
+      INLINE constexpr px_real( _TX_<T,_A_> const& h ) NOEXCEPT {
         using TX = _TX_<T,_A_>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
         auto const t = h.quick_Normalized();
@@ -222,21 +207,21 @@ namespace mX_real {
       // Copy-assignment operator
       //
       //
-      INLINE QX_REAL<> constexpr &operator=( T const& h )& NOEXCEPT {
+      INLINE PX_REAL<> constexpr &operator=( T const& h )& NOEXCEPT {
         x[0] = h; for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); }
 	scaling( *this);	
         return *this;
       }
       template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-      INLINE QX_REAL<> constexpr &operator=( Ts const& h )& NOEXCEPT {
+      INLINE PX_REAL<> constexpr &operator=( Ts const& h )& NOEXCEPT {
         x[0] = T(h); for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); }
 	scaling( *this);	
         return *this;
       }
       template < template < typename __T__, Algorithm __A__ > class _TX_, Algorithm _A_, T_mX(_TX_<T,_A_>) >
-      INLINE QX_REAL<> constexpr &operator=( _TX_<T,_A_> const& h )& NOEXCEPT {
-        if ( std::is_same< QX_REAL<A>, _TX_<T,_A_> >::value &&
-             this == (QX_REAL<>*)(&h) ) { return *this; }
+      INLINE PX_REAL<> constexpr &operator=( _TX_<T,_A_> const& h )& NOEXCEPT {
+        if ( std::is_same< PX_REAL<A>, _TX_<T,_A_> >::value &&
+             this == (PX_REAL<>*)(&h) ) { return *this; }
 #if MX_REAL_USE_INF_NAN_EXCEPTION
         auto const t = h.quick_Normalized();
         if ( fp<T>::isinf( t ) || fp<T>::isnan( t ) ) {
@@ -390,26 +375,26 @@ namespace mX_real {
       //                            case of mixtured sign, it turns to -NAN
       //                            after the Normalization.
       //
-      static INLINE QX_REAL<> constexpr zero () NOEXCEPT {
-        return QX_REAL<>{ fp<T>::zero() };
+      static INLINE PX_REAL<> constexpr zero () NOEXCEPT {
+        return PX_REAL<>{ fp<T>::zero() };
       }
-      static INLINE QX_REAL<> constexpr one () NOEXCEPT {
-        return QX_REAL<>{ fp<T>::one() };
+      static INLINE PX_REAL<> constexpr one () NOEXCEPT {
+        return PX_REAL<>{ fp<T>::one() };
       }
-      static INLINE QX_REAL<> constexpr two () NOEXCEPT {
-        return QX_REAL<>{ fp<T>::two() };
+      static INLINE PX_REAL<> constexpr two () NOEXCEPT {
+        return PX_REAL<>{ fp<T>::two() };
       }
-      static INLINE QX_REAL<> constexpr nhalf () NOEXCEPT {
-        return QX_REAL<>{ fp<T>::nhalf() };
+      static INLINE PX_REAL<> constexpr nhalf () NOEXCEPT {
+        return PX_REAL<>{ fp<T>::nhalf() };
       }
-      static INLINE QX_REAL<> constexpr nan () NOEXCEPT {
-        QX_REAL<> c;
+      static INLINE PX_REAL<> constexpr nan () NOEXCEPT {
+        PX_REAL<> c;
         T p = fp<T>::nan();
         for(auto i=0; i<L; i++) { c.x[i] = p; }
         return c;
       }
-      static INLINE QX_REAL<> constexpr inf () NOEXCEPT {
-        QX_REAL<> c;
+      static INLINE PX_REAL<> constexpr inf () NOEXCEPT {
+        PX_REAL<> c;
         T p = fp<T>::inf();
         for(auto i=0; i<L; i++) { c.x[i] = p; }
         return c;
@@ -422,8 +407,8 @@ namespace mX_real {
       //             1.11B+0 + 1.11B-{E+1} + 1.11B-{2(E+1)}
       //               EPS = 0.01B-{2(E+1)} = 1.00B-{2(E+1)+E}
       //
-      static INLINE QX_REAL<> constexpr epsilon () NOEXCEPT {
-        QX_REAL<> c;
+      static INLINE PX_REAL<> constexpr epsilon () NOEXCEPT {
+        PX_REAL<> c;
         T p = fp<T>::connect_fp(); p = ( p * p* p* p) * 2;
         T q = fp<T>::zero();
         c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
@@ -436,8 +421,8 @@ namespace mX_real {
       //                  it is always the same as denormal_min of the
       //                  single word
       //
-      static INLINE QX_REAL<> constexpr denorm_min  () NOEXCEPT {
-        QX_REAL<> c;
+      static INLINE PX_REAL<> constexpr denorm_min  () NOEXCEPT {
+        PX_REAL<> c;
         T p = fp<T>::denorm_min();
         T q = fp<T>::zero();
         c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
@@ -457,8 +442,8 @@ namespace mX_real {
       //         case of dX
       //           X = min() / EPS * 2 = min() * epslioni() * 2
       //
-      static INLINE QX_REAL<> constexpr min  () NOEXCEPT {
-        QX_REAL<> c;
+      static INLINE PX_REAL<> constexpr min  () NOEXCEPT {
+        PX_REAL<> c;
         T p = fp<T>::min();
         T q = fp<T>::zero();
         for(auto i=1; i<L; i++) { p *= ( fp<T>::disconnect_fp() ); }
@@ -474,8 +459,8 @@ namespace mX_real {
       //            max() + zero() == max()
       //         thus, max() and mamax() are seperately defined.
       //
-      static INLINE QX_REAL<> constexpr maxmax  () NOEXCEPT {
-        QX_REAL<> c;
+      static INLINE PX_REAL<> constexpr maxmax  () NOEXCEPT {
+        PX_REAL<> c;
         T p = fp<T>::max();
         T q = fp<T>::connect_fp();
         c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = c.x[i-1] * q; }
@@ -488,8 +473,8 @@ namespace mX_real {
       //
       //            max() + zero() == max().
       //
-      static INLINE QX_REAL<> constexpr max  () NOEXCEPT {
-        QX_REAL<> c;
+      static INLINE PX_REAL<> constexpr max  () NOEXCEPT {
+        PX_REAL<> c;
         T p = fp<T>::max();
         T q = fp<T>::connect_fp() * fp<T>::nhalf();
         c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = c.x[i-1] * q; }
@@ -501,8 +486,8 @@ namespace mX_real {
       //              1/safe_min does not overflow.
       //              it is always the same as min of T of the single word
       //
-      static INLINE QX_REAL<> constexpr safe_min  () NOEXCEPT {
-        QX_REAL<> c;
+      static INLINE PX_REAL<> constexpr safe_min  () NOEXCEPT {
+        PX_REAL<> c;
         T p = fp<T>::min();
         T q = fp<T>::zero();
         c.x[0] = p; for(auto i=1; i<L; i++) { c.x[i] = q; }
@@ -513,8 +498,8 @@ namespace mX_real {
       // safe_max() : the largest positive number such that
       //              1/safe_max is normalized.
       //
-      static INLINE QX_REAL<> constexpr safe_max  () NOEXCEPT {
-        QX_REAL<> c;
+      static INLINE PX_REAL<> constexpr safe_max  () NOEXCEPT {
+        PX_REAL<> c;
         auto exp_size = QxW::fp_const<T>::MASK - QxW::fp_const<T>::RINF - 1;
         exp_size >>= QxW::fp_const<T>::SOFF;
         T p = (1 << exp_size) * fp<T>::one() / fp<T>::min();
@@ -527,28 +512,33 @@ namespace mX_real {
       // static member funtions
       // their definitions are below outside of the struct definition block
       //
-      static INLINE QX_REAL<> constexpr sqrt ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE QX_REAL<> constexpr sqrt ( TX_REAL<> const& a ) NOEXCEPT;
-      static INLINE QX_REAL<> constexpr sqrt ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE QX_REAL<> constexpr abs ( DX_REAL<> const& a ) NOEXCEPT;
-      static INLINE QX_REAL<> constexpr abs ( TX_REAL<> const& a ) NOEXCEPT;
-      static INLINE QX_REAL<> constexpr abs ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE QX_REAL<> constexpr fabs ( DX_REAL<> const& a ) NOEXCEPT {
-        return QX_REAL<>::abs(a);
+      static INLINE PX_REAL<> constexpr sqrt ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE PX_REAL<> constexpr sqrt ( TX_REAL<> const& a ) NOEXCEPT;
+      static INLINE PX_REAL<> constexpr sqrt ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE PX_REAL<> constexpr sqrt ( PX_REAL<> const& a ) NOEXCEPT;
+      static INLINE PX_REAL<> constexpr abs ( DX_REAL<> const& a ) NOEXCEPT;
+      static INLINE PX_REAL<> constexpr abs ( TX_REAL<> const& a ) NOEXCEPT;
+      static INLINE PX_REAL<> constexpr abs ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE PX_REAL<> constexpr abs ( PX_REAL<> const& a ) NOEXCEPT; 
+      static INLINE PX_REAL<> constexpr fabs ( DX_REAL<> const& a ) NOEXCEPT {
+        return PX_REAL<>::abs(a);
       }
-      static INLINE QX_REAL<> constexpr fabs ( TX_REAL<> const& a ) NOEXCEPT {
-        return QX_REAL<>::abs(a);
+      static INLINE PX_REAL<> constexpr fabs ( TX_REAL<> const& a ) NOEXCEPT {
+        return PX_REAL<>::abs(a);
       }
-      static INLINE QX_REAL<> constexpr fabs ( QX_REAL<> const& a ) NOEXCEPT {
-        return QX_REAL<>::abs(a);
+      static INLINE PX_REAL<> constexpr fabs ( QX_REAL<> const& a ) NOEXCEPT {
+        return PX_REAL<>::abs(a);
+      }      
+      static INLINE PX_REAL<> constexpr fabs ( PX_REAL<> const& a ) NOEXCEPT {
+        return PX_REAL<>::abs(a);
       }
-      static INLINE QX_REAL<> rand () NOEXCEPT;
-      static INLINE bool constexpr isnan ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_positive ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_negative ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr signbit ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr is_zero ( QX_REAL<> const& a ) NOEXCEPT;
-      static INLINE bool constexpr isinf ( QX_REAL<> const& a ) NOEXCEPT;
+      static INLINE PX_REAL<> rand () NOEXCEPT;
+      static INLINE bool constexpr isnan ( PX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_positive ( PX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_negative ( PX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr signbit ( PX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr is_zero ( PX_REAL<> const& a ) NOEXCEPT;
+      static INLINE bool constexpr isinf ( PX_REAL<> const& a ) NOEXCEPT;
       //
 
 
@@ -558,31 +548,31 @@ namespace mX_real {
       //
       INLINE void constexpr Normalize () NOEXCEPT { mX_real::Normalize( *this ); }
       //
-      INLINE bool constexpr isnan () const NOEXCEPT { return QX_REAL<>::isnan( *this ); }
-      INLINE bool constexpr is_positive () const NOEXCEPT { return QX_REAL<>::is_positive( *this ); }
-      INLINE bool constexpr is_negative () const NOEXCEPT { return QX_REAL<>::is_negative( *this ); }
-      INLINE bool constexpr signbit () const NOEXCEPT { return QX_REAL<>::signbit( *this ); }
-      INLINE bool constexpr is_zero () const NOEXCEPT { return QX_REAL<>::is_zero( *this ); }
-      INLINE bool constexpr isinf () const NOEXCEPT { return QX_REAL<>::isinf( *this ); }
+      INLINE bool constexpr isnan () const NOEXCEPT { return PX_REAL<>::isnan( *this ); }
+      INLINE bool constexpr is_positive () const NOEXCEPT { return PX_REAL<>::is_positive( *this ); }
+      INLINE bool constexpr is_negative () const NOEXCEPT { return PX_REAL<>::is_negative( *this ); }
+      INLINE bool constexpr signbit () const NOEXCEPT { return PX_REAL<>::signbit( *this ); }
+      INLINE bool constexpr is_zero () const NOEXCEPT { return PX_REAL<>::is_zero( *this ); }
+      INLINE bool constexpr isinf () const NOEXCEPT { return PX_REAL<>::isinf( *this ); }
       //
 
 
       //  Friend
       template < typename _T_, Algorithm _A_ >
-      friend std::ostream& operator<< ( std::ostream& stream, qX_real::qx_real<_T_,_A_> const& a );
+      friend std::ostream& operator<< ( std::ostream& stream, pX_real::px_real<_T_,_A_> const& a );
 
     };
 
 
     // 
-    // get a new type qX_real<T,A> from TX(={m}X_real<T,A>)
+    // get a new type pX_real<T,A> from TX(={m}X_real<T,A>)
     //
     //
     template < typename TX, T_mX(TX) >
     struct mX_real_impl {
       static Algorithm constexpr A = TX::base_A;
       using T    = typename TX::base_T;
-      using type = typename qX_real::qx_real<T,A>;
+      using type = typename pX_real::px_real<T,A>;
     };
     template < typename TX >
     using mX_real = typename mX_real_impl<TX>::type;
@@ -591,7 +581,7 @@ namespace mX_real {
     //
     template < typename TX, Algorithm A, T_mX(TX) >
     struct type_with_Algorithm_impl {
-      using type = typename qX_real::qx_real<typename TX::base_T,A>;
+      using type = typename pX_real::px_real<typename TX::base_T,A>;
     };
     template < typename TX, Algorithm A >
     using type_with_Algorithm = typename type_with_Algorithm_impl<TX,A>::type;
@@ -611,13 +601,13 @@ namespace mX_real {
     //
     //
     template < typename T >
-    using qX_real_accurate = qX_real::qx_real<T,Algorithm::Accurate>;
+    using pX_real_accurate = pX_real::px_real<T,Algorithm::Accurate>;
     template < typename T >
-    using qX_real_weakaccurate = qX_real::qx_real<T,Algorithm::WeakAccurate>;
+    using pX_real_weakaccurate = pX_real::px_real<T,Algorithm::WeakAccurate>;
     template < typename T >
-    using qX_real_sloppy   = qX_real::qx_real<T,Algorithm::Sloppy>;
+    using pX_real_sloppy   = pX_real::px_real<T,Algorithm::Sloppy>;
     template < typename T >
-    using qX_real_quasi    = qX_real::qx_real<T,Algorithm::Quasi>;
+    using pX_real_quasi    = pX_real::px_real<T,Algorithm::Quasi>;
 
 
     //
@@ -625,53 +615,53 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isinf ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
+    INLINE auto constexpr isinf ( pX_real::px_real<T,Aa> const& a ) NOEXCEPT {
       return fp<T>::isinf( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr signbit ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
+    INLINE auto constexpr signbit ( pX_real::px_real<T,Aa> const& a ) NOEXCEPT {
       return fp<T>::signbit( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr isnan ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
+    INLINE auto constexpr isnan ( pX_real::px_real<T,Aa> const& a ) NOEXCEPT {
       return fp<T>::isnan( a.quick_Normalized() );
     }
     template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_positive ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
+    INLINE bool constexpr is_positive ( pX_real::px_real<T,Aa> const& a ) NOEXCEPT {
       return a.quick_Normalized() > fp<T>::zero();
     }
     template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_negative ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
+    INLINE bool constexpr is_negative ( pX_real::px_real<T,Aa> const& a ) NOEXCEPT {
       return a.quick_Normalized() < fp<T>::zero();
     }
     template < typename T, Algorithm Aa >
-    INLINE bool constexpr is_zero ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
+    INLINE bool constexpr is_zero ( pX_real::px_real<T,Aa> const& a ) NOEXCEPT {
       return a.quick_Normalized() == fp<T>::zero();
     }
     //
     template < typename T, Algorithm A >
-    INLINE bool constexpr qX_real::qx_real<T,A>::isinf ( qX_real::qx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::isinf ( a );
+    INLINE bool constexpr pX_real::px_real<T,A>::isinf ( pX_real::px_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::isinf ( a );
     }
     template < typename T, Algorithm A >
-    INLINE bool constexpr qX_real::qx_real<T,A>::isnan ( qX_real::qx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::isnan ( a );
+    INLINE bool constexpr pX_real::px_real<T,A>::isnan ( pX_real::px_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::isnan ( a );
     }
     template < typename T, Algorithm A >
-    INLINE bool constexpr qX_real::qx_real<T,A>::signbit ( qX_real::qx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::signbit ( a );
+    INLINE bool constexpr pX_real::px_real<T,A>::signbit ( pX_real::px_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::signbit ( a );
     }
     template < typename T, Algorithm A >
-    INLINE bool constexpr qX_real::qx_real<T,A>::is_zero ( qX_real::qx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::is_zero ( a );
+    INLINE bool constexpr pX_real::px_real<T,A>::is_zero ( pX_real::px_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::is_zero ( a );
     }
     template < typename T, Algorithm A >
-    INLINE bool constexpr qX_real::qx_real<T,A>::is_positive ( qX_real::qx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::is_positive ( a );
+    INLINE bool constexpr pX_real::px_real<T,A>::is_positive ( pX_real::px_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::is_positive ( a );
     }
     template < typename T, Algorithm A >
-    INLINE bool constexpr qX_real::qx_real<T,A>::is_negative ( qX_real::qx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::is_negative ( a );
+    INLINE bool constexpr pX_real::px_real<T,A>::is_negative ( pX_real::px_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::is_negative ( a );
     }
     //
 
@@ -680,29 +670,29 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_eq ( qX_real::qx_real<T,A> const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+    INLINE auto constexpr operator_eq ( pX_real::px_real<T,A> const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       if (a.iexp == b.iexp) {            
 	auto i=0; for(i=0; i<TX::L-1; i++) {
 	  if ( a.x[i] != b.x[i] ) { return a.x[i] == b.x[i]; }
 	} return a.x[i] == b.x[i];
       }
       else {
-	return 0; //(a.iexp == b.iexp);
+	  return 0; //(a.iexp == b.iexp);
       }
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator== ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator== ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
       if ( A == Algorithm::Quasi ) {
-        using TT = qX_real::qx_real<T,Algorithm::Accurate>;
-        return qX_real::operator_eq( TT{ a }, TT{ b } );
+        using TT = pX_real::px_real<T,Algorithm::Accurate>;
+        return pX_real::operator_eq( TT{ a }, TT{ b } );
       } else {
-        return qX_real::operator_eq( a, b );
+        return pX_real::operator_eq( a, b );
       }
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator!= ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator!= ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       return !(a == b);
     }
 
@@ -711,8 +701,8 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_gt ( qX_real::qx_real<T,A> const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+    INLINE auto constexpr operator_gt ( pX_real::px_real<T,A> const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       if (a.iexp == b.iexp) {      
 	auto i=0; for(i=0; i<TX::L-1; i++) {
 	  if ( a.x[i] != b.x[i] ) { return a.x[i] > b.x[i]; }
@@ -723,17 +713,17 @@ namespace mX_real {
       }
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator> ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator> ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
       if ( A == Algorithm::Quasi ) {
-        using TT = qX_real::qx_real<T,Algorithm::Accurate>;
-        return qX_real::operator_gt( TT{ a }, TT{ b } );
+        using TT = pX_real::px_real<T,Algorithm::Accurate>;
+        return pX_real::operator_gt( TT{ a }, TT{ b } );
       } else {
-        return qX_real::operator_gt( a, b );
+        return pX_real::operator_gt( a, b );
       }
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator<= ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator<= ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       return !(a > b);
     }
 
@@ -742,8 +732,8 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_lt ( qX_real::qx_real<T,A> const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+    INLINE auto constexpr operator_lt ( pX_real::px_real<T,A> const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       if (a.iexp == b.iexp) {      
 	auto i = 0; for(i=0; i<TX::L-1; i++) {
 	  if ( a.x[i] != b.x[i] ) { return a.x[i] < b.x[i]; }
@@ -754,17 +744,17 @@ namespace mX_real {
       }
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator< ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator< ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
       if ( A == Algorithm::Quasi ) {
-        using TT = qX_real::qx_real<T,Algorithm::Accurate>;
-        return qX_real::operator_lt( TT{ a }, TT{ b } );
+        using TT = pX_real::px_real<T,Algorithm::Accurate>;
+        return pX_real::operator_lt( TT{ a }, TT{ b } );
       } else {
-        return qX_real::operator_lt( a, b );
+        return pX_real::operator_lt( a, b );
       }
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator>= ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator>= ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       return !(a < b);
     }
 
@@ -773,31 +763,31 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr reversed_sign ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
-      //      return qX_real::qx_real<T,Aa>( -a.x[0],-a.x[1],-a.x[2],-a.x[3] );
-      qX_real::qx_real<T,Aa> b( -a.x[0], -a.x[1], -a.x[2], -a.x[3]);
+    INLINE auto constexpr reversed_sign ( pX_real::px_real<T,Aa> const& a ) NOEXCEPT {
+      //      return pX_real::px_real<T,Aa>( -a.x[0],-a.x[1],-a.x[2],-a.x[3],-a.x[4] );
+      pX_real::px_real<T,Aa> b( -a.x[0], -a.x[1], -a.x[2], -a.x[3], -a.x[4]);
       b.iexp = a.iexp;
       return b;      
     }
     //
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator+ ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
+    INLINE auto constexpr operator+ ( pX_real::px_real<T,Aa> const& a ) NOEXCEPT {
       return a;
     }
     template < typename T, Algorithm Aa >
-    INLINE auto constexpr operator- ( qX_real::qx_real<T,Aa> const& a ) NOEXCEPT {
-      return qX_real::reversed_sign( a );
+    INLINE auto constexpr operator- ( pX_real::px_real<T,Aa> const& a ) NOEXCEPT {
+      return pX_real::reversed_sign( a );
     }
     //
 
     //
     // Addition
     //
-    // Q-Q-Q
+    // P-P-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_add_body ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_body ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;	      
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);
@@ -808,9 +798,9 @@ namespace mX_real {
 	TX aa(a);
 	rescaling(aa, (ia - ib));
 	if ( A <= Algorithm::WeakAccurate ) {	  	  
-	  QxW::add_QW_QW_QW ( _QX_(aa), _QX_(b), _QX_(c) );
+	  //	  QxW::add_PW_PW_PW ( _PX_(aa), _PX_(b), _PX_(c) );
 	} else {
-	  QxW::add_QQW_QQW_QQW ( _QX_(aa), _QX_(b), _QX_(c) );
+	  QxW::add_QPW_QPW_QPW ( _PX_(aa), _PX_(b), _PX_(c) );
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
 	scaling(c, ib); // c.iexp = 0
@@ -819,18 +809,18 @@ namespace mX_real {
 	TX bb(b);
 	rescaling(bb, (ib - ia));
 	if ( A <= Algorithm::WeakAccurate ) {	  	  
-	  QxW::add_QW_QW_QW ( _QX_(a), _QX_(bb), _QX_(c) );
+	  //	  QxW::add_PW_PW_PW ( _PX_(a), _PX_(bb), _PX_(c) );
 	} else {
-	  QxW::add_QQW_QQW_QQW ( _QX_(a), _QX_(bb), _QX_(c) );
+	  QxW::add_QPW_QPW_QPW ( _PX_(a), _PX_(bb), _PX_(c) );
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
 	scaling(c, ia); // c.iexp = 0
       }
       else {
 	if ( A <= Algorithm::WeakAccurate ) {	  	  
-	  QxW::add_QW_QW_QW ( _QX_(a), _QX_(b), _QX_(c) );
+	  //	  QxW::add_PW_PW_PW ( _PX_(a), _PX_(b), _PX_(c) );
 	} else {	  
-	  QxW::add_QQW_QQW_QQW ( _QX_(a), _QX_(b), _QX_(c) );
+	  QxW::add_QPW_QPW_QPW ( _PX_(a), _PX_(b), _PX_(c) );
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
 	scaling(c, ia); // c.iexp = 0
@@ -843,11 +833,11 @@ namespace mX_real {
       trunclast(c);
       return c;
     }
-    // Q-T-Q    
+    // P-Q-P    
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_add_body ( qX_real::qx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_body ( pX_real::px_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);
@@ -855,13 +845,13 @@ namespace mX_real {
       clear_underflow<T>();
 #endif
       if (ia < ib) {
-	using TX = qX_real::qx_real<T,A>;	  
+	using TX = pX_real::px_real<T,A>;	  
 	TX aa(a);
 	rescaling(aa, (ia - ib));
 	if ( A <= Algorithm::WeakAccurate ) {	  
-	  QxW::add_QW_TW_QW ( _QX_(aa), _TX_(b), _QX_(c) );
+	  //	  QxW::add_PW_QW_PW ( _PX_(aa), _QX_(b), _PX_(c) );
 	} else {
-	  QxW::add_QQW_QTW_QQW ( _QX_(aa), _TX_(b), _QX_(c) );
+	  QxW::add_QPW_QQW_QPW ( _PX_(aa), _QX_(b), _PX_(c) );
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
 	scaling(c, ib); // c.iexp = 0
@@ -871,18 +861,18 @@ namespace mX_real {
 	TX bb(b);
 	rescaling(bb, (ib - ia));
 	if ( A <= Algorithm::WeakAccurate ) {	  	  		  
-	  QxW::add_QW_TW_QW ( _QX_(a), _TX_(bb), _QX_(c) );
+	  //	  QxW::add_PW_QW_PW ( _PX_(a), _QX_(bb), _PX_(c) );
 	} else {	  
-	  QxW::add_QQW_QTW_QQW ( _QX_(a), _TX_(bb), _QX_(c) );
+	  QxW::add_QPW_QQW_QPW ( _PX_(a), _QX_(bb), _PX_(c) );
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
 	scaling(c, ia); // c.iexp = 0
       }
       else {	
 	if ( A <= Algorithm::WeakAccurate ) {	  	  	
-	  QxW::add_QW_TW_QW ( _QX_(a), _TX_(b), _QX_(c) );
+	  //	  QxW::add_PW_QW_PW ( _PX_(a), _QX_(b), _PX_(c) );
 	} else {	  	  
-	  QxW::add_QQW_QTW_QQW ( _QX_(a), _TX_(b), _QX_(c) );
+	  QxW::add_QPW_QQW_QPW ( _PX_(a), _QX_(b), _PX_(c) );
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
 	scaling(c, ia); // c.iexp = 0
@@ -895,11 +885,11 @@ namespace mX_real {
       trunclast(c);
       return c;
     }
-    // Q-D-Q
+    // P-T-P    
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_add_body ( qX_real::qx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_body ( pX_real::px_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);
@@ -907,13 +897,65 @@ namespace mX_real {
       clear_underflow<T>();
 #endif
       if (ia < ib) {
-	using TX = qX_real::qx_real<T,A>;	  
+	using TX = pX_real::px_real<T,A>;	  
 	TX aa(a);
 	rescaling(aa, (ia - ib));
 	if ( A <= Algorithm::WeakAccurate ) {	  
-	  QxW::add_QW_DW_QW ( _QX_(aa), _DX_(b), _QX_(c) );
+	  //	  QxW::add_QW_TW_QW ( _PX_(aa), _TX_(b), _PX_(c) );
 	} else {
-	  QxW::add_QQW_PA_QQW ( _QX_(aa), _DX_(b), _QX_(c) );
+	  QxW::add_QPW_QTW_QPW ( _PX_(aa), _TX_(b), _PX_(c) );
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
+	scaling(c, ib); // c.iexp = 0
+      }
+      else if (ia > ib) {
+	using TX = dX_real::dx_real<T,Ab>;	  	  
+	TX bb(b);
+	rescaling(bb, (ib - ia));
+	if ( A <= Algorithm::WeakAccurate ) {	  	  		  
+	  //	  QxW::add_QW_TW_QW ( _PX_(a), _TX_(bb), _PX_(c) );
+	} else {	  
+	  QxW::add_QPW_QTW_QPW ( _PX_(a), _TX_(bb), _PX_(c) );
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
+	scaling(c, ia); // c.iexp = 0
+      }
+      else {	
+	if ( A <= Algorithm::WeakAccurate ) {	  	  	
+	  //	  QxW::add_QW_TW_QW ( _PX_(a), _TX_(b), _PX_(c) );
+	} else {	  	  
+	  QxW::add_QPW_QTW_QPW ( _PX_(a), _TX_(b), _PX_(c) );
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
+	scaling(c, ia); // c.iexp = 0
+      }
+#ifdef CHECK_UNDERFLOW	
+	char errbuf[128];
+	snprintf(errbuf, 128, "%s %d add", __FILE__, __LINE__);
+	underflow_p<T>(errbuf);
+#endif	
+      trunclast(c);
+      return c;
+    }
+    // P-D-P
+    template < typename T, Algorithm Aa, Algorithm Ab >
+    INLINE auto constexpr operator_add_body ( pX_real::px_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+      Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
+      using TX = pX_real::px_real<T,A>;
+      TX c;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
+#ifdef CHECK_UNDERFLOW		
+      clear_underflow<T>();
+#endif
+      if (ia < ib) {
+	using TX = pX_real::px_real<T,A>;	  
+	TX aa(a);
+	rescaling(aa, (ia - ib));
+	if ( A <= Algorithm::WeakAccurate ) {	  
+	  //	  QxW::add_PW_DW_PW ( _PX_(aa), _DX_(b), _PX_(c) );
+	} else {
+	  QxW::add_QPW_PA_QPW ( _PX_(aa), _DX_(b), _PX_(c) );
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
 	scaling(c, ib); // c.iexp = 0
@@ -923,18 +965,18 @@ namespace mX_real {
 	TX bb(b);
 	rescaling(bb, (ib - ia));
 	if ( A <= Algorithm::WeakAccurate ) {	  	  
-	  QxW::add_QW_DW_QW ( _QX_(a), _DX_(bb), _QX_(c) );
+	  //	  QxW::add_PW_DW_PW ( _PX_(a), _DX_(bb), _PX_(c) );
 	} else {	  
-	  QxW::add_QQW_PA_QQW ( _QX_(a), _DX_(bb), _QX_(c) );
+	  QxW::add_QPW_PA_QPW ( _PX_(a), _DX_(bb), _PX_(c) );
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
 	scaling(c, ia); // c.iexp = 0
       }
       else {
 	if ( A <= Algorithm::WeakAccurate ) {	  	  	
-	  QxW::add_QW_DW_QW ( _QX_(a), _DX_(b), _QX_(c) );
+	  //	  QxW::add_PW_DW_PW ( _PX_(a), _DX_(b), _PX_(c) );
 	} else {	  	  
-	  QxW::add_QQW_PA_QQW ( _QX_(a), _DX_(b), _QX_(c) );
+	  QxW::add_QPW_PA_QPW ( _PX_(a), _DX_(b), _PX_(c) );
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
 	scaling(c, ia); // c.iexp = 0
@@ -947,102 +989,102 @@ namespace mX_real {
       trunclast(c);
       return c;
     }
-    // Q-S-Q
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_add_body ( qX_real::qx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Aa>;
+    // P-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_add_body ( pX_real::px_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::add_QW_SW_QW ( _QX_(a), _SX_(b), _QX_(c) );
+	//        QxW::add_PW_SW_PW ( _PX_(a), _SX_(b), _PX_(c) );
       } else {
-        QxW::add_QQW_SW_QQW ( _QX_(a), _SX_(b), _QX_(c) );
+	//        QxW::add_QPW_SW_QPW ( _PX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
+    //
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       return operator_add_body ( b, a );
     }
-    // T-T-Q
+    // T-T-P
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::add_TW_TW_QW ( _TX_(a), _TX_(b), _QX_(c) );
+	//        QxW::add_TW_TW_PW ( _TX_(a), _TX_(b), _PX_(c) );
       } else {
-        QxW::add_QTW_QTW_QQW ( _TX_(a), _TX_(b), _QX_(c) );
+	//        QxW::add_QTW_QTW_QPW ( _TX_(a), _TX_(b), _PX_(c) ); 21Apr2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
-    // T-D-Q        
+    // T-D-P
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::add_TW_DW_QW ( _TX_(a), _DX_(b), _QX_(c) );
+	//        QxW::add_TW_DW_PW ( _TX_(a), _DX_(b), _PX_(c) );
       } else {
-        QxW::add_QTW_PA_QQW ( _TX_(a), _DX_(b), _QX_(c) );
+	//        QxW::add_QTW_PA_QPW ( _TX_(a), _DX_(b), _PX_(c) ); 21Aug2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
-    // T-S-Q    
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Aa>;
+    // T-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_add_body ( tX_real::tx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::add_TW_SW_QW ( _TX_(a), _SX_(b), _QX_(c) );
+	//        QxW::add_TW_SW_PW ( _TX_(a), _SX_(b), _PX_(c) );
       } else {
-        QxW::add_QTW_SW_QQW ( _TX_(a), _SX_(b), _QX_(c) );
+	//        QxW::add_QTW_SW_QPW ( _TX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_add_body ( dX_real::dx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_body ( dX_real::dx_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       return operator_add_body ( b, a );
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_body ( dX_real::dx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       return operator_add_body ( b, a );
     }
-    // D-D-Q
+    // D-D-P
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_add_body ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::add_DW_DW_QW ( _DX_(a), _DX_(b), _QX_(c) );
+	//        QxW::add_DW_DW_PW ( _DX_(a), _DX_(b), _PX_(c) );
       } else {
-        QxW::add_PA_PA_QQW ( _DX_(a), _DX_(b), _QX_(c) );
+	//        QxW::add_PA_PA_QPW ( _DX_(a), _DX_(b), _PX_(c) ); 21Apr2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
-    // D-S-Q
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_add_body ( dX_real::dx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Aa>;
+    // D-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_add_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::add_DW_SW_QW ( _DX_(a), _SX_(b), _QX_(c) );
+	//        QxW::add_DW_SW_PW ( _DX_(a), _SX_(b), _PX_(c) );
       } else {
-        QxW::add_PA_SW_QQW ( _DX_(a), _SX_(b), _QX_(c) );
+	//        QxW::add_PA_SW_QPW ( _DX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
-    //    
     template < typename T, Algorithm Ab >
-    INLINE auto constexpr operator_add_body ( T const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_body ( T const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       return operator_add_body ( b, a );
     }
     template < typename T, Algorithm Ab >
@@ -1053,14 +1095,15 @@ namespace mX_real {
     INLINE auto constexpr operator_add_body ( T const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       return operator_add_body ( b, a );
     }
+    // S-S-P
     template < typename T, Algorithm A, T_fp(T) >
-    INLINE auto constexpr operator_add_body ( sX_real::sx_real<T,A>const& a, sX_real::sx_real<T,A> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+    INLINE auto constexpr operator_add_body ( T const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::add_SW_SW_QW ( _SX_(a), _SX_(b), _QX_(c) );
+	//        QxW::add_SW_SW_PW ( _SX_(a), _SX_(b), _PX_(c) );
       } else {
-        QxW::add_SW_SW_QQW ( _SX_(a), _SX_(b), _QX_(c) );
+	//      QxW::add_SW_SW_QPW ( _SX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
@@ -1069,7 +1112,7 @@ namespace mX_real {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     template < Algorithm A, typename T, T_fp(T) >
     INLINE auto constexpr operator_add_exception ( T const& a, T const& b, bool & flag ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       {
         if ( fp<T>::isnan( a ) || fp<T>::isnan( b ) ) {
           auto c = fp<T>::copysign( fp<T>::copysign( fp<T>::nan(), a ), b );
@@ -1097,17 +1140,17 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm< TXa::base_A, TXb::base_A >::algorithm;
       auto sa = a.quick_Normalized();
       auto sb = b.quick_Normalized();
-      return qX_real::operator_add_exception<A> ( sa, sb, flag );
+      return pX_real::operator_add_exception<A> ( sa, sb, flag );
     }
     template < typename TXa, typename T, T_mX_fp(TXa,T) >
     INLINE auto constexpr operator_add_exception ( TXa const& a, T const& b, bool & flag ) NOEXCEPT {
       Algorithm constexpr A = TXa::base_A;
       auto sa = a.quick_Normalized();
-      return qX_real::operator_add_exception<A> ( sa, b, flag );
+      return pX_real::operator_add_exception<A> ( sa, b, flag );
     }
     template < typename T, typename TXb, T_mX_fp(TXb,T) >
     INLINE auto constexpr operator_add_exception ( T const& a, TXb const& b, bool & flag ) NOEXCEPT {
-      return qX_real::operator_add_exception ( b, a, flag );
+      return pX_real::operator_add_exception ( b, a, flag );
     }
 #endif
     //
@@ -1115,73 +1158,73 @@ namespace mX_real {
     INLINE auto constexpr operator_add ( TXa const& a, TXb const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_add_exception ( a, b, flag );
+      auto e = pX_real::operator_add_exception ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_add_body ( a, b );
+      return pX_real::operator_add_body ( a, b );
     }
     template < typename TXa, typename TXb, T_mX2(TXa,TXb), T_assert( TXa::L < TXb::L ) >
     INLINE auto constexpr operator_add ( TXa const& a, TXb const& b ) NOEXCEPT {
-      return qX_real::operator_add ( b, a );
+      return pX_real::operator_add ( b, a );
     }
       template < typename TXa, typename T, T_mX_fp(TXa,T) >
       INLINE auto constexpr operator_add ( TXa const& a, T const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
         auto flag = false;
-        auto e = qX_real::operator_add_exception ( a, b, flag );
+        auto e = pX_real::operator_add_exception ( a, b, flag );
         if ( flag ) { return e; }
 #endif
-        return qX_real::operator_add_body ( a, b );
+        return pX_real::operator_add_body ( a, b );
       }
     template < typename T, typename TXb, T_mX_fp(TXb,T) >
     INLINE auto constexpr operator_add ( T const& a, TXb const& b ) NOEXCEPT {
-      return qX_real::operator_add ( b, a );
+      return pX_real::operator_add ( b, a );
     }
     template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >
     INLINE auto constexpr operator_add ( T const& a, T const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_add_exception<A> ( a, b, flag );
+      auto e = pX_real::operator_add_exception<A> ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_add_body<T,A> ( a, b );
+      return pX_real::operator_add_body<T,A> ( a, b );
     }
     //
-    template < typename TXa, typename TXb, T_mX2(TXa,TXb), T_assert( std::max( TXa::L, TXb::L ) == 4 ) >
+    template < typename TXa, typename TXb, T_mX2(TXa,TXb), T_assert( std::max( TXa::L, TXb::L ) == 5 ) >
     INLINE auto constexpr operator+ ( TXa const& a, TXb const& b ) NOEXCEPT {
-      return qX_real::operator_add ( a, b );
+      return pX_real::operator_add ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator+ ( qX_real::qx_real<T,A> const& a, T const& b ) NOEXCEPT {
-      return qX_real::operator_add ( a, b );
+    INLINE auto constexpr operator+ ( pX_real::px_real<T,A> const& a, T const& b ) NOEXCEPT {
+      return pX_real::operator_add ( a, b );
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator+ ( qX_real::qx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
-      return qX_real::operator_add ( a, T(b) );
+    INLINE auto constexpr operator+ ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return pX_real::operator_add ( a, T(b) );
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator+ ( T const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator+ ( T const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
       return b + a;
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator+ ( Ts const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator+ ( Ts const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
       return b + a;
     }
     //
 
-    // Q-Q-Q
+    // P-P-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_add_ow_body ( qX_real::qx_real<T,Aa> & a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_ow_body ( pX_real::px_real<T,Aa> & a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;      
+      using TX = pX_real::px_real<T,A>;      
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);
       if (ia < ib) {
 	rescaling(a, (ia - ib));
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::add_QW_QW_QW ( _QX_(a), _QX_(b), _QX_(a) );
+	  //	  QxW::add_PW_PW_PW ( _PX_(a), _PX_(b), _PX_(a) );
 	} else {
-	  QxW::add_QQW_QQW_QQW ( _QX_(a), _QX_(b), _QX_(a) );
+	  QxW::add_QPW_QPW_QPW ( _PX_(a), _PX_(b), _PX_(a) );
 	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
 	}
 	scaling(a, ib);
@@ -1190,18 +1233,18 @@ namespace mX_real {
 	TX bb(b);	
 	rescaling(bb, (ib - ia));
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::add_QW_QW_QW ( _QX_(a), _QX_(bb), _QX_(a) );
+	  //	  QxW::add_PW_PW_PW ( _PX_(a), _PX_(bb), _PX_(a) );
 	} else {
-	  QxW::add_QQW_QQW_QQW ( _QX_(a), _QX_(bb), _QX_(a) );
+	  QxW::add_QPW_QPW_QPW ( _PX_(a), _PX_(bb), _PX_(a) );
 	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
 	}
 	scaling(a, ia);
       }
       else {
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::add_QW_QW_QW ( _QX_(a), _QX_(b), _QX_(a) );
+	  //	  QxW::add_PW_PW_PW ( _PX_(a), _PX_(b), _PX_(a) );
 	} else {
-	  QxW::add_QQW_QQW_QQW ( _QX_(a), _QX_(b), _QX_(a) );
+	  QxW::add_QPW_QPW_QPW ( _PX_(a), _PX_(b), _PX_(a) );
 	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
 	}
 	scaling(a, ib);
@@ -1209,19 +1252,19 @@ namespace mX_real {
       trunclast(a);
       return a;
     }
-    // Q-T-Q
+    // P-T-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_add_ow_body ( qX_real::qx_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_ow_body ( pX_real::px_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;      
+      using TX = pX_real::px_real<T,A>;      
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);
       if (ia < ib) {
 	rescaling(a, (ia - ib));
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::add_QW_TW_QW ( _QX_(a), _TX_(b), _QX_(a) );
+	  //	  QxW::add_PW_TW_PW ( _PX_(a), _TX_(b), _PX_(a) );
 	} else {
-	  QxW::add_QQW_QTW_QQW ( _QX_(a), _TX_(b), _QX_(a) );
+	  QxW::add_QPW_QTW_QPW ( _PX_(a), _TX_(b), _PX_(a) );
 	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
 	}
 	scaling(a, ib);
@@ -1230,9 +1273,9 @@ namespace mX_real {
 	TX bb(b);
 	rescaling(a, (ia - ib));
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::add_QW_TW_QW ( _QX_(a), _TX_(bb), _QX_(a) );
+	  //	  QxW::add_PW_TW_PW ( _PX_(a), _TX_(bb), _PX_(a) );
 	} else {
-	  QxW::add_QQW_QTW_QQW ( _QX_(a), _TX_(bb), _QX_(a) );
+	  QxW::add_QPW_QTW_QPW ( _PX_(a), _TX_(bb), _PX_(a) );
 	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
 	}
 	scaling(a, ib);
@@ -1240,9 +1283,9 @@ namespace mX_real {
       else {
 	rescaling(a, (ia - ib));	
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::add_QW_TW_QW ( _QX_(a), _TX_(b), _QX_(a) );
+	  //	  QxW::add_PW_TW_PW ( _PX_(a), _TX_(b), _PX_(a) );
 	} else {
-	  QxW::add_QQW_QTW_QQW ( _QX_(a), _TX_(b), _QX_(a) );
+	  QxW::add_QPW_QTW_QPW ( _PX_(a), _TX_(b), _PX_(a) );
 	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
 	}
 	scaling(a, ib);
@@ -1250,9 +1293,9 @@ namespace mX_real {
       turncalst(a);
       return a;
     }
-    // Q-D-Q
+    // P-D-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_add_ow_body ( qX_real::qx_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_ow_body ( pX_real::px_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
       using TX = tX_real::tx_real<T,A>;            
       int16_t ia = getexp(a);
@@ -1260,9 +1303,9 @@ namespace mX_real {
       if (ia < ib) {
 	rescaling(a, (ia - ib));
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::add_QW_DW_QW ( _QX_(a), _DX_(b), _QX_(a) );
+	  //	  QxW::add_PW_DW_PW ( _PX_(a), _DX_(b), _PX_(a) );
 	} else {
-	  QxW::add_QQW_PA_QQW ( _QX_(a), _DX_(b), _QX_(a) );
+	  QxW::add_QPW_PA_QPW ( _PX_(a), _DX_(b), _PX_(a) );
 	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
 	}
 	scaling(a, ib);
@@ -1271,9 +1314,9 @@ namespace mX_real {
 	TX bb(b);
 	rescaling(b, (ib - ia));
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::add_QW_DW_QW ( _QX_(a), _DX_(bb), _QX_(a) );
+	  //	  QxW::add_PW_DW_PW ( _PX_(a), _DX_(bb), _PX_(a) );
 	} else {
-	  QxW::add_QQW_PA_QQW ( _QX_(a), _DX_(bb), _QX_(a) );
+	  QxW::add_QPW_PA_QPW ( _PX_(a), _DX_(bb), _PX_(a) );
 	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
 	}
 	scaling(a, ia);
@@ -1281,9 +1324,9 @@ namespace mX_real {
       else {
 	rescaling(a, (ia - ib));
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::add_QW_DW_QW ( _QX_(a), _DX_(b), _QX_(a) );
+	  //	  QxW::add_PW_DW_PW ( _PX_(a), _DX_(b), _PX_(a) );
 	} else {
-	  QxW::add_QQW_PA_QQW ( _QX_(a), _DX_(b), _QX_(a) );
+	  QxW::add_QPW_PA_QPW ( _PX_(a), _DX_(b), _PX_(a) );
 	  if ( A != Algorithm::Quasi ) { Normalize( a ); }
 	}
 	scaling(a, ia);
@@ -1291,48 +1334,48 @@ namespace mX_real {
       trunclast(a);
       return a;
     }
-    // Q-S-Q
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_add_ow_body ( qX_real::qx_real<T,Aa> & a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
+    // P-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_add_ow_body ( pX_real::px_real<T,Aa> & a, T const& b ) NOEXCEPT {
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::add_QW_SW_QW ( _QX_(a), _SX_(b), _QX_(a) );
+	//        QxW::add_PW_SW_PW ( _PX_(a), _SX_(b), _PX_(a) );
       } else {
-        QxW::add_QQW_SW_QQW ( _QX_(a), _SX_(b), _QX_(a) );
+	//        QxW::add_QPW_SW_QPW ( _PX_(a), _SX_(b), _PX_(a) ); 21Aug2025
         if ( Aa != Algorithm::Quasi ) { Normalize( a ); }
       }
       return a;
     }
     //
     template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >
-    INLINE auto constexpr operator_add_ow ( qX_real::qx_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_ow ( pX_real::px_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_add_exception ( a, b, flag );
+      auto e = pX_real::operator_add_exception ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_add_ow_body ( a, b );
+      return pX_real::operator_add_ow_body ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_add_ow ( qX_real::qx_real<T,A> & a, T const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_add_ow ( pX_real::px_real<T,A> & a, T const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_add_exception ( a, b, flag );
+      auto e = pX_real::operator_add_exception ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_add_ow_body ( a, b );
+      return pX_real::operator_add_ow_body ( a, b );
     }
     //
     template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >
-    INLINE auto constexpr operator+= ( qX_real::qx_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
-      return qX_real::operator_add_ow ( a, b );
+    INLINE auto constexpr operator+= ( pX_real::px_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
+      return pX_real::operator_add_ow ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator+= ( qX_real::qx_real<T,A> & a, T const& b ) NOEXCEPT {
-      return qX_real::operator_add_ow ( a, b );
+    INLINE auto constexpr operator+= ( pX_real::px_real<T,A> & a, T const& b ) NOEXCEPT {
+      return pX_real::operator_add_ow ( a, b );
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator+= ( qX_real::qx_real<T,A> & a, Ts const& b ) NOEXCEPT {
-      return qX_real::operator_add_ow ( a, T(b) );
+    INLINE auto constexpr operator+= ( pX_real::px_real<T,A> & a, Ts const& b ) NOEXCEPT {
+      return pX_real::operator_add_ow ( a, T(b) );
     }
     //
 
@@ -1340,27 +1383,27 @@ namespace mX_real {
     // Substraction
     //
     //
-    template < typename TXa, typename TXb, T_mX2(TXa,TXb), T_assert( std::max( TXa::L, TXb::L ) ==4 ) >
+    template < typename TXa, typename TXb, T_mX2(TXa,TXb), T_assert( std::max( TXa::L, TXb::L ) ==5 ) >
     INLINE auto constexpr operator- ( TXa const& a, TXb const& b ) NOEXCEPT {
       return a + (-b);
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
-    INLINE auto constexpr operator- ( qX_real::qx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+    INLINE auto constexpr operator- ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
       return a + (-b);
     }
     template < Algorithm A=Algorithm::Accurate, typename T, typename Ts, T_scalar(Ts) >
-    INLINE auto constexpr operator- ( Ts const &a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator- ( Ts const &a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
       return a + (-b);
     }
     //
 
     //
     template < typename T, Algorithm Aa, Algorithm Ab, template < typename _Tb_, Algorithm _Ab_ > class TXb, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >
-    INLINE auto constexpr operator-= ( qX_real::qx_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator-= ( pX_real::px_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
       return a += (-b);
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
-    INLINE auto constexpr operator-= ( qX_real::qx_real<T,A> & a, Ts const& b ) NOEXCEPT {
+    INLINE auto constexpr operator-= ( pX_real::px_real<T,A> & a, Ts const& b ) NOEXCEPT {
       return a += (-b);
     }
     //
@@ -1368,216 +1411,228 @@ namespace mX_real {
     //
     // Multiplication
     //
-    // Q-Q-Q
+    // P-P-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_mul_body ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_body ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);
       if ( A <= Algorithm::WeakAccurate ) {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
-          QxW::sqr_QW_QW ( _QX_(a), _QX_(c) );
+	  //          QxW::sqr_PW_PW ( _PX_(a), _PX_(c) );
         }
 #else
         if ( false ) { return a; } // dummy
 #endif
         else {
-          QxW::mul_QW_QW_QW ( _QX_(a), _QX_(b), _QX_(c) );
+	  //          QxW::mul_PW_PW_W ( _PX_(a), _PX_(b), _PX_(c) );
         }
       } else {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
-          QxW::sqr_QQW_QQW ( _QX_(a), _QX_(c) );
+	  //          QxW::sqr_QPW_QPW ( _PX_(a), _PX_(c) ); 21Apr2025
         }
 #else
         if ( false ) { return a; } // dummy
 #endif
         else {
-          QxW::mul_QQW_QQW_QQW ( _QX_(a), _QX_(b), _QX_(c) );
+          QxW::mul_QPW_QPW_QPW ( _PX_(a), _PX_(b), _PX_(c) );
         }
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
-//      fprintf(stderr, "%s %d: %d %d\n", __FILE__, __LINE__,
-//	      static_cast<int>(ia + ib), static_cast<int>(getexp(c)));
-      scaling(c, (ia + ib));
-      trunclast(c);
-//      fprintf(stderr, "%s %d: %d %d %d %d\n", __FILE__, __LINE__,
-//	      static_cast<int>(ia),
-//	      static_cast<int>(ib),
-//	      static_cast<int>(ia + ib), static_cast<int>(getexp(c)));	        
+      sclaing(c, (ia + ib));
+      turnclast(c);
       return c;
     }
-    // Q-T-Q
+    // P-Q-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_mul_body ( qX_real::qx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_body ( pX_real::px_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::mul_QW_TW_QW ( _QX_(a), _TX_(b), _QX_(c) );
+	//        QxW::mul_PW_QW_PW ( _PX_(a), _QX_(b), _PX_(c) );
       } else {
-        QxW::mul_QQW_QTW_QQW ( _QX_(a), _TX_(b), _QX_(c) );
+        QxW::mul_QPW_QPW_QPW ( _PX_(a), _QX_(b), _PX_(c) );
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       sclaing(c, (ia + ib));
       turnclast(c);
       return c;
     }
-    // Q-D-Q
+    // P-T-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_mul_body ( qX_real::qx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_body ( pX_real::px_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::mul_QW_DW_QW ( _QX_(a), _DX_(b), _QX_(c) );
+	//        QxW::mul_PW_TW_PW ( _PX_(a), _TX_(b), _PX_(c) );
       } else {
-        QxW::mul_QQW_PA_QQW ( _QX_(a), _DX_(b), _QX_(c) );
+        QxW::mul_QPW_QTW_QPW ( _PX_(a), _TX_(b), _PX_(c) );
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       sclaing(c, (ia + ib));
       turnclast(c);
       return c;
     }
-    // Q-S-Q
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_mul_body ( qX_real::qx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Aa>;
+    // P-D-P
+    template < typename T, Algorithm Aa, Algorithm Ab >
+    INLINE auto constexpr operator_mul_body ( pX_real::px_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+      Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
+      using TX = pX_real::px_real<T,A>;
+      TX c;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
+      if ( A <= Algorithm::WeakAccurate ) {
+	//        QxW::mul_PW_DW_PW ( _PX_(a), _DX_(b), _PX_(c) );
+      } else {
+        QxW::mul_QPW_PA_QPW ( _PX_(a), _DX_(b), _PX_(c) );
+        if ( A != Algorithm::Quasi ) { Normalize( c ); }
+      }
+      sclaing(c, (ia + ib));
+      turnclast(c);
+      return c;
+    }
+    // P-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_mul_body ( pX_real::px_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::mul_QW_SW_QW ( _QX_(a), _SX_(b), _QX_(c) );
+	//        QxW::mul_PW_SW_PW ( _PX_(a), _SX_(b), _PX_(c) );
       } else {
-        QxW::mul_QQW_SW_QQW ( _QX_(a), _SX_(b), _QX_(c) );
+	//        QxW::mul_QPW_SW_QPW ( _PX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
+    // T-T-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       return operator_mul_body ( b, a );
     }
-    // T-T-Q
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
-          QxW::sqr_TW_QW ( _TX_(a), _QX_(c) );
+	  //          QxW::sqr_TW_PW ( _TX_(a), _PX_(c) );
         }
 #else
         if ( false ) { return a; } // dummy
 #endif
         else {
-          QxW::mul_TW_TW_QW ( _TX_(a), _TX_(b), _QX_(c) );
+	  //          QxW::mul_TW_TW_PW ( _TX_(a), _TX_(b), _PX_(c) );
         }
       } else {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
-          QxW::sqr_QTW_QQW ( _TX_(a), _QX_(c) );
+	  //          QxW::sqr_QTW_QPW ( _TX_(a), _PX_(c) ); 21Apr2025
         }
 #else
         if ( false ) { return a; } // dummy
 #endif
         else {
-          QxW::mul_QTW_QTW_QQW ( _TX_(a), _TX_(b), _QX_(c) );
+ //          QxW::mul_QTW_QTW_QPW ( _TX_(a), _TX_(b), _PX_(c) );  21Apr2025
         }
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
-    // T-D-Q
+    // T-D-P
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::mul_TW_DW_QW ( _TX_(a), _DX_(b), _QX_(c) );
+	//        QxW::mul_TW_DW_PW ( _TX_(a), _DX_(b), _PX_(c) );
       } else {
-        QxW::mul_QTW_PA_QQW ( _TX_(a), _DX_(b), _QX_(c) );
+	//        QxW::mul_QTW_PA_QPW ( _TX_(a), _DX_(b), _PX_(c) ); 21Aug2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
-    // T-S-Q
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Aa>;
+    // T-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_mul_body ( tX_real::tx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::mul_TW_SW_QW ( _TX_(a), _SX_(b), _QX_(c) );
+	//        QxW::mul_TW_SW_PW ( _TX_(a), _SX_(b), _PX_(c) );
       } else {
-        QxW::mul_QTW_SW_QQW ( _TX_(a), _SX_(b), _QX_(c) );
+//        QxW::mul_QTW_SW_QPW ( _TX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_mul_body ( dX_real::dx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_body ( dX_real::dx_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       return operator_mul_body ( b, a );
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_mul_body ( dX_real::dx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       return operator_mul_body ( b, a );
     }
-    // D-D-Q
+    // D-D-P
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_mul_body ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
-          QxW::sqr_DW_QW ( _DX_(a), _QX_(c) );
+	  //          QxW::sqr_DW_PW ( _DX_(a), _PX_(c) );
         }
 #else
         if ( false ) { return a; } // dummy
 #endif
         else {
-          QxW::mul_DW_DW_QW ( _DX_(a), _DX_(b), _QX_(c) );
+	  //          QxW::mul_DW_DW_PW ( _DX_(a), _DX_(b), _PX_(c) );
         }
       } else {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
-          QxW::sqr_PA_QQW ( _DX_(a), _QX_(c) );
+	  //          QxW::sqr_PA_QPW ( _DX_(a), _PX_(c) ); 21Apr2025
         }
 #else
         if ( false ) { return a; } // dummy
 #endif
         else {
-          QxW::mul_PA_PA_QQW ( _DX_(a), _DX_(b), _QX_(c) );
+	  //          QxW::mul_PA_PA_QPW ( _DX_(a), _DX_(b), _PX_(c) ); 21Apr2025
         }
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
-      }
+      }      
       return c;
     }
-    // D-S-Q
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_mul_body ( dX_real::dx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Aa>;
+    // D-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_mul_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::mul_DW_SW_QW ( _DX_(a), _SX_(b), _QX_(c) );
+	//        QxW::mul_DW_SW_PW ( _DX_(a), _SX_(b), _PX_(c) );
       } else {
-        QxW::mul_PA_SW_QQW ( _DX_(a), _SX_(b), _QX_(c) );
+	//        QxW::mul_PA_SW_QPW ( _DX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
     //
     template < typename T, Algorithm Ab >
-    INLINE auto constexpr operator_mul_body ( T const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_body ( T const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       return operator_mul_body ( b, a );
     }
     template < typename T, Algorithm Ab >
@@ -1588,32 +1643,32 @@ namespace mX_real {
     INLINE auto constexpr operator_mul_body ( T const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       return operator_mul_body ( b, a );
     }
-    // S-S-Q
+    // S-S-P
     template < typename T, Algorithm A, T_fp(T) >
-    INLINE auto constexpr operator_mul_body ( sX_real::sx_real<T,A> const& a, sX_real::sx_real<T,A> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+    INLINE auto constexpr operator_mul_body ( T const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
-          QxW::sqr_SW_QW ( _SX_(a), _QX_(c) );
+	  //          QxW::sqr_SW_PW ( _SX_(a), _PX_(c) );
         }
 #else
         if ( false ) { return a; } // dummy
 #endif
         else {
-          QxW::mul_SW_SW_QW ( _SX_(a), _SX_(b), _QX_(c) );
+	  //          QxW::mul_SW_SW_PW ( _SX_(a), _SX_(b), _PX_(c) );
         }
       } else {
 #if MX_REAL_OPTIMIZE_MUL_BY_SQR
         if ( (void *)(&a) == (void *)(&b) ) {
-          QxW::sqr_SW_QQW ( _SX_(a), _QX_(c) );
+	  //          QxW::sqr_SW_QPW ( _SX_(a), _PX_(c) ); 21Apr2025
         }
 #else
         if ( false ) { return a; } // dummy
 #endif
         else {
-          QxW::mul_SW_SW_QQW ( _SX_(a), _SX_(b), _QX_(c) );
+  //          QxW::mul_SW_SW_QPW ( _SX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         }
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
@@ -1623,7 +1678,7 @@ namespace mX_real {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     template < Algorithm A, typename T, T_fp(T) >
     INLINE auto constexpr operator_mul_exception ( T const& a, T const& b, bool & flag ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       {
         if ( fp<T>::isnan( a ) || fp<T>::isnan( b ) ) {
           auto c = fp<T>::copysign( fp<T>::copysign( fp<T>::nan(), a ), b );
@@ -1664,17 +1719,17 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm< TXa::base_A, TXb::base_A >::algorithm;
       auto sa = a.quick_Normalized();
       auto sb = b.quick_Normalized();
-      return qX_real::operator_mul_exception<A> ( sa, sb, flag );
+      return pX_real::operator_mul_exception<A> ( sa, sb, flag );
     }
     template < typename TXa, typename T, T_mX_fp(TXa,T) >
     INLINE auto constexpr operator_mul_exception ( TXa const& a, T const& b, bool & flag ) NOEXCEPT {
       Algorithm constexpr A = TXa::base_A;
       auto sa = a.quick_Normalized();
-      return qX_real::operator_mul_exception<A> ( sa, b, flag );
+      return pX_real::operator_mul_exception<A> ( sa, b, flag );
     }
     template < typename T, typename TXb, T_mX_fp(TXb,T) >
     INLINE auto constexpr operator_mul_exception ( T const& a, TXb const& b, bool & flag ) NOEXCEPT {
-      return qX_real::operator_mul_exception ( b, a, flag );
+      return pX_real::operator_mul_exception ( b, a, flag );
     }
 #endif
     //
@@ -1682,47 +1737,47 @@ namespace mX_real {
     INLINE auto constexpr operator_mul ( TXa const& a, TXb const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_mul_exception ( a, b, flag );
+      auto e = pX_real::operator_mul_exception ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_mul_body ( a, b );
+      return pX_real::operator_mul_body ( a, b );
     }
     template < typename TXa, typename TXb, T_mX2(TXa,TXb), T_assert( TXa::L < TXb::L ) >
     INLINE auto constexpr operator_mul ( TXa const& a, TXb const& b ) NOEXCEPT {
-      return qX_real::operator_mul ( b, a );
+      return pX_real::operator_mul ( b, a );
     }
       template < typename TXa, typename T, T_mX_fp(TXa,T) >
       INLINE auto constexpr operator_mul ( TXa const& a, T const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
         auto flag = false;
-        auto e = qX_real::operator_mul_exception ( a, b, flag );
+        auto e = pX_real::operator_mul_exception ( a, b, flag );
         if ( flag ) { return e; }
 #endif
-        return qX_real::operator_mul_body ( a, b );
+        return pX_real::operator_mul_body ( a, b );
       }
     template < typename T, typename TXb, T_mX_fp(TXb,T) >
     INLINE auto constexpr operator_mul ( T const& a, TXb const& b ) NOEXCEPT {
-      return qX_real::operator_mul ( b, a );
+      return pX_real::operator_mul ( b, a );
     }
     template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >
     INLINE auto constexpr operator_mul ( T const& a, T const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_mul_exception<A> ( a, b, flag );
+      auto e = pX_real::operator_mul_exception<A> ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_mul_body<T,A> ( a, b );
+      return pX_real::operator_mul_body<T,A> ( a, b );
     }
     //
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_mul_pow2 ( T const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_pow2 ( T const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
       auto sa = a;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_mul_exception ( sa, b, flag );
+      auto e = pX_real::operator_mul_exception ( sa, b, flag );
       if ( flag ) { return e; }
 #endif
-      using TX = dX_real::dx_real<T,A>;                  
+      using TX = pX_real::px_real<T,A>;
       auto c = b;
       for(auto i=0; i<TX::L; i++) {
         c.x[i] *= sa;
@@ -1730,14 +1785,14 @@ namespace mX_real {
       return c;
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator_mul_pow2 ( Ts const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_pow2 ( Ts const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
       auto sa = T(a);
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_mul_exception ( sa, b, flag );
+      auto e = pX_real::operator_mul_exception ( sa, b, flag );
       if ( flag ) { return e; }
 #endif
-      using TX = dX_real::dx_real<T,A>;                  
+      using TX = pX_real::px_real<T,A>;
       auto c = b;
       for(auto i=0; i<TX::L; i++) {
         c.x[i] *= sa;
@@ -1745,140 +1800,156 @@ namespace mX_real {
       return c;
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts) >
-    INLINE auto constexpr operator_mul_pow2 ( qX_real::qx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
-      return qX_real::operator_mul_pow2( b, a );
+    INLINE auto constexpr operator_mul_pow2 ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return pX_real::operator_mul_pow2( b, a );
     }
     //
-    template < typename TXa, typename TXb, T_mX2(TXa,TXb), T_assert( std::max( TXa::L, TXb::L ) == 4 ) >
+    template < typename TXa, typename TXb, T_mX2(TXa,TXb), T_assert( std::max( TXa::L, TXb::L ) == 5 ) >
     INLINE auto constexpr operator* ( TXa const& a, TXb const& b ) NOEXCEPT {
-      return qX_real::operator_mul ( a, b );
+      return pX_real::operator_mul ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator* ( qX_real::qx_real<T,A> const& a, T const& b ) NOEXCEPT {
+    INLINE auto constexpr operator* ( pX_real::px_real<T,A> const& a, T const& b ) NOEXCEPT {
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( b ) ) {
-        return qX_real::operator_mul_pow2 ( a, b );
+        return pX_real::operator_mul_pow2 ( a, b );
       }
 #else
       if ( false ) { return a; } // dummy
 #endif
       else {
-        return qX_real::operator_mul ( a, b );
+        return pX_real::operator_mul ( a, b );
       }
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator* ( qX_real::qx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+    INLINE auto constexpr operator* ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {
-        return qX_real::operator_mul_pow2 ( a, b );
+        return pX_real::operator_mul_pow2 ( a, b );
       }
 #else
       if ( false ) { return a; } // dummy
 #endif
       else {
-        return qX_real::operator_mul ( a, T(b) );
+        return pX_real::operator_mul ( a, T(b) );
       }
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator* ( T const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator* ( T const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
       return b * a;
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator* ( Ts const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator* ( Ts const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
       return b * a;
     }
     //
 
-    // Q-Q-Q
+    // P-P-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_mul_ow_body ( qX_real::qx_real<T,Aa> & a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_ow_body ( pX_real::px_real<T,Aa> & a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::mul_QW_QW_QW ( _QX_(a), _QX_(b), _QX_(a) );
+	//        QxW::mul_PW_PW_PW ( _PX_(a), _PX_(b), _PX_(a) );
       } else {
-        QxW::mul_QQW_QQW_QQW ( _QX_(a), _QX_(b), _QX_(a) );
+        QxW::mul_QPW_QPW_QPW ( _PX_(a), _PX_(b), _PX_(a) );
         if ( A != Algorithm::Quasi ) { Normalize( a ); }
       }
       scaling(a, (ia + ib));
       trunclast(a);
       return a;
     }
-    // Q-T-Q
+    // P-Q-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_mul_ow_body ( qX_real::qx_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_ow_body ( pX_real::px_real<T,Aa> & a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::mul_QW_TW_QW ( _QX_(a), _TX_(b), _QX_(a) );
+	//        QxW::mul_PW_QW_PW ( _PX_(a), _QX_(b), _PX_(a) );
       } else {
-        QxW::mul_QQW_QTW_QQW ( _QX_(a), _TX_(b), _QX_(a) );
+        QxW::mul_QPW_QQW_QPW ( _PX_(a), _QX_(b), _PX_(a) );
         if ( A != Algorithm::Quasi ) { Normalize( a ); }
       }
       scaling(a, (ia + ib));
       trunclast(a);
       return a;
     }
-    // Q-D-Q
+    // P-T-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_mul_ow_body ( qX_real::qx_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_ow_body ( pX_real::px_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::mul_QW_DW_QW ( _QX_(a), _DX_(b), _QX_(a) );
+	//        QxW::mul_PW_TW_PW ( _PX_(a), _TX_(b), _PX_(a) );
       } else {
-        QxW::mul_QQW_PA_QQW ( _QX_(a), _DX_(b), _QX_(a) );
+        QxW::mul_QPW_QTW_QPW ( _PX_(a), _TX_(b), _PX_(a) );
         if ( A != Algorithm::Quasi ) { Normalize( a ); }
       }
       scaling(a, (ia + ib));
       trunclast(a);
       return a;
     }
-    // Q-S-Q
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_mul_ow_body ( qX_real::qx_real<T,Aa> & a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
+    // P-D-P
+    template < typename T, Algorithm Aa, Algorithm Ab >
+    INLINE auto constexpr operator_mul_ow_body ( pX_real::px_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+      Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
+      if ( A <= Algorithm::WeakAccurate ) {
+	//        QxW::mul_PW_DW_PW ( _PX_(a), _DX_(b), _PX_(a) );
+      } else {
+        QxW::mul_QPW_PA_QPW ( _PX_(a), _DX_(b), _PX_(a) );
+        if ( A != Algorithm::Quasi ) { Normalize( a ); }
+      }
+      scaling(a, (ia + ib));
+      trunclast(a);
+      return a;
+    }
+    // P-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_mul_ow_body ( pX_real::px_real<T,Aa> & a, T const& b ) NOEXCEPT {
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::mul_QW_SW_QW ( _QX_(a), _SX_(b), _QX_(a) );
+	//        QxW::mul_PW_SW_PW ( _PX_(a), _SX_(b), _PX_(a) );
       } else {
-        QxW::mul_QQW_SW_QQW ( _QX_(a), _SX_(b), _QX_(a) );
+	//        QxW::mul_QPW_SW_QPW ( _PX_(a), _SX_(b), _PX_(a) ); 21Aug2025
         if ( Aa != Algorithm::Quasi ) { Normalize( a ); }
       }
       return a;
     }
     //
     template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >
-    INLINE auto constexpr operator_mul_ow ( qX_real::qx_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_ow ( pX_real::px_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_mul_exception ( a, b, flag );
+      auto e = pX_real::operator_mul_exception ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_mul_ow_body ( a, b );
+      return pX_real::operator_mul_ow_body ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_mul_ow ( qX_real::qx_real<T,A> & a, T const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_mul_ow ( pX_real::px_real<T,A> & a, T const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_mul_exception ( a, b, flag );
+      auto e = pX_real::operator_mul_exception ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_mul_ow_body ( a, b );
+      return pX_real::operator_mul_ow_body ( a, b );
     }
     //
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_mul_ow_pow2 ( qX_real::qx_real<T,A> & a, T const& b ) NOEXCEPT {
-      using TX = dX_real::dx_real<T,A>;      
+    INLINE auto constexpr operator_mul_ow_pow2 ( pX_real::px_real<T,A> & a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       for(auto i=0; i<TX::L; i++) {
         a.x[i] *= b;
       }
       return a;
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator_mul_ow_pow2 ( qX_real::qx_real<T,A> & a, Ts const& b ) NOEXCEPT {
-      using TX = dX_real::dx_real<T,A>;                  
+    INLINE auto constexpr operator_mul_ow_pow2 ( pX_real::px_real<T,A> & a, Ts const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       auto sb = T(b);
       for(auto i=0; i<TX::L; i++) {
         a.x[i] *= sb;
@@ -1887,37 +1958,36 @@ namespace mX_real {
     }
     //
     template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >
-    INLINE auto constexpr operator*= ( qX_real::qx_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
-      return qX_real::operator_mul_ow ( a, b );
+    INLINE auto constexpr operator*= ( pX_real::px_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
+      return pX_real::operator_mul_ow ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator*= ( qX_real::qx_real<T,A> & a, T const& b ) NOEXCEPT {
+    INLINE auto constexpr operator*= ( pX_real::px_real<T,A> & a, T const& b ) NOEXCEPT {
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( b ) ) {
-        return qX_real::operator_mul_ow_pow2 ( a, b );
+        return pX_real::operator_mul_ow_pow2 ( a, b );
       } else
 #endif
         {
-          return qX_real::operator_mul_ow ( a, b );
+          return pX_real::operator_mul_ow ( a, b );
         }
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator*= ( qX_real::qx_real<T,A> & a, Ts const& b ) NOEXCEPT {
+    INLINE auto constexpr operator*= ( pX_real::px_real<T,A> & a, Ts const& b ) NOEXCEPT {
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {
-        return qX_real::operator_mul_ow_pow2 ( a, b );
+        return pX_real::operator_mul_ow_pow2 ( a, b );
       } else
 #endif
         {
-          return qX_real::operator_mul_ow ( a, T(b) );
+          return pX_real::operator_mul_ow ( a, T(b) );
         }
     }
-    //
     // FMA
-    // Q-Q-Q
+    // P-P-P
     template < typename T, Algorithm A, Algorithm Ab>
-    void  madd_( qX_real::qx_real<T,A> const & a, qX_real::qx_real<T,Ab> const& b, qX_real::qx_real<T,A> & c) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+    void  madd_( pX_real::px_real<T,A> const & a, pX_real::px_real<T,Ab> const& b, pX_real::px_real<T,A> & c) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       TX ab;
       
       int16_t ia = getexp(a);
@@ -1926,36 +1996,36 @@ namespace mX_real {
 #ifdef CHECK_UNDERFLOW		      
       clear_underflow<T>();
 #endif
-      QxW::mul_QQW_QQW_QQW ( _QX_(a), _QX_(b), _QX_(ab) );
+      QxW::mul_QPW_QPW_QPW ( _PX_(a), _PX_(b), _PX_(ab) );
       if (ia + ib < ic) {
 	rescaling(ab, ((ia + ib) - ic));
-        QxW::add_QQW_QQW_QQW(_QX_(c), _QX_(ab), _QX_(c));
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
 	if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	scaling(c, ic);        	
       }
       else if (ia + ib > ic) {
 	rescaling(c, (ic - (ia + ib)));
-        QxW::add_QQW_QQW_QQW(_QX_(c), _QX_(ab), _QX_(c));
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
 	if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	scaling(c, (ia + ib));      
       }
       else { // (ia + ib) == ic
-        QxW::add_QQW_QQW_QQW(_QX_(c), _QX_(ab), _QX_(c));
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
 	if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	scaling(c, (ia + ib));     
       }
-#ifdef CHECK_UNDERFLOW		      
+#ifdef CHECK_UNDERFLOW		
       char errbuf[128];
       snprintf(errbuf, 128, "%s %d madd", __FILE__, __LINE__);
       underflow_p<T>(errbuf);
 #endif
-      trunclast(c);
+      trunclast(c);      
     }
     
-    // Q-T-Q    
+    // P-Q-P    
     template < typename T, Algorithm A, Algorithm Ab>
-    void  madd_( qX_real::qx_real<T,A> const & a, tX_real::tx_real<T,Ab> const& b, qX_real::qx_real<T,A> & c) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+    void  madd_( pX_real::px_real<T,A> const & a, qX_real::qx_real<T,Ab> const& b, pX_real::px_real<T,A> & c) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       TX ab;
       
       int16_t ia = getexp(a);
@@ -1964,41 +2034,40 @@ namespace mX_real {
 #ifdef CHECK_UNDERFLOW		      
       clear_underflow<T>();
 #endif
-      QxW::mul_QQW_QTW_QQW ( _QX_(a), _TX_(b), _QX_(ab) );
+      QxW::mul_QPW_QQW_QPW ( _PX_(a), _QX_(b), _PX_(ab) );
       if (ia + ib < ic) {
 	rescaling(ab, (ia + ib) - ic);
-        QxW::add_QQW_QQW_QQW(_QX_(c), _QX_(ab), _QX_(c));
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
 	if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	scaling(c, ic);        	
       }
       else if (ia + ib > ic) {
 	rescaling(c, ic - (ia + ib));
-        QxW::add_QQW_QQW_QQW(_QX_(c), _QX_(ab), _QX_(c));
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
 	if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	scaling(c, (ia + ib));      
       }
       else { // (ia + ib) == ic
-        QxW::add_QQW_QQW_QQW(_QX_(c), _QX_(ab), _QX_(c));
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
 	if ( A != Algorithm::Quasi ) { Normalize( c ); }
-	scaling(c, ic);      
+	scaling(c, ic, true);      
       }
 #ifdef CHECK_UNDERFLOW		      
       char errbuf[128];
       snprintf(errbuf, 128, "%s %d madd", __FILE__, __LINE__);
       underflow_p<T>(errbuf);
 #endif
-      trunclast(c);
+      trunclast(c);      
     }
     template < typename T, Algorithm A, Algorithm Ab>
-    void  madd_( tX_real::tx_real<T,Ab> const& a, qX_real::qx_real<T,A> const & b, qX_real::qx_real<T,A> & c) NOEXCEPT {
+    void  madd_( qX_real::qx_real<T,Ab> const& a, pX_real::px_real<T,A> const & b, pX_real::px_real<T,A> & c) NOEXCEPT {
       madd_(b, a, c);
     }
 
-    // Q-D-Q        
+    // P-T-P    
     template < typename T, Algorithm A, Algorithm Ab>
-    void  madd_( qX_real::qx_real<T,A> const & a, dX_real::dx_real<T,Ab> const& b, qX_real::qx_real<T,A> & c) NOEXCEPT {
-      //      fprintf(stderr, "%s %d : QxW::madd_PA_QQW_QQW \n", __FILE__, __LINE__);
-      using TX = qX_real::qx_real<T,A>;
+    void  madd_( pX_real::px_real<T,A> const & a, tX_real::tx_real<T,Ab> const& b, pX_real::px_real<T,A> & c) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       TX ab;
       
       int16_t ia = getexp(a);
@@ -2007,21 +2076,21 @@ namespace mX_real {
 #ifdef CHECK_UNDERFLOW		      
       clear_underflow<T>();
 #endif
-      QxW::mul_QQW_PA_QQW ( _QX_(a), _DX_(b), _QX_(ab) );
+      QxW::mul_QPW_QQW_QPW ( _PX_(a), _TX_(b), _PX_(ab) );
       if (ia + ib < ic) {
 	rescaling(ab, (ia + ib) - ic);
-        QxW::add_QQW_QQW_QQW(_QX_(c), _QX_(ab), _QX_(c));
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
 	if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	scaling(c, ic);        	
       }
       else if (ia + ib > ic) {
 	rescaling(c, ic - (ia + ib));
-        QxW::add_QQW_QQW_QQW(_QX_(c), _QX_(ab), _QX_(c));
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
 	if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	scaling(c, (ia + ib));      
       }
       else { // (ia + ib) == ic
-        QxW::add_QQW_QQW_QQW(_QX_(c), _QX_(ab), _QX_(c));
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
 	if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	scaling(c, ic);      
       }
@@ -2030,227 +2099,301 @@ namespace mX_real {
       snprintf(errbuf, 128, "%s %d madd", __FILE__, __LINE__);
       underflow_p<T>(errbuf);
 #endif
-      trunclast(c);
+      trunclast(c);      
     }
     template < typename T, Algorithm A, Algorithm Ab>
-    void  madd_( dX_real::dx_real<T,Ab> const& a, qX_real::qx_real<T,A> const & b, qX_real::qx_real<T,A> & c) NOEXCEPT {
+    void  madd_( tX_real::tx_real<T,Ab> const& a, pX_real::px_real<T,A> const & b, pX_real::px_real<T,A> & c) NOEXCEPT {
+      madd_(b, a, c);
+    }
+
+    // P-D-P        
+    template < typename T, Algorithm A, Algorithm Ab>
+    void  madd_( pX_real::px_real<T,A> const & a, dX_real::dx_real<T,Ab> const& b, pX_real::px_real<T,A> & c) NOEXCEPT {
+      //      fprintf(stderr, "%s %d : QxW::madd_PA_QPW_QPW \n", __FILE__, __LINE__);
+      using TX = pX_real::px_real<T,A>;
+      TX ab;
+      
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);
+      int16_t ic = getexp(c);
+#ifdef CHECK_UNDERFLOW		      
+      clear_underflow<T>();
+#endif
+      QxW::mul_QPW_PA_QPW ( _PX_(a), _DX_(b), _PX_(ab) );
+      if (ia + ib < ic) {
+	rescaling(ab, (ia + ib) - ic);
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
+	if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	scaling(c, ic);        	
+      }
+      else if (ia + ib > ic) {
+	rescaling(c, ic - (ia + ib));
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
+	if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	scaling(c, (ia + ib));      
+      }
+      else { // (ia + ib) == ic
+        QxW::add_QPW_QPW_QPW(_PX_(c), _PX_(ab), _PX_(c));
+	if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	scaling(c, ic);      
+      }
+#ifdef CHECK_UNDERFLOW		      
+      char errbuf[128];
+      snprintf(errbuf, 128, "%s %d madd", __FILE__, __LINE__);
+      underflow_p<T>(errbuf);
+#endif
+      trunclast(c);      
+    }
+    template < typename T, Algorithm A, Algorithm Ab>
+    void  madd_( dX_real::dx_real<T,Ab> const& a, pX_real::px_real<T,A> const & b, pX_real::px_real<T,A> & c) NOEXCEPT {
       madd_(b, a, c);
     }
     //
     // Division
     //
-    // Q-Q-Q
+    // P-P-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_div_body ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_body ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);	
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_QW_QW_QW ( _QX_(a), _QX_(b), _QX_(c) );
+	//        QxW::div_PW_PW_PW ( _PX_(a), _PX_(b), _PX_(c) );
       } else {
-        QxW::div_QQW_QQW_QQW ( _QX_(a), _QX_(b), _QX_(c) );
+        QxW::div_QPW_QPW_QPW ( _PX_(a), _PX_(b), _PX_(c) );
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       scaling(c, (ia - ib));	
       trunclast(c);
       return c;
     }
-    // Q-T-Q
+    // P-Q-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_div_body ( qX_real::qx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_body ( pX_real::px_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);	      
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_QW_TW_QW ( _QX_(a), _TX_(b), _QX_(c) );
+	//        QxW::div_PW_QW_PW ( _PX_(a), _QX_(b), _PX_(c) );
       } else {
-        QxW::div_QQW_QTW_QQW ( _QX_(a), _TX_(b), _QX_(c) );
+	//        QxW::div_QPW_QQW_QPW ( _PX_(a), _QX_(b), _PX_(c) ); 21Apr2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       scaling(c, (ia - ib));	
       trunclast(c);
       return c;
     }
-    // Q-D-Q
+    // P-T-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_div_body ( qX_real::qx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_body ( pX_real::px_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
+      TX c;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);	      
+      if ( A <= Algorithm::WeakAccurate ) {
+	//        QxW::div_PW_TW_PW ( _PX_(a), _TX_(b), _PX_(c) );
+      } else {
+        QxW::div_QPW_QTW_QPW ( _PX_(a), _TX_(b), _PX_(c) );
+        if ( A != Algorithm::Quasi ) { Normalize( c ); }
+      }
+      scaling(c, (ia - ib));	
+      trunclast(c);
+      return c;
+    }
+    // P-D-P
+    template < typename T, Algorithm Aa, Algorithm Ab >
+    INLINE auto constexpr operator_div_body ( pX_real::px_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+      Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);	
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_QW_DW_QW ( _QX_(a), _DX_(b), _QX_(c) );
+	//        QxW::div_PW_DW_PW ( _PX_(a), _DX_(b), _PX_(c) );
       } else {
-        QxW::div_QQW_PA_QQW ( _QX_(a), _DX_(b), _QX_(c) );
+        QxW::div_QPW_PA_QPW ( _PX_(a), _DX_(b), _PX_(c) );
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       scaling(c, (ia - ib));	
       trunclast(c);
       return c;
     }
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_div_body ( qX_real::qx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Aa>;
+    // P-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_div_body ( pX_real::px_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::div_QW_SW_QW ( _QX_(a), _SX_(b), _QX_(c) );
+	//        QxW::div_PW_SW_PW ( _PX_(a), _SX_(b), _PX_(c) );
       } else {
-        QxW::div_QQW_SW_QQW ( _QX_(a), _SX_(b), _QX_(c) );
+	//        QxW::div_QPW_SW_QPW ( _PX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
+    // T-P-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_div_body ( tX_real::tx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_body ( tX_real::tx_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_TW_QW_QW ( _TX_(a), _QX_(b), _QX_(c) );
+	//        QxW::div_TW_PW_PW ( _TX_(a), _PX_(b), _PX_(c) );
       } else {
-        QxW::div_QTW_QQW_QQW ( _TX_(a), _QX_(b), _QX_(c) );
+        QxW::div_QTW_QPW_QPW ( _TX_(a), _PX_(b), _PX_(c) );
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
+    // T-T-P    
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_body ( tX_real::tx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_TW_TW_QW ( _TX_(a), _TX_(b), _QX_(c) );
+	//        QxW::div_TW_TW_PW ( _TX_(a), _TX_(b), _PX_(c) );
       } else {
-        QxW::div_QTW_QTW_QQW ( _TX_(a), _TX_(b), _QX_(c) );
+	//        QxW::div_QTW_QTW_QPW ( _TX_(a), _TX_(b), _PX_(c) ); 21Apr2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
+    // T-D-P        
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_body ( tX_real::tx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_TW_DW_QW ( _TX_(a), _DX_(b), _QX_(c) );
+	//        QxW::div_TW_DW_PW ( _TX_(a), _DX_(b), _PX_(c) );
       } else {
-        QxW::div_QTW_PA_QQW ( _TX_(a), _DX_(b), _QX_(c) );
+	//        QxW::div_QTW_PA_QPW ( _TX_(a), _DX_(b), _PX_(c) ); 21Apr2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_div_body ( tX_real::tx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Aa>;
+    // T-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_div_body ( tX_real::tx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::div_TW_SW_QW ( _TX_(a), _SX_(b), _QX_(c) );
+	//        QxW::div_TW_SW_PW ( _TX_(a), _SX_(b), _PX_(c) );
       } else {
-        QxW::div_QTW_SW_QQW ( _TX_(a), _SX_(b), _QX_(c) );
+	//        QxW::div_QTW_SW_QPW ( _TX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
+    // D-P-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_div_body ( dX_real::dx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_body ( dX_real::dx_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_DW_QW_QW ( _DX_(a), _QX_(b), _QX_(c) );
+	//        QxW::div_DW_PW_PW ( _DX_(a), _PX_(b), _PX_(c) );
       } else {
-        QxW::div_PA_QQW_QQW ( _DX_(a), _QX_(b), _QX_(c) );
+	//        QxW::div_PA_QPW_QPW ( _DX_(a), _PX_(b), _PX_(c) ); 21Apr2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
+    // D-T-P
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_body ( dX_real::dx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_DW_TW_QW ( _DX_(a), _TX_(b), _QX_(c) );
+	//        QxW::div_DW_TW_PW ( _DX_(a), _TX_(b), _PX_(c) );
       } else {
-        QxW::div_PA_QTW_QQW ( _DX_(a), _TX_(b), _QX_(c) );
+	//        QxW::div_PA_QTW_QPW ( _DX_(a), _TX_(b), _PX_(c) ); 21Apr2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
+    // D-D-P
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator_div_body ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_DW_DW_QW ( _DX_(a), _DX_(b), _QX_(c) );
+	//        QxW::div_DW_DW_PW ( _DX_(a), _DX_(b), _PX_(c) );
       } else {
-        QxW::div_PA_PA_QQW ( _DX_(a), _DX_(b), _QX_(c) );
+	//        QxW::div_PA_PA_QPW ( _DX_(a), _DX_(b), _PX_(c) ); 21Apr2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_div_body ( dX_real::dx_real<T,Aa> const& a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Aa>;
+    // D-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_div_body ( dX_real::dx_real<T,Aa> const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Aa>;
       TX c;
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::div_DW_SW_QW ( _DX_(a), _SX_(b), _QX_(c) );
+	//        QxW::div_DW_SW_PW ( _DX_(a), _SX_(b), _PX_(c) );
       } else {
-        QxW::div_PA_SW_QQW ( _DX_(a), _SX_(b), _QX_(c) );
+	//        QxW::div_PA_SW_QPW ( _DX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         if ( Aa != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
-    template < typename T, Algorithm Aa , Algorithm Ab >
-    INLINE auto constexpr operator_div_body (sX_real::sx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Ab>;
+    // S-P-P
+    template < typename T, Algorithm Ab >
+    INLINE auto constexpr operator_div_body ( T const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Ab>;
       TX c;
       if ( Ab <= Algorithm::WeakAccurate ) {
-        QxW::div_SW_QW_QW ( _SX_(a), _QX_(b), _QX_(c) );
+	//        QxW::div_SW_PW_PW ( _SX_(a), _PX_(b), _PX_(c) );
       } else {
-        QxW::div_SW_QQW_QQW ( _SX_(a), _QX_(b), _QX_(c) );
+	//        QxW::div_SW_QPW_QPW ( _SX_(a), _PX_(b), _PX_(c) ); 21Apr2025
         if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
-    template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_div_body ( sX_real::sx_real<T,Aa> const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Ab>;
+    // S-T-P
+    template < typename T, Algorithm Ab >
+    INLINE auto constexpr operator_div_body ( T const& a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Ab>;
       TX c;
       if ( Ab <= Algorithm::WeakAccurate ) {
-        QxW::div_SW_TW_QW ( _SX_(a), _TX_(b), _QX_(c) );
+	//        QxW::div_SW_TW_PW ( _SX_(a), _TX_(b), _PX_(c) );
       } else {
-        QxW::div_SW_QTW_QQW ( _SX_(a), _TX_(b), _QX_(c) );
+	//        QxW::div_SW_QTW_QPW ( _SX_(a), _TX_(b), _PX_(c) ); 21Apr2025
         if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
-    template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_div_body ( sX_real::sx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,Ab>;
+    // S-D-P
+    template < typename T, Algorithm Ab >
+    INLINE auto constexpr operator_div_body ( T const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,Ab>;
       TX c;
       if ( Ab <= Algorithm::WeakAccurate ) {
-        QxW::div_SW_DW_QW ( _SX_(a), _DX_(b), _QX_(c) );
+	//        QxW::div_SW_DW_PW ( _SX_(a), _DX_(b), _PX_(c) );
       } else {
-        QxW::div_SW_PA_QQW ( _SX_(a), _DX_(b), _QX_(c) );
+	//        QxW::div_SW_PA_QPW ( _SX_(a), _DX_(b), _PX_(c) ); 21Apr2025
         if ( Ab != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
     }
+    // S-S-P
     template < typename T, Algorithm A, T_fp(T) >
-    INLINE auto constexpr operator_div_body (sX_real::sx_real<T,A> const& a, sX_real::sx_real<T,A> const& b ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+    INLINE auto constexpr operator_div_body ( T const& a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_SW_SW_QW ( _SX_(a), _SX_(b), _QX_(c) );
+	//        QxW::div_SW_SW_PW ( _SX_(a), _SX_(b), _PX_(c) );
       } else {
-        QxW::div_SW_SW_QQW ( _SX_(a), _SX_(b), _QX_(c) );
+	//        QxW::div_SW_SW_QPW ( _SX_(a), _SX_(b), _PX_(c) ); 21Apr2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
@@ -2259,7 +2402,7 @@ namespace mX_real {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     template < Algorithm A, typename T, T_fp(T) >
     INLINE auto constexpr operator_div_exception ( T const& a, T const& b, bool & flag ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       {
         if ( fp<T>::isnan( a ) || fp<T>::isnan( b ) ) {
           auto c = fp<T>::copysign( fp<T>::copysign( fp<T>::nan(), a ), b );
@@ -2295,19 +2438,19 @@ namespace mX_real {
       Algorithm constexpr A = commonAlgorithm< TXa::base_A, TXb::base_A >::algorithm;
       auto sa = a.quick_Normalized();
       auto sb = b.quick_Normalized();
-      return qX_real::operator_div_exception<A> ( sa, sb, flag );
+      return pX_real::operator_div_exception<A> ( sa, sb, flag );
     }
     template < typename TXa, typename T, T_mX_fp(TXa,T) >
     INLINE auto constexpr operator_div_exception ( TXa const& a, T const& b, bool & flag ) NOEXCEPT {
       Algorithm constexpr A = TXa::base_A;
       auto sa = a.quick_Normalized();
-      return qX_real::operator_div_exception<A> ( sa, b, flag );
+      return pX_real::operator_div_exception<A> ( sa, b, flag );
     }
     template < typename T, typename TXb, T_mX_fp(TXb,T) >
     INLINE auto constexpr operator_div_exception ( T const& a, TXb const& b, bool & flag ) NOEXCEPT {
       Algorithm constexpr A = TXb::base_A;
       auto sb = b.quick_Normalized();
-      return qX_real::operator_div_exception<A> ( a, sb, flag );
+      return pX_real::operator_div_exception<A> ( a, sb, flag );
     }
 #endif
     //
@@ -2315,48 +2458,48 @@ namespace mX_real {
     INLINE auto constexpr operator_div ( TXa const& a, TXb const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_div_exception ( a, b, flag );
+      auto e = pX_real::operator_div_exception ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_div_body ( a, b );
+      return pX_real::operator_div_body ( a, b );
     }
     template < typename TXa, typename T, T_mX_fp(TXa,T) >
     INLINE auto constexpr operator_div ( TXa const& a, T const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_div_exception ( a, b, flag );
+      auto e = pX_real::operator_div_exception ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_div_body ( a, b );
+      return pX_real::operator_div_body ( a, b );
     }
     template < typename T, typename TXb, T_mX_fp(TXb,T) >
     INLINE auto constexpr operator_div ( T const& a, TXb const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_div_exception ( a, b, flag );
+      auto e = pX_real::operator_div_exception ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_div_body ( a, b );
+      return pX_real::operator_div_body ( a, b );
     }
     template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >
     INLINE auto constexpr operator_div ( T const& a, T const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_div_exception<A> ( a, b, flag );
+      auto e = pX_real::operator_div_exception<A> ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_div_body<T,A> ( a, b );
+      return pX_real::operator_div_body<T,A> ( a, b );
     }
     //
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_div_pow2 ( qX_real::qx_real<T,A> const& a, T const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_pow2 ( pX_real::px_real<T,A> const& a, T const& b ) NOEXCEPT {
       auto sb = fp<T>::one() / b;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_div_exception ( a, sb, flag );
+      auto e = pX_real::operator_div_exception ( a, sb, flag );
       if ( flag ) { return e; }
 #endif
-      using TX = dX_real::dx_real<T,A>;            
+      using TX = pX_real::px_real<T,A>;
       auto c = a;
       for(auto i=0; i<TX::L; i++) {
         c.x[i] *= sb;
@@ -2364,14 +2507,14 @@ namespace mX_real {
       return c;
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator_div_pow2 ( qX_real::qx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_pow2 ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
       auto sb = fp<T>::one() / T(b);
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_div_exception ( a, sb, flag );
+      auto e = pX_real::operator_div_exception ( a, sb, flag );
       if ( flag ) { return e; }
 #endif
-      using TX = dX_real::dx_real<T,A>;                  
+      using TX = pX_real::px_real<T,A>;
       auto c = a;
       for(auto i=0; i<TX::L; i++) {
         c.x[i] *= sb;
@@ -2379,127 +2522,144 @@ namespace mX_real {
       return c;
     }
     //
-    template < typename TXa, typename TXb, T_mX2(TXa,TXb), T_assert( std::max( TXa::L, TXb::L ) == 4 ) >
+    template < typename TXa, typename TXb, T_mX2(TXa,TXb), T_assert( std::max( TXa::L, TXb::L ) == 5 ) >
     INLINE auto constexpr operator/ ( TXa const& a, TXb const& b ) NOEXCEPT {
-      return qX_real::operator_div ( a, b );
+      return pX_real::operator_div ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator/ ( qX_real::qx_real<T,A> const& a, T const& b ) NOEXCEPT {
+    INLINE auto constexpr operator/ ( pX_real::px_real<T,A> const& a, T const& b ) NOEXCEPT {
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( b ) ) {
-        return qX_real::operator_div_pow2 ( a, b );
+        return pX_real::operator_div_pow2 ( a, b );
       }
 #else
       if ( false ) { return a; } // dummy
 #endif
       else {
-        return qX_real::operator_div ( a, b );
+        return pX_real::operator_div ( a, b );
       }
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator/ ( qX_real::qx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+    INLINE auto constexpr operator/ ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {
-        return qX_real::operator_div_pow2 ( a, b );
+        return pX_real::operator_div_pow2 ( a, b );
       }
 #else
       if ( false ) { return a; } // dummy
 #endif
       else {
-        return qX_real::operator_div ( a, T(b) );
+        return pX_real::operator_div ( a, T(b) );
       }
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator/ ( T const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
-      return qX_real::operator_div ( a, b );
+    INLINE auto constexpr operator/ ( T const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
+      return pX_real::operator_div ( a, b );
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator/ ( Ts const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
-      return qX_real::operator_div ( T(a), b );
+    INLINE auto constexpr operator/ ( Ts const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
+      return pX_real::operator_div ( T(a), b );
     }
     //
 
-    // Q-Q-Q
+    // P-P-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_div_ow_body ( qX_real::qx_real<T,Aa> & a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_ow_body ( pX_real::px_real<T,Aa> & a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);		    
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_QW_QW_QW ( _QX_(a), _QX_(b), _QX_(a) );
+	//        QxW::div_PW_PW_PW ( _PX_(a), _PX_(b), _PX_(a) );
       } else {
-        QxW::div_QQW_QQW_QQW ( _QX_(a), _QX_(b), _QX_(a) );
+        QxW::div_QPW_QPW_QPW ( _PX_(a), _PX_(b), _PX_(a) );
         if ( A != Algorithm::Quasi ) { Normalize( a ); }
       }
       scaling(a, (ia - ib));	
       trunclast(a);
       return a;
     }
-    // Q-T-Q
+    // P-Q-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_div_ow_body ( qX_real::qx_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_ow_body ( pX_real::px_real<T,Aa> & a, qX_real::qx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);	
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_QW_TW_QW ( _QX_(a), _TX_(b), _QX_(a) );
+	//        QxW::div_PW_QW_PW ( _PX_(a), _QX_(b), _PX_(a) );
       } else {
-        QxW::div_QQW_QTW_QQW ( _QX_(a), _TX_(b), _QX_(a) );
+        QxW::div_QPW_QQW_QPW ( _PX_(a), _QX_(b), _PX_(a) );
         if ( A != Algorithm::Quasi ) { Normalize( a ); }
       }
       scaling(a, (ia - ib));	
       trunclast(a);
       return a;
     }
-    // Q-D-Q
+    // P-T-P
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_div_ow_body ( qX_real::qx_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_ow_body ( pX_real::px_real<T,Aa> & a, tX_real::tx_real<T,Ab> const& b ) NOEXCEPT {
       Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
       int16_t ia = getexp(a);
       int16_t ib = getexp(b);	
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::div_QW_DW_QW ( _QX_(a), _DX_(b), _QX_(a) );
+	//        QxW::div_PW_TW_PW ( _PX_(a), _TX_(b), _PX_(a) );
       } else {
-        QxW::div_QQW_PA_QQW ( _QX_(a), _DX_(b), _QX_(a) );
+        QxW::div_QPW_QTW_QPW ( _PX_(a), _TX_(b), _PX_(a) );
         if ( A != Algorithm::Quasi ) { Normalize( a ); }
       }
       scaling(a, (ia - ib));	
       trunclast(a);
       return a;
     }
-    template < typename T, Algorithm Aa, Algorithm Ab  >
-    INLINE auto constexpr operator_div_ow_body ( qX_real::qx_real<T,Aa> & a, sX_real::sx_real<T,Ab> const& b ) NOEXCEPT {
+    // P-D-P
+    template < typename T, Algorithm Aa, Algorithm Ab >
+    INLINE auto constexpr operator_div_ow_body ( pX_real::px_real<T,Aa> & a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
+      Algorithm constexpr A=commonAlgorithm<Aa,Ab>::algorithm;
+      int16_t ia = getexp(a);
+      int16_t ib = getexp(b);	
+      if ( A <= Algorithm::WeakAccurate ) {
+	//        QxW::div_PW_DW_PW ( _PX_(a), _DX_(b), _PX_(a) );
+      } else {
+        QxW::div_QPW_PA_QPW ( _PX_(a), _DX_(b), _PX_(a) );
+        if ( A != Algorithm::Quasi ) { Normalize( a ); }
+      }
+      scaling(a, (ia - ib));	
+      trunclast(a);
+      return a;
+    }
+    // P-S-P
+    template < typename T, Algorithm Aa >
+    INLINE auto constexpr operator_div_ow_body ( pX_real::px_real<T,Aa> & a, T const& b ) NOEXCEPT {
       if ( Aa <= Algorithm::WeakAccurate ) {
-        QxW::div_QW_SW_QW ( _QX_(a), _SX_(b), _QX_(a) );
+	//        QxW::div_PW_SW_PW ( _PX_(a), _SX_(b), _PX_(a) );
       } else {
-        QxW::div_QQW_SW_QQW ( _QX_(a), _SX_(b), _QX_(a) );
+	//        QxW::div_QPW_SW_QPW ( _PX_(a), _SX_(b), _PX_(a) ); 21Apr2025
         if ( Aa != Algorithm::Quasi ) { Normalize( a ); }
       }
       return a;
     }
     //
     template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >
-    INLINE auto constexpr operator_div_ow ( qX_real::qx_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_ow ( pX_real::px_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_div_exception ( a, b, flag );
+      auto e = pX_real::operator_div_exception ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_div_ow_body ( a, b );
+      return pX_real::operator_div_ow_body ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_div_ow ( qX_real::qx_real<T,A> & a, T const& b ) NOEXCEPT {
+    INLINE auto constexpr operator_div_ow ( pX_real::px_real<T,A> & a, T const& b ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_div_exception ( a, b, flag );
+      auto e = pX_real::operator_div_exception ( a, b, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_div_ow_body ( a, b );
+      return pX_real::operator_div_ow_body ( a, b );
     }
     //
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator_div_ow_pow2 ( qX_real::qx_real<T,A> & a, Ts const& b ) NOEXCEPT {
-      using TX = dX_real::dx_real<T,A>;                  
+    INLINE auto constexpr operator_div_ow_pow2 ( pX_real::px_real<T,A> & a, Ts const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       auto sb = fp<T>::one() / T(b);
       for(auto i=0; i<TX::L; i++) {
         a.x[i] *= sb;
@@ -2507,8 +2667,8 @@ namespace mX_real {
       return a;
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_div_ow_pow2 ( qX_real::qx_real<T,A> & a, T const& b ) NOEXCEPT {
-      using TX = dX_real::dx_real<T,A>;                  
+    INLINE auto constexpr operator_div_ow_pow2 ( pX_real::px_real<T,A> & a, T const& b ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       for(auto i=0; i<TX::L; i++) {
         a.x[i] /= b;
       }
@@ -2516,29 +2676,29 @@ namespace mX_real {
     }
     //
     template < typename T, Algorithm Aa, template < typename _Tb_, Algorithm _Ab_ > class TXb, Algorithm Ab, T_mX(TXb<T,Ab>), A_owAble(Aa,Ab) >
-    INLINE auto constexpr operator/= ( qX_real::qx_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
-      return qX_real::operator_div_ow ( a, b );
+    INLINE auto constexpr operator/= ( pX_real::px_real<T,Aa> & a, TXb<T,Ab> const& b ) NOEXCEPT {
+      return pX_real::operator_div_ow ( a, b );
     }
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator/= ( qX_real::qx_real<T,A> & a, T const& b ) NOEXCEPT {
+    INLINE auto constexpr operator/= ( pX_real::px_real<T,A> & a, T const& b ) NOEXCEPT {
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( b ) ) {
-        return qX_real::operator_div_ow_pow2 ( a, b );
+        return pX_real::operator_div_ow_pow2 ( a, b );
       } else
 #endif
         {
-          return qX_real::operator_div_ow ( a, b );
+          return pX_real::operator_div_ow ( a, b );
         }
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-    INLINE auto constexpr operator/= ( qX_real::qx_real<T,A> & a, Ts const& b ) NOEXCEPT {
+    INLINE auto constexpr operator/= ( pX_real::px_real<T,A> & a, Ts const& b ) NOEXCEPT {
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {
-        return qX_real::operator_div_ow_pow2 ( a, b );
+        return pX_real::operator_div_ow_pow2 ( a, b );
       } else
 #endif
         {
-          return qX_real::operator_div_ow ( a, T(b) );
+          return pX_real::operator_div_ow ( a, T(b) );
         }
     }
     //
@@ -2549,13 +2709,13 @@ namespace mX_real {
     //
     template < typename TXa, T_mX(TXa) >
     INLINE auto constexpr operator_abs_body ( TXa const& a ) NOEXCEPT {
-      return qX_real::mX_real<TXa>{ is_negative( a ) ? -a : a };
+      return pX_real::mX_real<TXa>{ is_negative( a ) ? -a : a };
     }
     //
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     template < Algorithm A, typename T, T_fp(T) >
     INLINE auto constexpr operator_abs_exception ( T const& a, bool & flag ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       {
         if ( fp<T>::isnan( a ) ) { flag = true; return TX::nan(); }
         if ( fp<T>::isinf( a ) ) { flag = true; return TX::inf(); }
@@ -2567,7 +2727,7 @@ namespace mX_real {
     INLINE auto constexpr operator_abs_exception ( TXa const& a, bool & flag ) NOEXCEPT {
       Algorithm constexpr A = TXa::base_A;
       auto sa = a.quick_Normalized();
-      return qX_real::operator_abs_exception<A> ( sa, flag );
+      return pX_real::operator_abs_exception<A> ( sa, flag );
     }
 #endif
     //
@@ -2575,63 +2735,63 @@ namespace mX_real {
     INLINE auto constexpr operator_abs ( TXa const& a ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_abs_exception ( a, flag );
+      auto e = pX_real::operator_abs_exception ( a, flag );
       if ( flag ) { return e; }
 #endif
-      return qX_real::operator_abs_body ( a );
+      return pX_real::operator_abs_body ( a );
     }
     template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >
     INLINE auto constexpr operator_abs ( T const& a ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       return TX{ std::abs( a ) };
     }
     //
     template < typename TXa, T_mX(TXa) >
     INLINE auto constexpr abs ( TXa const& a ) NOEXCEPT {
-      return qX_real::operator_abs ( a );
+      return pX_real::operator_abs ( a );
     }
     template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >
     INLINE auto constexpr abs ( T const& a ) NOEXCEPT {
-      return qX_real::operator_abs<A> ( a );
+      return pX_real::operator_abs<A> ( a );
     }
     template < typename TXa, T_mX(TXa) >
     INLINE auto constexpr fabs ( TXa const& a ) NOEXCEPT {
-      return qX_real::operator_abs ( a );
+      return pX_real::operator_abs ( a );
     }
     template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >
     INLINE auto constexpr fabs ( T const& a ) NOEXCEPT {
-      return qX_real::operator_abs<A> ( a );
+      return pX_real::operator_abs<A> ( a );
     }
     //
     template < typename T, Algorithm A >
-    INLINE qX_real::qx_real<T,A> constexpr qX_real::qx_real<T,A>::abs ( dX_real::dx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::operator_abs ( a );
+    INLINE pX_real::px_real<T,A> constexpr pX_real::px_real<T,A>::abs ( dX_real::dx_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::operator_abs ( a );
     }
     template < typename T, Algorithm A >
-    INLINE qX_real::qx_real<T,A> constexpr qX_real::qx_real<T,A>::abs ( tX_real::tx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::operator_abs ( a );
+    INLINE pX_real::px_real<T,A> constexpr pX_real::px_real<T,A>::abs ( tX_real::tx_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::operator_abs ( a );
     }
     template < typename T, Algorithm A >
-    INLINE qX_real::qx_real<T,A> constexpr qX_real::qx_real<T,A>::abs ( qX_real::qx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::operator_abs ( a );
+    INLINE pX_real::px_real<T,A> constexpr pX_real::px_real<T,A>::abs ( pX_real::px_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::operator_abs ( a );
     }
     //
 
     //
     // Square root
     //
-    // Q-Q
+    // P-P
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_sqrt_body ( qX_real::qx_real<T,A> const& a ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+    INLINE auto constexpr operator_sqrt_body ( pX_real::px_real<T,A> const& a ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       TX c;
       int16_t ia =  getexp(a);
       if (ia % 2 == 0) {
 	ia = ia / 2;	
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::sqrt_QW_QW ( _QX_(a), _QX_(c) );
+	  //	  QxW::sqrt_PW_PW ( _PX_(a), _PX_(c) );
 	} else {
-	  QxW::sqrt_QQW_QQW ( _QX_(a), _QX_(c) );
+	  QxW::sqrt_QPW_QPW ( _PX_(a), _PX_(c) );
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
       }
@@ -2642,9 +2802,9 @@ namespace mX_real {
 	  aa.x[i] *= fp<T>::two();
 	}	
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::sqrt_QW_QW ( _QX_(aa), _QX_(c) );
+	  //	  QxW::sqrt_PW_PW ( _PX_(aa), _PX_(c) );
 	} else {
-	  QxW::sqrt_QQW_QQW ( _QX_(aa), _QX_(c) );
+	  QxW::sqrt_QPW_QPW ( _PX_(aa), _PX_(c) );
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
       }
@@ -2652,18 +2812,18 @@ namespace mX_real {
       trunclast(c);
       return c;
     }
-    // T-Q
+    // Q-P
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_sqrt_body ( tX_real::tx_real<T,A> const& a ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+    INLINE auto constexpr operator_sqrt_body ( qX_real::qx_real<T,A> const& a ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       TX c;
       int16_t ia =  getexp(a);
       if (ia % 2 == 0) {
 	ia = ia / 2;		
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::sqrt_TW_QW ( _TX_(a), _QX_(c) );
+	  //	  QxW::sqrt_QW_PW ( _QX_(a), _PX_(c) );
 	} else {
-	  QxW::sqrt_QTW_QQW ( _TX_(a), _QX_(c) );
+	  //	  QxW::sqrt_QQW_QPW ( _QX_(a), _PX_(c) ); 21Apr2025
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
       }
@@ -2673,10 +2833,42 @@ namespace mX_real {
 	for (int i = 0; i < TX::L; i++) { // == bit shift
 	  aa.x[i] *= fp<T>::two();
 	}
-	if ( A <= Algorithm::WeakAccurate ) {	
-	  QxW::sqrt_TW_QW ( _TX_(aa), _QX_(c) );
+	if ( A <= Algorithm::WeakAccurate ) {
+	//	  QxW::sqrt_QW_PW ( _QX_(aa), _PX_(c) );
 	} else {
-	  QxW::sqrt_QTW_QQW ( _TX_(aa), _QX_(c) );
+	  //	  QxW::sqrnt_QQW_QPW ( _QX_(aa), _PX_(c) ); 21Apr2025
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
+      }
+      scaling(c, ia);
+      trunclast(c);
+      return c;
+    }
+    // T-P
+    template < typename T, Algorithm A >
+    INLINE auto constexpr operator_sqrt_body ( tX_real::tx_real<T,A> const& a ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
+      TX c;
+      int16_t ia =  getexp(a);
+      if (ia % 2 == 0) {
+	ia = ia / 2;		
+	if ( A <= Algorithm::WeakAccurate ) {
+	  //	  QxW::sqrt_TW_PW ( _TX_(a), _PX_(c) );
+	} else {
+	  //	  QxW::sqrt_QTW_QPW ( _TX_(a), _PX_(c) ); 21Apr2025
+	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
+	}
+      }
+      else {
+	ia = (ia - 1)/ 2;
+	TX aa(a);
+	for (int i = 0; i < TX::L; i++) { // == bit shift
+	  aa.x[i] *= fp<T>::two();
+	}
+	if ( A <= Algorithm::WeakAccurate ) {
+	//	  QxW::sqrt_TW_PW ( _TX_(aa), _PX_(c) );
+	} else {
+	  //	  QxW::sqrnt_QTW_QPW ( _TX_(aa), _PX_(c) ); 21Apr2025
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
       }
@@ -2687,15 +2879,15 @@ namespace mX_real {
     // D-Q
     template < typename T, Algorithm A >
     INLINE auto constexpr operator_sqrt_body ( dX_real::dx_real<T,A> const& a ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       TX c;
       int16_t ia =  getexp(a);
       if (ia % 2 == 0) {
 	ia = ia / 2;	
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::sqrt_DW_QW ( _DX_(a), _QX_(c) );
+	  //	  QxW::sqrt_DW_PW ( _DX_(a), _PX_(c) );
 	} else {
-	  QxW::sqrt_PA_QQW ( _DX_(a), _QX_(c) );
+	  //	  QxW::sqrt_PA_QPW ( _DX_(a), _PX_(c) ); 21Apr2025
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}
       }
@@ -2706,9 +2898,9 @@ namespace mX_real {
 	  aa.x[i] *= fp<T>::two();
 	}
 	if ( A <= Algorithm::WeakAccurate ) {
-	  QxW::sqrt_DW_QW ( _DX_(aa), _QX_(c) );
+	  //	  QxW::sqrt_DW_PW ( _DX_(aa), _PX_(c) );
 	} else {
-	  QxW::sqrt_PA_QQW ( _DX_(aa), _QX_(c) );
+	  //	  QxW::sqrt_PA_QPW ( _DX_(aa), _PX_(c) ); 21Apr2025
 	  if ( A != Algorithm::Quasi ) { Normalize( c ); }
 	}	
       }
@@ -2718,13 +2910,13 @@ namespace mX_real {
     }
     // S-Q
     template < Algorithm A, typename T, T_fp(T) >
-    INLINE auto constexpr operator_sqrt_body (sX_real::sx_real<T,A> const& a ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+    INLINE auto constexpr operator_sqrt_body ( T const& a ) NOEXCEPT {
+      using TX = pX_real::px_real<T,A>;
       TX c;
       if ( A <= Algorithm::WeakAccurate ) {
-        QxW::sqrt_SW_QW ( _SX_(a), _QX_(c) );
+	//        QxW::sqrt_SW_PW ( _SX_(a), _PX_(c) );
       } else {
-        QxW::sqrt_SW_QQW ( _SX_(a), _QX_(c) );
+	//       QxW::sqrt_SW_QPW ( _SX_(a), _PX_(c) ); 21Apr2025
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       return c;
@@ -2733,7 +2925,7 @@ namespace mX_real {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     template < Algorithm A, typename T, T_fp(T) >
     INLINE auto constexpr operator_sqrt_exception ( T const& a, bool & flag ) NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       {
         if ( fp<T>::isnan( a ) ) { flag = true; auto c=a; return TX{ c,c,c,c }; }
         if ( fp<T>::is_negative( a ) ) { flag = true; return TX::nan(); }
@@ -2747,7 +2939,7 @@ namespace mX_real {
     INLINE auto constexpr operator_sqrt_exception ( TXa const& a, bool & flag ) NOEXCEPT {
       Algorithm constexpr A = TXa::base_A;
       auto sa = a.quick_Normalized();
-      return qX_real::operator_sqrt_exception<A> ( sa, flag );
+      return pX_real::operator_sqrt_exception<A> ( sa, flag );
     }
 #endif
     //
@@ -2755,52 +2947,52 @@ namespace mX_real {
     INLINE auto constexpr operator_sqrt ( TXa const& a ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_sqrt_exception ( a, flag );
+      auto e = pX_real::operator_sqrt_exception ( a, flag );
       if ( flag ) { return e; }
 #else
-      if ( a.is_zero() ) { return qX_real::mX_real<TXa>{ a }; }
-      if ( a.is_negative() ) { return qX_real::mX_real<TXa>::nan(); };
-      if ( a.isinf() ) { return qX_real::mX_real<TXa>::inf(); }
+      if ( a.is_zero() ) { return pX_real::mX_real<TXa>{ a }; }
+      if ( a.is_negative() ) { return pX_real::mX_real<TXa>::nan(); };
+      if ( a.isinf() ) { return pX_real::mX_real<TXa>::inf(); }
 #endif
       Algorithm constexpr A = TXa::base_A;
       if ( A != Algorithm::Quasi ) {
-        return qX_real::operator_sqrt_body ( a );
+        return pX_real::operator_sqrt_body ( a );
       } else {
-        return qX_real::operator_sqrt_body ( a.element_rotate() );
+        return pX_real::operator_sqrt_body ( a.element_rotate() );
       }
     }
     template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >
     INLINE auto constexpr operator_sqrt ( T const& a ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_sqrt_exception<A> ( a, flag );
+      auto e = pX_real::operator_sqrt_exception<A> ( a, flag );
       if ( flag ) { return e; }
 #else
-      if ( fp<T>::is_zero( a ) ) { return qX_real::qx_real<T,A>{ a }; }
+      if ( fp<T>::is_zero( a ) ) { return pX_real::px_real<T,A>{ a }; }
 #endif
-      return qX_real::operator_sqrt_body<A> ( a );
+      return pX_real::operator_sqrt_body<A> ( a );
     }
     //
     template < typename TXa, T_mX(TXa) >
     INLINE auto constexpr sqrt ( TXa const& a ) NOEXCEPT {
-      return qX_real::operator_sqrt ( a );
+      return pX_real::operator_sqrt ( a );
     }
     template < Algorithm A=Algorithm::Accurate, typename T, T_fp(T) >
     INLINE auto constexpr sqrt ( T const& a ) NOEXCEPT {
-      return qX_real::operator_sqrt<A> ( a );
+      return pX_real::operator_sqrt<A> ( a );
     }
     //
     template < typename T, Algorithm A >
-    INLINE qX_real::qx_real<T,A> constexpr qX_real::qx_real<T,A>::sqrt ( dX_real::dx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::operator_sqrt ( a );
+    INLINE pX_real::px_real<T,A> constexpr pX_real::px_real<T,A>::sqrt ( dX_real::dx_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::operator_sqrt ( a );
     }
     template < typename T, Algorithm A >
-    INLINE qX_real::qx_real<T,A> constexpr qX_real::qx_real<T,A>::sqrt ( tX_real::tx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::operator_sqrt ( a );
+    INLINE pX_real::px_real<T,A> constexpr pX_real::px_real<T,A>::sqrt ( tX_real::tx_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::operator_sqrt ( a );
     }
     template < typename T, Algorithm A >
-    INLINE qX_real::qx_real<T,A> constexpr qX_real::qx_real<T,A>::sqrt ( qX_real::qx_real<T,A> const& a ) NOEXCEPT {
-      return qX_real::operator_sqrt ( a );
+    INLINE pX_real::px_real<T,A> constexpr pX_real::px_real<T,A>::sqrt ( pX_real::px_real<T,A> const& a ) NOEXCEPT {
+      return pX_real::operator_sqrt ( a );
     }
     //
 
@@ -2809,18 +3001,18 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa, Algorithm Ab, A_noQuasi(Aa), A_noQuasi(Ab) >
-    INLINE auto constexpr operator_fmin_body ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const &b ) NOEXCEPT {
+    INLINE auto constexpr operator_fmin_body ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const &b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       auto i=0; for(i=0;i<TX::L-1;i++) { if ( a.x[i] != b.x[i] ) break; }
       return TX{ ( a.x[i] <= b.x[i] ) ? a : b };
     }
     //
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_fmin_exception ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const &b, bool & flag ) NOEXCEPT {
+    INLINE auto constexpr operator_fmin_exception ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const &b, bool & flag ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       {
         if ( isnan( a ) || isnan( b ) ) { flag = true; return TX::nan(); }
         if ( isinf( a ) && isinf( b ) ) {
@@ -2835,25 +3027,25 @@ namespace mX_real {
 #endif
     //
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_fmin ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const &b ) NOEXCEPT {
+    INLINE auto constexpr operator_fmin ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const &b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_fmin_exception( a, b, flag );
+      auto e = pX_real::operator_fmin_exception( a, b, flag );
       if ( flag ) { return e; }
 #endif
       if ( A == Algorithm::Quasi ) {
         using TT = typename TX::type_Accurate;
-        return TX{ qX_real::operator_fmin_body( TT{ a }, TT{ b } ) };
+        return TX{ pX_real::operator_fmin_body( TT{ a }, TT{ b } ) };
       } else {
-        return qX_real::operator_fmin_body( a, b );
+        return pX_real::operator_fmin_body( a, b );
       }
     }
     //
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr fmin ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const &b ) NOEXCEPT {
-      return qX_real::operator_fmin( a, b );
+    INLINE auto constexpr fmin ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const &b ) NOEXCEPT {
+      return pX_real::operator_fmin( a, b );
     }
     //
 
@@ -2862,18 +3054,18 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa, Algorithm Ab, A_noQuasi(Aa), A_noQuasi(Ab) >
-    INLINE auto constexpr operator_fmax_body ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const &b ) NOEXCEPT {
+    INLINE auto constexpr operator_fmax_body ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const &b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       auto i=0; for(i=0;i<TX::L-1;i++) { if ( a.x[i] != b.x[i] ) break; }
       return TX{ ( a.x[i] >= b.x[i] ) ? a : b };
     }
     //
 #if MX_REAL_USE_INF_NAN_EXCEPTION
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_fmax_exception ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const &b, bool & flag ) NOEXCEPT {
+    INLINE auto constexpr operator_fmax_exception ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const &b, bool & flag ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       {
         if ( isnan( a ) || isnan( b ) ) { flag = true; return TX::nan(); }
         if ( isinf( a ) && isinf( b ) ) {
@@ -2888,25 +3080,25 @@ namespace mX_real {
 #endif
     //
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr operator_fmax ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const &b ) NOEXCEPT {
+    INLINE auto constexpr operator_fmax ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const &b ) NOEXCEPT {
       Algorithm constexpr A = commonAlgorithm<Aa,Ab>::algorithm;
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
 #if MX_REAL_USE_INF_NAN_EXCEPTION
       auto flag = false;
-      auto e = qX_real::operator_fmax_exception( a, b, flag );
+      auto e = pX_real::operator_fmax_exception( a, b, flag );
       if ( flag ) { return e; }
 #endif
       if ( A == Algorithm::Quasi ) {
         using TT = typename TX::type_Accurate;
-        return TX{ qX_real::operator_fmax_body( TT{ a }, TT{ b } ) };
+        return TX{ pX_real::operator_fmax_body( TT{ a }, TT{ b } ) };
       } else {
-        return qX_real::operator_fmax_body( a, b );
+        return pX_real::operator_fmax_body( a, b );
       }
     }
     //
     template < typename T, Algorithm Aa, Algorithm Ab >
-    INLINE auto constexpr fmax ( qX_real::qx_real<T,Aa> const& a, qX_real::qx_real<T,Ab> const &b ) NOEXCEPT {
-      return qX_real::operator_fmax( a, b );
+    INLINE auto constexpr fmax ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const &b ) NOEXCEPT {
+      return pX_real::operator_fmax( a, b );
     }
     //
 
@@ -2916,7 +3108,7 @@ namespace mX_real {
     //
     template < typename T, Algorithm A, T_fp(T) >
     INLINE auto rand () NOEXCEPT {
-      using TX = qX_real::qx_real<T,A>;
+      using TX = pX_real::px_real<T,A>;
       auto const f = fp<T>::nhalf() / (1 << 30);
       auto g = f;
       auto r = TX::zero();
@@ -2951,8 +3143,8 @@ namespace mX_real {
       return r;
     }
     template < typename T, Algorithm A >
-    INLINE qX_real::qx_real<T,A> qX_real::qx_real<T,A>::rand () NOEXCEPT {
-      return qX_real::rand<T,A>();
+    INLINE pX_real::px_real<T,A> pX_real::px_real<T,A>::rand () NOEXCEPT {
+      return pX_real::rand<T,A>();
     }
     //
 
@@ -2961,9 +3153,9 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm Aa >
-    std::ostream& operator<< ( std::ostream& stream, qX_real::qx_real<T,Aa> const& a ) {
-      auto constexpr LL = qX_real::qx_real<T,Aa>::L;
-      using TX = qX_real::qx_real<T,Aa>;
+    std::ostream& operator<< ( std::ostream& stream, pX_real::px_real<T,Aa> const& a ) {
+      auto constexpr LL = pX_real::px_real<T,Aa>::L;
+      using TX = pX_real::px_real<T,Aa>;
 #if USE_MPREAL
       mpfr::mpreal t = mpfr::mpreal( a.x[0] );
       for(auto i=1; i<LL; i++) { t += mpfr::mpreal( a.x[i] ); }

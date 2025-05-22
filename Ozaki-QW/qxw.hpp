@@ -17,6 +17,32 @@
 
 
 namespace QxW {
+  template< typename T>
+  static INLINE T fma_ ( T const a, T const b, T const c ) {   };
+  static INLINE float fma_ ( float const a, float const b, float const c ) {
+    return std::fma(a, b, c);
+  }
+  static INLINE double fma_ ( double const a, double const b, double const c ) {
+    return std::fma(a, b, c);
+  }
+  static INLINE mpfrfp fma_ ( mpfrfp const a, mpfrfp const b, mpfrfp const c ) {
+    mpfrfp d;
+    //#ifndef FLOATHARDWARE
+    // #define FLOATHARDWARE
+    //#endif
+#ifdef  FLOATHARDWARE
+    //    fprintf(stderr, "%s %d\n", __FILE__, __LINE__);      
+    float aa, bb, cc, dd;
+    aa = mpfr_get_flt(a._x, MPFR_RNDN);
+    bb = mpfr_get_flt(b._x, MPFR_RNDN);
+    cc = mpfr_get_flt(c._x, MPFR_RNDN);
+    dd = fmaf(aa, bb, cc);
+    mpfr_set_flt(d._x, dd, MPFR_RNDN);
+#else
+    mpfr_fma(d._x, a._x, b._x, c._x, MPFR_RNDN);
+#endif
+    return d;
+  }
 
   // ------------------------
   // Basic EFT Part
@@ -875,6 +901,121 @@ namespace QxW {
     c3 = c3 + t0 + t1 + t2;
   }
 
+  // add: 5-5-5
+  template < typename T > INLINE void constexpr
+  add_QPW_QPW_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4) NOEXCEPT
+  {
+    T t0, t1, t2, t3;
+    TwoSum( a0, b0, c0, c1 );
+    TwoSum( a1, b1, t0, c2 );
+    TwoSum( a2, b2, t1, c3 );
+    TwoSum( a3, b3, t2, c4 );    
+    
+    TwoSum( c1, t0, c1, t0 );
+
+    TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );    
+    
+    TwoSum( c3, t0, c3, t0 );
+    TwoSum( c3, t1, c3, t1 );
+    TwoSum( c3, t2, c3, t2 );
+    t3 = a4 + b4;
+    c4 = c4 + t0 + t1 + t2 + t3;
+  }
+
+
+    // add: 5-2-5
+  template < typename T > INLINE void constexpr
+  add_QPW_PA_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4) NOEXCEPT
+  {
+    T e0, e1;
+    TwoSum( a0, b0, c0, e0 );
+    
+    TwoSum( a1, b1, c1, e1 );
+    TwoSum( c1, e0, c1, e0 );
+    
+    TwoSum( a2, e0, c2, e0 ); 
+    TwoSum( c2, e1, c2, e1 );
+
+    TwoSum( a3, e0, c3, e0 );
+    TwoSum( c3, e1, c3, e1 ); 
+
+    c4 = a4 + e0 + e1;
+  }
+
+    // add: 2-5-5
+  template < typename T > INLINE void constexpr
+  add_PA_QPW_QPW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4) NOEXCEPT
+  {
+    T e0, e1, e2, e3, e4, e5, e6, e7, e8, e9;
+    TwoSum( a0, b0, c0, e0 );
+    
+    TwoSum( a1, b1, c1, e1 );
+    TwoSum( c1, e0, c1, e0 );
+    
+    TwoSum( b2, e0, c2, e0 ); 
+    TwoSum( c2, e1, c2, e1 );
+
+    TwoSum( b3, e0, c3, e0 );
+    TwoSum( c3, e1, c3, e1 ); 
+
+    c4 = b4 + e0 + e1;
+  }
+
+    // add: 5-3-5
+  template < typename T > INLINE void constexpr
+  add_QPW_QTW_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3, T &c4) NOEXCEPT
+  {
+    T t0, t1;
+    TwoSum( a0, b0, c0, c1 );
+    TwoSum( a1, b1, t0, c2 );
+    TwoSum( a2, b2, t1, c3 );
+    
+    TwoSum( c1, t0, c1, t0 );
+
+    TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );    
+    
+    TwoSum( c3, t0, c3, t0 );
+    TwoSum( c3, t1, c3, t1 );
+    c4 = a3 + a4 + t0 + t1;
+  }
+
+    // add: 3-5-5
+  template < typename T > INLINE void constexpr
+  add_QTW_QPW_QPW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4) NOEXCEPT
+  {
+    add_QPW_QTW_QPW(a0, a1, a2, b0, b1, b2, b3, b4, c1, c2, c2, c3, c4);
+  }
+
+    // add: 5-4-5
+  template < typename T > INLINE void constexpr
+  add_QPW_QQW_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3, T &c4) NOEXCEPT
+  {
+    T t0, t1, t2;
+    TwoSum( a0, b0, c0, c1 );
+    TwoSum( a1, b1, t0, c2 );
+    TwoSum( a2, b2, t1, c3 );
+    TwoSum( a3, b3, t2, c4 );    
+    
+    TwoSum( c1, t0, c1, t0 );
+
+    TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );    
+    
+    TwoSum( c3, t0, c3, t0 );
+    TwoSum( c3, t1, c3, t1 );
+    TwoSum( c3, t2, c3, t2 );
+    c4 = c4 + a4 + t0 + t1 + t2;
+  }
+
+    // add: 4-5-5
+  template < typename T > INLINE void constexpr
+  add_QQW_QPW_QPW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4) NOEXCEPT
+  {
+    add_QPW_QQW_QPW(b0, b1, b2, b3, b4, a0, a1, a2, a3, c1, c2, c2, c3, c4);
+  }
+  
   // sub: 1-1-1
   template < typename T > INLINE void constexpr
   sub_SW_SW_SW( T const a0, T const b0, T &c0 ) NOEXCEPT
@@ -1323,6 +1464,28 @@ namespace QxW {
     add_QQW_QQW_QQW( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
   }
 
+  // sub: 5-5-5
+  template < typename T > INLINE void constexpr
+  sub_QPW_QPW_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4) NOEXCEPT
+  {
+    add_QPW_QPW_QPW( a0, a1, a2, a3, a4, -b0, -b1, -b2, -b3, -b4,
+		     c0, c1, c2, c3, c4 );
+  }
+
+  // sub: 5-2-5
+  template < typename T > INLINE void constexpr
+  sub_QPW_PA_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3, T &c4) NOEXCEPT
+  {
+    //    add_QPW_PA_QPW( a0, a1, a2, a3, a4, -b0, -b1, c0, c1, c2, c3, c4);
+    add_PA_QPW_QPW( -b0, -b1, a0, a1, a2, a3, a4, c0, c1, c2, c3, c4);    
+  }
+  // sub: 2-5-5
+  template < typename T > INLINE void constexpr
+  sub_PA_QPW_QPW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4) NOEXCEPT
+  {
+    add_PA_QPW_QPW( a0, a1, -b0, -b1, -b2, -b3, -b4, c0, c1, c2, c3, c4);
+  }
+
   // mul: 1-1-1
   template < typename T > INLINE void constexpr
   mul_SW_SW_SW( T const a0, T const b0, T &c0 ) NOEXCEPT
@@ -1690,7 +1853,113 @@ namespace QxW {
     TwoSum( c2, t4, c2, t4 );
     c3 = std::fma ( a0, b3, c3 );
     c3 = std::fma ( a1, b2, c3 );
-    c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5;
+  }
+  // madd: 2-4-4
+  template < typename T > INLINE void constexpr
+  madd_PA_QQW_QQW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 ) NOEXCEPT
+  {
+#if 1
+#if 1
+    T d0, d1, d2, d3, d4, d5, e0, e1, e2, e3;
+    TwoProductFMA( a0, b0, d0, d1 );
+    TwoProductFMA( a0, b1, d2, d3 );
+    TwoProductFMA( a0, b2, d4, d5 );
+    TwoProductFMA( a1, b0, e0, e1 );
+    TwoProductFMA( a1, b1, e2, e3 );
+
+    TwoSum( d1, d2, d1, d2 );
+    TwoSum( d1, e0, d1, e0 );    
+    //
+    TwoSum( d3, d4, d3, d4 );    
+    TwoSum( d3, e1, d3, e1 );
+    TwoSum( d3, e2, d3, e2 );
+    TwoSum( d3, d2, d3, d2 );
+    TwoSum( d3, e0, d3, e0 );
+
+    d5 = d5 + e3 + d4 + e1 + e2 + d2 + e0;
+    d5 = std::fma(a0, b3, d5);
+    d5 = std::fma(a1, b2, d5);
+
+    TwoSum( c0, d0, c0, d0 );
+    
+    TwoSum( c1, d1, c1, d1 );
+    TwoSum( c1, d0, c1, d0 );        
+
+    TwoSum( c2, d3, c2, d3 );
+    TwoSum( c2, d1, c2, d1 );
+    TwoSum( c2, d0, c2, d0 );
+
+    c3 = c3 + d5 + d3 + d1 + d0;
+#else
+    T d0, d1, d2, d3, d4, d5, e0, e1, e2, e3;
+    TwoProductFMA( a0, b0, d0, d1 );
+    TwoProductFMA( a0, b1, d2, d3 );
+    TwoProductFMA( a0, b2, d4, d5 );
+    TwoProductFMA( a1, b0, e0, e1 );
+    TwoProductFMA( a1, b1, e2, e3 );
+
+    TwoSum( c0, d0, c0, d0 );
+    //
+    TwoSum( c1, d0, c1, d0 );
+
+    TwoSum( c1, d1, c1, d1 );
+    TwoSum( c1, d2, c1, d2 );
+    TwoSum( c1, e0, c1, e0 );
+    //
+    TwoSum( c2, d0, c2, d0 );
+
+    TwoSum( c2, d1, c2, d1 );
+    TwoSum( c2, d2, c2, d2 );
+    TwoSum( c2, e0, c2, e0 );
+
+    TwoSum( c2, d3, c2, d3 );
+    TwoSum( c2, d4, c2, d4 );
+    TwoSum( c2, e1, c2, e1 );
+    TwoSum( c2, e2, c2, e2 );
+    
+#if 0
+    //
+    c3 = c3 + d0 + d1 + d2 + e0 + d3 + d4 + e1 + e2 + d5 + e3;
+    c3 = std::fma( a0, b3, c3);
+    c3 = std::fma( a1, b2, c3);
+    //  c3 = std::fma( a1, b3, c3);
+#else
+    T d6, d7, e4, e5, c4;
+    TwoProductFMA( a0, b3, d6, d7 );
+    TwoProductFMA( a1, b2, e4, e5 );
+    
+    TwoSum( c3, d0, c3, d0 );
+
+    TwoSum( c3, d1, c3, d1 );
+    TwoSum( c3, d2, c3, d2 );
+    TwoSum( c3, e0, c3, e0 );
+
+    TwoSum( c3, d3, c3, d3 );
+
+    TwoSum( c3, d4, c3, d4 );
+    TwoSum( c3, e1, c3, e1 );
+    TwoSum( c3, e2, c3, e2 );
+    
+    TwoSum( c3, d5, c3, d5 );
+    TwoSum( c3, d6, c3, d6 );
+    TwoSum( c3, e3, c3, e3 );
+    TwoSum( c3, e4, c3, e4 );
+    c4 = d7 + e5
+      + d0 + d1 + d2 + e0
+      + d3 + d4 + e1 + e2
+      + d5 + d6 + e3 + e4;
+    c4 = std::fma(a1, b3, c4);
+    //    TwoSum(c0, c1, c0, c1);
+    //    TwoSum(c1, c2, c1, c2);
+    //    TwoSum(c2, c3, c2, c3);
+    TwoSum(c3, c4, c3, c4);
+#endif
+#endif
+#else
+    T d0, d1, d2, d3;
+    mul_PA_QQW_QQW(a0, a1, b0, b1, b2, b3, d0, d1, d2, d3);
+    add_QQW_QQW_QQW(c0, c1, c2, c3, d0, d1, d2, d3, c0, c1, c2, c3);    
+#endif
   }
 
   // mul: 3-1-1
@@ -2123,15 +2392,15 @@ namespace QxW {
     TwoProductFMA( a1, b0, t1, t2 );
     TwoSum( c1, c2, c1, c2 );
     TwoSum( c1, t1, c1, t1 );
+    c2 = c2 + t1 + t0 + t2;
     t3 = a3 + a2;
     t4 = b3 + b2;
-    t0 = std::fma ( a0, t4, t0 );
+    c2 = std::fma ( a0, t4, c2 );
     c2 = std::fma ( a1, b1, c2 );
-    t2 = std::fma ( t3, b0, t2 );
-    c2 = t0 + c2 + t2 + t1;
+    c2 = std::fma ( t3, b0, c2 );
   }
 
-  // mul: 4-4-4
+    // mul: 4-4-4
   template < typename T > INLINE void constexpr
   mul_QQW_QQW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 ) NOEXCEPT
   {
@@ -2155,6 +2424,840 @@ namespace QxW {
     c3 = std::fma ( a2, b1, c3 );
     c3 = std::fma ( a3, b0, c3 );
     c3 = c3 + t0 + t1 + t2 + t3 + t4 + t5 + t6 + t7;
+  }
+
+  // madd: 4-4-4
+  template < typename T > INLINE void constexpr
+  madd_QQW_QQW_QQW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3 ) NOEXCEPT
+  {
+#if 1
+#if 0
+    T d0, d1, d2, d3, d4, d5, e0, e1, e2, e3, f0, f1;
+    TwoProductFMA( a0, b0, d0, d1 );
+    TwoProductFMA( a0, b1, d2, d3 );
+    TwoProductFMA( a0, b2, d4, d5 );
+    TwoProductFMA( a1, b0, e0, e1 );
+    TwoProductFMA( a1, b1, e2, e3 );
+    TwoProductFMA( a2, b0, f0, f1 );    
+    
+    TwoSum( d1, d2, d1, d2 );
+    TwoSum( d1, e0, d1, e0 );    
+    //
+    TwoSum( d3, d4, d3, d4 );    
+    TwoSum( d3, e1, d3, e1 );
+    TwoSum( d3, e2, d3, e2 );
+    TwoSum( d3, f0, d3, f0 );    
+    TwoSum( d3, d2, d3, d2 );
+    TwoSum( d3, e0, d3, e0 );
+
+    d5 = d5 + e3 + f1 + d4 + e1 + e2 + f0 + d2 + e0;
+    d5 = std::fma(a0, b3, d5);
+    d5 = std::fma(a1, b2, d5);
+    d5 = std::fma(a2, b1, d5);
+    d5 = std::fma(a3, b0, d5);            
+
+    TwoSum( c0, d0, c0, d0 );
+    
+    TwoSum( c1, d1, c1, d1 );
+    TwoSum( c1, d0, c1, d0 );        
+
+    TwoSum( c2, d3, c2, d3 );
+    TwoSum( c2, d1, c2, d1 );
+    TwoSum( c2, d0, c2, d0 );
+
+    c3 = c3 + d5 + d3 + d1 + d0;
+    
+#else
+    T d0, d1, d2, d3, d4, d5, e0, e1, e2, e3, f0, f1;
+    TwoProductFMA( a0, b0, d0, d1 );
+    TwoProductFMA( a0, b1, d2, d3 );
+    TwoProductFMA( a0, b2, d4, d5 );
+    TwoProductFMA( a1, b0, e0, e1 );
+    TwoProductFMA( a1, b1, e2, e3 );
+    TwoProductFMA( a2, b0, f0, f1 );
+
+    TwoSum( c0, d0, c0, d0 );
+    //
+    TwoSum( c1, d0, c1, d0 );
+    
+    TwoSum( c1, d1, c1, d1 );
+    TwoSum( c1, d2, c1, d2 );
+    TwoSum( c1, e0, c1, e0 );
+    //
+    TwoSum( c2, d0, c2, d0 );
+
+    TwoSum( c2, d1, c2, d1 );
+    TwoSum( c2, d2, c2, d2 );
+    TwoSum( c2, e0, c2, e0 );
+
+    TwoSum( c2, d3, c2, d3 );
+    TwoSum( c2, d4, c2, d4 );
+    TwoSum( c2, e1, c2, e1 );
+    TwoSum( c2, e2, c2, e2 );
+    TwoSum( c2, f0, c2, f0 );
+    //
+#if 1
+    c3 = (c3 + d0 + d1 + d2 + e0 + d3 + d4 + e1 + e2 + f0
+	  + d5 + e3 + f1);
+    c3 = std::fma( a0, b3, c3);
+    c3 = std::fma( a1, b2, c3);
+    c3 = std::fma( a2, b1, c3);
+    c3 = std::fma( a3, b0, c3);
+    //  c3 = std::fma( a1, b3, c3);
+    //  c3 = std::fma( a2, b2, c3);
+    //  c3 = std::fma( a3, b1, c3);
+#else
+    T d6, d7, e4, e5, f2, f3, c4, h0, h1;
+    TwoProductFMA( a0, b3, d6, d7 );
+    TwoProductFMA( a1, b2, e4, e5 );
+    TwoProductFMA( a2, b1, f2, f3 );
+    TwoProductFMA( a3, b0, h0, h1 );
+
+    TwoSum( c3, d0, c3, d0 );
+
+    TwoSum( c3, d1, c3, d1 );
+    TwoSum( c3, d2, c3, d2 );
+    TwoSum( c3, e0, c3, e0 );
+
+    TwoSum( c3, d3, c3, d3 );
+    TwoSum( c3, d4, c3, d4 );
+    TwoSum( c3, e1, c3, e1 );
+    TwoSum( c3, e2, c3, e2 );
+    TwoSum( c3, f0, c3, f0 );
+
+    TwoSum( c3, d5, c3, d5 );
+    TwoSum( c3, d6, c3, d6 );
+    TwoSum( c3, e3, c3, e3 );
+    TwoSum( c3, e4, c3, e4 );
+    TwoSum( c3, f1, c3, f1 );
+    TwoSum( c3, f2, c3, f2 );
+    TwoSum( c3, h0, c3, h0 );
+    //
+    c4 = d7 + e5 + f3 + h1 +
+      d0 +
+      d1 + d2 + e0 +
+      d3 + d4 + e1 + e2 + f0 +
+      d5 + d6 + e3 + e4 + f1 + f2 + h0;
+    c4 = std::fma( a1, b3, c4);
+    c4 = std::fma( a2, b2, c4);
+    c4 = std::fma( a3, b1, c4);
+    TwoSum(c0, c1, c0, c1);
+    TwoSum(c1, c2, c1, c2);
+    TwoSum(c2, c3, c2, c3);
+    TwoSum(c3, c4, c3, c4);
+#endif
+#endif
+#else
+    T d0, d1, d2, d3;
+    mul_QQW_QQW_QQW(a0, a1, a2, a3, b0, b1, b2, b3, d0, d1, d2, d3);
+    add_QQW_QQW_QQW(c0, c1, c2, c3, d0, d1, d2, d3, c0, c1, c2, c3);    
+#endif
+  }
+
+  // madd: 4-4-5
+  template < typename T > INLINE void constexpr
+  madd_QQW_QQW_QPW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+#if 1
+    T d0, d1, d2, d3, d4, d5, d6, d7;
+    T e0, e1, e2, e3, e4, e5;
+    T f0, f1, f2, f3, g0, g1;
+    
+    TwoProductFMA(a0, b0, d0, d1);
+    TwoProductFMA(a0, b1, d2, d3);
+    TwoProductFMA(a0, b2, d4, d5);
+    TwoProductFMA(a0, b3, d6, d7);
+    
+    TwoProductFMA(a1, b0, e0, e1);
+    TwoProductFMA(a1, b1, e2, e3);
+    TwoProductFMA(a1, b2, e4, e5);
+    
+    TwoProductFMA(a2, b0, f0, f1);
+    TwoProductFMA(a2, b1, f2, f3);
+    
+    TwoProductFMA(a3, b0, g0, g1);
+
+
+    TwoSum(d1, d2, d1, d2);
+    TwoSum(d1, e0, d1, e0);    
+
+    TwoSum(d3, d4, d3, d4);
+    TwoSum(d3, e1, d3, e1);
+    TwoSum(d3, e2, d3, e2);
+    TwoSum(d3, f0, d3, f0);
+    
+    TwoSum(d3, d2, d3, d2);
+    TwoSum(d3, e0, d3, e0);   
+
+    TwoSum(d5, d6, d5, d6);
+    TwoSum(d5, e3, d5, e3);
+    TwoSum(d5, e4, d5, e4);
+    TwoSum(d5, f1, d5, f1);
+    TwoSum(d5, f2, d5, f2);
+    TwoSum(d5, g0, d5, g0);
+    
+    TwoSum(d5, d4, d5, d4);
+    TwoSum(d5, e1, d5, e1);
+    TwoSum(d5, e2, d5, e2);
+    TwoSum(d5, f0, d5, f0);
+    
+    TwoSum(d5, d2, d5, d2);
+    TwoSum(d5, e0, d5, e0);   
+#if 1
+    d7 = (d7 + e5 + f3 + g1 
+	  + d2 + e0 + d4 + e1 + e2 + f0
+	  + d6 + e3 + e4 + f1 + f2 + g0);
+      
+    //    d7 = std::fma (a0, b4, d7);
+    d7 = std::fma (a1, b3, d7);
+    d7 = std::fma (a2, b2, d7);
+    d7 = std::fma (a3, b1, d7);
+    //    d7 = std::fma (a4, b0, d7);
+    
+    TwoSum(c0, d0, c0, d0);
+    TwoSum(c1, d1, c1, d1);
+    TwoSum(c1, d0, c1, d0);
+
+    TwoSum(c2, d3, c2, d3);
+    TwoSum(c2, d1, c2, d1);
+    TwoSum(c2, d0, c2, d0);
+    
+    TwoSum(c3, d5, c3, d5);
+    TwoSum(c3, d3, c3, d3);
+    TwoSum(c3, d1, c3, d1);
+    TwoSum(c3, d0, c3, d0);
+
+    c4 = c4 + d7 + d0 + d1 + d3 + d5;
+
+#else
+    T d8, d9, e6, e7, f4, f5, g2, g3, h0, h1;
+    //    TwoProductFMA(a0, b4, d8, d9);
+    TwoProductFMA(a1, b3, e6, e7);
+    TwoProductFMA(a2, b2, f4, f5);
+    TwoProductFMA(a3, b1, g2, g3);
+    //    TwoProductFMA(a4, b0, h0, h1);
+
+
+    TwoSum(d7, d8, d7, d8);
+    TwoSum(d7, e5, d7, e5);
+    TwoSum(d7, e6, d7, e6);
+    TwoSum(d7, f3, d7, f3);
+    TwoSum(d7, f4, d7, f4);
+    TwoSum(d7, g1, d7, g1);
+    TwoSum(d7, g2, d7, g2);
+    TwoSum(d7, h0, d7, h0);   
+
+    TwoSum(d7, d6, d7, d6);
+    TwoSum(d7, e3, d7, e3);
+    TwoSum(d7, e4, d7, e4);
+    TwoSum(d7, f1, d7, f1);
+    TwoSum(d7, f2, d7, f2);
+    TwoSum(d7, g0, d7, g0);
+
+    TwoSum(d7, d4, d7, d4);
+    TwoSum(d7, e1, d7, e1);
+    TwoSum(d7, e2, d7, e2);
+    TwoSum(d7, f0, d7, f0);
+    
+    TwoSum(d7, d2, d7, d2);
+    TwoSum(d7, e0, d7, e0);   
+
+    d9 = (d9
+	  + e7 + f5 + g3 + h1
+	  + d8 + e5 + e6 + f3 + f4 + g1 + g2 + h0
+	  + d6 + e3 + e4 + f1 + f2 + g0
+	  + d4 + e1 + e2 + f0
+	  + d2 + e0);
+    //    d9 = std::fma (a1, b4, d9);
+    d9 = std::fma (a2, b3, d9);
+    d9 = std::fma (a3, b2, d9);
+    //    d9 = std::fma (a4, b1, d9);
+
+    TwoSum(c0, d0, c0, d0);
+    TwoSum(c1, d1, c1, d1);
+    TwoSum(c1, d0, c1, d0);
+
+    TwoSum(c2, d3, c2, d3);
+    TwoSum(c2, d1, c2, d1);
+    TwoSum(c2, d0, c2, d0);
+    
+    TwoSum(c3, d5, c3, d5);
+    TwoSum(c3, d3, c3, d3);
+    TwoSum(c3, d1, c3, d1);
+    TwoSum(c3, d0, c3, d0);
+
+    TwoSum(c4, d7, c4, d7);
+    TwoSum(c4, d5, c4, d5);
+    TwoSum(c4, d3, c4, d3);
+    TwoSum(c4, d1, c4, d1);
+    TwoSum(c4, d0, c4, d0);
+
+    d9 = d9 + d0 + d1 + d3 + d5 + d7;
+    TwoSum(c4, d9, c4, d9);
+#endif
+#else
+    // TwoSum() is not commutative
+    T d0, d1, d2, d3, d4, d5, d6, d7;
+    T e0, e1, e2, e3, e4, e5;
+    T f0, f1, f2, f3, g0, g1;
+    
+    TwoProductFMA(a0, b0, d0, d1);
+    TwoProductFMA(a0, b1, d2, d3);
+    TwoProductFMA(a0, b2, d4, d5);
+    TwoProductFMA(a0, b3, d6, d7);
+    
+    TwoProductFMA(a1, b0, e0, e1);
+    TwoProductFMA(a1, b1, e2, e3);
+    TwoProductFMA(a1, b2, e4, e5);
+    
+    TwoProductFMA(a2, b0, f0, f1);
+    TwoProductFMA(a2, b1, f2, f3);
+    
+    TwoProductFMA(a3, b0, g0, g1);
+
+    TwoSum(c0, d0, c0, d0);
+
+    TwoSum(c1, d1, c1, d1);    
+
+    TwoSum(c1, d2, c1, d2);
+    TwoSum(c1, e0, c1, e0);
+    TwoSum(c1, d0, c1, d0);
+
+    TwoSum(c2, d3, c2, d3);
+    TwoSum(c2, d4, c2, d4);
+    TwoSum(c2, e1, c2, e1);
+    TwoSum(c2, e2, c2, e2);
+    TwoSum(c2, f0, c2, f0);
+    
+    TwoSum(c2, d1, c2, d1);
+    TwoSum(c2, e2, c2, e2);
+    TwoSum(c2, e0, c2, e0);   
+    TwoSum(c2, d0, c2, d0);
+
+    //
+
+    TwoSum(c3, d3, c3, d3);
+
+    TwoSum(c3, d5, c3, d5);
+    TwoSum(c3, d6, c3, d6);
+    TwoSum(c3, e3, c3, e3);
+    TwoSum(c3, e4, c3, e4);   
+    TwoSum(c3, f1, c3, f1);
+    TwoSum(c3, f2, c3, f2);
+    TwoSum(c3, g0, c3, g0);
+    
+    TwoSum(c3, d4, c3, d4);
+    TwoSum(c3, e1, c3, e1);
+    TwoSum(c3, e2, c3, e2);
+    TwoSum(c3, f0, c3, f0);
+
+    TwoSum(c3, d1, c3, d1);
+    TwoSum(c3, d2, c3, d2);
+    TwoSum(c3, e0, c3, e0);
+
+    TwoSum(c3, d0, c3, d0);    
+#if 1
+    T t0 = (d0 + d1 + d2 + e0
+	    + d3 + d4 + e1 + e2 + f0
+	    + d5 + d6 + e3 + e4 + f1 + f2 + g0);
+    c4 = c4 + d7 + e5 + f3 + g1 + t0;
+    //    c4 = std::fma (a0, b4, c4);
+    c4 = std::fma (a1, b3, c4);
+    c4 = std::fma (a2, b2, c4);
+    c4 = std::fma (a3, b1, c4);
+    //    c4 = std::fma (a4, b0, c4);   
+
+    //    c4 = std::fma (a1, b4, c4);
+    //    c4 = std::fma (a2, b3, c4);
+    //    c4 = std::fma (a3, b2, c4);
+    //    c4 = std::fma (a4, b1, c4);
+
+#else
+    T d8, d9, e6, e7, f4, f5, g2, g3, h0, h1, c5;
+    //    TwoProductFMA(a0, b4, d8, d9);
+    TwoProductFMA(a1, b3, e6, e7);
+    TwoProductFMA(a2, b2, f4, f5);
+    TwoProductFMA(a3, b1, g2, g3);
+    //    TwoProductFMA(a4, b0, h0, h1);
+    
+    TwoSum(c4, d0, c4, d0);
+    TwoSum(c4, d1, c4, d1);
+    TwoSum(c4, e2, c4, e2);
+    TwoSum(c4, e0, c4, e0);   
+    TwoSum(c4, d3, c4, d3);
+    TwoSum(c4, d4, c4, d4);
+    TwoSum(c4, e1, c4, e1);
+    TwoSum(c4, e2, c4, e2);
+    TwoSum(c4, f0, c4, f0);
+    
+    TwoSum(c4, d5, c4, d5);
+    TwoSum(c4, d6, c4, d6);
+    TwoSum(c4, e3, c4, e3);
+    TwoSum(c4, e4, c4, e4);   
+    TwoSum(c4, f1, c4, f1);
+    TwoSum(c4, f2, c4, f2);
+    TwoSum(c4, g0, c4, g0);
+
+    TwoSum(c4, d7, c4, d7);
+    TwoSum(c4, d8, c4, d8);
+    TwoSum(c4, e5, c4, e5);
+    TwoSum(c4, e6, c4, e6);   
+    TwoSum(c4, f3, c4, f3);
+    TwoSum(c4, f4, c4, f4);
+    TwoSum(c4, g1, c4, g1);
+    TwoSum(c4, g2, c4, g2);
+    TwoSum(c4, h0, c4, h0);        
+
+    c5 =( d0
+	  + d1 + d2 + e0
+	  + d3 + d4 + e1 + e2 + f0
+	  + d5 + d6 + e3 + e4 + f1 + f2 + g0
+	  + d7 + d8 + e5 + e6 + f3 + f4 + g1 + g2 + h0
+	  + d9 + e7 + f5 + g3 + h1 );
+    c5 = std::fma (a1, b4, c5);
+    c5 = std::fma (a2, b3, c5);
+    c5 = std::fma (a3, b2, c5);
+    c5 = std::fma (a4, b1, c5);
+
+    TwoSum( c0, c1, c0, c1);
+    TwoSum( c1, c2, c1, c2);
+    TwoSum( c2, c3, c2, c3);
+    TwoSum( c3, c4, c3, c4);
+    TwoSum( c4, c5, c4, c5);    
+#endif
+#endif
+  }
+  
+  // mul: 5-5-5
+  template < typename T > INLINE void constexpr
+  mul_QPW_QPW_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+   T d2, d3, d4, d5, d6, d7;
+   T e0, e1, e2, e3, e4, e5;
+   T f0, f1, f2, f3, g0, g1;
+
+   TwoProductFMA(a0, b0, c0, c1);
+   TwoProductFMA(a0, b1, d2, c2);
+   TwoProductFMA(a0, b2, d4, c3);
+   TwoProductFMA(a0, b3, d6, c4);
+
+   TwoProductFMA(a1, b0, e0, e1);
+   TwoProductFMA(a1, b1, e2, e3);
+   TwoProductFMA(a1, b2, e4, e5);
+
+   TwoProductFMA(a2, b0, f0, f1);
+   TwoProductFMA(a2, b1, f2, f3);
+
+   TwoProductFMA(a3, b0, g0, g1);
+
+   TwoSum(c1, d2, c1, d2);
+   TwoSum(c1, e0, c1, e0);
+
+   TwoSum(c2, d2, c2, d2);
+   TwoSum(c2, e0, c2, e0);
+
+   TwoSum(c2, d4, c2, d4);
+   TwoSum(c2, e1, c2, e1);
+   TwoSum(c2, e2, c2, e2);
+   TwoSum(c2, f0, c2, f0);   
+
+   TwoSum(c3, d2, c3, d2);
+   TwoSum(c3, e0, c3, e0);
+
+   TwoSum(c3, d4, c3, d4);
+   TwoSum(c3, e1, c3, e1);
+   TwoSum(c3, e2, c3, e2);
+   TwoSum(c3, f0, c3, f0);   
+
+   TwoSum(c3, d6, c3, d6);
+   TwoSum(c3, e3, c3, e3);
+   TwoSum(c3, e4, c3, e4);   
+   TwoSum(c3, f1, c3, f1);
+   TwoSum(c3, f2, c3, f2);
+   TwoSum(c3, g0, c3, g0);   
+   c4 = (c4 + d2 + e0 + d4 + e1 + e2 + f0 + d6 + e3 + e4 + f1 + f2 + g0
+  	    + e5 + f3 + g1);
+   c4 = std::fma (a0, b4, c4);
+   c4 = std::fma (a1, b3, c4);
+   c4 = std::fma (a2, b2, c4);
+   c4 = std::fma (a3, b1, c4);
+   c4 = std::fma (a4, b0, c4);   
+
+  }
+
+    // mul: 2-5-5
+  template < typename T > INLINE void constexpr
+  mul_PA_QPW_QPW( T const a0, T const a1, T const b0, T const b1, T const b2 , T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+
+    T d2, d4, d6;
+    T e0, e1, e2, e3, e4, e5;
+    TwoProductFMA( a0, b0, c0, c1 );
+    TwoProductFMA( a0, b1, d2, c2 );
+    TwoProductFMA( a0, b2, d4, c3 );
+    TwoProductFMA( a0, b3, d6, c4 );
+    
+    TwoProductFMA( a1, b0, e0, e1 );
+    TwoProductFMA( a1, b1, e2, e3 );
+    TwoProductFMA( a1, b2, e4, e5 );
+    //
+    TwoSum( c1, d2, c1, d2 );
+    TwoSum( c1, e0, c1, e0 );
+    //
+    TwoSum( c2, d2, c2, d2 );
+    TwoSum( c2, e0, c2, e0 );
+    
+    TwoSum( c2, d4, c2, d4 );
+    TwoSum( c2, e1, c2, e1 );
+    TwoSum( c2, e2, c2, e2 );
+    //
+    TwoSum( c3, d2, c3, d2 );
+    TwoSum( c3, e0, c3, e0 );
+
+    TwoSum( c3, d4, c3, d4 );
+    TwoSum( c3, e1, c3, e1 );
+    TwoSum( c3, e2, c3, e2 );
+
+    TwoSum( c3, d6, c3, d6 );
+    TwoSum( c3, e3, c3, e3 );
+    TwoSum( c3, e4, c3, e4 );
+    
+    c4 = c4 + d2 + e0 + d4 + e1 + e2
+      + d6 + e3 + e4 + e5;
+    c4 = std::fma ( a0, b4, c4 );
+    c4 = std::fma ( a1, b3, c4 );
+  }
+    // mul: 5-2-5
+    template < typename T > INLINE void constexpr
+  mul_QPW_PA_QPW( T const a0, T const a1, T const a2, T const a3, T const a4 , T const b0, T const b1, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    mul_PA_QPW_QPW(b0, b1, a0, a1, a2, a3, a4, c0, c1, c2, c3, c4);
+  }
+
+    // mul: 4-5-5
+  template < typename T > INLINE void constexpr
+  mul_QQW_QPW_QPW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2 , T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+   T d2, d3, d4, d5, d6, d7;
+   T e0, e1, e2, e3, e4, e5;
+   T f0, f1, f2, f3, g0, g1;
+
+   TwoProductFMA(a0, b0, c0, c1);
+   TwoProductFMA(a0, b1, d2, c2);
+   TwoProductFMA(a0, b2, d4, c3);
+   TwoProductFMA(a0, b3, d6, c4);
+
+   TwoProductFMA(a1, b0, e0, e1);
+   TwoProductFMA(a1, b1, e2, e3);
+   TwoProductFMA(a1, b2, e4, e5);
+
+   TwoProductFMA(a2, b0, f0, f1);
+   TwoProductFMA(a2, b1, f2, f3);
+
+   TwoProductFMA(a3, b0, g0, g1);
+
+   TwoSum(c1, d2, c1, d2);
+   TwoSum(c1, e0, c1, e0);
+
+   TwoSum(c2, d2, c2, d2);
+   TwoSum(c2, e0, c2, e0);
+
+   TwoSum(c2, d4, c2, d4);
+   TwoSum(c2, e1, c2, e1);
+   TwoSum(c2, e2, c2, e2);
+   TwoSum(c2, f0, c2, f0);   
+
+   TwoSum(c3, d2, c3, d2);
+   TwoSum(c3, e0, c3, e0);
+
+   TwoSum(c3, d4, c3, d4);
+   TwoSum(c3, e1, c3, e1);
+   TwoSum(c3, e2, c3, e2);
+   TwoSum(c3, f0, c3, f0);   
+
+   TwoSum(c3, d6, c3, d6);
+   TwoSum(c3, e3, c3, e3);
+   TwoSum(c3, e4, c3, e4);   
+   TwoSum(c3, f1, c3, f1);
+   TwoSum(c3, f2, c3, f2);
+   TwoSum(c3, g0, c3, g0);   
+
+   c4 = (c4 + d2 + e0 + d4 + e1 + e2 + f0 + d6 + e3 + e4 + f1 + f2 + g0
+  	    + e5 + f3 + g1);
+   c4 = std::fma (a0, b4, c4);
+   c4 = std::fma (a1, b3, c4);
+   c4 = std::fma (a2, b2, c4);
+   c4 = std::fma (a3, b1, c4);
+  }
+  
+    // mul: 5-4-5
+    template < typename T > INLINE void constexpr
+    mul_QPW_QQW_QPW( T const a0, T const a1, T const a2, T const a3, T const a4 , T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    mul_QQW_QPW_QPW(b0, b1, b2, b3, a0, a1, a2, a3, a4, c0, c1, c2, c3, c4);
+  }
+
+
+  // mul: 3-5-5
+  template < typename T > INLINE void constexpr
+  mul_QTW_QPW_QPW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2 , T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+   T d2, d3, d4, d5, d6, d7;
+   T e0, e1, e2, e3, e4, e5;
+   T f0, f1, f2, f3;
+
+   TwoProductFMA(a0, b0, c0, c1);
+   TwoProductFMA(a0, b1, d2, c2);
+   TwoProductFMA(a0, b2, d4, c3);
+   TwoProductFMA(a0, b3, d6, c4);
+
+   TwoProductFMA(a1, b0, e0, e1);
+   TwoProductFMA(a1, b1, e2, e3);
+   TwoProductFMA(a1, b2, e4, e5);
+
+   TwoProductFMA(a2, b0, f0, f1);
+   TwoProductFMA(a2, b1, f2, f3);
+
+   TwoSum(c1, d2, c1, d2);
+   TwoSum(c1, e0, c1, e0);
+
+   TwoSum(c2, d2, c2, d2);
+   TwoSum(c2, e0, c2, e0);
+
+   TwoSum(c2, d4, c2, d4);
+   TwoSum(c2, e1, c2, e1);
+   TwoSum(c2, e2, c2, e2);
+   TwoSum(c2, f0, c2, f0);   
+
+   TwoSum(c3, d2, c3, d2);
+   TwoSum(c3, e0, c3, e0);
+
+   TwoSum(c3, d4, c3, d4);
+   TwoSum(c3, e1, c3, e1);
+   TwoSum(c3, e2, c3, e2);
+   TwoSum(c3, f0, c3, f0);   
+
+   TwoSum(c3, d6, c3, d6);
+   TwoSum(c3, e3, c3, e3);
+   TwoSum(c3, e4, c3, e4);   
+   TwoSum(c3, f1, c3, f1);
+   TwoSum(c3, f2, c3, f2);
+   //   TwoSum(c3, g0, c3, g0);   
+
+   c4 = (c4 + d2 + e0 + d4 + e1 + e2 + f0 + d6 + e3 + e4 + f1 + f2
+  	    + e5 + f3);
+   c4 = std::fma (a0, b4, c4);
+   c4 = std::fma (a1, b3, c4);
+   c4 = std::fma (a2, b2, c4);
+  }
+    // mul: 5-3-5
+    template < typename T > INLINE void constexpr
+    mul_QPW_QTW_QPW( T const a0, T const a1, T const a2, T const a3, T const a4 , T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    mul_QTW_QPW_QPW(b0, b1, b2, a0, a1, a2, a3, a4, c0, c1, c2, c3, c4);
+  }
+  
+  // madd: 2-4-5
+  template < typename T > INLINE void constexpr
+  madd_PA_QQW_QPW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T d0, d1, d2, d3, d4, d5, e0, e1, e2, e3;
+    T d6, d7, e4, e5;
+    
+    TwoProductFMA( a0, b0, d0, d1 );
+    TwoProductFMA( a0, b1, d2, d3 );
+    TwoProductFMA( a0, b2, d4, d5 );
+    TwoProductFMA( a1, b0, e0, e1 );
+    TwoProductFMA( a1, b1, e2, e3 );
+
+    TwoSum( c0, d0, c0, d0 );
+    //
+    TwoSum( c1, d0, c1, d0 );
+
+    TwoSum( c1, d1, c1, d1 );
+    TwoSum( c1, d2, c1, d2 );
+    TwoSum( c1, e0, c1, e0 );
+    //
+    TwoSum( c2, d0, c2, d0 );
+
+    TwoSum( c2, d1, c2, d1 );
+    TwoSum( c2, d2, c2, d2 );
+    TwoSum( c2, e0, c2, e0 );
+
+    TwoSum( c2, d3, c2, d3 );
+    TwoSum( c2, d4, c2, d4 );
+    TwoSum( c2, e1, c2, e1 );
+    TwoSum( c2, e2, c2, e2 );
+    
+
+    TwoProductFMA( a0, b3, d6, d7 );
+    TwoProductFMA( a1, b2, e4, e5 );
+    
+    TwoSum( c3, d0, c3, d0 );
+
+    TwoSum( c3, d1, c3, d1 );
+    TwoSum( c3, d2, c3, d2 );
+    TwoSum( c3, e0, c3, e0 );
+
+    TwoSum( c3, d3, c3, d3 );
+
+    TwoSum( c3, d4, c3, d4 );
+    TwoSum( c3, e1, c3, e1 );
+    TwoSum( c3, e2, c3, e2 );
+    
+    TwoSum( c3, d5, c3, d5 );
+    TwoSum( c3, d6, c3, d6 );
+    TwoSum( c3, e3, c3, e3 );
+    TwoSum( c3, e4, c3, e4 );
+    c4 = c4 + d7 + e5
+      + d0 + d1 + d2 + e0
+      + d3 + d4 + e1 + e2
+      + d5 + d6 + e3 + e4;
+    c4 = std::fma(a1, b3, c4);
+    //    TwoSum(c0, c1, c0, c1);
+    //    TwoSum(c1, c2, c1, c2);
+    //    TwoSum(c2, c3, c2, c3);
+    //    TwoSum(c3, c4, c3, c4);
+
+  }  
+    // madd: 2-5-5
+  template < typename T > INLINE void constexpr
+  madd_PA_QPW_QPW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T d0, d1, d2, d3, d4, d5, d6, d7;
+    T e0, e1, e2, e3, e4, e5;
+    T f0, f1, f2, f3, g0, g1;
+    
+    TwoProductFMA(a0, b0, d0, d1);
+    TwoProductFMA(a0, b1, d2, d3);
+    TwoProductFMA(a0, b2, d4, d5);
+    TwoProductFMA(a0, b3, d6, d7);
+    
+    TwoProductFMA(a1, b0, e0, e1);
+    TwoProductFMA(a1, b1, e2, e3);
+    TwoProductFMA(a1, b2, e4, e5);
+    
+
+    TwoSum(d1, d2, d1, d2);
+    TwoSum(d1, e0, d1, e0);    
+
+    TwoSum(d3, d4, d3, d4);
+    TwoSum(d3, e1, d3, e1);
+    TwoSum(d3, e2, d3, e2);
+    
+    TwoSum(d3, d2, d3, d2);
+    TwoSum(d3, e0, d3, e0);   
+
+    TwoSum(d5, d6, d5, d6);
+    TwoSum(d5, e3, d5, e3);
+    TwoSum(d5, e4, d5, e4);
+    
+    TwoSum(d5, d4, d5, d4);
+    TwoSum(d5, e1, d5, e1);
+    TwoSum(d5, e2, d5, e2);
+
+    TwoSum(d5, d2, d5, d2);
+    TwoSum(d5, e0, d5, e0);   
+
+    d7 = (d7 + e5
+	  + d6 + e3 + e4
+	  + d4 + e1 + e2
+	  + d2 + e0);
+      
+    d7 = std::fma (a0, b4, d7);
+    d7 = std::fma (a1, b3, d7);
+    
+    TwoSum(c0, d0, c0, d0);
+
+    TwoSum(c1, d1, c1, d1);
+    TwoSum(c1, d0, c1, d0);
+
+    TwoSum(c2, d3, c2, d3);
+    TwoSum(c2, d1, c2, d1);
+    TwoSum(c2, d0, c2, d0);
+    
+    TwoSum(c3, d5, c3, d5);
+    TwoSum(c3, d3, c3, d3);
+    TwoSum(c3, d1, c3, d1);
+    TwoSum(c3, d0, c3, d0);
+
+    c4 = c4 + d7 + d0 + d1 + d3 + d5;
+  }
+
+// madd: 5-5-5
+  template < typename T > INLINE void constexpr
+  madd_QPW_QPW_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+
+    T d0, d1, d2, d3, d4, d5, d6, d7;
+    T e0, e1, e2, e3, e4, e5;
+    T f0, f1, f2, f3, g0, g1;
+    
+    TwoProductFMA(a0, b0, d0, d1);
+    TwoProductFMA(a0, b1, d2, d3);
+    TwoProductFMA(a0, b2, d4, d5);
+    TwoProductFMA(a0, b3, d6, d7);
+    
+    TwoProductFMA(a1, b0, e0, e1);
+    TwoProductFMA(a1, b1, e2, e3);
+    TwoProductFMA(a1, b2, e4, e5);
+    
+    TwoProductFMA(a2, b0, f0, f1);
+    TwoProductFMA(a2, b1, f2, f3);
+    
+    TwoProductFMA(a3, b0, g0, g1);
+
+
+    TwoSum(d1, d2, d1, d2);
+    TwoSum(d1, e0, d1, e0);    
+
+    TwoSum(d3, d4, d3, d4);
+    TwoSum(d3, e1, d3, e1);
+    TwoSum(d3, e2, d3, e2);
+    TwoSum(d3, f0, d3, f0);
+    
+    TwoSum(d3, d2, d3, d2);
+    TwoSum(d3, e0, d3, e0);   
+
+    TwoSum(d5, d6, d5, d6);
+    TwoSum(d5, e3, d5, e3);
+    TwoSum(d5, e4, d5, e4);
+    TwoSum(d5, f1, d5, f1);
+    TwoSum(d5, f2, d5, f2);
+    TwoSum(d5, g0, d5, g0);
+    
+    TwoSum(d5, d4, d5, d4);
+    TwoSum(d5, e1, d5, e1);
+    TwoSum(d5, e2, d5, e2);
+    TwoSum(d5, f0, d5, f0);
+    
+    TwoSum(d5, d2, d5, d2);
+    TwoSum(d5, e0, d5, e0);   
+
+    d7 = (d7 + e5 + f3 + g1 
+	  + d2 + e0 + d4 + e1 + e2 + f0
+	  + d6 + e3 + e4 + f1 + f2 + g0);
+      
+    d7 = std::fma (a0, b4, d7);
+    d7 = std::fma (a1, b3, d7);
+    d7 = std::fma (a2, b2, d7);
+    d7 = std::fma (a3, b1, d7);
+    d7 = std::fma (a4, b0, d7);
+    
+    TwoSum(c0, d0, c0, d0);
+    TwoSum(c1, d1, c1, d1);
+    TwoSum(c1, d0, c1, d0);
+
+    TwoSum(c2, d3, c2, d3);
+    TwoSum(c2, d1, c2, d1);
+    TwoSum(c2, d0, c2, d0);
+    
+    TwoSum(c3, d5, c3, d5);
+    TwoSum(c3, d3, c3, d3);
+    TwoSum(c3, d1, c3, d1);
+    TwoSum(c3, d0, c3, d0);
+
+    c4 = c4 + d7 + d0 + d1 + d3 + d5;
   }
 
   // div: 1-1-1
@@ -2990,6 +4093,129 @@ namespace QxW {
     c3 = tn / td;
   }
 
+  // div: 5-5-5
+  template < typename T > INLINE void constexpr
+  div_QPW_QPW_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T t0, t1, t2, t3, t4;
+    T a34;
+    a34 = a3 + a4;
+    T b34;
+    b34 = b3 + b4;
+    div_QQW_QQW_QQW(a0, a1, a2, a34, b0, b1, b2, b34, c0, c1, c2, c3);
+    mul_QPW_QPW_QPW(c0, c1, c2, c3, fp_const<T>::zero(),
+		     b0, b1, b2, b3, b4, t0, t1, t2, t3, t4);
+    sub_QPW_QPW_QPW(a0, a1, a2, a3, a4, t0, t1, t2, t3, t4, t0, t1, t2, t3, t4);
+    T tn, td;
+    tn = t0 + t1 + t2 + t3 + t4;
+    td = b0 + b1 + b2 + b3 + b4;
+    c4 = tn / td;
+  }
+
+    // div: 5-2-5
+ template < typename T > INLINE void constexpr
+  div_QPW_PA_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T t0, t1, t2, t3, t4, tn, td;  
+    // [c1,c2,c3,c4] = QQW_div(a1,a2,a3,a4,b1,b2,b3,b4); 
+    div_QQW_PA_QQW( a0, a1, a2, a3, b0, b1, c0, c1, c2, c3);
+    td = b0 + b1;                // bunbo = b1 + b2 + b3 + b4 + b5;
+    //  [t1,t2,t3,t4,t5] = Q5W_mul(c1,c2,c3,c4,0,b1,b2,b3,b4,b5);
+    mul_QPW_PA_QPW( c0, c1, c2, c3, fp_const<T>::zero(),
+		     b0, b1, t0, t1, t2, t3, t4);
+    // [t1,t2,t3,t4,t5] = Q5W_sum(a1,a2,a3,a4,a5,-t1,-t2,-t3,-t4,-t5);
+    add_QPW_QPW_QPW( a0, a1, a2, a3, a4, -t0, -t1, -t2, -t3, -t4,
+		     t0, t1, t2, t3, t4);
+    tn = t0 + t1 + t2 + t3 + t4; // bunshi = t1 + t2 + t3 + t4 + t5;
+    c4 = tn / td;                // c5 = bunshi / bunbo;
+  }
+
+    // div: 5-3-5
+ template < typename T > INLINE void constexpr
+ div_QPW_QTW_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T t0, t1, t2, t3, t4, tn, td;  
+    // [c1,c2,c3,c4] = QQW_div(a1,a2,a3,a4,b1,b2,b3,b4); 
+    div_QQW_QTW_QQW( a0, a1, a2, a3, b0, b1, b2, c0, c1, c2, c3);
+    td = b0 + b1;                // bunbo = b1 + b2 + b3 + b4 + b5;
+    //  [t1,t2,t3,t4,t5] = Q5W_mul(c1,c2,c3,c4,0,b1,b2,b3,b4,b5);
+    mul_QPW_QTW_QPW( c0, c1, c2, c3, fp_const<T>::zero(),
+		     b0, b1, b2, t0, t1, t2, t3, t4);
+    // [t1,t2,t3,t4,t5] = Q5W_sum(a1,a2,a3,a4,a5,-t1,-t2,-t3,-t4,-t5);
+    add_QPW_QPW_QPW( a0, a1, a2, a3, a4, -t0, -t1, -t2, -t3, -t4,
+		     t0, t1, t2, t3, t4);
+    tn = t0 + t1 + t2 + t3 + t4; // bunshi = t1 + t2 + t3 + t4 + t5;
+    c4 = tn / td;                // c5 = bunshi / bunbo;
+  }
+
+      // div: 3-5-5
+ template < typename T > INLINE void constexpr
+ div_QTW_QPW_QPW( T const a0, T const a1, T const a2, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+ {
+   T t0, t1, t2, t3, t4, tn, td;  
+   div_QTW_QQW_QQW( a0, a1, a2, b0, b1, b2, b3, c0, c1, c2, c3);
+    td = b0 + b1 + b2 + b3 + b4; // bunbo = b1 + b2 + b3 + b4 + b5;
+    //  [t1,t2,t3,t4,t5] = Q5W_mul(c1,c2,c3,c4,0,b1,b2,b3,b4,b5);
+    mul_QPW_QPW_QPW( c0, c1, c2, c3, fp_const<T>::zero(),
+		     b0, b1, b2, b3, b4, t0, t1, t2, t3, t4);
+    // [t1,t2,t3,t4,t5] = Q5W_sum(a1,a2,a3,a4,a5,-t1,-t2,-t3,-t4,-t5);
+    add_QTW_QPW_QPW( a0, a1, a2, -t0, -t1, -t2, -t3, -t4,
+		     t0, t1, t2, t3, t4);
+    tn = t0 + t1 + t2 + t3 + t4; // bunshi = t1 + t2 + t3 + t4 + t5;
+    c4 = tn / td;                // c5 = bunshi / bunbo;
+   }
+      // div: 5-4-5
+ template < typename T > INLINE void constexpr
+ div_QPW_QQW_QPW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T t0, t1, t2, t3, t4, tn, td;  
+    div_QQW_QQW_QQW( a0, a1, a2, a3, b0, b1, b2, b3, c0, c1, c2, c3);
+    td = b0 + b1 + b2 + b3; // bunbo = b1 + b2 + b3 + b4 + b5;
+    //  [t1,t2,t3,t4,t5] = Q5W_mul(c1,c2,c3,c4,0,b1,b2,b3,b4,b5);
+    mul_QPW_QQW_QPW( c0, c1, c2, c3, fp_const<T>::zero(),
+		     b0, b1, b2, b3, t0, t1, t2, t3, t4);
+    // [t1,t2,t3,t4,t5] = Q5W_sum(a1,a2,a3,a4,a5,-t1,-t2,-t3,-t4,-t5);
+    add_QQW_QPW_QPW( a0, a1, a2, a3, -t0, -t1, -t2, -t3, -t4,
+		     t0, t1, t2, t3, t4);
+    tn = t0 + t1 + t2 + t3 + t4; // bunshi = t1 + t2 + t3 + t4 + t5;
+    c4 = tn / td;                // c5 = bunshi / bunbo;
+  }
+      // div: 4-5-5
+ template < typename T > INLINE void constexpr
+ div_QQW_QPW_QPW( T const a0, T const a1, T const a2, T const a3, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+   T t0, t1, t2, t3, t4, tn, td;  
+   div_QQW_QQW_QQW( a0, a1, a2, a3, b0, b1, b2, b3, c0, c1, c2, c3);
+    td = b0 + b1 + b2 + b3 + b4; // bunbo = b1 + b2 + b3 + b4 + b5;
+    //  [t1,t2,t3,t4,t5] = Q5W_mul(c1,c2,c3,c4,0,b1,b2,b3,b4,b5);
+    mul_QPW_QPW_QPW( c0, c1, c2, c3, fp_const<T>::zero(),
+		     b0, b1, b2, b3, b4, t0, t1, t2, t3, t4);
+    // [t1,t2,t3,t4,t5] = Q5W_sum(a1,a2,a3,a4,a5,-t1,-t2,-t3,-t4,-t5);
+    add_QTW_QPW_QPW( a0, a1, a2, -t0, -t1, -t2, -t3, -t4,
+		     t0, t1, t2, t3, t4);
+    tn = t0 + t1 + t2 + t3 + t4; // bunshi = t1 + t2 + t3 + t4 + t5;
+    c4 = tn / td;                // c5 = bunshi / bunbo;
+  }
+  
+    // div: 2-5-5
+  template < typename T > INLINE void constexpr
+  div_PA_QPW_QPW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T t0, t1, t2, t3, t4, tn, td;
+
+    // [c1,c2,c3,c4] = QQW_div(a1,a2,a3,a4,b1,b2,b3,b4); 
+    div_PA_QQW_QQW( a0, a1, b0, b1, b2, b3, c0, c1, c2, c3);
+    td = b0 + b1 + b2 + b3 + b4; // bunbo = b1 + b2 + b3 + b4 + b5;
+    //  [t1,t2,t3,t4,t5] = Q5W_mul(c1,c2,c3,c4,0,b1,b2,b3,b4,b5);
+    mul_QPW_QPW_QPW( c0, c1, c2, c3, fp_const<T>::zero(),
+		     b0, b1, b2, b3, b4, t0, t1, t2, t3, t4);
+    // [t1,t2,t3,t4,t5] = Q5W_sum(a1,a2,a3,a4,a5,-t1,-t2,-t3,-t4,-t5);
+    add_PA_QPW_QPW( a0, a1, -t0, -t1, -t2, -t3, -t4,
+		     t0, t1, t2, t3, t4);
+    tn = t0 + t1 + t2 + t3 + t4; // bunshi = t1 + t2 + t3 + t4 + t5;
+    c4 = tn / td;                // c5 = bunshi / bunbo;
+  }
+
   // sqr: 1-1
   template < typename T > INLINE void constexpr
   sqr_SW_SW( T const a0, T &c0 ) NOEXCEPT
@@ -3605,6 +4831,38 @@ namespace QxW {
     FastTwoSum( c0, c1, c0, c1 );
   }
 
+  // add: 2-5-5
+  template < typename T > INLINE void constexpr
+  add_DW_PW_PW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T t0, t1, t2, t3;
+    TwoSum( a0, b0, c0, c1 );
+    TwoSum( a1, b1, t0, c2 );
+    TwoSum( c1, t0, c1, t0 );
+    TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, b2, c2, t1 );
+    TwoSum( t0, t1, c3, t1 );
+    TwoSum( c3, b3, c3, t2 );
+    TwoSum( t1, t2, c4, t2 );
+    TwoSum( c4, b4, c4, t3 );
+    FastTwoSum( c3, c4, c3, c4 );
+    t0 = t2 + t3;
+    c4 = c4 + t0;
+    FastTwoSum( c0, c1, c0, c1 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c2, c3, c2, c3 );
+    FastTwoSum( c3, c4, c3, c4 );
+
+    FastTwoSum( c0, c1, c0, c1 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c2, c3, c2, c3 );
+
+    FastTwoSum( c0, c1, c0, c1 );
+    FastTwoSum( c1, c2, c1, c2 );
+
+    FastTwoSum( c0, c1, c0, c1 );
+  }
+
   // add: 3-1-1
   template < typename T > INLINE void constexpr
   add_TW_SW_SW( T const a0, T const a1, T const a2, T const b0, T &c0 ) NOEXCEPT
@@ -4160,6 +5418,63 @@ namespace QxW {
     FastTwoSum( c0, c1, c0, c1 );
   }
 
+  // add: 5-5-1
+  template < typename T > INLINE void constexpr
+  add_PW_PW_SW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0 ) NOEXCEPT
+  {
+    T t0, t1, t2, t3, t4;
+    TwoSum( a0, b0, c0, t0 );
+    t1 = a1 + b1;
+    t2 = a2 + b2;
+    t3 = a3 + b3;
+    t3 = a4 + b4;    
+    t1 = t1 + t2 + t3 + t4;
+    c0 = c0 + t1;
+    c0 = c0 + t0;
+  }
+
+  // add: 5-5-5
+  template < typename T > INLINE void constexpr
+  add_PW_PW_PW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T t0, t1, t2, t3, t4;
+    TwoSum( a0, b0, c0, c1 );
+    TwoSum( a1, b1, t0, c2 );
+    TwoSum( a2, b2, t1, c3 );
+    TwoSum( a3, b3, t2, c4 );
+    TwoSum( a4, b4, t3, t4 );
+    
+    
+    TwoSum( c1, t0, c1, t0 );
+    TwoSum( c2, t0, c2, t0 );
+    TwoSum( c2, t1, c2, t1 );
+        
+    TwoSum( c3, t0, c3, t0 );
+    TwoSum( c3, t1, c3, t1 );
+    TwoSum( c3, t2, c3, t2 );
+
+    TwoSum( c4, t0, c4, t0 );
+    TwoSum( c4, t1, c4, t1 );
+    TwoSum( c4, t2, c4, t2 );
+    TwoSum( c4, t3, c4, t3 );    
+        
+    FastTwoSum( c3, c4, c3, c4 );
+    t0 = t0 + t1 + t2 + t3 + t4;
+    
+    c4 = c4 + t0;
+    FastTwoSum( c0, c1, c0, c1 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c2, c3, c2, c3 );
+    FastTwoSum( c3, c4, c3, c4 );    
+        
+    FastTwoSum( c0, c1, c0, c1 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c2, c3, c2, c3 );
+    
+    FastTwoSum( c0, c1, c0, c1 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c0, c1, c0, c1 );
+  } 
   // sub: 1-1-2
   template < typename T > INLINE void constexpr
   sub_SW_SW_DW( T const a0, T const b0, T &c0, T &c1 ) NOEXCEPT
@@ -4601,6 +5916,36 @@ namespace QxW {
     add_QW_QW_QW( a0, a1, a2, a3, -b0, -b1, -b2, -b3, c0, c1, c2, c3 );
   }
 
+
+  // sub: 5-5-1
+  template < typename T > INLINE void constexpr
+  sub_PW_PW_SW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0 ) NOEXCEPT
+  {
+    add_PW_PW_SW( a0, a1, a2, a3, a4, -b0, -b1, -b2, -b3, -b4, c0 );
+  }
+
+    // sub: 2-5-5
+  template < typename T > INLINE void constexpr
+  sub_DW_PW_PW( T const a0, T const a1, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    add_DW_PW_PW( a0, a1, -b0, -b1, -b2, -b3, -b4, c0, c1, c2, c3, c4 );
+  }
+
+
+  // sub: 5-2-5
+  template < typename T > INLINE void constexpr
+  sub_PW_DW_PW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    add_DW_PW_PW( -b0, -b1, a0, a1, a2, a3, a4, c0, c1, c2, c3, c4);
+  }
+
+  // sub: 5-5-5
+  template < typename T > INLINE void constexpr
+  sub_PW_PW_PW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    add_PW_PW_PW( a0, a1, a2, a3, a4, -b0, -b1, -b2, -b3, -b4, c0, c1, c2, c3, c4 );
+  }
+  
   // mul: 1-1-2
   template < typename T > INLINE void constexpr
   mul_SW_SW_DW( T const a0, T const b0, T &c0, T &c1 ) NOEXCEPT
@@ -5953,6 +7298,78 @@ namespace QxW {
     FastTwoSum( c0, c1, c0, c1 );
   }
 
+
+    // mul: 2-1-5
+  template < typename T > INLINE void constexpr
+  mul_DW_SW_PW( T const a0, T const a1, T const b0, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+#if 0
+    T t0, t1;
+    TwoProductFMA( a0, b0, c0, c1 );
+    TwoProductFMA( a1, b0, t0, t1 );
+    TwoSum( c1, t0, c1, t0 );
+    FastTwoSum( c0, c1, c0, c1 );
+    TwoSum( t0, t1, c2, t1 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c0, c1, c0, c1 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c2, t1, c2, c3 );
+    FastTwoSum( c0, c1, c0, c1 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c0, c1, c0,< c1 );
+#else
+    fprintf(stderr, "%s %d : div_QW_DW_QW() not implemented\n", __FILE__, __LINE__);
+#endif
+  }
+
+    // mul: 5-1-5
+ template < typename T > INLINE void constexpr
+    mul_PW_SW_PW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T t0, t1, t2, t3, t4, t5, t6, t7;
+    TwoProductFMA( a0, b0, c0, c1 );
+    TwoProductFMA( a1, b0, t0, t1 );
+    TwoSum( c1, t0, c1, t0 );
+    FastTwoSum( c0, c1, c0, c1 );
+    TwoProductFMA( a2, b0, t2, t3 );
+    TwoSum( t0, t1, c2, t1 );
+    TwoSum( c2, t2, c2, t2 );
+    FastTwoSum( c1, c2, c1, c2 );
+    TwoSum( t2, t1, c3, t1 );
+    TwoSum( c3, t3, c3, t3 );
+    t0 = t1 + t3;
+    TwoProductFMA( a3, b0, t3, t4 );
+    TwoSum( c3, t3, c3, t1 );
+    t5 = t0 + t1 + t4;
+    c3 = c3 + t5;
+    
+    FastTwoSum( c0, c1, c0, c1 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c2, c3, c2, c3 );
+    FastTwoSum( c3, c4, c3, c4 );    
+
+    FastTwoSum( c0, c1, c0, c1 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c2, c3, c2, c3 );
+    
+    FastTwoSum( c0, c1, c0, c1 );
+    FastTwoSum( c1, c2, c1, c2 );
+    
+    FastTwoSum( c0, c1, c0, c1 );    
+  }
+  // mul: 5-5-1
+template < typename T > INLINE void constexpr
+  mul_PW_PW_SW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0 ) NOEXCEPT
+  {
+    T t0, t1;
+    c0 = a0 * b0;
+    t0 = a1 + a2 + a3 + a4;
+    t1 = b1 + b2 + b3 + b4;
+    c0 = std::fma ( a0, t1, c0 );
+    c0 = std::fma ( b0, t0, c0 );
+    c0 = std::fma ( t0, t1, c0 );
+  }
+  
   // div: 1-1-2
   template < typename T > INLINE void constexpr
   div_SW_SW_DW( T const a0, T const b0, T &c0, T &c1 ) NOEXCEPT
@@ -7141,6 +8558,66 @@ namespace QxW {
     FastTwoSum( c0, c1, c0, c1 );
   }
 
+  // div: 5-2-5
+  template < typename T > INLINE void constexpr
+  div_PW_DW_PW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T &c0, T &c1, T &c2, T &c3, T &c4) NOEXCEPT
+  {
+#if 0
+    T t0, t1, t2, t3;
+    T r0, r1, r2, r3;
+    c0 = a0 / b0;
+    mul_DW_SW_PW( b0, b1, c0, t0, t1, t2, t3, t4 );
+    sub_PW_PW_PW( a0, a1, a2, a3, a4, t0, t1, t2, t3, t4, r0, r1, r2, r3, r4 );
+    c1 = r0 / b0;
+    mul_DW_SW_PW( b0, b1, c1, t0, t1, t2, t3, t4 );
+    sub_PW_PW_PW( r0, r1, r2, r3, r4, t0, t1, t2, t3, t4, r0, r1, r2, r3, r4 );
+    c2 = r0 / b0;
+    mul_DW_SW_PW( b0, b1, c2, t0, t1, t2, t3, t4 );
+    sub_PW_PW_PW( r0, r1, r2, r3, r4, t0, t1, t2, t3, t4, r0, r1, r2, r3, r4 );
+    c3 = r0 / b0;
+    mul_DW_SW_PW( b0, b1, c3, t0, t1, t2, t3, t4);
+    sub_PW_PW_SW( r0, r1, r2, r3, r4, t0, t1, t2, t3, t4, r0 );
+    c4 = r0 / b0;
+    mul_DW_SW_PW( b0, b1, c4, t0, t1, t2, t3, t4);
+    sub_PW_PW_SW( r0, r1, r2, r3, r4, t0, t1, t2, t3, t4, r0 );
+    r0 = r0 / b0;    
+    c4 = c4 + r0;
+    FastTwoSum( c2, c3, c2, c3 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c0, c1, c0, c1 );
+#else
+    fprintf(stderr, "%s %d : div_QW_DW_QW() not implemented\n", __FILE__, __LINE__);
+#endif
+  }  
+  // div: 5-5-5
+  template < typename T > INLINE void constexpr
+  div_PW_PW_PW( T const a0, T const a1, T const a2, T const a3, T const a4, T const b0, T const b1, T const b2, T const b3, T const b4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T t0, t1, t2, t3, t4;
+    T r0, r1, r2, r3, r4;
+    c0 = a0 / b0;
+    mul_PW_SW_PW( b0, b1, b2, b3, b4, c0, t0, t1, t2, t3, t4);
+    sub_PW_PW_PW( a0, a1, a2, a3, a4, t0, t1, t2, t3, t4, r0, r1, r2, r3, r4 );
+    c1 = r0 / b0;
+    mul_PW_SW_PW( b0, b1, b2, b3, b4, c1, t0, t1, t2, t3, t4 );
+    sub_PW_PW_PW( r0, r1, r2, r3, r4, t0, t1, t2, t3, t4, r0, r1, r2, r3, r4 );
+    c2 = r0 / b0;
+    mul_PW_SW_PW( b0, b1, b2, b3, b4, c2, t0, t1, t2, t3, t4 );
+    sub_PW_PW_PW( r0, r1, r2, r3, r4, t0, t1, t2, t3, t4, r0, r1, r2, r3, r4 );
+    c3 = r0 / b0;
+    mul_PW_SW_PW( b0, b1, b2, b3, b4, c3, t0, t1, t2, t3, t4 );
+    sub_PW_PW_SW( r0, r1, r2, r3, r4, t0, t1, t2, t3, t4, r0 );
+    c4 = r0 / b0;
+    mul_PW_SW_PW( b0, b1, b2, b3, b4, c4, t0, t1, t2, t3, t4 );
+    sub_PW_PW_SW( r0, r1, r2, r3, r4, t0, t1, t2, t3, t4, r0 );
+    r0 = r0 / b0;
+    c4 = c4 + r0;
+    FastTwoSum( c3, c4, c3, c4 );    
+    FastTwoSum( c2, c3, c2, c3 );
+    FastTwoSum( c1, c2, c1, c2 );
+    FastTwoSum( c0, c1, c0, c1 );
+  }
+  
   // sqr: 1-2
   template < typename T > INLINE void constexpr
   sqr_SW_DW( T const a0, T &c0, T &c1 ) NOEXCEPT
@@ -7606,6 +9083,38 @@ namespace QxW {
     c3 = tn / td;
   }
 
+  // sqrt: 5-5
+  template < typename T > INLINE void constexpr
+  sqrt_QPW_QPW ( T const a0, T const a1, T const a2, T const a3, T const a4, T &c0, T &c1, T &c2, T &c3, T &c4 ) NOEXCEPT
+  {
+    T t0, t1, t2, t3, t4;
+    // [c1,c2,c3,c4] = QQW_sqrt(a1,a2,a3,a4);
+    sqrt_QQW_QQW ( a0, a1, a2, a3, c0, c1, c2, c3 );
+    // [c1,c2,c3,c4] = QQW_normal(c1,c2,c3,c4);
+#if 0
+    //if ( N_accuracy > 0 || A == Algorithm::Quasi ) {
+    TwoSum( c0, c1, c0, c1 );        //    twoSum( c.x[0], c.x[1] );
+    TwoSum( c1, c2, c1, c2 );        //    twoSum( c.x[1], c.x[2] );
+    TwoSum( c2, c3, c2, c3 );        //    twoSum( c.x[2], c.x[3] );
+    
+    FastTwoSum( c0, c1, c0, c1 );      //    quickSum( c.x[0], c.x[1] );
+    FastTwoSum( c1, c2, c1, c2 );      //    quickSum( c.x[1], c.x[2] );
+
+    FastTwoSum( c0, c1, c0, c1 );      //     quickSum( c.x[0], c.x[1] );
+#endif
+    // [t1,t2,t3,t4,t5] = Q5W_mul(c1,c2,c3,c4,0,c1,c2,c3,c4,0);    
+    mul_QPW_QPW_QPW ( c0, c1, c2, c3, fp_const<T>::zero(),
+		      c0, c1, c2, c3, fp_const<T>::zero(),
+		      t0, t1, t2, t3, t4);
+    // [t1,t2,t3,t4,t5] = Q5W_sum(t1,t2,t3,t4,t5,-a1,-a2,-a3,-a4,-a5);
+    sub_QPW_QPW_QPW (a0, a1, a2, a3, a4, t0, t1, t2, t3, t4, 
+		     t0, t1, t2, t3, t4);  // t = (a - t) <= t = (t - a)
+    T tn, td;
+    tn = t0 + t1 + t2 + t3 + t4; // bunshi = t1 + t2 + t3 + t4 + t5;
+    td = c0 + c1 + c2 + c3; // bunbo = 2*(c1 + c2 + c3 + c4);
+    c4 = tn / td; // c5 = - bunshi / bunbo; 
+    c4 = c4 * fp_const<T>::nhalf();
+  }  
   // sqrt: 1-2
   template < typename T > INLINE void constexpr
   sqrt_SW_DW ( T const a0, T &c0, T &c1 ) NOEXCEPT
