@@ -987,10 +987,7 @@ namespace mX_real {
       //      fprintf(stderr, "%s %d %d %d\n", __FILE__, __LINE__, static_cast<int>(ia), static_cast<int>(a.iexp));
       mpfr_set_exp(a.x[0]._x, 0);
       for (int i = 1; i < T::L; i++) {
-        fprintf(stderr, "i=%d, iexp0=%d, get_exp=%ld, ",
-               i, iexp0, mpfr_get_exp(a.x[i]._x));  // hoge
 	int iexpi = mpfr_get_exp(a.x[i]._x) - iexp0;
-        fprintf(stderr, "iexpi=%d\n", iexpi);  // hoge
 	mpfr_set_exp(a.x[i]._x, iexpi);
       }
     }
