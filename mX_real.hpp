@@ -152,7 +152,7 @@ namespace mX_real {
                         PairArithmetic = Quasi,
                         Default        = Accurate
   };
-  std::string toString( Algorithm A ) NOEXCEPT {
+  inline std::string toString( Algorithm A ) NOEXCEPT {
     if ( A==Algorithm::Accurate ) return "Accurate";
     if ( A==Algorithm::WeakAccurate ) return "WeakAccurate";
     if ( A==Algorithm::Sloppy ) return "Sloppy";
@@ -218,7 +218,7 @@ namespace mX_real {
                               Unknown      = -1,
                               Default      = Regular
   };
-  std::string toString( NormalizeOption opt ) NOEXCEPT {
+  inline std::string toString( NormalizeOption opt ) NOEXCEPT {
     if ( opt==NormalizeOption::Regular ) return "Regular";
     if ( opt==NormalizeOption::Accurate ) return "Accurate";
     if ( opt==NormalizeOption::VsumForward ) return "VsumForward";
@@ -987,7 +987,10 @@ namespace mX_real {
       //      fprintf(stderr, "%s %d %d %d\n", __FILE__, __LINE__, static_cast<int>(ia), static_cast<int>(a.iexp));
       mpfr_set_exp(a.x[0]._x, 0);
       for (int i = 1; i < T::L; i++) {
+        fprintf(stderr, "i=%d, iexp0=%d, get_exp=%ld, ",
+               i, iexp0, mpfr_get_exp(a.x[i]._x));  // hoge
 	int iexpi = mpfr_get_exp(a.x[i]._x) - iexp0;
+        fprintf(stderr, "iexpi=%d\n", iexpi);  // hoge
 	mpfr_set_exp(a.x[i]._x, iexpi);
       }
     }

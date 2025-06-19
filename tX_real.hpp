@@ -253,7 +253,7 @@ namespace mX_real {
             if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Accurate>( *this ); }
           }
 	  scaling(*this, iexp);
-	  turnclast(*this);	  
+	  trunclast(*this);	  
         }
         return *this;
       }
@@ -1407,7 +1407,7 @@ namespace mX_real {
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       sclaing(c, (ia + ib));
-      turnclast(c);
+      trunclast(c);
       return c;
     }
     template < typename T, Algorithm Aa, Algorithm Ab  >

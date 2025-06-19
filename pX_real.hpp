@@ -252,7 +252,7 @@ namespace mX_real {
             if ( need_normalize ) { mX_real::Normalize<NormalizeOption::Accurate>( *this ); }
           }
 	  scaling(*this, iexp);
-	  turnclast(*this);
+	  trunclast(*this);
         }
         return *this;
       }
@@ -1444,7 +1444,7 @@ namespace mX_real {
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       sclaing(c, (ia + ib));
-      turnclast(c);
+      trunclast(c);
       return c;
     }
     // P-Q-P
@@ -1462,7 +1462,7 @@ namespace mX_real {
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       sclaing(c, (ia + ib));
-      turnclast(c);
+      trunclast(c);
       return c;
     }
     // P-T-P
@@ -1480,7 +1480,7 @@ namespace mX_real {
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       sclaing(c, (ia + ib));
-      turnclast(c);
+      trunclast(c);
       return c;
     }
     // P-D-P
@@ -1498,7 +1498,7 @@ namespace mX_real {
         if ( A != Algorithm::Quasi ) { Normalize( c ); }
       }
       sclaing(c, (ia + ib));
-      turnclast(c);
+      trunclast(c);
       return c;
     }
     // P-S-P
