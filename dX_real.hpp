@@ -101,7 +101,12 @@ namespace mX_real {
 	scaling(*this);		
       }
 
-      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts),
+		 typename std::enable_if<
+			 !std::is_same<Ts, int>::value &&
+			 !std::is_same<Ts, long>::value &&
+ 		         !std::is_same<Ts, long long>::value,		   
+			 std::nullptr_t>::type = nullptr >
       INLINE dx_real( Ts const &h ) NOEXCEPT {
 	Ts X;
 	X = QxW::fp_const<Ts>::fract_exp(h, &iexp);
@@ -142,11 +147,21 @@ namespace mX_real {
 #endif
 	scaling(*this, iexp);	
       }
-//      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
-//      INLINE dx_real( Ts const &h ) NOEXCEPT {
-//        { x[0] = T(h); for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
-//	scaling(*this);		
-//      }
+      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts),
+		 typename std::enable_if<
+			 std::is_same<Ts, int>::value ||
+			 std::is_same<Ts, long>::value,
+			 std::nullptr_t>::type = nullptr >
+      INLINE dx_real( Ts const &h ) NOEXCEPT {
+	*this = dx_real(static_cast<mpfrint32>(h));
+      }
+      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts),
+		 typename std::enable_if<
+ 		         std::is_same<Ts, long long>::value,
+			 std::nullptr_t>::type = nullptr >
+      INLINE dx_real( Ts const &h ) NOEXCEPT {
+	*this = dx_real(static_cast<mpfrint64>(h)); 
+      }      
 
       INLINE constexpr dx_real( T const *d ) NOEXCEPT {
 #if MX_REAL_USE_INF_NAN_EXCEPTION
@@ -1086,7 +1101,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator+ ( dX_real::dx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
-      return dX_real::operator_add ( a, T(b) );
+      return dX_real::operator_add ( a, dX_real::dx_real<T,A>(b) );
     }
     template < typename T, Algorithm A >
     INLINE auto constexpr operator+ ( T const& a, dX_real::dx_real<T,A> const& b ) NOEXCEPT {
@@ -1207,7 +1222,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator+= ( dX_real::dx_real<T,A> & a, Ts const& b ) NOEXCEPT {
-      return dX_real::operator_add_ow ( a, T(b) );
+      return dX_real::operator_add_ow ( a, dx_real<T,A>(b) );
     }
     //
 
@@ -1628,6 +1643,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator* ( dX_real::dx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+#if 0       // 26 Jun. 2025 AS
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {
         return dX_real::operator_mul_pow2 ( a, b );
@@ -1636,8 +1652,11 @@ namespace mX_real {
       if ( false ) { return a; } // dummy
 #endif
       else {
-        return dX_real::operator_mul ( a, T(b) );
+        return dX_real::operator_mul ( a, dX_real::dx_real<T, A>(b) );
       }
+#else
+      return dX_real::operator_mul ( a, dX_real::dx_real<T, A>(b));      
+#endif
     }
     template < typename T, Algorithm A >
     INLINE auto constexpr operator* ( T const& a, dX_real::dx_real<T,A> const& b ) NOEXCEPT {
@@ -1753,6 +1772,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator*= ( dX_real::dx_real<T,A> & a, Ts const& b ) NOEXCEPT {
+#if 0                                         // 26 Jun.2025 AS
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {
         return dX_real::operator_mul_ow_pow2 ( a, b );
@@ -1761,6 +1781,10 @@ namespace mX_real {
         {
           return dX_real::operator_mul_ow ( a, T(b) );
         }
+      3
+#else
+	return dX_real::operator_mul_ow ( a, dX_real::dx_real<T, A>(b) );	
+#endif
     }
     //
     // FMA
@@ -2158,6 +2182,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator/ ( dX_real::dx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+#if 0                                        // 26 Jun. 20205 AS
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {
         return dX_real::operator_div_pow2 ( a, b );
@@ -2168,6 +2193,9 @@ namespace mX_real {
       else {
         return dX_real::operator_div ( a, T(b) );
       }
+#else
+      return dX_real::operator_div ( a, dX_real::dx_real<T, A>(b) );      
+#endif
     }
     template < typename T, Algorithm A >
     INLINE auto constexpr operator/ ( T const& a, dX_real::dx_real<T,A> const& b ) NOEXCEPT {
@@ -2175,7 +2203,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator/ ( Ts const& a, dX_real::dx_real<T,A> const& b ) NOEXCEPT {
-      return dX_real::operator_div ( T(a), b );
+      return dX_real::operator_div ( dX_real::dx_real<T, A>(a), b );
     }
     //
 

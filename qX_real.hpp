@@ -158,6 +158,21 @@ namespace mX_real {
 #endif
 	scaling(*this, iexp);	
       }
+      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts),
+		 typename std::enable_if<
+			 std::is_same<Ts, int>::value ||
+			 std::is_same<Ts, long>::value,
+			 std::nullptr_t>::type = nullptr >
+      INLINE qx_real( Ts const &h ) NOEXCEPT {
+	*this = qx_real(static_cast<mpfrint32>(h));
+      }
+      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts),
+		 typename std::enable_if<
+ 		         std::is_same<Ts, long long>::value,
+			 std::nullptr_t>::type = nullptr >
+      INLINE qx_real( Ts const &h ) NOEXCEPT {
+	*this = qx_real(static_cast<mpfrint64>(h)); 
+      }            
 //      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
 //      INLINE qx_real( Ts const &h ) NOEXCEPT {
 //        { x[0] = T(h); for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
@@ -1157,7 +1172,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator+ ( qX_real::qx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
-      return qX_real::operator_add ( a, T(b) );
+      return qX_real::operator_add ( a, qX_real::qx_real<T,A>(b) );
     }
     template < typename T, Algorithm A >
     INLINE auto constexpr operator+ ( T const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
@@ -1332,7 +1347,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator+= ( qX_real::qx_real<T,A> & a, Ts const& b ) NOEXCEPT {
-      return qX_real::operator_add_ow ( a, T(b) );
+      return qX_real::operator_add_ow ( a, qX_real::qx_real<T,A>(b) );
     }
     //
 
@@ -1768,6 +1783,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator* ( qX_real::qx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+#if 0   // 26 Jun.2025 AS
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {
         return qX_real::operator_mul_pow2 ( a, b );
@@ -1778,6 +1794,9 @@ namespace mX_real {
       else {
         return qX_real::operator_mul ( a, T(b) );
       }
+#else
+      return qX_real::operator_mul ( a, qX_real::qx_real<T,A>(b) );      
+#endif
     }
     template < typename T, Algorithm A >
     INLINE auto constexpr operator* ( T const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
@@ -1903,6 +1922,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator*= ( qX_real::qx_real<T,A> & a, Ts const& b ) NOEXCEPT {
+#if 0   // 26 Jun.2025 AS
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {
         return qX_real::operator_mul_ow_pow2 ( a, b );
@@ -1911,6 +1931,9 @@ namespace mX_real {
         {
           return qX_real::operator_mul_ow ( a, T(b) );
         }
+#else
+      return qX_real::operator_mul_ow ( a, qX_real::qx_real<T,A>(b) );      
+#endif
     }
     //
     // FMA
@@ -2398,6 +2421,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator/ ( qX_real::qx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+#if 0  // 26 Jun.2025 AS
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {
         return qX_real::operator_div_pow2 ( a, b );
@@ -2408,6 +2432,9 @@ namespace mX_real {
       else {
         return qX_real::operator_div ( a, T(b) );
       }
+#else
+      return qX_real::operator_div ( a, qX_real::qx_real<T,A>(b) );
+#endif
     }
     template < typename T, Algorithm A >
     INLINE auto constexpr operator/ ( T const& a, qX_real::qx_real<T,A> const& b ) NOEXCEPT {
@@ -2532,6 +2559,7 @@ namespace mX_real {
     }
     template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
     INLINE auto constexpr operator/= ( qX_real::qx_real<T,A> & a, Ts const& b ) NOEXCEPT {
+#if 0   // 26 Jun.2025 AS
 #if MX_REAL_OPTIMIZE_PROD_BY_POW2
       if ( QxW::fp_const<T>::is_pow2( T(b) ) ) {
         return qX_real::operator_div_ow_pow2 ( a, b );
@@ -2540,6 +2568,9 @@ namespace mX_real {
         {
           return qX_real::operator_div_ow ( a, T(b) );
         }
+#else
+      return qX_real::operator_div_ow ( a, qX_real::qx_real<T,A>(b) );
+#endif
     }
     //
 
