@@ -23,6 +23,9 @@ template < typename T > void printTYPE() {
 #define MPFR_REAL_ENABLE_CONV_OPS 1
 #include "real.hpp"
 typedef mpfr::real<14, MPFR_RNDN> mpfrfp;
+typedef mpfr::real<32, MPFR_RNDN> mpfrint32;
+typedef mpfr::real<64, MPFR_RNDN> mpfrint64;
+
 
 #if defined(__NVCC__)
 #define	INLINE		__host__ __device__ __forceinline__
