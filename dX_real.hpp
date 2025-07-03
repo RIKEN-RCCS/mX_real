@@ -736,7 +736,27 @@ namespace mX_real {
     INLINE auto constexpr operator!= ( dX_real::dx_real<T,Aa> const& a, dX_real::dx_real<T,Ab> const& b ) NOEXCEPT {
       return !(a == b);
     }
+    // with casting from single number
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator== ( dX_real::dx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return dX_real::operator_eq ( a, dX_real::dx_real<T,A>(b) );
+    }
 
+        template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator== ( Ts const& a, dX_real::dx_real<T,A> const& b  ) NOEXCEPT {
+      return dX_real::operator_eq ( dX_real::dx_real<T,A>(a) , b);
+    }
+
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator!= ( dX_real::dx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return !dX_real::operator_eq ( a, dX_real::dx_real<T,A>(b) );
+    }
+
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator!= ( Ts const& a, dX_real::dx_real<T,A> const& b ) NOEXCEPT {
+      return !dX_real::operator_eq ( dX_real::dx_real<T,A>(a), b );
+    }
+    
     //
     // Comparison, greater than (>)
     //
@@ -768,6 +788,24 @@ namespace mX_real {
       return !(a > b);
     }
 
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator> ( dX_real::dx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return dX_real::operator_gt ( a, dX_real::dx_real<T,A>(b) );
+    }
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator> ( Ts const& a, dX_real::dx_real<T,A> const& b ) NOEXCEPT {
+      return dX_real::operator_gt ( dX_real::dx_real<T,A>(a), b );
+    }
+
+        template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator<= ( dX_real::dx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return !dX_real::operator_gt ( a, dX_real::dx_real<T,A>(b) );
+    }
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator<= ( Ts const& a, dX_real::dx_real<T,A> const& b ) NOEXCEPT {
+      return !dX_real::operator_gt ( dX_real::dx_real<T,A>(a), b );
+    }
+    
     //
     // Comparison, less than (<)
     //
@@ -799,6 +837,25 @@ namespace mX_real {
       return !(a < b);
     }
 
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator< ( dX_real::dx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return dX_real::operator_lt ( a, dX_real::dx_real<T,A>(b) );
+    }
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator< ( Ts const& a, dX_real::dx_real<T,A> const& b ) NOEXCEPT {
+      return dX_real::operator_lt ( dX_real::dx_real<T,A>(a), b );
+    }
+
+        template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator>= ( dX_real::dx_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return !dX_real::operator_lt ( a, dX_real::dx_real<T,A>(b) );
+    }
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator>= ( Ts const& a, dX_real::dx_real<T,A> const& b ) NOEXCEPT {
+      return !dX_real::operator_lt ( dX_real::dx_real<T,A>(a), b );
+    }
+    
+    
     //
     // Unitary operators
     //

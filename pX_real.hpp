@@ -101,7 +101,12 @@ namespace mX_real {
         { x[0] = h; for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
       }
 
-      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts),
+		 typename std::enable_if<
+			 !std::is_same<Ts, int>::value &&
+			 !std::is_same<Ts, long>::value &&		   
+			 !std::is_same<Ts, long long>::value,
+			 std::nullptr_t>::type = nullptr >
       INLINE px_real( Ts const &h ) NOEXCEPT {
 	Ts X;
 	X = QxW::fp_const<Ts>::fract_exp(h, &iexp);
@@ -710,6 +715,27 @@ namespace mX_real {
       return !(a == b);
     }
 
+    // with casting from single number
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator== ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return pX_real::operator_eq ( a, pX_real::px_real<T,A>(b) );
+    }
+
+        template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator== ( Ts const& a, pX_real::px_real<T,A> const& b  ) NOEXCEPT {
+      return pX_real::operator_eq ( pX_real::px_real<T,A>(a) , b);
+    }
+
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator!= ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return !pX_real::operator_eq ( a, pX_real::px_real<T,A>(b) );
+    }
+
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator!= ( Ts const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
+      return !pX_real::operator_eq ( pX_real::px_real<T,A>(a), b );
+    }
+    
     //
     // Comparison, greater than (>)
     //
@@ -741,6 +767,24 @@ namespace mX_real {
       return !(a > b);
     }
 
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator> ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return pX_real::operator_gt ( a, pX_real::px_real<T,A>(b) );
+    }
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator> ( Ts const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
+      return pX_real::operator_gt ( pX_real::px_real<T,A>(a), b );
+    }
+
+        template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator<= ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return !pX_real::operator_gt ( a, pX_real::px_real<T,A>(b) );
+    }
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator<= ( Ts const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
+      return !pX_real::operator_gt ( pX_real::px_real<T,A>(a), b );
+    }
+
     //
     // Comparison, less than (<)
     //
@@ -770,6 +814,24 @@ namespace mX_real {
     template < typename T, Algorithm Aa, Algorithm Ab >
     INLINE auto constexpr operator>= ( pX_real::px_real<T,Aa> const& a, pX_real::px_real<T,Ab> const& b ) NOEXCEPT {
       return !(a < b);
+    }
+
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator< ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return pX_real::operator_lt ( a, pX_real::px_real<T,A>(b) );
+    }
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator< ( Ts const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
+      return pX_real::operator_lt ( pX_real::px_real<T,A>(a), b );
+    }
+
+        template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator>= ( pX_real::px_real<T,A> const& a, Ts const& b ) NOEXCEPT {
+      return !pX_real::operator_lt ( a, pX_real::px_real<T,A>(b) );
+    }
+    template < typename T, Algorithm A, typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts) >
+    INLINE auto constexpr operator>= ( Ts const& a, pX_real::px_real<T,A> const& b ) NOEXCEPT {
+      return !pX_real::operator_lt ( pX_real::px_real<T,A>(a), b );
     }
 
     //
