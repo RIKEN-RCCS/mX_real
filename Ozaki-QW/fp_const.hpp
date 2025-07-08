@@ -281,6 +281,86 @@ namespace QxW {
       return aa;
     }
   };
+
+    template <> struct fp_const<mpfrint32> {
+    static INLINE auto const zero() NOEXCEPT { return mpfrint32(0); }
+    static INLINE auto const one()  NOEXCEPT { return mpfrint32(1); }
+    static INLINE auto const two()  NOEXCEPT { return mpfrint32(2); }
+    static INLINE auto const nhalf() NOEXCEPT { return mpfrint32(0.5); }
+    static INLINE auto const threehalves() NOEXCEPT { return mpfrint32(1.5); }
+    static INLINE mpfrint32 const exponent( mpfrint32 const a ) {
+      if ( a == mpfrint32(0) ) return mpfrint32(1); // zero ) return one;
+      mpfr_exp_t ix; // mpfr_exp_t = short/int/long
+      ix = mpfr_get_exp(a._x);
+      double y = pow(2.0, (double)ix);
+      mpfrint32 b;
+      mpfr_init_set_d(b._x, y, MPFR_RNDN);
+      return b;
+    }
+    static INLINE mpfrint32 const exponenti( mpfrint32 const a ) {
+      if ( a == mpfrint32(0) ) return mpfrint32(1); // if ( a == zero ) return one;
+      mpfr_exp_t ix;  // mpfr_exp_t = short/int/long
+      ix = mpfr_get_exp(a._x);
+      double y = pow(0.5, (double)ix);
+      mpfrint32 b;
+      mpfr_init_set_d(b._x, y, MPFR_RNDN);
+      return b;
+    }
+    static INLINE auto const ulp( mpfrint32 const a ) NOEXCEPT { return mpfrint32(0);}
+
+    static INLINE auto fract_exp(mpfrint32 const a, int16_t *iexp) NOEXCEPT {
+      mpfrint32 aa(a);
+      *iexp = static_cast<int16_t>(mpfr_get_exp(a._x));
+      mpfr_set_exp(aa._x, 0);
+      return aa;
+    }
+    
+    static INLINE auto set_exp(mpfrint32 const a, int16_t const iexp) NOEXCEPT {
+      mpfrint32 aa(a);
+      mpfr_set_exp(aa._x, static_cast<int>(iexp));
+      return aa;
+    }
+  };
+
+    template <> struct fp_const<mpfrint64> {
+    static INLINE auto const zero() NOEXCEPT { return mpfrint64(0); }
+    static INLINE auto const one()  NOEXCEPT { return mpfrint64(1); }
+    static INLINE auto const two()  NOEXCEPT { return mpfrint64(2); }
+    static INLINE auto const nhalf() NOEXCEPT { return mpfrint64(0.5); }
+    static INLINE auto const threehalves() NOEXCEPT { return mpfrint64(1.5); }
+    static INLINE mpfrint64 const exponent( mpfrint64 const a ) {
+      if ( a == mpfrint64(0) ) return mpfrint64(1); // zero ) return one;
+      mpfr_exp_t ix; // mpfr_exp_t = short/int/long
+      ix = mpfr_get_exp(a._x);
+      double y = pow(2.0, (double)ix);
+      mpfrint64 b;
+      mpfr_init_set_d(b._x, y, MPFR_RNDN);
+      return b;
+    }
+    static INLINE mpfrint64 const exponenti( mpfrint64 const a ) {
+      if ( a == mpfrint64(0) ) return mpfrint64(1); // if ( a == zero ) return one;
+      mpfr_exp_t ix;  // mpfr_exp_t = short/int/long
+      ix = mpfr_get_exp(a._x);
+      double y = pow(0.5, (double)ix);
+      mpfrint64 b;
+      mpfr_init_set_d(b._x, y, MPFR_RNDN);
+      return b;
+    }
+    static INLINE auto const ulp( mpfrint64 const a ) NOEXCEPT { return mpfrint64(0);}
+
+    static INLINE auto fract_exp(mpfrint64 const a, int16_t *iexp) NOEXCEPT {
+      mpfrint64 aa(a);
+      *iexp = static_cast<int16_t>(mpfr_get_exp(a._x));
+      mpfr_set_exp(aa._x, 0);
+      return aa;
+    }
+    
+    static INLINE auto set_exp(mpfrint64 const a, int16_t const iexp) NOEXCEPT {
+      mpfrint64 aa(a);
+      mpfr_set_exp(aa._x, static_cast<int>(iexp));
+      return aa;
+    }
+  };
 #endif
 }
 

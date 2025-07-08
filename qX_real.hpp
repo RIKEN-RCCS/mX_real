@@ -99,12 +99,15 @@ namespace mX_real {
         { x[0] = h; for(auto i=1; i<L; i++) { x[i] = fp<T>::zero(); } }
       }
 
-      template < typename Ts, T_scalar(Ts), T_neq_Ts(T,Ts),
+      template < typename Ts, T_neq_Ts(T,Ts),
 		 typename std::enable_if<
-			 !std::is_same<Ts, int>::value &&
-			 !std::is_same<Ts, long>::value &&		   
-			 !std::is_same<Ts, long long>::value,
-			 std::nullptr_t>::type = nullptr >
+		   (std::is_same<Ts, mpfrint32>::value ||
+		    std::is_same<Ts, mpfrint64>::value ||		    
+		    std::is_same<Ts, mpfrfp>::value ||
+		    std::is_same<Ts, float>::value ||
+		    std::is_same<Ts, double>::value ||
+		    std::is_same<Ts, long double>::value),		   
+		   std::nullptr_t>::type = nullptr >
       INLINE qx_real( Ts const &h ) NOEXCEPT {
 	Ts X;
 	X = QxW::fp_const<Ts>::fract_exp(h, &iexp);
