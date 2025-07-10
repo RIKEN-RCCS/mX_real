@@ -728,7 +728,7 @@ namespace mX_real {
 	} return a.x[i] > b.x[i];
       }
       else {
-	return static_cast<int>(a.iexp > b.iexp) ;
+	return (a.iexp > b.iexp) ;
       }
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
@@ -774,10 +774,10 @@ namespace mX_real {
       if (a.iexp == b.iexp) {      
 	auto i = 0; for(i=0; i<TX::L-1; i++) {
 	  if ( a.x[i] != b.x[i] ) { return a.x[i] < b.x[i]; }
-	} return static_cast<int>(a.x[i] < b.x[i]);
+	} return (a.x[i] < b.x[i]);
       }
       else {
-	return static_cast<int>(a.iexp < b.iexp);
+	return (a.iexp < b.iexp);
       }
     }      
     template < typename T, Algorithm Aa, Algorithm Ab >

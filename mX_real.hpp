@@ -990,7 +990,10 @@ namespace mX_real {
       //      fprintf(stderr, "%s %d %d %d\n", __FILE__, __LINE__, static_cast<int>(ia), static_cast<int>(a.iexp));
       mpfr_set_exp(a.x[0]._x, 0);
       for (int i = 1; i < T::L; i++) {
-	int iexpi = mpfr_get_exp(a.x[i]._x) - iexp0;
+	//	int iexpi = mpfr_get_exp(a.x[i]._x) - iexp0;
+	int iexpi = mpfr_get_exp(a.x[i]._x);
+	//	fprintf(stderr, "%s %d %d\n", __FILE__, __LINE__, iexpi);
+	iexpi -= iexp0;	
 	mpfr_set_exp(a.x[i]._x, iexpi);
       }
     }
