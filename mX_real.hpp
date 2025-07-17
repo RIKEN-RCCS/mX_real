@@ -60,6 +60,9 @@ typedef mpfr::real<64, MPFR_RNDN> mpfrint64;
 #define T_scalar(...)	T_assert( std::is_arithmetic< __VA_ARGS__ >::value || fp< __VA_ARGS__ >::value )
 #define T_not_scalar(...)	T_assert( ! std::is_arithmetic< __VA_ARGS__ >::value || fp< __VA_ARGS__ >::value )
 
+#define T_float(...)	T_assert( (std::is_arithmetic< __VA_ARGS__ >::value && !std::is_integral< __VA_ARGS__ >::value) || std::is_same<Ts, mpfrint32>::value || std::is_same<Ts, mpfrint64>::value || std::is_same<Ts, mpfrfp>::value )
+#define T_not_float(...) T_assert( (!std::is_arithmetic< __VA_ARGS__ >::value || std::is_integral< __VA_ARGS__ >::value) && !fstd::is_same<Ts, mpfrint32>::value && !std::is_same<Ts, mpfrint64>::value && !std::is_same<Ts, mpfrfp>::value )
+
 //
 // T_eq_Ts( typename Ta, typename Tb ): returns whether Ta and Tb are the same
 // T_neq_Ts( typename Ta, typename Tb ): return not T_eq_Ts
@@ -992,7 +995,7 @@ namespace mX_real {
       for (int i = 1; i < T::L; i++) {
 	//	int iexpi = mpfr_get_exp(a.x[i]._x) - iexp0;
 	int iexpi = mpfr_get_exp(a.x[i]._x);
-	//	fprintf(stderr, "%s %d %d\n", __FILE__, __LINE__, iexpi);
+	fprintf(stderr, "%s %d %d\n", __FILE__, __LINE__, iexpi);
 	iexpi -= iexp0;	
 	mpfr_set_exp(a.x[i]._x, iexpi);
       }

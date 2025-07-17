@@ -100,18 +100,10 @@ namespace mX_real {
 	scaling(*this);	
       }
 
-      template < typename Ts, T_neq_Ts(T,Ts),
-		 typename std::enable_if<
-		   (std::is_same<Ts, mpfrint32>::value ||
-		    std::is_same<Ts, mpfrint64>::value ||		    
-		    std::is_same<Ts, mpfrfp>::value ||
-		    std::is_same<Ts, float>::value ||
-		    std::is_same<Ts, double>::value ||
-		    std::is_same<Ts, long double>::value),		   
-			 std::nullptr_t>::type = nullptr >
+      template < typename Ts, T_neq_Ts(T,Ts), T_float(Ts) >
       INLINE tx_real( Ts const &h ) NOEXCEPT {
 	Ts X = QxW::fp_const<Ts>::fract_exp(h, &iexp);
-#if 0
+#if 1
 	for (auto i = 0; i < L; i++) {
 	  //	  T s(X); // constructor with cast from Ts to T
 	  T s;
@@ -669,7 +661,7 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_eq ( tX_real::tx_real<T,A> const& a, tX_real::tx_real<T,A> const& b ) NOEXCEPT {
+    INLINE bool constexpr operator_eq ( tX_real::tx_real<T,A> const& a, tX_real::tx_real<T,A> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       if (a.iexp == b.iexp) {            
 	auto i=0; for(i=0; i<TX::L-1; i++) {
@@ -677,7 +669,7 @@ namespace mX_real {
 	} return a.x[i] == b.x[i];
       }
       else {
-	return 0; //(a.iexp == b.iexp);
+	return false;
       }
     }
     template < typename T, Algorithm Aa, Algorithm Ab >
@@ -720,12 +712,12 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_gt ( tX_real::tx_real<T,A> const& a, tX_real::tx_real<T,A> const& b ) NOEXCEPT {
+    INLINE bool constexpr operator_gt ( tX_real::tx_real<T,A> const& a, tX_real::tx_real<T,A> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       if (a.iexp == b.iexp) {      
 	auto i=0; for(i=0; i<TX::L-1; i++) {
 	  if ( a.x[i] != b.x[i] ) { return a.x[i] > b.x[i]; }
-	} return a.x[i] > b.x[i];
+	} return (a.x[i] > b.x[i]);
       }
       else {
 	return (a.iexp > b.iexp) ;
@@ -769,7 +761,7 @@ namespace mX_real {
     //
     //
     template < typename T, Algorithm A >
-    INLINE auto constexpr operator_lt ( tX_real::tx_real<T,A> const& a, tX_real::tx_real<T,A> const& b ) NOEXCEPT {
+    INLINE bool constexpr operator_lt ( tX_real::tx_real<T,A> const& a, tX_real::tx_real<T,A> const& b ) NOEXCEPT {
       using TX = tX_real::tx_real<T,A>;
       if (a.iexp == b.iexp) {      
 	auto i = 0; for(i=0; i<TX::L-1; i++) {
